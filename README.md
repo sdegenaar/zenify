@@ -32,8 +32,8 @@ dependencies:
   flutter_riverpod: ^[latest_version]
   zen_state:
     git:
-      url: url: https://github.com/sdegenaar/zen_state.git
-      ref: main
+      url: https://github.com/sdegenaar/zen_state.git
+      ref: v0.1.1 
 ```
 ### Initialize ZenState
 ``` dart
