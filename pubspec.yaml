@@ -1,13 +1,13 @@
 name: zen_state
 description: A lightweight, intuitive state management library for Flutter that brings zen to your application architecture.
-version: 0.1.1  # Match your Git tag
+version: 0.1.2  # Match your Git tag
 homepage: https://github.com/sdegenaar/zen_state
 repository: https://github.com/sdegenaar/zen_state
 issue_tracker: https://github.com/sdegenaar/zen_state/issues
 documentation: https://github.com/sdegenaar/zen_state/wiki
 
 environment:
-  sdk: ">=2.17.0 <4.0.0"
+  sdk: ">=2.19.0 <4.0.0"
   flutter: ">=3.0.0"
 
 dependencies:

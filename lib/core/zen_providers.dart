@@ -1,5 +1,6 @@
 // lib/zen_state/zen_providers.dart
-import 'package:riverpod/riverpod.dart';
+
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'zen_logger.dart';
 

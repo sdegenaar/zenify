@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../reactive/rx_tracking.dart';
+import '../core/zen_logger.dart';
+import '../core/zen_config.dart';
 
 /// A widget that automatically rebuilds when any Rx value used in the builder changes
 class Obx extends StatefulWidget {
@@ -19,8 +21,9 @@ class _ObxState extends State<Obx> {
   @override
   void initState() {
     super.initState();
-    // For debugging
-    print("Obx widget initialized");
+    if (ZenConfig.enableDebugLogs) {
+      ZenLogger.logDebug("Obx widget initialized");
+    }
   }
 
   @override
@@ -39,8 +42,9 @@ class _ObxState extends State<Obx> {
   void _onValueChanged() {
     if (mounted) {
       setState(() {
-        // For debugging
-        print("Obx widget rebuilding on state change");
+        if (ZenConfig.enableDebugLogs) {
+          ZenLogger.logDebug("Obx widget rebuilding on state change");
+        }
       });
     }
   }
@@ -50,8 +54,9 @@ class _ObxState extends State<Obx> {
     if (!_trackedValues.contains(value)) {
       _trackedValues.add(value);
       value.addListener(_onValueChanged);
-      // For debugging
-      print("Tracking a new value: ${value.runtimeType}");
+      if (ZenConfig.enableDebugLogs) {
+        ZenLogger.logDebug("Tracking a new value: ${value.runtimeType}");
+      }
     }
   }
 
@@ -78,7 +83,7 @@ class _ObxState extends State<Obx> {
     // Manually track all Rx objects in the controller for Level 1
     // This is a workaround to ensure reactivity
     if (_trackedValues.isEmpty) {
-      print("WARNING: No tracked values found in Obx widget. Reactivity won't work.");
+      ZenLogger.logWarning("No tracked values found in Obx widget. Reactivity won't work.");
     }
 
     return result;

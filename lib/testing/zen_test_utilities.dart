@@ -1,8 +1,10 @@
 // lib/zen_state/testing/zen_test_utilities.dart
 import 'package:flutter/foundation.dart';
-import 'package:riverpod/riverpod.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../controllers/zen_controller.dart';
 import '../reactive/rx_value.dart';
+import '../core/zen_logger.dart';
+import '../core/zen_config.dart';
 
 /// Test utility for tracking changes to Rx values
 class RxTester<T> {
@@ -99,8 +101,8 @@ class ZenRiverpodTester {
           // This is a simple approach - in real implementation,
           // you might need reflection or a more sophisticated mechanism
           (controller as dynamic)[key] = value;
-                } catch (e) {
-          print('Failed to set mock value for $key: $e');
+        } catch (e) {
+          ZenLogger.logError('Failed to set mock value for $key', e);
         }
       });
 
@@ -120,6 +122,8 @@ class _TestProviderObserver extends ProviderObserver {
       Object? newValue,
       ProviderContainer container,
       ) {
-    print('Provider ${provider.name ?? provider.runtimeType} updated: $newValue');
+    if (ZenConfig.enableDebugLogs) {
+      ZenLogger.logDebug('Provider ${provider.name ?? provider.runtimeType} updated: $newValue');
+    }
   }
 }

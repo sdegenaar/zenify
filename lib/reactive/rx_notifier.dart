@@ -1,5 +1,6 @@
 // lib/zen_state/rx_notifier.dart
-import 'package:riverpod/riverpod.dart';
+
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/zen_config.dart';
 import '../core/zen_logger.dart';

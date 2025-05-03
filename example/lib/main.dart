@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:zen_state/zen_state.dart';
+import 'dart:developer' as developer;
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,13 +16,13 @@ void main() {
       logHandler: (message, level) {
         // In production, filter out debug logs
         if (isProduction && level == LogLevel.debug) return;
-        print('ZEN [${level.toString().split('.').last.toUpperCase()}]: $message');
+        developer.log('ZEN [${level.toString().split('.').last.toUpperCase()}]: $message', name: 'ZenState');
       },
       // Fix the errorHandler signature to match the expected type
       errorHandler: (String message, [dynamic error, StackTrace? stackTrace]) {
-        print('ZEN ERROR: $message');
-        if (error != null) print('Error: $error');
-        if (stackTrace != null) print('Stack: $stackTrace');
+        developer.log('ZEN ERROR: $message', name: 'ZenState');
+        if (error != null) developer.log('Error: $error', name: 'ZenState');
+        if (stackTrace != null) developer.log('Stack: $stackTrace', name: 'ZenState');
 
         // In a real app, you could integrate with your preferred error tracking system
         // but we'll keep it simple here
@@ -117,15 +118,15 @@ class HomeController extends ZenController {
     ZenMetrics.recordStateUpdate();
     ZenMetrics.stopTiming('HomeController.incrementLocal');
   }
-  
+
   // Level 4: Manual update state (like GetBuilder)
   int manualCounter = 0;
-  
+
   void incrementManual() {
     manualCounter++;
     update(); // Update all ZenBuilder instances
   }
-  
+
   void incrementSection(String sectionId) {
     manualCounter++;
     update([sectionId]); // Update only specific section
@@ -187,10 +188,10 @@ class HomePage extends StatelessWidget {
                   child: const Text('Increment Pure'),
                 );
               }),
-              
+
               const SizedBox(height: 30),
               const Divider(),
-              
+
               // Level 4: Manual updates with ZenBuilder (GetBuilder equivalent)
               Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -199,12 +200,12 @@ class HomePage extends StatelessWidget {
                     const Text(
                       'Manual Updates (GetBuilder style)',
                       style: TextStyle(
-                        fontSize: 18, 
+                        fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 20),
-                    
+
                     // Global ZenBuilder that updates with any update() call
                     ZenBuilder<HomeController>(
                       builder: (controller) => Text(
@@ -212,9 +213,9 @@ class HomePage extends StatelessWidget {
                         style: const TextStyle(fontSize: 16),
                       ),
                     ),
-                    
+
                     const SizedBox(height: 20),
-                    
+
                     // Two sections with different update IDs
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -248,7 +249,7 @@ class HomePage extends StatelessWidget {
                             ],
                           ),
                         ),
-                        
+
                         // Section B - only updates with 'section-b' ID
                         Container(
                           padding: const EdgeInsets.all(12),
@@ -280,9 +281,9 @@ class HomePage extends StatelessWidget {
                         ),
                       ],
                     ),
-                    
+
                     const SizedBox(height: 20),
-                    
+
                     // Button to update all sections
                     ElevatedButton(
                       onPressed: () => Zen.find<HomeController>()!.incrementManual(),

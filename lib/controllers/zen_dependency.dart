@@ -1,6 +1,6 @@
 // lib/zen_state/zen_dependency.dart
-import 'package:riverpod/riverpod.dart';
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'zen_controller.dart';
 
 /// Dependency injection container similar to Get.put/find

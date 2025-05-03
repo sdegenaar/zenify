@@ -1,9 +1,10 @@
 // lib/zen_state/rx_workers.dart
 import 'dart:async';
-import 'package:riverpod/riverpod.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../controllers/zen_controller.dart';
 import '../reactive/rx_notifier.dart';
 import '../reactive/rx_value.dart';
+import '../core/zen_logger.dart'; // Import ZenLogger
 
 /// Mimics GetX workers (ever, once, debounce, interval)
 class ZenWorkers {
@@ -20,7 +21,7 @@ class ZenWorkers {
         try {
           callback(next);
         } catch (e, stack) {
-          print('Error in ZenWorkers.ever callback: $e\n$stack');
+          ZenLogger.logError('Error in ZenWorkers.ever callback', e, stack);
         }
       },
     );
@@ -37,7 +38,7 @@ class ZenWorkers {
       try {
         callback(rx.value);
       } catch (e, stack) {
-        print('Error in ZenWorkers.everRx callback: $e\n$stack');
+        ZenLogger.logError('Error in ZenWorkers.everRx callback', e, stack);
       }
     }
 
@@ -65,7 +66,7 @@ class ZenWorkers {
           try {
             callback(next);
           } catch (e, stack) {
-            print('Error in ZenWorkers.once callback: $e\n$stack');
+            ZenLogger.logError('Error in ZenWorkers.once callback', e, stack);
           }
           called = true;
           subscription.close();
@@ -93,7 +94,7 @@ class ZenWorkers {
           try {
             callback(next);
           } catch (e, stack) {
-            print('Error in ZenWorkers.debounce callback: $e\n$stack');
+            ZenLogger.logError('Error in ZenWorkers.debounce callback', e, stack);
           }
         });
       },
@@ -122,7 +123,7 @@ class ZenWorkers {
           try {
             callback(next);
           } catch (e, stack) {
-            print('Error in ZenWorkers.interval callback: $e\n$stack');
+            ZenLogger.logError('Error in ZenWorkers.interval callback', e, stack);
           }
           lastRun = now;
         }
@@ -144,7 +145,7 @@ class ZenWorkers {
         try {
           callback(next);
         } catch (e, stack) {
-          print('Error in ZenWorkers.observe callback: $e\n$stack');
+          ZenLogger.logError('Error in ZenWorkers.observe callback', e, stack);
         }
       },
     );

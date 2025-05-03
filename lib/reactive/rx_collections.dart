@@ -268,11 +268,6 @@ class RxList<E> extends RxCollection<E, List<E>> implements List<E> {
   }
 
   @override
-  List<E> operator *(int times) {
-    throw UnsupportedError('Multiplication operator is not supported for Lists in Dart');
-  }
-
-  @override
   E get single => value.single;
 
   @override
@@ -294,7 +289,7 @@ class RxList<E> extends RxCollection<E, List<E>> implements List<E> {
       this.value[0] = value;
       notifyListeners();
     } else {
-      throw IndexError(0, this);
+      throw IndexError.withLength(0, 0, indexable: this, name: "index", message: "Cannot set first element on empty list");
     }
   }
 
@@ -304,7 +299,7 @@ class RxList<E> extends RxCollection<E, List<E>> implements List<E> {
       this.value[this.value.length - 1] = value;
       notifyListeners();
     } else {
-      throw IndexError(0, this);
+      throw IndexError.withLength(0, 0, indexable: this, name: "index", message: "Cannot set last element on empty list");
     }
   }
 }

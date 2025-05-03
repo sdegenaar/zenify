@@ -1,6 +1,6 @@
 // lib/zen_state/zen_controller.dart
 import 'package:flutter/foundation.dart';
-import 'package:riverpod/riverpod.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/zen_logger.dart';
 import '../core/zen_config.dart';
 import '../core/zen_metrics.dart';
@@ -69,8 +69,7 @@ abstract class ZenController {
       }
     }
   }
-  
-  @override
+
   void dispose() {
     if (_disposed) {
       ZenLogger.logWarning('Controller $runtimeType already disposed');
