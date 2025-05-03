@@ -18,6 +18,16 @@ class ZenMetrics {
   static int totalStateUpdates = 0;
   static int totalProviders = 0;
 
+  /// Effect metrics
+  static int totalEffectRuns = 0;
+  static int totalEffectSuccesses = 0;
+  static int totalEffectFailures = 0;
+  static Map<String, int> effectSuccessCounts = {};
+  static Map<String, int> effectFailureCounts = {};
+
+  /// General metrics counters for tracking events and operations
+  static final Map<String, int> _counters = {};
+
   /// Performance metrics
   static final Map<String, List<Duration>> _operationTimes = {};
   static final Stopwatch _stopwatch = Stopwatch();
@@ -60,6 +70,38 @@ class ZenMetrics {
     if (!ZenConfig.enablePerformanceTracking) return;
 
     totalProviders++;
+  }
+
+  /// Record a successful effect execution
+  static void recordEffectSuccess(String effectName) {
+    if (!ZenConfig.enablePerformanceTracking) return;
+
+    totalEffectRuns++;
+    totalEffectSuccesses++;
+    effectSuccessCounts[effectName] = (effectSuccessCounts[effectName] ?? 0) + 1;
+  }
+
+  /// Record a failed effect execution
+  static void recordEffectFailure(String effectName) {
+    if (!ZenConfig.enablePerformanceTracking) return;
+
+    totalEffectRuns++;
+    totalEffectFailures++;
+    effectFailureCounts[effectName] = (effectFailureCounts[effectName] ?? 0) + 1;
+  }
+
+  /// Increment a named counter to track occurrences of an event
+  static void incrementCounter(String name) {
+    if (!ZenConfig.enablePerformanceTracking) return;
+
+    _counters[name] = (_counters[name] ?? 0) + 1;
+  }
+
+  /// Record a specific value for a named counter
+  static void recordCounterValue(String name, int value) {
+    if (!ZenConfig.enablePerformanceTracking) return;
+
+    _counters[name] = value;
   }
 
   /// Start timing an operation
@@ -128,6 +170,14 @@ class ZenMetrics {
         'stateUpdates': totalStateUpdates,
         'providers': totalProviders,
       },
+      'effects': {
+        'totalRuns': totalEffectRuns,
+        'successful': totalEffectSuccesses,
+        'failed': totalEffectFailures,
+        'successByName': effectSuccessCounts,
+        'failureByName': effectFailureCounts,
+      },
+      'counters': Map.from(_counters),
       'performance': {
         'averageDurations': avgDurations,
       }
@@ -143,6 +193,12 @@ class ZenMetrics {
     totalRxValues = 0;
     totalStateUpdates = 0;
     totalProviders = 0;
+    totalEffectRuns = 0;
+    totalEffectSuccesses = 0;
+    totalEffectFailures = 0;
+    effectSuccessCounts.clear();
+    effectFailureCounts.clear();
+    _counters.clear();
     _operationTimes.clear();
   }
 

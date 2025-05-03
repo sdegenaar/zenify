@@ -1,14 +1,12 @@
 # ZenState
 A modern, flexible state management library for Flutter that bridges the gap between local reactive state and global state management, offering both a seamless migration path from GetX-like patterns to Riverpod and supporting a permanent hybrid approach where different state management techniques coexist in the same application.
 
-> **IMPORTANT:** This is a first pass implementation and is NOT PRODUCTION READY. Use at your own risk in development environments only. APIs may change significantly in future versions.
+> This is a first pass implementation and is NOT PRODUCTION READY. Use at your own risk in development environments only. APIs may change significantly in future versions. **IMPORTANT:**
 >
 
 ## Why ZenState?
 ZenState serves two complementary purposes:
-
 1. It provides a migration path for large Flutter applications transitioning from simpler state management approaches (like GetX) to more robust solutions (like Riverpod) without rewriting the entire codebase at once.
-
 2. It enables a hybrid state management approach where you can permanently use different patterns for different parts of your application based on their specific requirements.
 
 ### Key Advantages:
@@ -18,23 +16,23 @@ ZenState serves two complementary purposes:
 - ✅ **Reduced Boilerplate**: Concise syntax for common state operations
 - ✅ **Flexibility**: Choose the right approach for different scenarios
 - ✅ **Performance Monitoring**: Built-in metrics to identify bottlenecks
-
+- ✅ **Async Operations**: Built-in effect system for handling loading states
+- ✅ **State Bridging**: Seamlessly bridge between local and global state
+- ✅ **Reactive Base**: Core reactive primitives for building reactive systems
+- ✅ **RX Bridge**: Connect reactive state with Riverpod providers
+- ✅ **Zen Effects**: Handle async operations with built-in loading, error, and success states
 
 ## Acknowledgments
-
 ZenState draws inspiration from and builds upon the patterns established by:
-
 - [GetX](https://pub.dev/packages/get) - For its intuitive reactive state management syntax and simplicity
 - [Riverpod](https://riverpod.dev/) - For its robust, testable provider-based architecture
 
 This library aims to bridge the gap between these approaches and provide a migration path for teams looking to transition from one pattern to another.
-
 ## The Four Levels of State Management
-
 ZenState introduces a unique approach with four distinct levels of state management that can coexist in the same application:
-1. **Level 1: Local Reactive State** () - Similar to GetX's reactive values `Rx<T>`
-2. () - Bridge between local state and Riverpod **Level 2: Transitional Riverpod**`RxNotifier<T>`
-3. Standard Riverpod patterns for complex state **Level 3: Pure Riverpod**
+1. **Level 1: Local Reactive State** (`Rx<T>`) - Similar to GetX's reactive values
+2. **Level 2: Transitional Riverpod** (`RxNotifier<T>`) - Bridge between local state and Riverpod
+3. **Level 3: Pure Riverpod** - Standard Riverpod patterns for complex state
 4. **Level 4: Manual Updates** - Fine-grained control for performance-critical sections
 
 This tiered approach lets you adopt more advanced patterns incrementally, focusing on the most important parts of your application first.
@@ -50,7 +48,7 @@ dependencies:
   zen_state:
     git:
       url: https://github.com/sdegenaar/zen_state.git
-      ref: v0.1.2
+      ref: v0.1.3
 ```
 ### Initialize ZenState
 ``` dart
@@ -219,6 +217,29 @@ ZenWorkers.debounce(
 ZenWorkers.ever(
   isLoggedIn,
   (loggedIn) => loggedIn ? navigateToHome() : navigateToLogin(),
+);
+```
+### Zen Effects for Async Operations
+``` dart
+// In controller
+final userEffect = ZenEffect<User>();
+
+Future<void> loadUser(int userId) async {
+  userEffect.loading(); // Set loading state
+  try {
+    final user = await userRepository.getUser(userId);
+    userEffect.success(user); // Set success state with data
+  } catch (e) {
+    userEffect.error(e); // Set error state
+  }
+}
+
+// In UI
+ZenEffectBuilder<User>(
+  effect: controller.userEffect,
+  onLoading: () => CircularProgressIndicator(),
+  onError: (error) => Text('Error: $error'),
+  onSuccess: (user) => UserDetailCard(user),
 );
 ```
 ### Performance Monitoring

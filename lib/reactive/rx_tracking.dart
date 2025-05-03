@@ -19,6 +19,19 @@ class RxTracking {
     }
   }
 
+  /// Set a tracker that doesn't log tracking events
+  ///
+  /// This method is specifically designed for the optimized Obx widget to silently
+  /// track dependencies without logging or triggering additional rebuilds.
+  /// It's used when we need to collect dependencies but don't want to rebuild
+  /// the widget if the output hasn't changed.
+  ///
+  /// [trackFunc] - Function that will be called when an Rx value is accessed
+  static void setTrackerWithoutRebuild(void Function(ValueNotifier) trackFunc) {
+    _tracker = trackFunc;
+    // No logging here to avoid cluttering logs during dependency collection
+  }
+
   /// Clear the tracker, called by Obx after building
   static void clearTracker() {
     _tracker = null;

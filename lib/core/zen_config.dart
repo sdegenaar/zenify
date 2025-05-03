@@ -11,6 +11,9 @@ class ZenConfig {
   /// Performance settings
   static bool enablePerformanceTracking = false;
 
+  /// Alias for enablePerformanceTracking to match naming in other areas
+  static bool get enablePerformanceMetrics => enablePerformanceTracking;
+
   /// Auto-dispose settings
   static bool enableAutoDispose = true;
   static Duration controllerCacheExpiry = Duration(minutes: 10);

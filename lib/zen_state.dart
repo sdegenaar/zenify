@@ -1,4 +1,3 @@
-
 // lib/zen_state.dart
 // Main barrel file for ZenState library
 
@@ -17,23 +16,45 @@ export 'widgets/widgets.dart';
 // Workers
 export 'workers/workers.dart';
 
+//Effects
+export 'effects/effects.dart';
+
 // Testing utilities
 export 'testing/testing.dart';
 
-// Common type aliases and utility methods
-// Now just directly export from rx_value.dart where these functions are defined
+// Export the common reactive interfaces and types (existing ones)
+export 'reactive/rx_common.dart' show
+ReactiveValue,
+RxType,
+ObsExtension,
+IntObsExtension, DoubleObsExtension, BoolObsExtension, StringObsExtension;
+
+// Rx value primitives (Level 1: Local state)
 export 'reactive/rx_value.dart' show
 Rx,
 rxBool, rxInt, rxDouble, rxString,
-RxBool, RxInt, RxDouble, RxString;
+RxBool, RxInt, RxDouble, RxString,
+RxnBool, RxnDouble, RxnInt, RxnString,
+RxIntExtension, RxDoubleExtension, RxBoolExtension, RxStringExtension;
 
-// Reexport the Rx collections and convenience constructors
+// RxNotifier (Level 2: Transitional Riverpod)
+export 'reactive/rx_notifier.dart' show
+RxNotifier,
+RiverpodRxBool, RiverpodRxInt, RiverpodRxDouble, RiverpodRxString,
+RxNotifierIntExtension, RxNotifierDoubleExtension,
+RxNotifierBoolExtension, RxNotifierStringExtension,
+globalObs;
+
+// Reactive collections
 export 'reactive/rx_collections.dart' show
 RxList, RxMap, RxSet,
 rxList, rxMap, rxSet,
 ListObsExtension, MapObsExtension, SetObsExtension;
 
-// Reexport Zen class
+// Tracking system (used internally, but exposed for extensions)
+export 'reactive/rx_tracking.dart' show RxTracking;
+
+// Reexport Zen class and controller
 export 'controllers/zen_controller.dart' show Zen, ZenController;
 
 // Re-export worker functions

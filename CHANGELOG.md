@@ -1,3 +1,11 @@
+## 0.1.3
+
+* Add ZenEffect for handling async operations with loading states
+* Improve worker compatibility with proper RxNotifier types
+* Fix type compatibility issues between RxInt and RxNotifier
+* Add examples demonstrating async effects and reactive data flows
+* Enhance documentation for state bridging patterns
+
 ## 0.1.2
 
 * Update minimum Dart SDK to 2.19.0

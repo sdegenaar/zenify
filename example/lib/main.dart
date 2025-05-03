@@ -84,6 +84,16 @@ class HomeController extends ZenController {
   // Level 1: Local state
   RxInt counter = 0.obs();
 
+  // Level 2: Transitional Riverpod - for use with workers
+  final counterNotifier = RxNotifier<int>(0);
+
+  // Local state with global bridge
+  RxString localMessage = "Hello".obs();
+  late final RxNotifier<String> globalMessage;
+
+  // Add an effect for async operations
+  late final ZenEffect<String> fetchEffect;
+
   // Level 2: Transitional Riverpod
   final globalCounter = RxNotifier<int>(0);
   late final globalCounterProvider = globalCounter.createProvider(debugName: 'home.counter');
@@ -98,6 +108,15 @@ class HomeController extends ZenController {
     // Track performance of operations
     ZenMetrics.startTiming('HomeController.init');
 
+    // Bridge local state to global state
+    globalMessage = localMessage.asGlobal(debugName: 'home.message');
+
+    // Create an effect for async operations
+    fetchEffect = createEffect<String>(
+      name: 'fetchData',
+      initialData: 'No data fetched yet',
+    );
+
     // Set up workers with auto-disposal
     final disposer = ZenWorkers.debounce(
       globalCounter,
@@ -107,7 +126,20 @@ class HomeController extends ZenController {
       duration: const Duration(milliseconds: 500),
     );
 
+    // Add a worker to watch the counter changes - using RxNotifier
+    final counterWorker = ZenWorkers.ever(
+        counterNotifier,
+            (value) {
+          if (value > 5) {
+            localMessage.value = "Counter is getting high!";
+          } else {
+            localMessage.value = "Hello World";
+          }
+        }
+    );
+
     addDisposer(disposer);
+    addDisposer(counterWorker);
 
     ZenMetrics.stopTiming('HomeController.init');
   }
@@ -115,8 +147,26 @@ class HomeController extends ZenController {
   void incrementLocal() {
     ZenMetrics.startTiming('HomeController.incrementLocal');
     counter + 1;
+
+    // Also update the notifier to trigger workers
+    counterNotifier.value = counter.value;
+
     ZenMetrics.recordStateUpdate();
     ZenMetrics.stopTiming('HomeController.incrementLocal');
+  }
+
+  void updateMessage(String message) {
+    // Update local message, which automatically updates global message via bridge
+    localMessage.value = message;
+  }
+
+  // Example of using the async effect
+  Future<void> fetchData() async {
+    await fetchEffect.run(() async {
+      // Simulate network request
+      await Future.delayed(const Duration(seconds: 1));
+      return "Data fetched at ${DateTime.now().toIso8601String()}";
+    });
   }
 
   // Level 4: Manual update state (like GetBuilder)
@@ -155,6 +205,53 @@ class HomePage extends StatelessWidget {
               ElevatedButton(
                 onPressed: () => Zen.find<HomeController>()!.incrementLocal(),
                 child: const Text('Increment Local'),
+              ),
+
+              const SizedBox(height: 20),
+
+              // Example of bridged state
+              Obx(() {
+                final controller = Zen.find<HomeController>()!;
+                return Column(
+                  children: [
+                    Text('Local Message: ${controller.localMessage.value}'),
+                    Text('(This is also synced to global state)'),
+                  ],
+                );
+              }),
+
+              RiverpodObx((ref) {
+                final controller = Zen.find<HomeController>()!;
+                return Text('Global Message: ${ref.watch(controller.globalMessage.provider)}');
+              }),
+
+              ElevatedButton(
+                onPressed: () => Zen.find<HomeController>()!.updateMessage("Updated: ${DateTime.now().second}"),
+                child: const Text('Update Message'),
+              ),
+
+              const SizedBox(height: 20),
+
+              // Example of ZenEffect
+              Obx(() {
+                final controller = Zen.find<HomeController>()!;
+                return Column(
+                  children: [
+                    Text('Effect State:'),
+                    if (controller.fetchEffect.isLoading.value)
+                      const CircularProgressIndicator()
+                    else if (controller.fetchEffect.error.value != null)
+                      Text('Error: ${controller.fetchEffect.error.value}',
+                          style: const TextStyle(color: Colors.red))
+                    else
+                      Text('Data: ${controller.fetchEffect.data.value}'),
+                  ],
+                );
+              }),
+
+              ElevatedButton(
+                onPressed: () => Zen.find<HomeController>()!.fetchData(),
+                child: const Text('Fetch Data'),
               ),
 
               const SizedBox(height: 20),
