@@ -1,17 +1,24 @@
 # ZenState
-A modern, flexible state management library for Flutter that bridges the gap between local reactive state and global state management, providing a seamless migration path from GetX-like patterns to Riverpod.
+A modern, flexible state management library for Flutter that bridges the gap between local reactive state and global state management, offering both a seamless migration path from GetX-like patterns to Riverpod and supporting a permanent hybrid approach where different state management techniques coexist in the same application.
 
 > **IMPORTANT:** This is a first pass implementation and is NOT PRODUCTION READY. Use at your own risk in development environments only. APIs may change significantly in future versions.
 >
 
 ## Why ZenState?
-ZenState was created to solve the common problem of migrating large Flutter applications from simpler state management approaches (like GetX) to more robust solutions (like Riverpod) without rewriting the entire codebase at once.
+ZenState serves two complementary purposes:
+
+1. It provides a migration path for large Flutter applications transitioning from simpler state management approaches (like GetX) to more robust solutions (like Riverpod) without rewriting the entire codebase at once.
+
+2. It enables a hybrid state management approach where you can permanently use different patterns for different parts of your application based on their specific requirements.
+
 ### Key Advantages:
 - ✅ **Gradual Migration**: Keep existing code working while transitioning parts of your app
+- ✅ **Hybrid Architecture**: Use the right state management approach for each specific use case
 - ✅ **Unified Syntax**: Similar API across different state management levels
 - ✅ **Reduced Boilerplate**: Concise syntax for common state operations
-- ✅ **Flexibility**: Choose the right approach for each use case
+- ✅ **Flexibility**: Choose the right approach for different scenarios
 - ✅ **Performance Monitoring**: Built-in metrics to identify bottlenecks
+
 
 ## Acknowledgments
 
