@@ -13,7 +13,17 @@ ZenState was created to solve the common problem of migrating large Flutter appl
 - ✅ **Flexibility**: Choose the right approach for each use case
 - ✅ **Performance Monitoring**: Built-in metrics to identify bottlenecks
 
+## Acknowledgments
+
+ZenState draws inspiration from and builds upon the patterns established by:
+
+- [GetX](https://pub.dev/packages/get) - For its intuitive reactive state management syntax and simplicity
+- [Riverpod](https://riverpod.dev/) - For its robust, testable provider-based architecture
+
+This library aims to bridge the gap between these approaches and provide a migration path for teams looking to transition from one pattern to another.
+
 ## The Four Levels of State Management
+
 ZenState introduces a unique approach with four distinct levels of state management that can coexist in the same application:
 1. **Level 1: Local Reactive State** () - Similar to GetX's reactive values `Rx<T>`
 2. () - Bridge between local state and Riverpod **Level 2: Transitional Riverpod**`RxNotifier<T>`
@@ -232,3 +242,12 @@ ZenMetrics.startPeriodicLogging(const Duration(minutes: 1));
 Contributions are welcome! Please feel free to submit a Pull Request.
 ## License
 This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgments
+
+ZenState draws inspiration from and builds upon the patterns established by:
+
+- [GetX](https://pub.dev/packages/get) - For its intuitive reactive state management syntax and simplicity
+- [Riverpod](https://riverpod.dev/) - For its robust, testable provider-based architecture
+
+This library aims to bridge the gap between these approaches and provide a migration path for teams looking to transition from one pattern to another. We're grateful to the maintainers of both libraries for their contributions to the Flutter ecosystem.
