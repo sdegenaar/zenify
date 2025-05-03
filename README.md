@@ -43,7 +43,7 @@ dependencies:
   zen_state:
     git:
       url: https://github.com/sdegenaar/zen_state.git
-      ref: v0.1.1 
+      ref: v0.1.2
 ```
 ### Initialize ZenState
 ``` dart
@@ -242,12 +242,3 @@ ZenMetrics.startPeriodicLogging(const Duration(minutes: 1));
 Contributions are welcome! Please feel free to submit a Pull Request.
 ## License
 This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Acknowledgments
-
-ZenState draws inspiration from and builds upon the patterns established by:
-
-- [GetX](https://pub.dev/packages/get) - For its intuitive reactive state management syntax and simplicity
-- [Riverpod](https://riverpod.dev/) - For its robust, testable provider-based architecture
-
-This library aims to bridge the gap between these approaches and provide a migration path for teams looking to transition from one pattern to another. We're grateful to the maintainers of both libraries for their contributions to the Flutter ecosystem.
