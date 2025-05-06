@@ -1,12 +1,12 @@
-// lib/zen_state/rx_notifier.dart
-
+// lib/reactive/rx_notifier.dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/zen_config.dart';
 import '../core/zen_logger.dart';
-import '../core/zen_providers.dart';
+import '../providers/zen_providers.dart';
 
 /// Mimics GetX's Rx<T> with Riverpod's StateNotifier
+/// Provides type-safe operations for state management
 class RxNotifier<T> extends StateNotifier<T> {
   RxNotifier(super.initialValue);
 
@@ -19,7 +19,7 @@ class RxNotifier<T> extends StateNotifier<T> {
   // Operator overloading to mimic GetX's Rx behavior
   T call() => value;
 
-  // Update and return void (for operator extensions)
+  // Type-safe update method
   void update(T Function(T value) updater) => value = updater(value);
 
   /// Creates a provider for this RxNotifier
@@ -32,7 +32,7 @@ class RxNotifier<T> extends StateNotifier<T> {
 
     // Auto-register in the central registry if debugName is provided
     if (debugName != null) {
-      ZenProviders.register(_provider!, name: debugName);
+      ZenProviders.register<T>(_provider!, name: debugName);
 
       if (ZenConfig.enableDebugLogs) {
         ZenLogger.logDebug('Provider "$debugName" registered');

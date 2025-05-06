@@ -407,6 +407,6 @@ class PureCounter extends StateNotifier<int> {
   void increment() => state++;
 }
 
-// Placeholder classes for the example
+// Placeholder classes for the examples
 class ProfileController extends ZenController {}
 class SettingsController extends ZenController {}

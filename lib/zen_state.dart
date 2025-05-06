@@ -7,6 +7,7 @@ export 'core/core.dart';
 // Controllers
 export 'controllers/controllers.dart';
 
+
 // Reactive state
 export 'reactive/reactive.dart';
 
@@ -42,8 +43,7 @@ export 'reactive/rx_notifier.dart' show
 RxNotifier,
 RiverpodRxBool, RiverpodRxInt, RiverpodRxDouble, RiverpodRxString,
 RxNotifierIntExtension, RxNotifierDoubleExtension,
-RxNotifierBoolExtension, RxNotifierStringExtension,
-globalObs;
+RxNotifierBoolExtension, RxNotifierStringExtension;
 
 // Reactive collections
 export 'reactive/rx_collections.dart' show
@@ -55,7 +55,7 @@ ListObsExtension, MapObsExtension, SetObsExtension;
 export 'reactive/rx_tracking.dart' show RxTracking;
 
 // Reexport Zen class and controller
-export 'controllers/zen_controller.dart' show Zen, ZenController;
+export 'controllers/zen_controller.dart' show ZenController;
 
 // Re-export worker functions
 export 'workers/rx_workers.dart' show ZenWorkers;

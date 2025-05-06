@@ -7,7 +7,7 @@ issue_tracker: https://github.com/sdegenaar/zen_state/issues
 documentation: https://github.com/sdegenaar/zen_state/wiki
 
 environment:
-  sdk: ">=2.19.0 <4.0.0"
+  sdk: ">=3.0.0 <4.0.0"
   flutter: ">=3.0.0"
 
 dependencies:

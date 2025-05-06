@@ -1,0 +1,25 @@
+name: lite_mode_example
+description: A demonstration of ZenState in Lite mode (without Riverpod)
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ">=2.19.0 <4.0.0"
+  flutter: ">=3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_riverpod: ^2.6.1 # Make this optional future release ??
+  zen_state:
+    path: ../../  # This references the main package
+
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true

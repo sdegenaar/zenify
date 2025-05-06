@@ -5,6 +5,6 @@ A demonstration of the ZenState package for Flutter.
 ## Running the example
 
 ```bash
-cd example
+cd examples
 flutter run -d chrome
 ```

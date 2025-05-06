@@ -1,7 +1,5 @@
-// lib/reactive/reactive_base.dart
 
-import 'package:flutter/foundation.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+// lib/reactive/reactive_base.dart
 
 /// Type of reactive implementation
 enum ReactiveImplementation {
@@ -21,7 +19,7 @@ abstract class ReactiveBase<T> {
   T get value;
 
   /// Set to a new value
-  void set value(T newValue);
+  set value(T newValue);
 
   /// Call operator for consistent access patterns
   T call();

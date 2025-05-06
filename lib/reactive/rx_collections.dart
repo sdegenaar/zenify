@@ -589,14 +589,23 @@ RxMap<K, V> rxMap<K, V>([Map<K, V> initial = const {}]) => RxMap<K, V>(initial);
 RxSet<T> rxSet<T>([Set<T> initial = const {}]) => RxSet<T>(initial);
 
 // Extension methods for non-reactive lists, maps, and sets
+// We need to choose either the getter or method approach, not both
+// Using the method approach to match with the rest of the library
+
 extension ListObsExtension<E> on List<E> {
-  RxList<E> get obs => RxList<E>(this);
+  /// Creates a reactive list from a regular list
+  /// Example: final todos = <Todo>[].obs();
+  RxList<E> obs() => RxList<E>(this);
 }
 
 extension MapObsExtension<K, V> on Map<K, V> {
-  RxMap<K, V> get obs => RxMap<K, V>(this);
+  /// Creates a reactive map from a regular map
+  /// Example: final settings = <String, dynamic>{}.obs();
+  RxMap<K, V> obs() => RxMap<K, V>(this);
 }
 
 extension SetObsExtension<E> on Set<E> {
-  RxSet<E> get obs => RxSet<E>(this);
+  /// Creates a reactive set from a regular set
+  /// Example: final uniqueIds = <int>{}.obs();
+  RxSet<E> obs() => RxSet<E>(this);
 }

@@ -1,6 +1,7 @@
 // lib/zen_state/zen_controller_scope.dart
 import 'package:flutter/material.dart';
 import '../controllers/zen_controller.dart';
+import '../controllers/zen_di.dart';
 import '../core/zen_logger.dart';
 import '../core/zen_config.dart';
 import '../core/zen_metrics.dart';

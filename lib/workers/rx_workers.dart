@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../controllers/zen_controller.dart';
+import '../controllers/zen_di.dart';
 import '../reactive/rx_notifier.dart';
-import '../reactive/rx_value.dart';
 import '../core/zen_logger.dart';
 import '../core/zen_metrics.dart';
 import '../core/zen_config.dart';
@@ -458,9 +458,9 @@ class ZenWorkers {
     return () => worker.dispose();
   }
 
-  /// For ValueNotifier/Rx<T> based reactivity
+  /// For ValueNotifier/Rx<T> based reactivity - accepts any ValueNotifier
   static void Function() everRx<T>(
-      Rx<T> rx,
+      ValueNotifier<T> rx,  // Changed from Rx<T> to ValueNotifier<T>
       void Function(T) callback, {
         String? name,
       }) {
@@ -491,9 +491,9 @@ class ZenWorkers {
     return () => worker.dispose();
   }
 
-  /// Once for ValueNotifier/Rx<T> based reactivity
+  /// Once for ValueNotifier/Rx<T> based reactivity - accepts any ValueNotifier
   static void Function() onceRx<T>(
-      Rx<T> rx,
+      ValueNotifier<T> rx,  // Changed from Rx<T> to ValueNotifier<T>
       void Function(T) callback, {
         String? name,
       }) {
@@ -526,9 +526,9 @@ class ZenWorkers {
     return () => worker.dispose();
   }
 
-  /// Debounce for ValueNotifier/Rx<T> based reactivity
+  /// Debounce for ValueNotifier/Rx<T> based reactivity - accepts any ValueNotifier
   static void Function() debounceRx<T>(
-      Rx<T> rx,
+      ValueNotifier<T> rx,  // Changed from Rx<T> to ValueNotifier<T>
       void Function(T) callback, {
         Duration duration = const Duration(milliseconds: 800),
         String? name,
@@ -563,9 +563,9 @@ class ZenWorkers {
     return () => worker.dispose();
   }
 
-  /// Interval for ValueNotifier/Rx<T> based reactivity
+  /// Interval for ValueNotifier/Rx<T> based reactivity - accepts any ValueNotifier
   static void Function() intervalRx<T>(
-      Rx<T> rx,
+      ValueNotifier<T> rx,  // Changed from Rx<T> to ValueNotifier<T>
       void Function(T) callback, {
         Duration duration = const Duration(milliseconds: 800),
         String? name,
@@ -600,9 +600,9 @@ class ZenWorkers {
     return () => worker.dispose();
   }
 
-  /// Throttle for ValueNotifier/Rx<T> based reactivity
+  /// Throttle for ValueNotifier/Rx<T> based reactivity - accepts any ValueNotifier
   static void Function() throttleRx<T>(
-      Rx<T> rx,
+      ValueNotifier<T> rx,  // Changed from Rx<T> to ValueNotifier<T>
       void Function(T) callback, {
         Duration duration = const Duration(milliseconds: 800),
         String? name,
@@ -656,7 +656,7 @@ class ZenWorkers {
       name: name,
     );
 
-    if (reactive is Rx<T>) {
+    if (reactive is ValueNotifier<T>) {  // Changed from Rx<T> to ValueNotifier<T>
       worker.listenToValueNotifier(reactive);
     } else if (reactive is RxNotifier<T>) {
       worker.listenToRxNotifier(reactive, container: container);
@@ -693,7 +693,7 @@ extension ZenWorkersControllerExtension on ZenController {
       dynamic reactive, {
         ProviderContainer? container,
       }) {
-    if (reactive is Rx<T>) {
+    if (reactive is ValueNotifier<T>) {  // Changed from Rx<T> to ValueNotifier<T>
       worker.listenToValueNotifier(reactive);
     } else if (reactive is RxNotifier<T>) {
       worker.listenToRxNotifier(reactive, container: container);
@@ -709,9 +709,9 @@ extension ZenWorkersControllerExtension on ZenController {
 
   // Convenience methods for common worker types
 
-  /// Add an "ever" worker that will be auto-disposed
+  /// Add an "ever" worker that will be auto-disposed - accepts any ValueNotifier
   void everRx<T>(
-      Rx<T> rx,
+      ValueNotifier<T> rx,  // Changed from Rx<T> to ValueNotifier<T>
       void Function(T) callback, {
         String? name,
       }) {
@@ -725,9 +725,9 @@ extension ZenWorkersControllerExtension on ZenController {
     addDisposer(() => worker.dispose());
   }
 
-  /// Add a "debounce" worker that will be auto-disposed
+  /// Add a "debounce" worker that will be auto-disposed - accepts any ValueNotifier
   void debounceRx<T>(
-      Rx<T> rx,
+      ValueNotifier<T> rx,  // Changed from Rx<T> to ValueNotifier<T>
       void Function(T) callback, {
         Duration duration = const Duration(milliseconds: 800),
         String? name,
@@ -743,9 +743,9 @@ extension ZenWorkersControllerExtension on ZenController {
     addDisposer(() => worker.dispose());
   }
 
-  /// Add a "throttle" worker that will be auto-disposed
+  /// Add a "throttle" worker that will be auto-disposed - accepts any ValueNotifier
   void throttleRx<T>(
-      Rx<T> rx,
+      ValueNotifier<T> rx,  // Changed from Rx<T> to ValueNotifier<T>
       void Function(T) callback, {
         Duration duration = const Duration(milliseconds: 800),
         String? name,

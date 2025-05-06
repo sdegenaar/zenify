@@ -21,6 +21,7 @@ ZenState serves two complementary purposes:
 - ✅ **Reactive Base**: Core reactive primitives for building reactive systems
 - ✅ **RX Bridge**: Connect reactive state with Riverpod providers
 - ✅ **Zen Effects**: Handle async operations with built-in loading, error, and success states
+- ✅ **Enhanced Type Safety**: Generic type constraints throughout the library with compile-time type checking
 
 ## Acknowledgments
 ZenState draws inspiration from and builds upon the patterns established by:
@@ -43,12 +44,11 @@ Add ZenState to your : `pubspec.yaml`
 dependencies:
   flutter:
     sdk: flutter
-  riverpod: ^[latest_version]
   flutter_riverpod: ^[latest_version]
   zen_state:
     git:
       url: https://github.com/sdegenaar/zen_state.git
-      ref: v0.1.3
+      ref: v0.1.4
 ```
 ### Initialize ZenState
 ``` dart
