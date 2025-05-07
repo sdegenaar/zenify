@@ -51,7 +51,7 @@ dependencies:
   zen_state:
     git:
       url: https://github.com/sdegenaar/zen_state.git
-      ref: v0.2.0
+      ref: v0.1.5
 ```
 
 ### Initialize ZenState
