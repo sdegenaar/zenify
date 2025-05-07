@@ -3,4 +3,5 @@
 
 export 'rx_widgets.dart';
 export 'zen_builder.dart';
-export 'zen_controller_scope.dart';
+export 'zen_scope_widget.dart';
+export 'zen_provider.dart';

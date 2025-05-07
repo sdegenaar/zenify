@@ -4,9 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/zen_logger.dart';
 import '../core/zen_config.dart';
 import '../core/zen_metrics.dart';
-import 'zen_di.dart'; // Import the DI container
+import 'zen_di.dart';
 
-/// Base controller class similar to GetX controller
 /// Base controller class similar to GetX controller
 abstract class ZenController {
   final List<VoidCallback> _disposers = [];

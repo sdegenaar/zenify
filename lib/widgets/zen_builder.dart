@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../controllers/zen_controller.dart';
 import '../controllers/zen_di.dart';
+import '../core/zen_scope.dart';
 
 /// A widget that rebuilds only when [ZenController.update] is called with the specified ID
 class ZenBuilder<T extends ZenController> extends StatefulWidget {
@@ -19,6 +20,9 @@ class ZenBuilder<T extends ZenController> extends StatefulWidget {
   /// Optional factory to create the controller if not found and autoCreate is true
   final T Function()? create;
 
+  /// Optional function to specify which scope to use for finding the controller
+  final ZenScope Function()? findScopeFn;
+
   /// Whether the controller should be disposed when this widget is disposed
   final bool disposeController;
 
@@ -28,6 +32,7 @@ class ZenBuilder<T extends ZenController> extends StatefulWidget {
     this.id,
     this.autoCreate = false,
     this.create,
+    this.findScopeFn,
     this.disposeController = false,
     super.key,
   });
@@ -48,20 +53,23 @@ class _ZenBuilderState<T extends ZenController> extends State<ZenBuilder<T>> {
   }
 
   void _initController() {
+    // Determine which scope to use
+    final scope = widget.findScopeFn?.call();
+
     if (widget.autoCreate) {
       try {
-        controller = Zen.find<T>(tag: widget.tag) ??
+        controller = Zen.find<T>(tag: widget.tag, scope: scope) ??
             (widget.create != null ? widget.create!() :
-            Zen.get<T>(tag: widget.tag));
+            Zen.get<T>(tag: widget.tag, scope: scope));
       } catch (e) {
         if (widget.create != null) {
-          controller = Zen.put<T>(widget.create!(), tag: widget.tag);
+          controller = Zen.put<T>(widget.create!(), tag: widget.tag, scope: scope);
         } else {
           rethrow;
         }
       }
     } else {
-      controller = Zen.find<T>(tag: widget.tag) ??
+      controller = Zen.find<T>(tag: widget.tag, scope: scope) ??
           (throw Exception('Controller not found. Set autoCreate to true or provide a create function.'));
     }
 
@@ -81,8 +89,9 @@ class _ZenBuilderState<T extends ZenController> extends State<ZenBuilder<T>> {
   void didUpdateWidget(ZenBuilder<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    // Handle tag changes
-    if (oldWidget.tag != widget.tag) {
+    // Handle tag changes or scope changes
+    if (oldWidget.tag != widget.tag ||
+        oldWidget.findScopeFn != widget.findScopeFn) {
       // Unregister from old controller
       final oldUpdateId = oldWidget.id ?? _builderId;
       controller.removeUpdateListener(oldUpdateId, _onUpdate);
@@ -106,7 +115,9 @@ class _ZenBuilderState<T extends ZenController> extends State<ZenBuilder<T>> {
     controller.removeUpdateListener(updateId, _onUpdate);
 
     if (widget.disposeController) {
-      Zen.delete<T>(tag: widget.tag);
+      // Get the scope to use
+      final scope = widget.findScopeFn?.call();
+      Zen.delete<T>(tag: widget.tag, scope: scope);
     }
 
     super.dispose();

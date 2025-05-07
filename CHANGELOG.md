@@ -1,3 +1,14 @@
+## 0.1.5
+
+* Complete Phase 2: Dependency Management Improvements
+  * Implement hierarchical scope system for nested controller access
+  * Add circular dependency detection to prevent deadlocks
+  * Create module/binding system for organized dependency registration
+  * Enhance controller discovery with improved scoping
+  * Add lazy initialization support for dependencies
+  * Improve error reporting for dependency resolution issues
+
+
 ## 0.1.4
 
 * Complete Phase 1: Enhanced Type Safety

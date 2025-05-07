@@ -10,7 +10,7 @@ dependencies:
     sdk: flutter
   flutter_riverpod: ^2.6.1
   zen_state:
-    path: ../  # This references the main package
+    path: ../../  # This references the main package
 
 dev_dependencies:
   flutter_test:

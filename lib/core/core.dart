@@ -4,4 +4,5 @@
 export 'zen_config.dart';
 export 'zen_logger.dart';
 export 'zen_metrics.dart';
-export '../providers/zen_providers.dart';
+export 'zen_module.dart';
+export 'zen_scope.dart';
