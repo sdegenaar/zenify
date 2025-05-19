@@ -3,7 +3,16 @@ import 'dart:developer' as developer;
 import 'zen_config.dart';
 
 /// Log levels
-enum LogLevel { debug, info, warning, error }
+enum LogLevel {
+  debug,
+  info,
+  warning,
+  error;
+
+  @override
+  String toString() => name;
+}
+
 
 /// Centralized logging system for ZenState
 class ZenLogger {
@@ -12,6 +21,12 @@ class ZenLogger {
   /// Log handlers
   static void Function(String message, LogLevel level)? _logHandler;
   static void Function(String message, [dynamic error, StackTrace? stackTrace])? _errorHandler;
+
+  /// Test mode flag
+  static bool testMode = false;
+
+  /// Custom log function for testing
+  static void Function(String message, {String? name})? logFunction;
 
   /// Initialize the logger with custom handlers
   static void init({
@@ -68,8 +83,13 @@ class ZenLogger {
 
   /// Internal logging method that avoids direct print statements
   static void _log(String level, String message) {
-    // Use developer.log in debug mode, which shows up in dev tools
-    // but doesn't trigger the avoid_print lint
-    developer.log('ZEN $level: $message', name: 'ZenState');
+    // Use custom log function in test mode
+    if (testMode && logFunction != null) {
+      logFunction!('ZEN $level: $message', name: 'ZenState');
+    } else {
+      // Use developer.log in debug mode, which shows up in dev tools
+      // but doesn't trigger the avoid_print lint
+      developer.log('ZEN $level: $message', name: 'ZenState');
+    }
   }
 }

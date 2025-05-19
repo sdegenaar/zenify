@@ -1,3 +1,13 @@
+## 0.1.6
+
+* Complete Phase 3: Logging and Testing Improvements
+  * Replace print statements with structured ZenLogger system
+  * Add proper log levels (debug, warning, error) for better debugging
+  * Add comprehensive tests for dependency injection functionality
+  * Implement test helpers for isolated scope testing
+  * Add integration tests for scoped dependencies
+  * Improve error handling with descriptive messages
+
 ## 0.1.5
 
 * Complete Phase 2: Dependency Management Improvements
@@ -12,10 +22,10 @@
 ## 0.1.4
 
 * Complete Phase 1: Enhanced Type Safety
-    * Add generic type constraints to all collections (RxList<E>, RxMap<K,V>, RxSet<E>)
-    * Implement typed provider references with ControllerRef<T>
-    * Add compile-time type checking for controller dependencies
-    * Ensure type safety throughout reactive system and DI container
+  * Add generic type constraints to all collections (RxList<E>, RxMap<K,V>, RxSet<E>)
+  * Implement typed provider references with ControllerRef<T>
+  * Add compile-time type checking for controller dependencies
+  * Ensure type safety throughout reactive system and DI container
 
 ## 0.1.3
 

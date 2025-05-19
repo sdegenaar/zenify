@@ -157,7 +157,7 @@ class ZenModuleRegistry {
         } else if (recursionStack.contains(dependency)) {
           // Found a cycle
           if (ZenConfig.enableDebugLogs) {
-            ZenLogger.logError('Circular module dependency detected: $dependency depends on itself');
+            ZenLogger.logError('Circular module dependency detected: $current -> $dependency creates a cycle');
           }
           return true;
         }

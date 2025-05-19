@@ -7,7 +7,6 @@ class ProfileRepository {
   ProfileRepository({required this.authService});
 
   Future<User> getUserProfile() async {
-    print('get progile');
     if (!authService.isLoggedIn) {
       throw Exception('Not authenticated');
     }

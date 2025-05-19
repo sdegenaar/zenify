@@ -1,8 +1,8 @@
-
 // lib/widgets/zen_scope_widget.dart
 import 'package:flutter/material.dart';
 import '../core/zen_scope.dart';
 import '../controllers/zen_di.dart';
+import '../controllers/zen_controller.dart';
 
 /// A widget that creates and manages a ZenScope
 ///
@@ -22,14 +22,22 @@ class ZenScopeWidget extends StatefulWidget {
   /// Whether to create a root scope (no parent)
   final bool isRoot;
 
+  /// Optional function to create and register a controller with this scope
+  final ZenController Function()? create;
+
+  /// Optional existing scope to use directly
+  final ZenScope? scope;
+
   /// Create a scope widget
   const ZenScopeWidget({
     required this.child,
     this.id,
     this.name,
     this.isRoot = false,
-    Key? key,
-  }) : super(key: key);
+    this.create,
+    this.scope,
+    super.key,
+  });
 
   @override
   State<ZenScopeWidget> createState() => _ZenScopeWidgetState();
@@ -93,43 +101,72 @@ class ZenScopeWidget extends StatefulWidget {
   }
 }
 
+// lib/widgets/zen_scope_widget.dart
 class _ZenScopeWidgetState extends State<ZenScopeWidget> {
   late ZenScope scope;
+  ZenController? _createdController;
 
   @override
   void initState() {
     super.initState();
-    _createScope();
+    _initializeScope();
   }
 
-  void _createScope() {
-    if (widget.isRoot) {
+  void _initializeScope() {
+    if (widget.scope != null) {
+      // Use provided scope directly
+      scope = widget.scope!;
+      _createAndRegisterController();
+    } else if (widget.isRoot) {
       // Create root scope
       scope = ZenScope(
         id: widget.id,
         name: widget.name,
       );
+      _createAndRegisterController();
     } else {
-      // We need to wait for the first build to access the context
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        final parentScope = ZenScopeWidget.maybeOf(context);
-        // Only update if the state is still mounted
-        if (mounted) {
-          setState(() {
-            scope = ZenScope(
-              id: widget.id,
-              name: widget.name,
-              parent: parentScope,
-            );
-          });
-        }
-      });
-
-      // Temporary scope until we can access the parent
+      // For non-root scopes, we'll create a temporary scope
+      // and update it in didChangeDependencies
       scope = ZenScope(
         id: widget.id,
         name: '${widget.name ?? "unnamed"}-temp',
       );
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // If we're not a root scope and don't have a direct scope,
+    // update the scope with the correct parent relationship
+    if (!widget.isRoot && widget.scope == null) {
+      final parentScope = ZenScopeWidget.maybeOf(context) ?? Zen.rootScope;
+
+      // Create a new scope with the correct parent
+      final newScope = ZenScope(
+        id: widget.id,
+        name: widget.name,
+        parent: parentScope,
+      );
+
+      // If this is different from our current scope, update it
+      if (scope.parent != parentScope) {
+        // Update scope reference
+        scope = newScope;
+
+        // Create and register controller in the new scope
+        _createAndRegisterController();
+      }
+    }
+  }
+
+  void _createAndRegisterController() {
+    if (widget.create != null) {
+      _createdController = widget.create!();
+      if (_createdController != null) {
+        Zen.put(_createdController!, scope: scope);
+      }
     }
   }
 

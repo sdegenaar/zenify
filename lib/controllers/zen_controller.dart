@@ -1,5 +1,6 @@
+
 // lib/controllers/zen_controller.dart
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/zen_logger.dart';
 import '../core/zen_config.dart';
@@ -7,12 +8,22 @@ import '../core/zen_metrics.dart';
 import 'zen_di.dart';
 
 /// Base controller class similar to GetX controller
-abstract class ZenController {
+///
+/// Lifecycle methods:
+/// - [onInit]: Called when the controller is first created. Override to initialize properties.
+///   IMPORTANT: Always call super.onInit() at the END of your override.
+/// - [onReady]: Called after init when the controller is ready. Override to load data.
+///   IMPORTANT: Always call super.onReady() at the END of your override.
+/// - [onDispose]: Called when the controller is disposed. Override to clean up resources.
+///   IMPORTANT: Always call super.onDispose() at the END of your override.
+
+abstract class ZenController with WidgetsBindingObserver {
   final List<VoidCallback> _disposers = [];
   final DateTime _createdAt = DateTime.now();
   bool _disposed = false;
   bool _initialized = false;
   bool _ready = false;
+  bool _observingAppLifecycle = false;
 
   DateTime get createdAt => _createdAt;
   bool get isDisposed => _disposed;
@@ -21,9 +32,13 @@ abstract class ZenController {
 
   /// Called when the controller is first created and registered
   /// This is a good place to initialize basic properties
+  /// WARNING: Override onInit only if you call super.onInit() at the END of your override
   @mustCallSuper
   void onInit() {
+    // If already initialized, don't proceed further
     if (_initialized) return;
+
+    // Set the initialized flag
     _initialized = true;
 
     if (ZenConfig.enableDebugLogs) {
@@ -33,9 +48,13 @@ abstract class ZenController {
 
   /// Called after init, when the controller is registered and ready for use
   /// Good place to fetch data or perform actions that depend on context/widgets
+  /// WARNING: Override onReady only if you call super.onReady() at the END of your override
   @mustCallSuper
   void onReady() {
+    // If already ready, don't proceed further
     if (_ready) return;
+
+    // Set the ready flag
     _ready = true;
 
     if (ZenConfig.enableDebugLogs) {
@@ -50,6 +69,31 @@ abstract class ZenController {
     if (ZenConfig.enableDebugLogs) {
       ZenLogger.logDebug('Controller $runtimeType onDispose called');
     }
+  }
+
+  /// Starts observing app lifecycle events
+  /// Call this if you need app lifecycle callbacks
+  void startObservingAppLifecycle() {
+    if (_observingAppLifecycle) return;
+
+    WidgetsBinding.instance.addObserver(this);
+    _observingAppLifecycle = true;
+
+    // Add disposer to clean up when controller is disposed
+    addDisposer(() {
+      if (_observingAppLifecycle) {
+        WidgetsBinding.instance.removeObserver(this);
+        _observingAppLifecycle = false;
+      }
+    });
+  }
+
+  /// Stop observing app lifecycle events
+  void stopObservingAppLifecycle() {
+    if (!_observingAppLifecycle) return;
+
+    WidgetsBinding.instance.removeObserver(this);
+    _observingAppLifecycle = false;
   }
 
   /// Called when the app is paused (background)
@@ -90,6 +134,28 @@ abstract class ZenController {
   void onHidden() {
     if (ZenConfig.enableDebugLogs) {
       ZenLogger.logDebug('Controller $runtimeType hidden');
+    }
+  }
+
+  /// Handles app lifecycle state changes
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    switch (state) {
+      case AppLifecycleState.inactive:
+        onInactive();
+        break;
+      case AppLifecycleState.paused:
+        onPause();
+        break;
+      case AppLifecycleState.resumed:
+        onResume();
+        break;
+      case AppLifecycleState.detached:
+        onDetached();
+        break;
+      case AppLifecycleState.hidden:
+        onHidden();
+        break;
     }
   }
 

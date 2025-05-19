@@ -1,8 +1,8 @@
 # ZenState
-
 A modern, flexible state management library for Flutter that bridges the gap between local reactive state and global state management, offering both a seamless migration path from GetX-like patterns to Riverpod and supporting a permanent hybrid approach where different state management techniques coexist in the same application.
 
-> Version 0.1.5 brings significant improvements to dependency management with hierarchical scopes, circular dependency detection, and an organized module system.
+> Version 0.1.6 brings enhanced controller lifecycle management, improved performance optimizations, and better testing utilities.
+>
 
 ## Why ZenState?
 ZenState serves two complementary purposes:
@@ -25,6 +25,8 @@ ZenState serves two complementary purposes:
 - ✅ **RX Bridge**: Connect reactive state with Riverpod providers
 - ✅ **Zen Effects**: Handle async operations with built-in loading, error, and success states
 - ✅ **Enhanced Type Safety**: Generic type constraints throughout the library with compile-time type checking
+- ✅ **Performance Optimizations**: Intelligent rebuild management and memory efficiency improvements
+- ✅ **Enhanced Testing Utilities**: Better support for testing reactive state
 
 ## Acknowledgments
 ZenState draws inspiration from and builds upon the patterns established by:
@@ -34,10 +36,10 @@ ZenState draws inspiration from and builds upon the patterns established by:
 This library aims to bridge the gap between these approaches and provide a migration path for teams looking to transition from one pattern to another.
 ## The Four Levels of State Management
 ZenState introduces a unique approach with four distinct levels of state management that can coexist in the same application:
-1. **Level 1: Local Reactive State** (`Rx<T>`) - Similar to GetX's reactive values
-2. **Level 2: Transitional Riverpod** (`RxNotifier<T>`) - Bridge between local state and Riverpod
-3. **Level 3: Pure Riverpod** - Standard Riverpod patterns for complex state
-4. **Level 4: Manual Updates** - Fine-grained control for performance-critical sections
+1. () - Similar to GetX's reactive values **Level 1: Local Reactive State**`Rx<T>`
+2. () - Bridge between local state and Riverpod **Level 2: Transitional Riverpod**`RxNotifier<T>`
+3. - Standard Riverpod patterns for complex state **Level 3: Pure Riverpod**
+4. - Fine-grained control for performance-critical sections **Level 4: Manual Updates**
 
 This tiered approach lets you adopt more advanced patterns incrementally, focusing on the most important parts of your application first.
 ## Quick Start
@@ -51,9 +53,8 @@ dependencies:
   zen_state:
     git:
       url: https://github.com/sdegenaar/zen_state.git
-      ref: v0.1.5
+      ref: v0.1.6
 ```
-
 ### Initialize ZenState
 ``` dart
 void main() {
@@ -72,7 +73,6 @@ void main() {
   );
 }
 ```
-
 ### Your First ZenController
 ``` dart
 class CounterController extends ZenController {
@@ -84,7 +84,6 @@ class CounterController extends ZenController {
   }
 }
 ```
-
 ### Using in Widgets
 ``` dart
 class CounterView extends StatelessWidget {
@@ -108,13 +107,9 @@ class CounterView extends StatelessWidget {
   }
 }
 ```
-
-
 ## Dependency Management
-
 ### Hierarchical Scopes
 ZenState now supports hierarchical scoping for controllers, allowing for better organization and access patterns:
-
 ``` dart
 // Create nested scopes
 ZenControllerScope<ParentController>(
@@ -132,11 +127,8 @@ ZenControllerScope<ParentController>(
   ),
 );
 ```
-
-
 ### Module System
 Organize your controllers with the new module system:
-
 ``` dart
 // Define a module for related controllers
 class AuthModule extends ZenModule {
@@ -170,11 +162,8 @@ void main() {
   runApp(const MyApp());
 }
 ```
-
-
 ### Circular Dependency Detection
 ZenState now automatically detects and reports circular dependencies:
-
 ``` dart
 // This would trigger a clear error message instead of an infinite loop
 class ServiceA extends ZenController {
@@ -193,8 +182,6 @@ class ServiceB extends ZenController {
   }
 }
 ```
-
-
 ## Migration Path Examples
 ### Level 1: Local Reactive State
 Similar to GetX's approach, perfect for starting your migration: `.obs`
@@ -221,7 +208,6 @@ void updateName() {
 // In UI - use Obx for automatic rebuilds
 Obx(() => Text('Name: ${controller.name.value}'));
 ```
-
 ### Level 2: Transitional Riverpod
 Bridge the gap with RxNotifier that creates Riverpod providers:
 ``` dart
@@ -239,7 +225,6 @@ RiverpodObx((ref) {
   return Text('Count: $count');
 });
 ```
-
 ### Level 3: Pure Riverpod
 Fully embrace Riverpod for complex state management:
 ``` dart
@@ -260,7 +245,6 @@ Consumer(
   },
 );
 ```
-
 ### Level 4: Manual Updates
 For fine-grained control and maximum performance:
 ``` dart
@@ -283,7 +267,6 @@ ZenBuilder<MyController>(
   builder: (controller) => Text('${controller.manualCounter}'),
 );
 ```
-
 ## Advanced Features
 ### Automatic Lifecycle Management
 ZenState can automatically manage controller lifecycles based on routes:
@@ -302,7 +285,6 @@ void main() {
   );
 }
 ```
-
 ### Workers for Reactive Operations
 ``` dart
 // In controller constructor
@@ -317,7 +299,6 @@ ZenWorkers.ever(
   (loggedIn) => loggedIn ? navigateToHome() : navigateToLogin(),
 );
 ```
-
 ### Zen Effects for Async Operations
 ``` dart
 // In controller
@@ -341,7 +322,6 @@ ZenEffectBuilder<User>(
   onSuccess: (user) => UserDetailCard(user),
 );
 ```
-
 ### Performance Monitoring
 ``` dart
 // Track operation time
@@ -352,24 +332,54 @@ ZenMetrics.stopTiming('expensiveOperation');
 // Get insights in development
 ZenMetrics.startPeriodicLogging(const Duration(minutes: 1));
 ```
-
+## Testing Support
+ZenState now provides enhanced testing utilities:
+``` dart
+// Testing a controller with dependencies
+void main() {
+  testWidgets('Counter increments test', (tester) async {
+    // Setup test environment
+    final testContainer = ZenTestContainer();
+    
+    // Register mocks
+    testContainer.register<ApiService>(() => MockApiService());
+    
+    // Register controller under test
+    testContainer.register<CounterController>(() => CounterController());
+    
+    // Run test with provided container
+    await tester.pumpWidget(
+      ZenTestScope(
+        container: testContainer,
+        child: CounterTestWidget(),
+      ),
+    );
+    
+    // Perform test actions and assertions
+    final controller = testContainer.find<CounterController>();
+    expect(controller.counter.value, 0);
+    controller.increment();
+    expect(controller.counter.value, 1);
+  });
+}
+```
 ## Known Limitations
-- **Not Production Ready**: This is an experimental library with potential bugs
-- **API Stability**: Breaking changes are likely in future versions
-- **Performance**: Not fully optimized for large-scale applications
-- **Documentation**: Still evolving and may have gaps
-- **Testing Support**: Limited testing utilities at this stage
+- **Beta Stage**: While more stable, this library is still in beta with potential bugs
+- **API Stability**: Some breaking changes may occur in future versions
+- **Performance**: Still being optimized for very large-scale applications
+- **Documentation**: Continuously improving but may have some gaps
 
 ## Roadmap
-- **Phase 4: Performance Optimization** (Coming Next)
-    - Memory efficiency improvements
-    - Rebuild optimization
-    - Intelligent collection diffing
-    - Developer tools for performance profiling
-- Comprehensive documentation and examples
-- Enhanced testing utilities
-- More worker types and reactive patterns
-- Better debuggability and developer tools
+- **Phase 5: Developer Experience** (Coming Next)
+  - Comprehensive debugging tools
+  - Visual state inspector
+  - Code generation utilities
+  - Migration assistants
+
+- Expanded documentation and examples
+- Additional performance optimizations
+- More advanced reactive patterns
+- Expanded testing utilities
 
 ## Contributing
 Contributions are welcome! Please feel free to submit a Pull Request.
