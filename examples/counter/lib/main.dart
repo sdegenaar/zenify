@@ -1,7 +1,7 @@
 // main.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:zen_state/zen_state.dart';
+import 'package:zenify/zenify.dart';
 import 'dart:developer' as developer;
 
 void main() {

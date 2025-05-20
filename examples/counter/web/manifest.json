@@ -1,6 +1,6 @@
 {
-    "name": "zen_state_example",
-    "short_name": "zen_state_example",
+    "name": "zenify_example",
+    "short_name": "zenify_example",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

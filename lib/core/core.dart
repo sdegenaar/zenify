@@ -1,4 +1,4 @@
-// lib/zen_state/core/core.dart
+// lib/zenify/core/core.dart
 // Core infrastructure components
 
 export 'zen_config.dart';

@@ -1,5 +1,5 @@
 
-import 'package:zen_state/zen_state.dart';
+import 'package:zenify/zenify.dart';
 import '../services/auth_service.dart';
 
 class LoginController extends ZenController {

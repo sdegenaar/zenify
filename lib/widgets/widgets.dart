@@ -1,4 +1,4 @@
-// lib/zen_state/widgets/widgets.dart
+// lib/zenify/widgets/widgets.dart
 // Widget components for reactive UI
 
 export 'rx_widgets.dart';

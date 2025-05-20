@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:zen_state/zen_state.dart';
+import 'package:zenify/zenify.dart';
 import '../controllers/login_controller.dart';
 import 'profile_page.dart';
 

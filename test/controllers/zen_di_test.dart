@@ -1,6 +1,6 @@
 // test/controllers/zen_di_test.dart
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zen_state/zen_state.dart';
+import 'package:zenify/zenify.dart';
 import '../test_helpers.dart';
 
 // Test classes

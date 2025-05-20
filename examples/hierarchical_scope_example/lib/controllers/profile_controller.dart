@@ -1,4 +1,4 @@
-import 'package:zen_state/zen_state.dart';
+import 'package:zenify/zenify.dart';
 import '../services/profile_repository.dart';
 import '../models/user.dart';
 

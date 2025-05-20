@@ -11,7 +11,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_riverpod: ^2.6.1 # Make this optional future release ??
-  zen_state:
+  zenify:
     path: ../../  # This references the main package
 
   cupertino_icons: ^1.0.8

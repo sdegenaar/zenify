@@ -1,4 +1,4 @@
-// lib/zen_state/rx_collections.dart
+// lib/zenify/rx_collections.dart
 
 import 'dart:math';
 import 'package:flutter/foundation.dart';

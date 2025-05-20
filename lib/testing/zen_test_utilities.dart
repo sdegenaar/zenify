@@ -1,4 +1,4 @@
-// lib/zen_state/testing/zen_test_utilities.dart
+// lib/zenify/testing/zen_test_utilities.dart
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../controllers/zen_controller.dart';

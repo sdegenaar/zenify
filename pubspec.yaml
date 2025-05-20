@@ -1,10 +1,10 @@
-name: zen_state
+name: zenify
 description: A lightweight, intuitive state management library for Flutter that brings zen to your application architecture.
 version: 0.1.2  # Match your Git tag
-homepage: https://github.com/sdegenaar/zen_state
-repository: https://github.com/sdegenaar/zen_state
-issue_tracker: https://github.com/sdegenaar/zen_state/issues
-documentation: https://github.com/sdegenaar/zen_state/wiki
+homepage: https://github.com/sdegenaar/zenify
+repository: https://github.com/sdegenaar/zenify
+issue_tracker: https://github.com/sdegenaar/zenify/issues
+documentation: https://github.com/sdegenaar/zenify/wiki
 
 environment:
   sdk: ">=3.0.0 <4.0.0"

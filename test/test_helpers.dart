@@ -1,7 +1,7 @@
 // test/test_helpers.dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zen_state/zen_state.dart';
+import 'package:zenify/zenify.dart';
 
 /// Helper class for testing with Zen
 class ZenTestHelper {

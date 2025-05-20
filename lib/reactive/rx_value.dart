@@ -1,4 +1,4 @@
-// lib/zen_state/reactive/rx_value.dart
+// lib/zenify/reactive/rx_value.dart
 import 'package:flutter/foundation.dart';
 import 'rx_tracking.dart';
 
@@ -61,7 +61,7 @@ extension RxStringExtension on Rx<String> {
   void clear() => value = '';
 }
 
-// Non-nullable type aliases (these match what's exported in zen_state.dart)
+// Non-nullable type aliases (these match what's exported in zenify.dart)
 typedef RxBool = Rx<bool>;
 typedef RxInt = Rx<int>;
 typedef RxDouble = Rx<double>;

@@ -1,4 +1,4 @@
-// lib/zen_state/zen_metrics.dart
+// lib/zenify/zen_metrics.dart
 import 'dart:async';
 import 'zen_config.dart';
 import 'zen_logger.dart';

@@ -1,6 +1,6 @@
 
 import 'package:flutter/material.dart';
-import 'package:zen_state/zen_state.dart';
+import 'package:zenify/zenify.dart';
 import '../controllers/profile_controller.dart';
 import '../services/profile_repository.dart';
 import '../services/auth_service.dart';

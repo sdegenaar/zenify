@@ -1,6 +1,6 @@
 // test/core/zen_scope_test.dart
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zen_state/zen_state.dart';
+import 'package:zenify/zenify.dart';
 
 // Test service classes
 class TestService {

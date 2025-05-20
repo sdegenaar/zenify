@@ -1,5 +1,5 @@
-import 'package:zen_state/controllers/zen_controller.dart';
-import 'package:zen_state/reactive/reactive.dart';
+import 'package:zenify/controllers/zen_controller.dart';
+import 'package:zenify/reactive/reactive.dart';
 
 import '../core/zen_logger.dart';
 import '../core/zen_metrics.dart';

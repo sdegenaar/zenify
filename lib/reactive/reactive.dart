@@ -1,4 +1,4 @@
-// lib/zen_state/reactive/reactive.dart
+// lib/zenify/reactive/reactive.dart
 // Reactive state management classes
 
 export 'reactive_base.dart';

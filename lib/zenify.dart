@@ -1,4 +1,4 @@
-// lib/zen_state.dart
+// lib/zenify.dart
 // Main barrel file for ZenState library
 
 // Core components

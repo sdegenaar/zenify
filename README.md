@@ -50,9 +50,9 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_riverpod: ^[latest_version]
-  zen_state:
+  zenify:
     git:
-      url: https://github.com/sdegenaar/zen_state.git
+      url: https://github.com/sdegenaar/zenify.git
       ref: v0.1.6
 ```
 ### Initialize ZenState

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:zen_state/zen_state.dart';
+import 'package:zenify/zenify.dart';
 import '../controllers/counter_controller.dart';
 
 class CounterPage extends StatelessWidget {

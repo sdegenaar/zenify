@@ -1,7 +1,7 @@
 // test/integration/module_integration_test.dart
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:zen_state/zen_state.dart';
+import 'package:zenify/zenify.dart';
 import '../test_helpers.dart';
 
 // Mock services for testing

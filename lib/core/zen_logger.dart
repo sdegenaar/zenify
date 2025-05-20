@@ -1,4 +1,4 @@
-// lib/zen_state/zen_logger.dart
+// lib/zenify/zen_logger.dart
 import 'dart:developer' as developer;
 import 'zen_config.dart';
 

@@ -1,4 +1,4 @@
-// lib/zen_state/controllers/controllers.dart
+// lib/zenify/controllers/controllers.dart
 // Controller-related classes and utilities
 
 export 'zen_controller.dart' show ZenController;

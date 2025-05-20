@@ -1,4 +1,4 @@
-// lib/zen_state/zen_config.dart
+// lib/zenify/zen_config.dart
 
 /// Configuration settings for ZenState framework
 class ZenConfig {

@@ -1,4 +1,4 @@
-// lib/zen_state/rx_tracking.dart
+// lib/zenify/rx_tracking.dart
 import 'package:flutter/foundation.dart';
 import '../core/zen_logger.dart';
 import '../core/zen_config.dart';

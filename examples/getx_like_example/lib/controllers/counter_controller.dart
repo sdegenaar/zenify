@@ -1,4 +1,4 @@
-import 'package:zen_state/zen_state.dart';
+import 'package:zenify/zenify.dart';
 
 class CounterController extends ZenController {
   // Create an observable for the counter

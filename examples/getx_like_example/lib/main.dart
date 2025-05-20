@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:zen_state/zen_state.dart';
+import 'package:zenify/zenify.dart';
 import '../pages/home_page.dart';
 
 void main() {

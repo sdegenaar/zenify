@@ -1,6 +1,6 @@
 // test/core/zen_config_test.dart
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zen_state/core/zen_config.dart';
+import 'package:zenify/core/zen_config.dart';
 
 void main() {
   group('ZenConfig', () {

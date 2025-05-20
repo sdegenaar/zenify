@@ -1,4 +1,4 @@
-import 'package:zen_state/zen_state.dart';
+import 'package:zenify/zenify.dart';
 import '../services/auth_service.dart';
 import '../services/network_service.dart';
 import '../services/profile_repository.dart';

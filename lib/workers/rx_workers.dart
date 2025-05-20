@@ -1,4 +1,4 @@
-// lib/zen_state/rx_workers.dart
+// lib/zenify/rx_workers.dart
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

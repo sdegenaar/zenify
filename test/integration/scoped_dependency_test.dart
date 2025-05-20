@@ -2,7 +2,7 @@
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:zen_state/zen_state.dart';
+import 'package:zenify/zenify.dart';
 
 // Service classes for testing scopes
 class CounterService {
