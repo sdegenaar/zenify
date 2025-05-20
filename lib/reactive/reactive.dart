@@ -1,10 +1,14 @@
-// lib/zenify/reactive/reactive.dart
-// Reactive state management classes
+// lib/reactive/reactive.dart
+// Core reactive components barrel file
 
+// Core reactive interfaces
 export 'reactive_base.dart';
-export 'rx_common.dart';
-export 'rx_notifier.dart';
+
+// Reactive primitive values
 export 'rx_value.dart';
+
+// Reactive collections
 export 'rx_collections.dart';
-export 'rx_tracking.dart';
-export 'rx_bridge.dart';
+
+// Tracking system (for extensions and internal use)
+export 'rx_tracking.dart' show RxTracking;

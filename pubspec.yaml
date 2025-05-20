@@ -1,6 +1,6 @@
 name: zenify
 description: A lightweight, intuitive state management library for Flutter that brings zen to your application architecture.
-version: 0.1.2  # Match your Git tag
+version: 0.1.6  # Match your Git tag
 homepage: https://github.com/sdegenaar/zenify
 repository: https://github.com/sdegenaar/zenify
 issue_tracker: https://github.com/sdegenaar/zenify/issues
@@ -13,8 +13,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flutter_riverpod: ^2.6.1
-  # Add other dependencies
 
 dev_dependencies:
   flutter_test:

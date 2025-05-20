@@ -46,10 +46,12 @@ class TodoController extends ZenController {
   void onInit() {
     super.onInit();
 
-    // This will now work with the RxList<Todo>
-    everRx(todos, (todoList) {
+    // Use ZenWorkers.ever instead of everRx
+    final disposer = ZenWorkers.ever(todos, (todoList) {
       ZenLogger.logInfo('Todos list updated. Count: ${todoList.length}');
     });
-  }
 
+    // Make sure to dispose the worker when the controller is disposed
+    addDisposer(disposer);
+  }
 }

@@ -1,8 +1,8 @@
 // lib/widgets/zen_scope_widget.dart
 import 'package:flutter/material.dart';
 import '../core/zen_scope.dart';
-import '../controllers/zen_di.dart';
 import '../controllers/zen_controller.dart';
+import '../di/zen_di.dart';
 
 /// A widget that creates and manages a ZenScope
 ///

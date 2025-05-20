@@ -1,6 +1,5 @@
 // main.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:zenify/zenify.dart';
 import 'dart:developer' as developer;
 
@@ -29,15 +28,12 @@ void main() {
       }
   );
 
-  // Create the Riverpod container
-  final container = ProviderContainer();
+  // Initialize Zen
+  Zen.init();
 
-  // Initialize Zen with the app's root container
-  Zen.init(container);
-
-  // Register all feature providers
-  // AuthProviders.register();
-  // CartProviders.register();
+  // Register all feature providers/controllers here if needed
+  // AuthControllers.register();
+  // CartControllers.register();
 
   // Start metrics tracking in development
   if (!isProduction) {
@@ -45,12 +41,7 @@ void main() {
   }
 
   // Run the app
-  runApp(
-    UncontrolledProviderScope(
-      container: container,
-      child: const MyApp(),
-    ),
-  );
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -84,32 +75,22 @@ class HomeController extends ZenController {
   // Level 1: Local state
   RxInt counter = 0.obs();
 
-  // Level 2: Transitional Riverpod - for use with workers
-  final counterNotifier = RxNotifier<int>(0);
+  // Local state with observations
+  final Rx<int> counterNotifier = Rx<int>(0);
 
-  // Local state with global bridge
+  // Local state and global state
   RxString localMessage = "Hello".obs();
-  late final RxNotifier<String> globalMessage;
+  final Rx<String> globalMessage = Rx<String>("Hello");
 
   // Add an effect for async operations
   late final ZenEffect<String> fetchEffect;
 
-  // Level 2: Transitional Riverpod
-  final globalCounter = RxNotifier<int>(0);
-  late final globalCounterProvider = globalCounter.createProvider(debugName: 'home.counter');
-
-  // Level 3: Pure Riverpod
-  static final pureCounterProvider = StateNotifierProvider<PureCounter, int>(
-        (ref) => PureCounter(),
-    name: 'home.pureCounter',
-  );
+  // Global state
+  final Rx<int> globalCounter = Rx<int>(0);
 
   HomeController() {
     // Track performance of operations
     ZenMetrics.startTiming('HomeController.init');
-
-    // Bridge local state to global state
-    globalMessage = localMessage.asGlobal(debugName: 'home.message');
 
     // Create an effect for async operations
     fetchEffect = createEffect<String>(
@@ -126,14 +107,14 @@ class HomeController extends ZenController {
       duration: const Duration(milliseconds: 500),
     );
 
-    // Add a worker to watch the counter changes - using RxNotifier
+    // Add a worker to watch the counter changes
     final counterWorker = ZenWorkers.ever(
         counterNotifier,
             (value) {
           if (value > 5) {
-            localMessage.value = "Counter is getting high!";
+            updateMessage("Counter is getting high!");
           } else {
-            localMessage.value = "Hello World";
+            updateMessage("Hello World");
           }
         }
     );
@@ -146,7 +127,7 @@ class HomeController extends ZenController {
 
   void incrementLocal() {
     ZenMetrics.startTiming('HomeController.incrementLocal');
-    counter + 1;
+    counter.value = counter.value + 1;
 
     // Also update the notifier to trigger workers
     counterNotifier.value = counter.value;
@@ -156,8 +137,9 @@ class HomeController extends ZenController {
   }
 
   void updateMessage(String message) {
-    // Update local message, which automatically updates global message via bridge
+    // Update both local and global message
     localMessage.value = message;
+    globalMessage.value = message;
   }
 
   // Example of using the async effect
@@ -169,7 +151,11 @@ class HomeController extends ZenController {
     });
   }
 
-  // Level 4: Manual update state (like GetBuilder)
+  void incrementGlobal() {
+    globalCounter.value = globalCounter.value + 1;
+  }
+
+  // Level 4: Manual update state
   int manualCounter = 0;
 
   void incrementManual() {
@@ -220,9 +206,10 @@ class HomePage extends StatelessWidget {
                 );
               }),
 
-              RiverpodObx((ref) {
+              // Global state using Obx
+              Obx(() {
                 final controller = Zen.find<HomeController>()!;
-                return Text('Global Message: ${ref.watch(controller.globalMessage.provider)}');
+                return Text('Global Message: ${controller.globalMessage.value}');
               }),
 
               ElevatedButton(
@@ -256,35 +243,19 @@ class HomePage extends StatelessWidget {
 
               const SizedBox(height: 20),
 
-              // Riverpod state (Level 2)
-              RiverpodObx((ref) {
+              // Global state
+              Obx(() {
                 final controller = Zen.find<HomeController>()!;
-                return Text('Global Counter: ${ref.watch(controller.globalCounterProvider)}');
+                return Text('Global Counter: ${controller.globalCounter.value}');
               }),
 
               ElevatedButton(
                 onPressed: () {
                   final controller = Zen.find<HomeController>()!;
-                  controller.globalCounter + 1;
+                  controller.incrementGlobal();
                 },
                 child: const Text('Increment Global'),
               ),
-
-              const SizedBox(height: 20),
-
-              // Pure Riverpod (Level 3)
-              Consumer(builder: (context, ref, _) {
-                return Text('Pure Counter: ${ref.watch(HomeController.pureCounterProvider)}');
-              }),
-
-              Consumer(builder: (context, ref, _) {
-                return ElevatedButton(
-                  onPressed: () {
-                    ref.read(HomeController.pureCounterProvider.notifier).increment();
-                  },
-                  child: const Text('Increment Pure'),
-                );
-              }),
 
               const SizedBox(height: 30),
               const Divider(),
@@ -399,12 +370,6 @@ class HomePage extends StatelessWidget {
       ),
     );
   }
-}
-
-// Pure Riverpod counter (Level 3)
-class PureCounter extends StateNotifier<int> {
-  PureCounter() : super(0);
-  void increment() => state++;
 }
 
 // Placeholder classes for the examples

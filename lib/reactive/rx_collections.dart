@@ -22,6 +22,11 @@ class RxList<E> extends RxCollection<E, List<E>> implements List<E> {
 
   // Forward operations to the internal list with notification
 
+  void refresh() {
+    // This will trigger notifications to all listeners
+    notifyListeners();
+  }
+
   @override
   E operator [](int index) {
     RxTracking.track(this); // Track for Obx

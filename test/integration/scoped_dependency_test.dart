@@ -1,7 +1,6 @@
 // test/integration/scoped_dependency_test.dart
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:zenify/zenify.dart';
 
 // Service classes for testing scopes
@@ -57,9 +56,8 @@ class ScopedController extends ZenController {
 void main() {
   setUp(() {
     TestWidgetsFlutterBinding.ensureInitialized();
-    // Create a fresh container for each test
-    final container = ProviderContainer();
-    Zen.init(container);
+    // Initialize Zen
+    Zen.init();
     ZenConfig.enableDebugLogs = false;
   });
 

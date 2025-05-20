@@ -1,11 +1,8 @@
-
 // lib/controllers/zen_controller.dart
 import 'package:flutter/widgets.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/zen_logger.dart';
 import '../core/zen_config.dart';
 import '../core/zen_metrics.dart';
-import 'zen_di.dart';
 
 /// Base controller class similar to GetX controller
 ///
@@ -159,6 +156,7 @@ abstract class ZenController with WidgetsBindingObserver {
     }
   }
 
+  /// Add a callback to be called when the controller is disposed
   void addDisposer(VoidCallback callback) {
     if (_disposed) {
       ZenLogger.logWarning('Attempted to add disposer to disposed controller $runtimeType');
@@ -167,17 +165,18 @@ abstract class ZenController with WidgetsBindingObserver {
     _disposers.add(callback);
   }
 
-  /// Adds a Riverpod listener to the disposers
-  void addListener<T>(
-      ProviderListenable<T> provider,
-      void Function(T) listener, {
-        ProviderContainer? container
-      }) {
-    final subscription = (container ?? Zen.container).listen<T>(
-      provider,
-          (_, value) => listener(value),
-    );
-    addDisposer(() => subscription.close());
+  /// Add a listener to a ValueNotifier that will be auto-disposed
+  /// when the controller is disposed
+  void addValueListener<T>(
+      ValueNotifier<T> notifier,
+      void Function(T) listener) {
+
+    void notifierListener() {
+      listener(notifier.value);
+    }
+
+    notifier.addListener(notifierListener);
+    addDisposer(() => notifier.removeListener(notifierListener));
   }
 
   // Helper to create a worker that will be auto-disposed
@@ -190,6 +189,7 @@ abstract class ZenController with WidgetsBindingObserver {
   final Map<String, Set<VoidCallback>> _updateListeners = {};
 
   /// Register a listener for a specific update ID
+  /// Used by ZenBuilder for manual updates
   void addUpdateListener(String id, VoidCallback listener) {
     _updateListeners.putIfAbsent(id, () => {}).add(listener);
   }
@@ -202,7 +202,10 @@ abstract class ZenController with WidgetsBindingObserver {
     }
   }
 
-  /// Trigger an update for a specific ID
+  /// Trigger an update for all listeners or specific IDs
+  ///
+  /// If [ids] is null or empty, all listeners will be notified.
+  /// Otherwise, only listeners for the specified IDs will be notified.
   void update([List<String>? ids]) {
     if (ids == null || ids.isEmpty) {
       // Update all listeners if no IDs specified
@@ -215,6 +218,7 @@ abstract class ZenController with WidgetsBindingObserver {
     }
   }
 
+  /// Dispose the controller, cleaning up all resources
   void dispose() {
     if (_disposed) {
       ZenLogger.logWarning('Controller $runtimeType already disposed');

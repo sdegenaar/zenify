@@ -1,5 +1,4 @@
 // test/test_helpers.dart
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zenify/zenify.dart';
 
@@ -14,20 +13,19 @@ class ZenTestHelper {
     ZenConfig.configureTest();
 
     // Create a unique test scope that won't conflict with other tests
-    final scopeName = 'TestScope-$testName-${DateTime
-        .now()
-        .microsecondsSinceEpoch}';
-    final testScope = ZenScope(name: scopeName);
+    final scopeName = 'TestScope-$testName-${DateTime.now().microsecondsSinceEpoch}';
+
+    // Use Zen's createScope method instead of directly instantiating
+    final testScope = Zen.createScope(name: scopeName);
 
     return testScope;
   }
 
-  /// Register dependencies without using ZenProvider widget
+  /// Register dependencies directly without widgets
   static void registerDependencies(Map<Type, Function> dependencies) {
     // Ensure Zen is initialized
     try {
-      final container = ProviderContainer();
-      Zen.init(container);
+      Zen.init();
     } catch (e) {
       // Already initialized, ignore
     }
@@ -39,7 +37,13 @@ class ZenTestHelper {
     for (final entry in dependencies.entries) {
       final factory = entry.value;
       final instance = factory();
-      Zen.putDependency(instance);
+
+      // Handle controllers and regular dependencies differently
+      if (instance is ZenController) {
+        Zen.put(instance);
+      } else {
+        Zen.putDependency(instance);
+      }
     }
   }
 }

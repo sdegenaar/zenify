@@ -1,7 +1,6 @@
 // test/controllers/zen_controller_test.dart
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:zenify/zenify.dart';
 
 // Test controller implementation
@@ -101,10 +100,6 @@ class TestController extends ZenController {
     });
   }
 }
-
-
-// Simple provider for testing Riverpod listener
-final testProvider = StateProvider<int>((ref) => 0);
 
 void main() {
   group('ZenController', () {
@@ -242,43 +237,6 @@ void main() {
       expect(updateCount, 2); // 'test' listener not called
     });
 
-    test('should add listener for Riverpod providers', () {
-      // Create a ProviderContainer for testing
-      final container = ProviderContainer();
-
-      int providerListenerCalled = 0;
-
-      // Add listener for the provider
-      controller.addListener(
-          testProvider,
-              (value) => providerListenerCalled++,
-          container: container
-      );
-
-      // Initially not called
-      expect(providerListenerCalled, 0);
-
-      // Update the provider
-      container.read(testProvider.notifier).state = 1;
-
-      // Listener should be called
-      expect(providerListenerCalled, 1);
-
-      // Update again
-      container.read(testProvider.notifier).state = 2;
-      expect(providerListenerCalled, 2);
-
-      // When controller is disposed, listener should be removed
-      controller.dispose();
-
-      // Update provider again, listener should not be called
-      container.read(testProvider.notifier).state = 3;
-      expect(providerListenerCalled, 2);
-
-      // Clean up
-      container.dispose();
-    });
-
     test('should track disposers correctly', () {
       final disposer1Called = ValueNotifier<bool>(false);
       final disposer2Called = ValueNotifier<bool>(false);
@@ -302,7 +260,6 @@ void main() {
       disposer1Called.dispose();
       disposer2Called.dispose();
     });
-
 
     test('should call application lifecycle methods', () {
       // Start observing app lifecycle events

@@ -1,7 +1,6 @@
 // test/widgets/zen_scope_widget_test.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:zenify/zenify.dart';
 
 // Test controller that extends ZenController
@@ -20,11 +19,9 @@ class CounterController extends ZenController {
 }
 
 void main() {
-  late ProviderContainer container;
-
   setUp(() {
-    container = ProviderContainer();
-    Zen.init(container);
+    // Initialize Zen
+    Zen.init();
     ZenConfig.enableDebugLogs = true;
 
     // Ensure we're using a clean environment for each test
@@ -93,17 +90,13 @@ void main() {
         MaterialApp(
           home: ZenScopeWidget(
             name: 'TestScope',
-            // The create parameter alone isn't working reliably
             create: () => CounterController(),
             child: Builder(
               builder: (context) {
                 final scope = ZenScopeWidget.of(context);
 
-                // Use ZenBuilder instead of direct lookup to access the controller
                 return ZenBuilder<CounterController>(
                   findScopeFn: () => scope,
-                  // In case the controller from create parameter isn't accessible,
-                  // ensure we have a controller available with autoCreate
                   autoCreate: true,
                   create: () => CounterController(),
                   builder: (controller) {
@@ -119,8 +112,6 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Counter: 0'), findsOneWidget);
     });
-
-
 
     testWidgets('should maintain separate controller instances in different scopes',
             (WidgetTester tester) async {
@@ -238,7 +229,7 @@ void main() {
     testWidgets('ZenBuilder should respond to controller updates in the correct scope',
             (WidgetTester tester) async {
           // Create a custom scope
-          final customScope = ZenScope(name: 'CustomScope');
+          final customScope = Zen.createScope(name: 'CustomScope');
 
           // Create two controllers in different scopes
           final rootController = CounterController();

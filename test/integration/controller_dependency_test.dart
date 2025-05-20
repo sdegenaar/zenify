@@ -1,6 +1,5 @@
 // test/core/controller_dependency_test.dart
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:zenify/zenify.dart';
 
 import '../test_helpers.dart';
@@ -52,15 +51,12 @@ class ScopedController extends ZenController {
 }
 
 void main() {
-  late ProviderContainer container;
-
   setUp(() {
     // Initialize the Flutter binding first
     TestWidgetsFlutterBinding.ensureInitialized();
 
-    // Initialize a fresh container for each test
-    container = ProviderContainer();
-    Zen.init(container);
+    // Initialize Zen for testing
+    Zen.init();
     ZenConfig.enableDebugLogs = false; // Disable logs for cleaner test output
   });
 

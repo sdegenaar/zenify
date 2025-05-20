@@ -1,10 +1,11 @@
 // lib/zenify/testing/zen_test_utilities.dart
-import 'package:flutter/foundation.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/material.dart';
 import '../controllers/zen_controller.dart';
+import '../core/zen_scope.dart';
 import '../reactive/rx_value.dart';
 import '../core/zen_logger.dart';
 import '../core/zen_config.dart';
+import '../di/zen_di.dart';
 
 /// Test utility for tracking changes to Rx values
 class RxTester<T> {
@@ -34,96 +35,94 @@ class RxTester<T> {
   }
 }
 
-/// Test utilities for Riverpod providers
-class ZenRiverpodTester {
-  final ProviderContainer container;
+/// Test container for integration and widget testing
+class ZenTestContainer {
+  final ZenScope _scope;
 
-  ZenRiverpodTester(): container = ProviderContainer(
-    overrides: [],
-    observers: [_TestProviderObserver()],
-  );
-
-  void dispose() => container.dispose();
-
-  // Get the current state of a provider
-  T read<T>(ProviderBase<T> provider) {
-    return container.read(provider);
+  ZenTestContainer() : _scope = Zen.createScope(name: 'TestScope') {
+    if (ZenConfig.enableDebugLogs) {
+      ZenLogger.logDebug('ZenTestContainer created with scope: $_scope');
+    }
   }
 
-  // Listen to changes in a provider and return the values
-  List<T> getValues<T>(ProviderBase<T> provider, void Function() action) {
-    final values = <T>[];
-
-    final subscription = container.listen<T>(
-      provider,
-          (_, next) => values.add(next),
-    );
-
-    // Execute the action that should cause changes
-    action();
-
-    // Clean up
-    subscription.close();
-
-    return values;
-  }
-
-  // Get all state changes from a StateNotifier
-  List<T> getStateChanges<T>(StateNotifierProvider<StateNotifier<T>, T> provider, void Function(StateNotifier<T>) action) {
-    final notifier = container.read(provider.notifier);
-    final initialValue = container.read(provider);
-    final values = <T>[initialValue];
-
-    final subscription = container.listen<T>(
-      provider,
-          (_, next) => values.add(next),
-    );
-
-    // Execute the action
-    action(notifier);
-
-    // Clean up
-    subscription.close();
-
-    return values;
-  }
-
-  // Create a mock controller with initial values
-  static T mockController<T extends ZenController>(Map<String, dynamic> initialValues, {T Function()? factory}) {
-    // Use the factory or create a mock implementation
-    if (factory != null) {
-      final controller = factory();
-
-      // Set initial values using reflection or direct property access
-      // This is a simplified approach and might need to be adjusted
-      initialValues.forEach((key, value) {
-        try {
-          // This is a simple approach - in real implementation,
-          // you might need reflection or a more sophisticated mechanism
-          (controller as dynamic)[key] = value;
-        } catch (e) {
-          ZenLogger.logError('Failed to set mock value for $key', e);
-        }
-      });
-
-      return controller;
+  /// Register a dependency or controller
+  T register<T>(T Function() factory, {String? tag, bool permanent = false}) {
+    if (ZenConfig.enableDebugLogs) {
+      ZenLogger.logDebug('Registering $T in test container');
     }
 
-    throw UnimplementedError('Mock implementation for $T not provided');
+    // Handle ZenController types differently from other dependencies
+    if (factory() is ZenController) {
+      // Cast both the factory and its return type to the appropriate controller type
+      final controllerFactory = factory as ZenController Function();
+      final controller = controllerFactory();
+
+      // Use type-specific registration method based on the actual controller type
+      final registeredController = Zen.put(
+          controller,
+          tag: tag,
+          permanent: permanent,
+          scope: _scope
+      );
+
+      return registeredController as T;
+    } else {
+      // For non-controller types, use putDependency
+      return Zen.putDependency<T>(
+          factory(),
+          tag: tag,
+          permanent: permanent,
+          scope: _scope
+      );
+    }
   }
+
+  /// Find a dependency from the test container
+  T? find<T>({String? tag}) {
+    if (T.toString().contains('ZenController') || T is ZenController) {
+      // This is a controller type
+      // We need to use Zen.find for controllers
+      return Zen.find(tag: tag, scope: _scope) as T?;
+    }
+    return Zen.findDependency<T>(tag: tag, scope: _scope);
+  }
+
+  /// Dispose all dependencies in the test container
+  void dispose() {
+    if (ZenConfig.enableDebugLogs) {
+      ZenLogger.logDebug('Disposing ZenTestContainer');
+    }
+    _scope.dispose();
+  }
+
+  /// Get the test scope
+  ZenScope get scope => _scope;
 }
 
-/// Observer for tracking provider changes in tests
-class _TestProviderObserver extends ProviderObserver {
+/// Widget for wrapping test widgets with the test container
+class ZenTestScope extends StatefulWidget {
+  final Widget child;
+  final ZenTestContainer container;
+
+  const ZenTestScope({
+    required this.child,
+    required this.container,
+    super.key,
+  });
+
   @override
-  void didUpdateProvider(
-      ProviderBase provider,
-      Object? previousValue,
-      Object? newValue,
-      ProviderContainer container,
-      ) {
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('Provider ${provider.name ?? provider.runtimeType} updated: $newValue');
-    }
+  State<ZenTestScope> createState() => _ZenTestScopeState();
+}
+
+class _ZenTestScopeState extends State<ZenTestScope> {
+  @override
+  void dispose() {
+    // Container is disposed by test
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.child;
   }
 }

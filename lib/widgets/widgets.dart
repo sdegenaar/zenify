@@ -4,4 +4,4 @@
 export 'rx_widgets.dart';
 export 'zen_builder.dart';
 export 'zen_scope_widget.dart';
-export 'zen_provider.dart';
+export 'zen_effect_builder.dart';

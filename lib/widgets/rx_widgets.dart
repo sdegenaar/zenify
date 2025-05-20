@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../reactive/rx_tracking.dart';
 import '../core/zen_logger.dart';
 import '../core/zen_config.dart';
@@ -138,18 +137,5 @@ class _ObxState extends State<Obx> {
     }
 
     return result;
-  }
-}
-
-/// For integration with Riverpod - a Consumer wrapper that provides
-/// a more consistent API with the Obx widget
-class RiverpodObx extends ConsumerWidget {
-  final Widget Function(WidgetRef ref) builder;
-
-  const RiverpodObx(this.builder, {super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return builder(ref);
   }
 }

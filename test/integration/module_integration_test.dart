@@ -1,6 +1,5 @@
 // test/integration/module_integration_test.dart
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:zenify/zenify.dart';
 import '../test_helpers.dart';
 
@@ -250,9 +249,8 @@ void main() {
   setUp(() {
     TestWidgetsFlutterBinding.ensureInitialized();
 
-    // Initialize Zen with fresh container for each test
-    final container = ProviderContainer();
-    Zen.init(container);
+    // Initialize Zen
+    Zen.init();
     ZenConfig.enableDebugLogs = false; // Disable logs for cleaner test output
   });
 

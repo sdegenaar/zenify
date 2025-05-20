@@ -1,7 +1,6 @@
 // test/widgets/zen_builder_test.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:zenify/zenify.dart';
 
 // Test controllers
@@ -109,11 +108,8 @@ class _IdSwitchWrapperState extends State<IdSwitchWrapper> {
 }
 
 void main() {
-  late ProviderContainer container;
-
   setUp(() {
-    container = ProviderContainer();
-    Zen.init(container);
+    Zen.init();
     ZenConfig.enableDebugLogs = false;
   });
 
@@ -332,7 +328,6 @@ void main() {
 
     testWidgets('should respect findScopeFn for scoped controllers', (WidgetTester tester) async {
       // Create scopes
-     // final rootScope = Zen.rootScope;
       final customScope = Zen.createScope(name: "CustomScope");
 
       // Register controllers in different scopes
@@ -453,7 +448,6 @@ void main() {
       expect(find.text('Count: 1'), findsOneWidget);
     });
 
-
     testWidgets('should work with multiple controller types simultaneously', (WidgetTester tester) async {
       // Register different controller types
       final counterController = CounterController();
@@ -508,8 +502,6 @@ void main() {
       expect(find.text('Count: 1'), findsOneWidget);
       expect(find.text('Theme: dark'), findsOneWidget);
     });
-
-    // Fix for the error handling test
 
     testWidgets('should handle errors gracefully when controller not found', (WidgetTester tester) async {
       // This is a better approach for testing exceptions in widget tests

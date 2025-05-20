@@ -1,20 +1,7 @@
-
 // lib/reactive/reactive_base.dart
 
-/// Type of reactive implementation
-enum ReactiveImplementation {
-  /// Local state (ValueNotifier-based)
-  local,
-
-  /// Global state (Riverpod StateNotifier-based)
-  global
-}
-
 /// Common base interface for reactive values
-///
-/// This interface provides a consistent API across different
-/// reactive implementations
-abstract class ReactiveBase<T> {
+abstract class ReactiveValue<T> {
   /// Get the current value
   T get value;
 
@@ -26,7 +13,4 @@ abstract class ReactiveBase<T> {
 
   /// Update value using a function
   void update(T Function(T value) updater);
-
-  /// Get the implementation type (local or global)
-  ReactiveImplementation get implementationType;
 }

@@ -1,11 +1,10 @@
-// lib/zenify/reactive/rx_value.dart
+// lib/reactive/rx_value.dart
 import 'package:flutter/foundation.dart';
+import 'reactive_base.dart';
 import 'rx_tracking.dart';
 
-/// LOCAL STATE IMPLEMENTATION
-/// A reactive value holder similar to GetX's Rx<T> but for local state only
-/// Uses Flutter's ValueNotifier under the hood
-class Rx<T> extends ValueNotifier<T> {
+/// A reactive value holder that uses Flutter's ValueNotifier under the hood
+class Rx<T> extends ValueNotifier<T> implements ReactiveValue<T> {
   Rx(super.initialValue);
 
   // Override the value getter to automatically track access
@@ -20,25 +19,52 @@ class Rx<T> extends ValueNotifier<T> {
   set value(T newValue) {
     if (super.value != newValue) {
       super.value = newValue;
-      notifyListeners(); // Explicitly call notifyListeners to ensure updates
+      notifyListeners();
     }
   }
 
-  // Call operator (kept for backward compatibility)
-  T operator () {
-    // Track this value for reactivity with Obx widget
+  // Call operator for ReactiveValue interface
+  @override
+  T call() {
     RxTracking.track(this);
     return value;
   }
 
-  // This is void since it's just setting a value (GetX-like syntax)
+  // Update method for ReactiveValue interface
+  @override
+  void update(T Function(T value) updater) {
+    final newValue = updater(value);
+    value = newValue;
+  }
+
+  // Additional operator for GetX-like syntax
   void operator <<(T newValue) => value = newValue;
 }
 
-/// EXTENSIONS FOR LOCAL STATE (MIGRATION LEVEL 1)
-/// These provide GetX-like operator syntax for local state
+/// General extension method for creating reactive values
+extension ObsExtension<T> on T {
+  Rx<T> obs() => Rx<T>(this);
+}
+
+// Type-specific extensions
+extension IntObsExtension on int {
+  Rx<int> obs() => Rx<int>(this);
+}
+
+extension DoubleObsExtension on double {
+  Rx<double> obs() => Rx<double>(this);
+}
+
+extension BoolObsExtension on bool {
+  Rx<bool> obs() => Rx<bool>(this);
+}
+
+extension StringObsExtension on String {
+  Rx<String> obs() => Rx<String>(this);
+}
+
+/// Type-specific operation extensions
 extension RxIntExtension on Rx<int> {
-  // Update the value and return void
   void operator +(int value) => this.value += value;
   void operator -(int value) => this.value -= value;
   void operator *(int value) => this.value *= value;
@@ -61,48 +87,20 @@ extension RxStringExtension on Rx<String> {
   void clear() => value = '';
 }
 
-// Non-nullable type aliases (these match what's exported in zenify.dart)
+// Type aliases for convenience
 typedef RxBool = Rx<bool>;
 typedef RxInt = Rx<int>;
 typedef RxDouble = Rx<double>;
 typedef RxString = Rx<String>;
 
-// Type aliases that match GetX style (for nullable types)
+// Nullable type aliases
 typedef RxnBool = Rx<bool?>;
 typedef RxnDouble = Rx<double?>;
 typedef RxnInt = Rx<int?>;
 typedef RxnString = Rx<String?>;
 
-// Factory functions for common types (similar to GetX)
+// Factory functions
 Rx<bool> rxBool([bool initial = false]) => Rx<bool>(initial);
 Rx<int> rxInt([int initial = 0]) => Rx<int>(initial);
 Rx<double> rxDouble([double initial = 0.0]) => Rx<double>(initial);
 Rx<String> rxString([String initial = '']) => Rx<String>(initial);
-
-/// USAGE GUIDE FOR MIGRATION
-/// 
-/// This file implements Migration Level 1: Local state with GetX-like syntax
-/// 
-/// Example usage:
-/// ```
-/// // In a controller or widget:
-/// final count = 0.obs();  // or rxInt()
-/// 
-/// // Update using operator syntax:
-/// count + 1;  // Increments by 1
-/// count << 5; // Sets to 5
-/// 
-/// // Access in an Obx widget:
-/// Obx(() => Text('${count()}')); 
-/// ```
-/// 
-/// For global state management with Riverpod integration,
-/// use RxType.global with the .obs() method:
-/// ```
-/// // In a controller:
-/// final count = 0.obs(RxType.global);
-/// late final countProvider = count.createProvider(debugName: 'count');
-/// 
-/// // Access in a widget:
-/// RiverpodObx((ref) => Text('${ref.watch(controller.countProvider)}'));
-/// ```

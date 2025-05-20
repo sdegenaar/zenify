@@ -1,6 +1,6 @@
+
 // test/performance/dependency_resolution_benchmark.dart
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zenify/zenify.dart';
 
@@ -95,15 +95,11 @@ class BenchmarkResult {
 }
 
 void main() {
-  late ProviderContainer container;
-
   setUp(() {
     TestWidgetsFlutterBinding.ensureInitialized();
-    container = ProviderContainer();
-    Zen.init(container);
+    Zen.init();
     ZenConfig.enableDebugLogs = false; // Disable logs for benchmarking
     ZenConfig.checkForCircularDependencies = false;
-
   });
 
   tearDown(() {
@@ -130,10 +126,10 @@ void main() {
         }
       }
 
-      // Reset state completely before actual benchmark - we can't use force: true here
+      // Reset state completely before actual benchmark
       try {
-        container = ProviderContainer(); // Create a fresh container
-        Zen.init(container); // Reinitialize Zen with the fresh container
+        Zen.deleteAll(force: true); // Force complete cleanup
+        Zen.init(); // Reinitialize Zen
       } catch (e) {
         ZenLogger.logError('Reset error', e);
       }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../controllers/zen_controller.dart';
-import '../controllers/zen_di.dart';
 import '../core/zen_scope.dart';
+import '../di/zen_di.dart';
 
 /// A widget that rebuilds only when [ZenController.update] is called with the specified ID
 class ZenBuilder<T extends ZenController> extends StatefulWidget {

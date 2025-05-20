@@ -1,9 +1,9 @@
 // lib/zenify/zen_route_observer.dart
 import 'package:flutter/material.dart';
-import 'package:zenify/controllers/zen_di.dart';
 import '../core/zen_metrics.dart';
 import '../core/zen_logger.dart';
 import '../core/zen_config.dart';
+import '../di/zen_di.dart';
 
 /// Navigator observer that automatically disposes controllers when routes are popped
 class ZenRouteObserver extends NavigatorObserver {
