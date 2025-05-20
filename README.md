@@ -1,10 +1,10 @@
-# ZenState
+# Zenify
 A modern, flexible state management library for Flutter that bridges the gap between local reactive state and global state management, offering both a seamless migration path from GetX-like patterns to Riverpod and supporting a permanent hybrid approach where different state management techniques coexist in the same application.
 
 > Version 0.1.6 brings enhanced controller lifecycle management, improved performance optimizations, and better testing utilities.
 >
 
-## Why ZenState?
+## Why Zenify?
 ZenState serves two complementary purposes:
 1. It provides a migration path for large Flutter applications transitioning from simpler state management approaches (like GetX) to more robust solutions (like Riverpod) without rewriting the entire codebase at once.
 2. It enables a hybrid state management approach where you can permanently use different patterns for different parts of your application based on their specific requirements.
