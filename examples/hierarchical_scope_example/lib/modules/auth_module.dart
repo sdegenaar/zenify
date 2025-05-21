@@ -14,25 +14,25 @@ class AuthModule extends ZenModule {
   @override
   void register(ZenScope scope) {
     // Get the network service from the network module
-    final networkService = Zen.findDependency<NetworkService>(scope: scope);
+    final networkService = Zen.lookup<NetworkService>(scope: scope);
     if (networkService == null) {
       ZenLogger.logError('NetworkService not found, cannot initialize AuthModule');
       return;
     }
 
     // Register auth service if not already registered
-    if (Zen.findDependency<AuthService>(scope: scope) == null) {
-      Zen.putDependency<AuthService>(
+    if (Zen.lookup<AuthService>(scope: scope) == null) {
+      Zen.inject<AuthService>(
           AuthService(networkService: networkService),
           scope: scope
       );
     }
 
     // Register profile repository if not already registered
-    if (Zen.findDependency<ProfileRepository>(scope: scope) == null) {
-      final authService = Zen.findDependency<AuthService>(scope: scope);
+    if (Zen.lookup<ProfileRepository>(scope: scope) == null) {
+      final authService = Zen.lookup<AuthService>(scope: scope);
       if (authService != null) {
-        Zen.putDependency<ProfileRepository>(
+        Zen.inject<ProfileRepository>(
             ProfileRepository(authService: authService),
             scope: scope
         );

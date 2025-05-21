@@ -22,7 +22,7 @@ class ProfilePage extends StatelessWidget {
           final appScope = ZenScopeWidget.of(context, findRoot: true);
 
           // Check if we have the necessary dependencies in the app scope
-          final authService = Zen.findDependency<AuthService>(scope: appScope);
+          final authService = Zen.lookup<AuthService>(scope: appScope);
 
           if (authService == null) {
             return Scaffold(
@@ -35,14 +35,14 @@ class ProfilePage extends StatelessWidget {
 
           // Create and register ProfileRepository if needed
           ProfileRepository profileRepo;
-          final existingRepo = Zen.findDependency<ProfileRepository>(scope: appScope);
+          final existingRepo = Zen.lookup<ProfileRepository>(scope: appScope);
 
           if (existingRepo != null) {
             profileRepo = existingRepo;
           } else {
             // Create a new repository and register it
             profileRepo = ProfileRepository(authService: authService);
-            Zen.putDependency<ProfileRepository>(profileRepo, scope: appScope);
+            Zen.inject<ProfileRepository>(profileRepo, scope: appScope);
           }
 
           // Create and register the controller with the profile scope
@@ -55,7 +55,7 @@ class ProfilePage extends StatelessWidget {
               automaticallyImplyLeading: false,
             ),
             body: ZenBuilder<ProfileController>(
-              findScopeFn: () => profileScope,
+              scope: profileScope,
               builder: (controller) {
                 if (controller.isLoading) {
                   return const Center(child: CircularProgressIndicator());

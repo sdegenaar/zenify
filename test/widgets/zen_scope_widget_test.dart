@@ -96,8 +96,7 @@ void main() {
                 final scope = ZenScopeWidget.of(context);
 
                 return ZenBuilder<CounterController>(
-                  findScopeFn: () => scope,
-                  autoCreate: true,
+                  scope: scope,
                   create: () => CounterController(),
                   builder: (controller) {
                     return Text('Counter: ${controller.count}');
@@ -131,7 +130,7 @@ void main() {
                         Zen.put<CounterController>(controller, scope: scope);
 
                         return ZenBuilder<CounterController>(
-                          findScopeFn: () => scope,
+                          scope: scope,
                           builder: (controller) {
                             return ElevatedButton(
                               onPressed: controller.increment,
@@ -154,7 +153,7 @@ void main() {
                         Zen.put<CounterController>(controller, scope: scope);
 
                         return ZenBuilder<CounterController>(
-                          findScopeFn: () => scope,
+                          scope: scope,
                           builder: (controller) {
                             return ElevatedButton(
                               onPressed: controller.increment,
@@ -248,7 +247,7 @@ void main() {
                   ),
                   // Builder that uses the scoped controller
                   ZenBuilder<CounterController>(
-                    findScopeFn: () => customScope,
+                    scope: customScope,
                     builder: (controller) => Text('Scoped: ${controller.count}'),
                   ),
                   ElevatedButton(

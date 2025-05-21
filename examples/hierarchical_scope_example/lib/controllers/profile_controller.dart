@@ -9,7 +9,7 @@ class ProfileController extends ZenController {
   // Constructor with scope
   ProfileController({ZenScope? scope}) {
     // Initialize in the constructor body instead of initializer list
-    final repo = Zen.findDependency<ProfileRepository>(scope: scope);
+    final repo = Zen.lookup<ProfileRepository>(scope: scope);
     if (repo == null) {
       throw Exception('ProfileRepository not found');
     }

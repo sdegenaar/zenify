@@ -6,6 +6,12 @@ import '../core/zen_scope.dart';
 
 /// Analyzes dependencies for issues like circular references
 class ZenDependencyAnalyzer {
+  // Singleton instance
+  static final ZenDependencyAnalyzer instance = ZenDependencyAnalyzer._();
+
+  // Private constructor
+  ZenDependencyAnalyzer._();
+
   /// Detect circular dependencies across all scopes
   bool detectCycles(dynamic start, List<ZenScope> scopes) {
     try {

@@ -154,9 +154,9 @@ void main() {
       final testScope = ZenTestHelper.createIsolatedTestScope('dependencies');
 
       final service = TestService('service');
-      Zen.putDependency<TestService>(service, scope: testScope);
+      Zen.inject<TestService>(service, scope: testScope);
 
-      final found = Zen.findDependency<TestService>(scope: testScope);
+      final found = Zen.lookup<TestService>(scope: testScope);
       expect(found, isNotNull);
       expect(found?.value, 'service');
     });

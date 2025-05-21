@@ -16,6 +16,12 @@ class ZenSubscription {
 
 /// Manages the reactive system for the DI container
 class ZenReactiveSystem {
+  // Singleton instance
+  static final ZenReactiveSystem instance = ZenReactiveSystem._();
+
+  // Private constructor
+  ZenReactiveSystem._();
+
   // Maps of instances and listeners for the reactive system
   final Map<dynamic, Set<VoidCallback>> _listeners = {};
 
@@ -50,7 +56,7 @@ class ZenReactiveSystem {
     // Create callback that will call the listener with current value
     void callback() {
       try {
-        final instance = Zen.findDependency<T>(tag: tag);
+        final instance = Zen.lookup<T>(tag: tag);
         if (instance != null) {
           listener(instance);
         }
@@ -62,7 +68,7 @@ class ZenReactiveSystem {
     _listeners[key]!.add(callback);
 
     // Call initially with current value if exists
-    final current = Zen.findDependency<T>(tag: tag);
+    final current = Zen.lookup<T>(tag: tag);
     if (current != null) {
       try {
         listener(current);

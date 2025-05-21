@@ -32,7 +32,7 @@ class _LoginPageState extends State<LoginPage> {
               title: const Text('Login'),
             ),
             body: ZenBuilder<LoginController>(
-              findScopeFn: () => loginScope,
+              scope: loginScope,
               builder: (controller) {
                 // Navigation logic
                 if (controller.isAuthenticated) {

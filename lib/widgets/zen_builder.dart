@@ -1,158 +1,116 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import '../controllers/zen_controller.dart';
-import '../core/zen_scope.dart';
+import '../core/zen_scope.dart' show ZenScope;
 import '../di/zen_di.dart';
 
-/// A widget that rebuilds only when [ZenController.update] is called with the specified ID
+/// A widget that automatically rebuilds when a controller calls update()
 class ZenBuilder<T extends ZenController> extends StatefulWidget {
-  /// The builder function that creates the widget
+  /// The builder function that creates the widget tree
   final Widget Function(T controller) builder;
 
   /// Optional tag for the controller
   final String? tag;
 
-  /// Optional ID for targeted updates
+  /// Optional ID for targeting specific updates
   final String? id;
 
-  /// Whether to find or create the controller if not found
-  final bool autoCreate;
+  /// Optional scope to look for the controller
+  final ZenScope? scope;
 
-  /// Optional factory to create the controller if not found and autoCreate is true
+  /// Whether to auto-increment the controller use count
+  final bool autoManage;
+
+  /// Optional factory function to create the controller if it doesn't exist
   final T Function()? create;
 
-  /// Optional function to specify which scope to use for finding the controller
-  final ZenScope Function()? findScopeFn;
-
-  /// Whether the controller should be disposed when this widget is disposed
-  final bool disposeController;
+  /// Whether to dispose the controller when this widget is disposed
+  final bool disposeOnRemove;
 
   const ZenBuilder({
     required this.builder,
     this.tag,
     this.id,
-    this.autoCreate = false,
+    this.scope,
+    this.autoManage = true,
     this.create,
-    this.findScopeFn,
-    this.disposeController = false,
+    this.disposeOnRemove = false,
     super.key,
-  });
+  }) : assert(disposeOnRemove == false || create != null,
+  'disposeOnRemove can only be true when create is provided');
 
   @override
-  State<ZenBuilder<T>> createState() => _ZenBuilderState<T>();
+  State<ZenBuilder> createState() => _ZenBuilderState<T>();
 }
 
 class _ZenBuilderState<T extends ZenController> extends State<ZenBuilder<T>> {
-  T? _controller;
+  late T _controller;
   bool _initialized = false;
-  final String _builderId = UniqueKey().toString();
-  String? _currentId;
+  bool _locallyCreated = false;
 
   @override
   void initState() {
     super.initState();
-    try {
-      _initController();
-    } catch (e) {
-      // We catch the exception here but rethrow to allow proper error propagation
-      rethrow;
-    }
+    _initializeController();
   }
 
-  void _initController() {
-    // Determine which scope to use
-    final scope = widget.findScopeFn?.call();
+  void _initializeController() {
+    // Try to find existing controller
+    T? existingController = Zen.find<T>(tag: widget.tag, scope: widget.scope);
 
-    // First, try to find an existing controller
-    final foundController = Zen.find<T>(tag: widget.tag, scope: scope);
-
-    if (foundController != null) {
-      // If a controller is found, use it
-      _controller = foundController;
-      _initialized = true;
-    } else if (widget.autoCreate) {
-      // If autoCreate is true, create a new controller
+    if (existingController == null) {
       if (widget.create != null) {
-        _controller = Zen.put<T>(widget.create!(), tag: widget.tag, scope: scope);
-        _initialized = true;
+        // Create and register controller using provided factory
+        _controller = widget.create!();
+        Zen.put<T>(_controller, tag: widget.tag, scope: widget.scope);
+        _locallyCreated = true;
       } else {
-        // Try to get with Zen.get which might use a registered factory
-        try {
-          _controller = Zen.get<T>(tag: widget.tag, scope: scope);
-          _initialized = true;
-        } catch (e) {
-          throw Exception('No controller found and no create function provided. Set autoCreate to true and provide a create function.');
-        }
+        // Try to get from registered factory
+        _controller = Zen.get<T>(tag: widget.tag, scope: widget.scope);
       }
     } else {
-      // If controller not found and autoCreate is false, throw exception
-      throw Exception('Controller not found. Set autoCreate to true or provide a create function.');
+      // Use existing controller
+      _controller = existingController;
     }
 
-    // Store the current ID for future reference
-    _currentId = widget.id ?? _builderId;
-
-    // Register for updates if we have a controller
-    if (_controller != null) {
-      _controller!.addUpdateListener(_currentId!, _onUpdate);
+    // Increment use count if auto-management is enabled
+    if (widget.autoManage) {
+      Zen.incrementUseCount<T>(tag: widget.tag, scope: widget.scope);
     }
+
+    // Register for updates
+    if (widget.id != null) {
+      _controller.addUpdateListener(widget.id!, _update);
+    } else {
+      // Register for all updates from this controller
+      _controller.addUpdateListener('_all_', _update);
+    }
+
+    _initialized = true;
   }
 
-  void _onUpdate() {
+  void _update() {
     if (mounted) {
       setState(() {});
     }
   }
 
   @override
-  void didUpdateWidget(ZenBuilder<T> oldWidget) {
-    super.didUpdateWidget(oldWidget);
-
-    // Handle tag changes or scope changes by reinitializing
-    if (oldWidget.tag != widget.tag || oldWidget.findScopeFn != widget.findScopeFn) {
-      // Unregister from old controller first
-      if (_initialized && _currentId != null && _controller != null) {
-        _controller!.removeUpdateListener(_currentId!, _onUpdate);
-      }
-
-      // Reset initialization flag
-      _initialized = false;
-
-      // Reinitialize controller
-      try {
-        _initController();
-      } catch (e) {
-        // Allow error to propagate
-        rethrow;
-      }
-      return;
-    }
-
-    // Handle ID changes
-    if (oldWidget.id != widget.id && _initialized && _controller != null) {
-      final newId = widget.id ?? _builderId;
-
-      // Important: First register with new ID, then remove old one to avoid missing updates
-      _controller!.addUpdateListener(newId, _onUpdate);
-
-      if (_currentId != null) {
-        _controller!.removeUpdateListener(_currentId!, _onUpdate);
-      }
-
-      // Update current ID
-      _currentId = newId;
-    }
-  }
-
-  @override
   void dispose() {
-    if (_initialized && _currentId != null && _controller != null) {
-      _controller!.removeUpdateListener(_currentId!, _onUpdate);
+    // Remove the update listener
+    if (widget.id != null) {
+      _controller.removeUpdateListener(widget.id!, _update);
+    } else {
+      _controller.removeUpdateListener('_all_', _update);
+    }
 
-      if (widget.disposeController) {
-        // Get the scope to use
-        final scope = widget.findScopeFn?.call();
-        Zen.delete<T>(tag: widget.tag, scope: scope);
-      }
+    // Decrement use count if auto-management is enabled
+    if (widget.autoManage) {
+      Zen.decrementUseCount<T>(tag: widget.tag, scope: widget.scope);
+    }
+
+    // If this widget created the controller and should dispose it
+    if (_locallyCreated && widget.disposeOnRemove) {
+      Zen.delete<T>(tag: widget.tag, scope: widget.scope);
     }
 
     super.dispose();
@@ -160,9 +118,42 @@ class _ZenBuilderState<T extends ZenController> extends State<ZenBuilder<T>> {
 
   @override
   Widget build(BuildContext context) {
-    if (!_initialized || _controller == null) {
-      return const SizedBox(); // Return empty widget if controller not initialized
+    if (!_initialized) {
+      _initializeController();
     }
-    return widget.builder(_controller!);
+    return widget.builder(_controller);
+  }
+}
+
+/// A simplified builder that provides the controller and automatically rebuilds on update()
+class SimpleBuilder<T extends ZenController> extends StatelessWidget {
+  /// The builder function that creates the widget tree
+  final Widget Function(T controller) builder;
+
+  /// Optional tag for the controller
+  final String? tag;
+
+  /// Optional scope to look for the controller
+  final ZenScope? scope;
+
+  /// Optional factory function to create the controller if it doesn't exist
+  final T Function()? create;
+
+  const SimpleBuilder({
+    required this.builder,
+    this.tag,
+    this.scope,
+    this.create,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ZenBuilder<T>(
+      builder: builder,
+      tag: tag,
+      scope: scope,
+      create: create,
+    );
   }
 }

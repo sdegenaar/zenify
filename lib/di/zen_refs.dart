@@ -5,7 +5,6 @@ import '../controllers/zen_controller.dart';
 import '../core/zen_scope.dart';
 
 /// Type-safe reference to a controller
-/// Enhances type safety and editor autocomplete when working with controllers
 class ControllerRef<T extends ZenController> {
   final String? tag;
   final ZenScope? scope;
@@ -51,22 +50,22 @@ class DependencyRef<T> {
   /// Get the dependency instance
   /// Creates the dependency if it doesn't exist and a factory is registered
   T get({T Function()? factory}) =>
-      Zen.getDependency<T>(tag: tag, scope: scope, factory: factory);
+      Zen.require<T>(tag: tag, scope: scope, factory: factory);
 
   /// Get the dependency if it exists, otherwise null
-  T? find() => Zen.findDependency<T>(tag: tag, scope: scope);
+  T? find() => Zen.lookup<T>(tag: tag, scope: scope);
 
   /// Register a dependency instance
   T put(T instance, {bool permanent = false}) =>
-      Zen.putDependency<T>(instance, tag: tag, permanent: permanent, scope: scope);
+      Zen.inject<T>(instance, tag: tag, permanent: permanent, scope: scope);
 
   /// Register a factory for lazy creation
   void lazyPut(T Function() factory, {bool permanent = false}) =>
-      Zen.lazyPutDependency<T>(factory, tag: tag, permanent: permanent, scope: scope);
+      Zen.lazyInject<T>(factory, tag: tag, permanent: permanent, scope: scope);
 
   /// Delete the dependency
   bool delete({bool force = false}) =>
-      Zen.deleteDependency<T>(tag: tag, force: force, scope: scope);
+      Zen.remove<T>(tag: tag, force: force, scope: scope);
 
   /// Check if dependency exists
   bool exists() => find() != null;
@@ -91,5 +90,29 @@ extension ZenControllerExtension on ZenController {
       );
     }
     throw Exception('Controller is not of type $T');
+  }
+
+  /// Register this controller in the DI container
+  T register<T extends ZenController>({
+    String? tag,
+    bool permanent = false,
+    ZenScope? scope,
+  }) {
+    if (this is T) {
+      return Zen.put<T>(this as T, tag: tag, permanent: permanent, scope: scope);
+    }
+    throw Exception('Controller is not of type $T');
+  }
+}
+
+/// Extension for any object to be registered in the DI container
+extension ZenObjectExtension<T> on T {
+  /// Register this instance in the DI container
+  T inject({
+    String? tag,
+    bool permanent = false,
+    ZenScope? scope,
+  }) {
+    return Zen.inject<T>(this, tag: tag, permanent: permanent, scope: scope);
   }
 }

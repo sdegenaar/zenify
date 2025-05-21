@@ -2,6 +2,13 @@
 
 /// Internal storage implementation for the DI system
 class ZenContainer {
+
+  // Singleton instance
+  static final ZenContainer instance = ZenContainer._();
+
+  // Private constructor
+  ZenContainer._();
+
   // Maps for instances and factories
   final Map<Type, Map<String?, dynamic>> _instances = {};
   final Map<dynamic, Function> _factories = {};

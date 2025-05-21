@@ -68,7 +68,7 @@ class ZenTestContainer {
       return registeredController as T;
     } else {
       // For non-controller types, use putDependency
-      return Zen.putDependency<T>(
+      return Zen.inject<T>(
           factory(),
           tag: tag,
           permanent: permanent,
@@ -84,7 +84,7 @@ class ZenTestContainer {
       // We need to use Zen.find for controllers
       return Zen.find(tag: tag, scope: _scope) as T?;
     }
-    return Zen.findDependency<T>(tag: tag, scope: _scope);
+    return Zen.lookup<T>(tag: tag, scope: _scope);
   }
 
   /// Dispose all dependencies in the test container

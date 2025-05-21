@@ -9,6 +9,13 @@ import '../core/zen_scope.dart';
 
 /// Manages lifecycle events for controllers
 class ZenLifecycleManager {
+  // Singleton instance
+  static final ZenLifecycleManager instance = ZenLifecycleManager._();
+
+  // Private constructor
+  ZenLifecycleManager._();
+
+
   // App lifecycle observer
   _ZenAppLifecycleObserver? _lifecycleObserver;
 

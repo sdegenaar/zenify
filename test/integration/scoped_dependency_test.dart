@@ -351,25 +351,25 @@ void main() {
       final prodScope = Zen.createScope(name: "ProdScope");
 
       // Register dependencies using Zen helper methods
-      Zen.putDependency<ConfigService>(
+      Zen.inject<ConfigService>(
           ConfigService(environment: "development", isDarkMode: true),
           scope: devScope
       );
 
-      Zen.putDependency<ConfigService>(
+      Zen.inject<ConfigService>(
           ConfigService(environment: "production", isDarkMode: false),
           scope: prodScope
       );
 
       // Register counter service in both scopes
-      Zen.putDependency<CounterService>(CounterService(), scope: devScope);
-      Zen.putDependency<CounterService>(CounterService(), scope: prodScope);
+      Zen.inject<CounterService>(CounterService(), scope: devScope);
+      Zen.inject<CounterService>(CounterService(), scope: prodScope);
 
       // Create controllers using Zen.putRef
       final devControllerRef = Zen.putRef<ScopedController>(
           ScopedController(
-              counterService: Zen.findDependency<CounterService>(scope: devScope)!,
-              configService: Zen.findDependency<ConfigService>(scope: devScope)!,
+              counterService: Zen.lookup<CounterService>(scope: devScope)!,
+              configService: Zen.lookup<ConfigService>(scope: devScope)!,
               scopeName: "DevScope"
           ),
           scope: devScope
@@ -377,8 +377,8 @@ void main() {
 
       final prodControllerRef = Zen.putRef<ScopedController>(
           ScopedController(
-              counterService: Zen.findDependency<CounterService>(scope: prodScope)!,
-              configService: Zen.findDependency<ConfigService>(scope: prodScope)!,
+              counterService: Zen.lookup<CounterService>(scope: prodScope)!,
+              configService: Zen.lookup<ConfigService>(scope: prodScope)!,
               scopeName: "ProdScope"
           ),
           scope: prodScope

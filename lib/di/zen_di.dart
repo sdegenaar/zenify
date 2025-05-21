@@ -21,19 +21,19 @@ class Zen {
   Zen._(); // Private constructor
 
   // Internal storage for instances, factories and reactive state
-  static final ZenContainer container = ZenContainer();
+  static final ZenContainer container = ZenContainer.instance;
 
   // Core reactive system
-  static final ZenReactiveSystem reactiveSystem = ZenReactiveSystem();
+  static final ZenReactiveSystem reactiveSystem = ZenReactiveSystem.instance;
 
   // Scope management
-  static final ZenScopeManager scopeManager = ZenScopeManager();
+  static final ZenScopeManager scopeManager = ZenScopeManager.instance;
 
   // Lifecycle management
-  static final ZenLifecycleManager lifecycleManager = ZenLifecycleManager();
+  static final ZenLifecycleManager lifecycleManager = ZenLifecycleManager.instance;
 
   // Dependency analysis
-  static final ZenDependencyAnalyzer dependencyAnalyzer = ZenDependencyAnalyzer();
+  static final ZenDependencyAnalyzer dependencyAnalyzer = ZenDependencyAnalyzer.instance;
 
   // Initialize the system
   static void init() {
@@ -64,6 +64,10 @@ class Zen {
     reactiveSystem.notifyListeners<T>(tag);
   }
 
+  //
+  // SIMPLIFIED CONTROLLER API
+  //
+
   /// Register a controller instance
   static T put<T extends ZenController>(T controller, {
     String? tag,
@@ -74,7 +78,7 @@ class Zen {
     // Use specified scope or root scope
     final targetScope = scope ?? scopeManager.rootScope;
 
-    // Register in the scope (without cycle checking at this point)
+    // Register in the scope
     targetScope.register<T>(
       controller,
       tag: tag,
@@ -85,11 +89,10 @@ class Zen {
     // Also register in the reactive system
     _registerInstance<T>(controller, tag);
 
-    // Check for circular dependencies after registration
+    // Check for circular dependencies if needed
     if (dependencies.isNotEmpty && ZenConfig.checkForCircularDependencies) {
       if (dependencyAnalyzer.detectCycles(controller, scopeManager.getAllScopes())) {
         ZenLogger.logWarning('Circular dependency detected involving $T${tag != null ? ' with tag $tag' : ''}');
-        // We log but don't prevent registration, as some circular dependencies might be intentional
       }
     }
 
@@ -102,59 +105,10 @@ class Zen {
     return controller;
   }
 
-  /// Register a dependency (not a controller)
-  static T putDependency<T>(T instance, {
-    String? tag,
-    bool permanent = false,
-    List<dynamic> dependencies = const [],
-    ZenScope? scope,
-  }) {
-    final targetScope = scope ?? scopeManager.rootScope;
-
-    // Register the instance first without checking for cycles
-    targetScope.register<T>(
-      instance,
-      tag: tag,
-      permanent: permanent,
-      declaredDependencies: dependencies,
-    );
-
-    // Also register in the reactive system
-    _registerInstance<T>(instance, tag);
-
-    // Only check for cycles if explicitly enabled AND dependencies are provided
-    if (dependencies.isNotEmpty && ZenConfig.checkForCircularDependencies) {
-      // Suppress any exceptions during cycle detection - we don't want them to
-      // prevent the registration or break tests
-      try {
-        if (dependencyAnalyzer.detectCycles(instance, scopeManager.getAllScopes())) {
-          ZenLogger.logWarning('Circular dependency detected involving $T${tag != null ? ' with tag $tag' : ''}');
-        }
-      } catch (e) {
-        // Just log the error and continue
-        ZenLogger.logWarning('Error during cycle detection: $e');
-      }
-    }
-
-    return instance;
-  }
-
   /// Find a controller in the specified scope or its parents
   static T? find<T extends ZenController>({String? tag, ZenScope? scope}) {
     final targetScope = scope ?? scopeManager.rootScope;
     return targetScope.find<T>(tag: tag);
-  }
-
-  /// Find any dependency (not a controller)
-  static T? findDependency<T>({String? tag, ZenScope? scope}) {
-    final targetScope = scope ?? scopeManager.rootScope;
-    return targetScope.find<T>(tag: tag);
-  }
-
-  /// Find any dependency by Type object at runtime (not just at compile time)
-  static dynamic findDependencyByType(Type type, {String? tag, ZenScope? scope}) {
-    final targetScope = scope ?? scopeManager.rootScope;
-    return targetScope.findByType(type, tag: tag);
   }
 
   /// Get controller, create if it doesn't exist
@@ -175,65 +129,7 @@ class Zen {
       return put<T>(controller, tag: tag, permanent: permanent, scope: scope);
     }
 
-    throw Exception('Controller $T${tag != null ? ' with tag $tag' : ''} not found and no factory registered');
-  }
-
-  /// Get any dependency, create if it doesn't exist
-  static T getDependency<T>({
-    String? tag,
-    T Function()? factory,
-    bool permanent = false,
-    ZenScope? scope
-  }) {
-    final targetScope = scope ?? scopeManager.rootScope;
-    final existing = targetScope.find<T>(tag: tag);
-
-    if (existing != null) {
-      return existing;
-    }
-
-    // Check for registered factory
-    final factoryKey = _getKey(T, tag);
-    final registeredFactory = container.getFactory(factoryKey);
-
-    // Use provided factory or registered factory
-    if (factory != null) {
-      final instance = factory();
-      return putDependency<T>(instance, tag: tag, permanent: permanent, scope: scope);
-    } else if (registeredFactory != null) {
-      final instance = registeredFactory() as T;
-      return putDependency<T>(instance, tag: tag, permanent: permanent, scope: scope);
-    }
-
-    throw Exception('Dependency $T${tag != null ? ' with tag $tag' : ''} not found and no factory provided or registered');
-  }
-
-  /// Register a factory for lazy creation of controllers
-  static void lazyPut<T extends ZenController>(T Function() factory, {
-    String? tag,
-    bool permanent = false,
-    ZenScope? scope,
-  }) {
-    final factoryKey = _getKey(T, tag);
-    container.registerFactory(factoryKey, factory);
-
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('Factory registered for $T${tag != null ? ' with tag $tag' : ''}');
-    }
-  }
-
-  /// Register a factory for lazy creation of dependencies
-  static void lazyPutDependency<T>(T Function() factory, {
-    String? tag,
-    bool permanent = false,
-    ZenScope? scope,
-  }) {
-    final factoryKey = _getKey(T, tag);
-    container.registerFactory(factoryKey, factory);
-
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('Factory registered for dependency $T${tag != null ? ' with tag $tag' : ''}');
-    }
+    throw Exception('Controller $T${tag != null ? ' ($tag)' : ''} not found');
   }
 
   /// Delete a controller
@@ -253,8 +149,84 @@ class Zen {
     return deleted;
   }
 
-  /// Delete any dependency
-  static bool deleteDependency<T>({String? tag, bool force = false, ZenScope? scope}) {
+  //
+  // SIMPLIFIED DEPENDENCY API
+  //
+
+  /// Register a dependency (not a controller)
+  static T inject<T>(T instance, {
+    String? tag,
+    bool permanent = false,
+    List<dynamic> dependencies = const [],
+    ZenScope? scope,
+  }) {
+    final targetScope = scope ?? scopeManager.rootScope;
+
+    // Register the instance
+    targetScope.register<T>(
+      instance,
+      tag: tag,
+      permanent: permanent,
+      declaredDependencies: dependencies,
+    );
+
+    // Also register in the reactive system
+    _registerInstance<T>(instance, tag);
+
+    // Check for cycles if needed
+    if (dependencies.isNotEmpty && ZenConfig.checkForCircularDependencies) {
+      try {
+        if (dependencyAnalyzer.detectCycles(instance, scopeManager.getAllScopes())) {
+          ZenLogger.logWarning('Circular dependency detected involving $T${tag != null ? ' with tag $tag' : ''}');
+        }
+      } catch (e) {
+        ZenLogger.logWarning('Error during cycle detection: $e');
+      }
+    }
+
+    return instance;
+  }
+
+  /// Find a dependency, returns null if not found
+  static T? lookup<T>({String? tag, ZenScope? scope}) {
+    final targetScope = scope ?? scopeManager.rootScope;
+    return targetScope.find<T>(tag: tag);
+  }
+
+  /// Get a dependency, create if it doesn't exist
+  static T require<T>({
+    String? tag,
+    T Function()? factory,
+    bool permanent = false,
+    ZenScope? scope
+  }) {
+    final targetScope = scope ?? scopeManager.rootScope;
+    final existing = targetScope.find<T>(tag: tag);
+
+    if (existing != null) {
+      return existing;
+    }
+
+    // Try provided factory or registered factory
+    if (factory != null) {
+      final instance = factory();
+      return inject<T>(instance, tag: tag, permanent: permanent, scope: scope);
+    }
+
+    // Check for registered factory
+    final factoryKey = _getKey(T, tag);
+    final registeredFactory = container.getFactory(factoryKey);
+
+    if (registeredFactory != null) {
+      final instance = registeredFactory() as T;
+      return inject<T>(instance, tag: tag, permanent: permanent, scope: scope);
+    }
+
+    throw Exception('Dependency $T${tag != null ? ' ($tag)' : ''} not found');
+  }
+
+  /// Remove a dependency
+  static bool remove<T>({String? tag, bool force = false, ZenScope? scope}) {
     final targetScope = scope ?? scopeManager.rootScope;
 
     // Delete from scope
@@ -269,6 +241,52 @@ class Zen {
 
     return deleted;
   }
+
+  //
+  // SIMPLIFIED LAZY REGISTRATION
+  //
+
+  /// Register a factory for lazy creation of controllers
+  static void lazyPut<T extends ZenController>(T Function() factory, {
+    String? tag,
+    bool permanent = false,
+    ZenScope? scope,
+  }) {
+    final factoryKey = _getKey(T, tag);
+    container.registerFactory(factoryKey, factory);
+
+    if (ZenConfig.enableDebugLogs) {
+      ZenLogger.logDebug('Factory registered for $T${tag != null ? ' with tag $tag' : ''}');
+    }
+  }
+
+  /// Register a factory for lazy creation of dependencies
+  static void lazyInject<T>(T Function() factory, {
+    String? tag,
+    bool permanent = false,
+    ZenScope? scope,
+  }) {
+    final factoryKey = _getKey(T, tag);
+    container.registerFactory(factoryKey, factory);
+
+    if (ZenConfig.enableDebugLogs) {
+      ZenLogger.logDebug('Factory registered for dependency $T${tag != null ? ' with tag $tag' : ''}');
+    }
+  }
+
+  /// Register a factory function in the current scope
+  static void putFactory<T>(T Function() factory, {String? tag}) {
+    ZenScopeManager.instance.putFactory<T>(factory, tag: tag);
+  }
+
+  /// Register a factory function in the root scope
+  static void putFactoryGlobal<T>(T Function() factory, {String? tag}) {
+    ZenScopeManager.instance.putFactoryGlobal<T>(factory, tag: tag);
+  }
+
+  //
+  // SIMPLIFIED TAG AND TYPE MANAGEMENT
+  //
 
   /// Delete by tag only (without knowing the type)
   static bool deleteByTag(String tag, {bool force = false, ZenScope? scope}) {
@@ -370,6 +388,66 @@ class Zen {
     }
   }
 
+  //
+  // SIMPLIFIED REFERENCE SYSTEM
+  //
+
+  /// Create and return a reference to a controller
+  static ControllerRef<T> ref<T extends ZenController>({String? tag, ZenScope? scope}) {
+    return ControllerRef<T>(tag: tag, scope: scope);
+  }
+
+  /// Create and register a reference to a controller
+  static ControllerRef<T> putRef<T extends ZenController>(T controller, {
+    String? tag,
+    bool permanent = false,
+    List<dynamic> dependencies = const [],
+    ZenScope? scope,
+  }) {
+    put<T>(controller, tag: tag, permanent: permanent, dependencies: dependencies, scope: scope);
+    return ControllerRef<T>(tag: tag, scope: scope);
+  }
+
+  /// Register a factory and return a reference
+  static ControllerRef<T> lazyRef<T extends ZenController>(T Function() factory, {
+    String? tag,
+    bool permanent = false,
+    ZenScope? scope,
+  }) {
+    lazyPut<T>(factory, tag: tag, permanent: permanent, scope: scope);
+    return ref<T>(tag: tag, scope: scope);
+  }
+
+  /// Create and return a reference to any dependency
+  static DependencyRef<T> depRef<T>({String? tag, ZenScope? scope}) {
+    return DependencyRef<T>(tag: tag, scope: scope);
+  }
+
+  /// Create and register a reference to any dependency
+  static DependencyRef<T> injectRef<T>(T instance, {
+    String? tag,
+    bool permanent = false,
+    List<dynamic> dependencies = const [],
+    ZenScope? scope,
+  }) {
+    inject<T>(instance, tag: tag, permanent: permanent, dependencies: dependencies, scope: scope);
+    return DependencyRef<T>(tag: tag, scope: scope);
+  }
+
+  /// Register a factory and return a dependency reference
+  static DependencyRef<T> lazyDepRef<T>(T Function() factory, {
+    String? tag,
+    bool permanent = false,
+    ZenScope? scope,
+  }) {
+    lazyInject<T>(factory, tag: tag, permanent: permanent, scope: scope);
+    return depRef<T>(tag: tag, scope: scope);
+  }
+
+  //
+  // SIMPLIFIED USAGE TRACKING
+  //
+
   /// Increment use count for a controller
   static int incrementUseCount<T extends ZenController>({String? tag, ZenScope? scope}) {
     final targetScope = scope ?? scopeManager.rootScope;
@@ -388,8 +466,11 @@ class Zen {
     return targetScope.getUseCount<T>(tag: tag);
   }
 
+  //
+  // REACTIVE SYSTEM
+  //
+
   /// Listen to changes for a specific type and tag
-  /// Replacement for Riverpod's listen function
   static ZenSubscription listen<T>(
       dynamic provider,
       void Function(T) listener, {
@@ -398,57 +479,9 @@ class Zen {
     return reactiveSystem.listen<T>(provider, listener);
   }
 
-  /// Create and return a reference to a controller
-  static ControllerRef<T> ref<T extends ZenController>({String? tag, ZenScope? scope}) {
-    return ControllerRef<T>(tag: tag, scope: scope);
-  }
-
-  /// Create and register a type-safe reference to a controller
-  static ControllerRef<T> putRef<T extends ZenController>(T controller, {
-    String? tag,
-    bool permanent = false,
-    List<dynamic> dependencies = const [],
-    ZenScope? scope,
-  }) {
-    put<T>(controller, tag: tag, permanent: permanent, dependencies: dependencies, scope: scope);
-    return ControllerRef<T>(tag: tag, scope: scope);
-  }
-
-  /// Register a factory and return a type-safe reference
-  static ControllerRef<T> lazyRef<T extends ZenController>(T Function() factory, {
-    String? tag,
-    bool permanent = false,
-    ZenScope? scope,
-  }) {
-    lazyPut<T>(factory, tag: tag, permanent: permanent, scope: scope);
-    return ref<T>(tag: tag, scope: scope);
-  }
-
-  /// Create and return a reference to any dependency
-  static DependencyRef<T> dependencyRef<T>({String? tag, ZenScope? scope}) {
-    return DependencyRef<T>(tag: tag, scope: scope);
-  }
-
-  /// Create and register a type-safe reference to any dependency
-  static DependencyRef<T> putDependencyRef<T>(T instance, {
-    String? tag,
-    bool permanent = false,
-    List<dynamic> dependencies = const [],
-    ZenScope? scope,
-  }) {
-    putDependency<T>(instance, tag: tag, permanent: permanent, dependencies: dependencies, scope: scope);
-    return DependencyRef<T>(tag: tag, scope: scope);
-  }
-
-  /// Register a factory and return a type-safe dependency reference
-  static DependencyRef<T> lazyDependencyRef<T>(T Function() factory, {
-    String? tag,
-    bool permanent = false,
-    ZenScope? scope,
-  }) {
-    lazyPutDependency<T>(factory, tag: tag, permanent: permanent, scope: scope);
-    return dependencyRef<T>(tag: tag, scope: scope);
-  }
+  //
+  // MODULE REGISTRATION
+  //
 
   /// Register modules in a scope
   static void registerModules(List<ZenModule> modules, {ZenScope? scope}) {
@@ -463,6 +496,10 @@ class Zen {
       ZenModuleRegistry.register(module, scope: targetScope);
     }
   }
+
+  //
+  // MANAGEMENT METHODS
+  //
 
   /// Get all active controllers for management and debugging
   static List<ZenController> get allControllers {
@@ -491,6 +528,12 @@ class Zen {
     container.clear();
     reactiveSystem.clearListeners();
     scopeManager.dispose();
+  }
+
+  /// Find any dependency by Type object at runtime (not just at compile time)
+  static dynamic findByType(Type type, {String? tag, ZenScope? scope}) {
+    final targetScope = scope ?? scopeManager.rootScope;
+    return targetScope.findByType(type, tag: tag);
   }
 
   /// Detect and report problematic dependencies

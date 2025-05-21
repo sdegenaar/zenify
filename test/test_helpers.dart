@@ -1,3 +1,4 @@
+
 // test/test_helpers.dart
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zenify/zenify.dart';
@@ -42,8 +43,30 @@ class ZenTestHelper {
       if (instance is ZenController) {
         Zen.put(instance);
       } else {
-        Zen.putDependency(instance);
+        Zen.inject(instance);
       }
+    }
+  }
+
+  /// Reset the entire DI system for a fresh test environment
+  static void resetDI() {
+    try {
+      // Clear container first to ensure no factories remain
+      Zen.container.clear();
+
+      // Dispose existing instances
+      Zen.dispose();
+
+      // Re-initialize the scope manager
+      ZenScopeManager.instance.initialize();
+
+      // Reset use counts
+      ZenScopeManager.instance.resetAllUseCounts();
+
+      // Clear reactive system
+      Zen.reactiveSystem.clearListeners();
+    } catch (e) {
+      print('Error resetting DI system: $e');
     }
   }
 }
