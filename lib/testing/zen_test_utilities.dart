@@ -2,7 +2,6 @@
 import 'package:flutter/material.dart';
 import '../controllers/zen_controller.dart';
 import '../core/zen_scope.dart';
-import '../reactive/rx_value.dart';
 import '../core/zen_logger.dart';
 import '../core/zen_config.dart';
 import '../di/zen_di.dart';
@@ -68,7 +67,7 @@ class ZenTestContainer {
       return registeredController as T;
     } else {
       // For non-controller types, use putDependency
-      return Zen.inject<T>(
+      return Zen.put<T>(
           factory(),
           tag: tag,
           permanent: permanent,

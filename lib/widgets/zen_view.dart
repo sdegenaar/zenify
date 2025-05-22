@@ -242,7 +242,7 @@ extension ZenBuilderExtensions on BuildContext {
 
 /// Custom element that captures build context
 class _ZenViewElement extends StatefulElement {
-  _ZenViewElement(ZenView widget) : super(widget);
+  _ZenViewElement(ZenView super.widget);
 
   @override
   Widget build() {

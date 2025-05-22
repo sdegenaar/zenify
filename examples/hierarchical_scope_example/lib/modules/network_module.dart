@@ -13,7 +13,7 @@ class NetworkModule extends ZenModule {
     // Register network service if not already registered
     if (Zen.lookup<NetworkService>(scope: scope) == null) {
       // Use putDependency for regular services that don't extend ZenController
-      Zen.inject<NetworkService>(
+      Zen.put<NetworkService>(
           NetworkService(),
           scope: scope
       );

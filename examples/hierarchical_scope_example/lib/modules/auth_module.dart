@@ -22,7 +22,7 @@ class AuthModule extends ZenModule {
 
     // Register auth service if not already registered
     if (Zen.lookup<AuthService>(scope: scope) == null) {
-      Zen.inject<AuthService>(
+      Zen.put<AuthService>(
           AuthService(networkService: networkService),
           scope: scope
       );
@@ -32,7 +32,7 @@ class AuthModule extends ZenModule {
     if (Zen.lookup<ProfileRepository>(scope: scope) == null) {
       final authService = Zen.lookup<AuthService>(scope: scope);
       if (authService != null) {
-        Zen.inject<ProfileRepository>(
+        Zen.put<ProfileRepository>(
             ProfileRepository(authService: authService),
             scope: scope
         );

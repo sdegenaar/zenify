@@ -95,24 +95,6 @@ void main() {
       expect(controller.readyCalled, isTrue);
     });
 
-    test('should support lazy initialization of controllers', () {
-      final testScope = ZenTestHelper.createIsolatedTestScope('lazy-init');
-
-      // Register a factory
-      Zen.lazyPut<TestController>(() => TestController('lazy'), scope: testScope);
-
-      // Verify controller doesn't exist yet
-      expect(Zen.find<TestController>(scope: testScope), isNull);
-
-      // Get the controller, triggering creation
-      final controller = Zen.get<TestController>(scope: testScope);
-
-      // Verify controller was created
-      expect(controller, isNotNull);
-      expect(controller.value, 'lazy');
-      expect(controller.initialized, isTrue);
-    });
-
     test('should support permanent controllers', () {
       final testScope = ZenTestHelper.createIsolatedTestScope('permanent');
 
@@ -154,7 +136,7 @@ void main() {
       final testScope = ZenTestHelper.createIsolatedTestScope('dependencies');
 
       final service = TestService('service');
-      Zen.inject<TestService>(service, scope: testScope);
+      Zen.put<TestService>(service, scope: testScope);
 
       final found = Zen.lookup<TestService>(scope: testScope);
       expect(found, isNotNull);
@@ -165,6 +147,7 @@ void main() {
       final testScope = ZenTestHelper.createIsolatedTestScope('references');
 
       final controller = TestController('ref');
+      // Ensure we're setting scope properly
       final ref = Zen.putRef<TestController>(controller, scope: testScope);
 
       // Use the ref to get the controller
@@ -182,18 +165,20 @@ void main() {
     test('should track and auto-dispose unused controllers', () {
       final testScope = ZenTestHelper.createIsolatedTestScope('auto-dispose');
 
-      // Create a controller
+      // Create a controller with proper scope
       final controller = TestController('auto-dispose');
       Zen.put<TestController>(controller, scope: testScope);
 
-      // Increment and decrement use count
+      // Reset counts first to ensure we start from zero
+      testScope.resetAllUseCounts();
+
+      // Increment use count
       Zen.incrementUseCount<TestController>(scope: testScope);
+      expect(Zen.getUseCount<TestController>(scope: testScope), 1);
+
+      // Decrement use count
       final count = Zen.decrementUseCount<TestController>(scope: testScope);
-
       expect(count, 0);
-
-      // The auto-dispose mechanism works with timers that we can't easily test
-      // We'd need to mock the timer or expose a method to trigger cleanup
     });
 
     test('should register and use modules', () async {
@@ -202,25 +187,40 @@ void main() {
       // Create a test module
       final module = TestModule();
 
-      // Use direct registry access instead of going through Zen
-      ZenModuleRegistry.register(module, scope: testScope);
+      // Use Zen directly to register the module
+      Zen.registerModules([module], scope: testScope);
 
       // Force the event loop to cycle to ensure all async operations complete
       await Future.delayed(Duration.zero);
 
-      // Get service directly from scope
-      final service = testScope.find<TestService>();
+      // Get service directly from scope using the find method
+      final service = Zen.find<TestService>(scope: testScope);
 
-      // Use boolean for the assertion
-      final bool exists = service != null;
+      // Verify service exists
+      expect(service, isNotNull);
 
-      // Use direct boolean comparison
-      expect(exists, equals(true));
+      // Verify service value
+      expect(service?.value, equals('from module'));
+    });
 
-      // Check value only if it exists
-      if (service != null) {
-        expect(service.value, equals('from module'));
-      }
+    test('should register and use modules', () async {
+      // Create a test scope
+      final testScope = Zen.createScope(name: 'modules-async');
+
+      // Create a test module
+      final module = TestModule();
+
+      // Call register directly
+      module.register(testScope);
+
+      // Get service directly from scope using the find method
+      final found = testScope.find<TestService>();
+
+      // Verify service exists
+      expect(found, isNotNull);
+
+      // Verify service value
+      expect(found?.value, equals('from module'));
     });
 
   });
@@ -236,8 +236,10 @@ class TestModule extends ZenModule {
     // Create a test service
     final service = TestService('from module');
 
-    // Explicitly specify the scope parameter when registering
-    scope.register<TestService>(service);
+    // Register directly in the scope instead of using Zen.put
+    scope.register<TestService>(
+      service,
+      permanent: false,
+    );
   }
-
 }

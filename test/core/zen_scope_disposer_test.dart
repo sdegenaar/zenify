@@ -193,7 +193,7 @@ void main() {
       final manager = ZenScopeManager.instance;
 
       // Set current scope
-      manager.currentScope = scope;
+      manager.setCurrentScope(scope);
 
       // Track disposer calls
       final disposerCalls = <String>[];

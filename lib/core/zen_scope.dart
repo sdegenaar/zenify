@@ -40,7 +40,6 @@ class ZenScope {
   // Store custom disposal functions
   final List<Function()> _disposers = [];
 
-
   /// Creates a new scope
   ZenScope({
     this.parent,
@@ -93,7 +92,8 @@ class ZenScope {
       _typeToTags[type]!.add(tag);
 
       // Set initial use count
-      _useCount[_getDependencyKey(type, tag)] = permanent ? -1 : 0; // -1 means permanent
+      final key = _getDependencyKey(type, tag);
+      _useCount[key] = permanent ? -1 : 0; // -1 means permanent
     } else {
       // Check if we're replacing a dependency
       final oldInstance = _typeBindings[T];
@@ -110,7 +110,8 @@ class ZenScope {
       _typeBindings[T] = instance;
 
       // Set initial use count
-      _useCount[_getDependencyKey(T, null)] = permanent ? -1 : 0; // -1 means permanent
+      final key = _getDependencyKey(T, null);
+      _useCount[key] = permanent ? -1 : 0; // -1 means permanent
     }
 
     // Handle dependencies in a safer way - store them but don't check cycles here
@@ -148,13 +149,13 @@ class ZenScope {
     }
 
     final key = _makeKey<T>(tag);
+    final trackingKey = _getDependencyKey(T, tag);
 
     // Store the factory for later use
     _factories[key] = factory;
 
     // Set the use count (0 for normal, created on first access)
-    final permanentKey = _getDependencyKey(T, tag);
-    _useCount[permanentKey] = 0;
+    _useCount[trackingKey] = 0;
 
     if (ZenConfig.enableDebugLogs) {
       ZenLogger.logDebug('Registered lazy singleton for $T${tag != null ? ' with tag $tag' : ''}');
@@ -171,12 +172,12 @@ class ZenScope {
     }
 
     final key = _makeKey<T>(tag);
+    final trackingKey = _getDependencyKey(T, tag);
 
     // Store the factory
     _factories[key] = factory;
 
     // Mark as a factory in the use count tracking
-    final trackingKey = _getDependencyKey(T, tag);
     _useCount[trackingKey] = -2; // -2 indicates a factory (non-singleton)
 
     if (ZenConfig.enableDebugLogs) {
@@ -218,7 +219,6 @@ class ZenScope {
         permanent: permanent
     );
   }
-
 
   /// Detect circular dependencies starting from the given object
   bool detectCycles(dynamic start) {
@@ -318,7 +318,8 @@ class ZenScope {
         final instance = factory();
 
         // Check if this is a singleton factory or not
-        final isSingleton = _useCount[_getDependencyKey(T, tag)] != -2; // Using -2 to mark non-singleton factories
+        final trackingKey = _getDependencyKey(T, tag);
+        final isSingleton = _useCount[trackingKey] != -2; // Using -2 to mark non-singleton factories
 
         // For singletons, store the instance and remove the factory
         if (isSingleton) {
@@ -356,7 +357,8 @@ class ZenScope {
         final instance = factory();
 
         // Check if this is a singleton factory or not
-        final isSingleton = _useCount[_getDependencyKey(T, null)] != -2; // Using -2 to mark non-singleton factories
+        final trackingKey = _getDependencyKey(T, null);
+        final isSingleton = _useCount[trackingKey] != -2; // Using -2 to mark non-singleton factories
 
         // For singletons, store the instance and remove the factory
         if (isSingleton) {
@@ -410,7 +412,6 @@ class ZenScope {
     return result;
   }
 
-
   /// Find a dependency by runtime Type
   dynamic findByType(Type type, {String? tag}) {
     if (_disposed) {
@@ -439,7 +440,6 @@ class ZenScope {
 
     return null;
   }
-
 
   /// Delete a dependency by type and optional tag
   bool delete<T>({String? tag, bool force = false}) {
@@ -638,7 +638,6 @@ class ZenScope {
     }
   }
 
-
   /// Dispose this scope and all its dependencies
   @mustCallSuper
   void dispose() {
@@ -725,6 +724,7 @@ class ZenScope {
     return tag != null ? '$type:$tag' : type;
   }
 
+
   /// Increment use count for a dependency
   int incrementUseCount<T>({String? tag}) {
     if (_disposed) {
@@ -742,12 +742,23 @@ class ZenScope {
     }
 
     final key = _getDependencyKey(T, tag);
-    if (!_useCount.containsKey(key) || _useCount[key] == -1) {
-      return -1; // Permanent or not found
+
+    // Check for permanent dependency
+    if (_useCount.containsKey(key) && _useCount[key] == -1) {
+      return -1; // Permanent
     }
 
-    final count = (_useCount[key] ?? 0) + 1;
+    // Get current count (default to 0 if not found or null)
+    final currentCount = _useCount[key] ?? 0;
+
+    // Increment count
+    final count = currentCount + 1;
     _useCount[key] = count;
+
+    if (ZenConfig.enableDebugLogs) {
+      ZenLogger.logDebug('Incremented use count for $T${tag != null ? ' with tag $tag' : ''} to $count');
+    }
+
     return count;
   }
 
@@ -768,12 +779,28 @@ class ZenScope {
     }
 
     final key = _getDependencyKey(T, tag);
-    if (!_useCount.containsKey(key) || _useCount[key] == -1) {
-      return -1; // Permanent or not found
+
+    // Check for permanent dependency
+    if (!_useCount.containsKey(key)) {
+      // Initialize to 0 if it doesn't exist
+      _useCount[key] = 0;
+      return 0;
+    } else if (_useCount[key] == -1) {
+      // Permanent dependency
+      return -1;
     }
 
-    final count = (_useCount[key] ?? 1) - 1;
+    // Get current count (default to 0 if null)
+    final currentCount = _useCount[key] ?? 0;
+
+    // Decrement but don't go below 0
+    final count = currentCount > 0 ? currentCount - 1 : 0;
     _useCount[key] = count;
+
+    if (ZenConfig.enableDebugLogs) {
+      ZenLogger.logDebug('Decremented use count for $T${tag != null ? ' with tag $tag' : ''} to $count');
+    }
+
     return count;
   }
 
@@ -802,9 +829,22 @@ class ZenScope {
 
   /// Reset all use counts to zero
   void resetAllUseCounts() {
-    _useCount.clear();
-  }
+    if (_disposed) {
+      return;
+    }
 
+    // Preserve permanent flags (-1) while resetting others
+    final keys = _useCount.keys.toList();
+    for (final key in keys) {
+      if (_useCount[key] != -1) {
+        _useCount[key] = 0;
+      }
+    }
+
+    if (ZenConfig.enableDebugLogs) {
+      ZenLogger.logDebug('Reset all use counts in scope: $name');
+    }
+  }
 
   /// Check if a dependency is permanent
   bool isPermanent({required Type type, String? tag}) {
@@ -840,6 +880,29 @@ class ZenScope {
     }
 
     return false;
+  }
+
+  /// Find an instance only (no lazy initialization) in this specific scope
+  T? findInstanceOnly<T>({String? tag}) {
+    if (_disposed) {
+      return null;
+    }
+
+    if (tag != null) {
+      // Check if this tag exists
+      final instance = _taggedBindings[tag];
+      if (instance != null && instance is T) {
+        return instance;
+      }
+    } else {
+      // Try to find by type
+      final instance = _typeBindings[T];
+      if (instance != null) {
+        return instance as T;
+      }
+    }
+
+    return null;
   }
 
   /// Checks if a type is registered (either as an instance or a factory)
@@ -884,6 +947,29 @@ class ZenScope {
 
     return {};
   }
+
+  /// Check if a dependency exists by type and tag
+  bool hasDependency<T>({String? tag}) {
+    if (_disposed) return false;
+
+    // Only return true if an actual instance exists (not just a factory)
+    if (tag != null) {
+      final instance = _taggedBindings[tag];
+      return instance != null && instance is T;
+    } else {
+      return _typeBindings.containsKey(T);
+    }
+  }
+
+
+  /// Check if a factory exists for a type and tag
+  bool hasFactory<T>({String? tag}) {
+    if (_disposed) return false;
+
+    final key = _makeKey<T>(tag);
+    return _factories.containsKey(key);
+  }
+
 
   /// Check if an instance has dependencies
   bool hasDependencies(dynamic instance) {

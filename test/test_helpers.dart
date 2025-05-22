@@ -34,17 +34,14 @@ class ZenTestHelper {
     // Clear existing dependencies
     Zen.deleteAll(force: true);
 
-    // Directly register each dependency using Zen.putDependency
+    // Register each dependency using the new unified API
     for (final entry in dependencies.entries) {
       final factory = entry.value;
       final instance = factory();
 
-      // Handle controllers and regular dependencies differently
-      if (instance is ZenController) {
-        Zen.put(instance);
-      } else {
-        Zen.inject(instance);
-      }
+      // Use put for all dependencies
+      // The put method now handles both controllers and regular dependencies
+      Zen.put(instance);
     }
   }
 
@@ -66,7 +63,7 @@ class ZenTestHelper {
       // Clear reactive system
       Zen.reactiveSystem.clearListeners();
     } catch (e) {
-      print('Error resetting DI system: $e');
+      ZenLogger.logError('Error resetting DI system', e);
     }
   }
 }

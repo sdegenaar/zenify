@@ -15,7 +15,7 @@ class CounterController extends ZenController {
 
 // Test ZenView implementation
 class TestZenView extends ZenView<CounterController> {
-  const TestZenView({Key? key}) : super(key: key);
+  const TestZenView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +36,7 @@ class TestZenView extends ZenView<CounterController> {
 
 // Test ZenViewReactive implementation
 class TestZenViewReactive extends ZenViewReactiveBase<CounterController> {
-  const TestZenViewReactive({Key? key}) : super(key: key);
+  const TestZenViewReactive({super.key});
 
   @override
   Widget buildWithController(BuildContext context, CounterController controller) {
@@ -57,7 +57,7 @@ class TestZenViewReactive extends ZenViewReactiveBase<CounterController> {
 
 // Custom ZenView with createController implementation
 class CreateControllerTestView extends ZenView<CounterController> {
-  const CreateControllerTestView({Key? key}) : super(key: key);
+  const CreateControllerTestView({super.key});
 
   @override
   CounterController Function()? get createController => () => CounterController();
@@ -80,7 +80,7 @@ class CreateControllerTestView extends ZenView<CounterController> {
 
 // Custom ZenView with tag implementation
 class TaggedTestView extends ZenView<CounterController> {
-  const TaggedTestView({Key? key}) : super(key: key);
+  const TaggedTestView({super.key});
 
   @override
   String? get tag => 'custom_tag';
@@ -108,7 +108,7 @@ class TaggedTestView extends ZenView<CounterController> {
 class ScopedTestView extends ZenView<CounterController> {
   final ZenScope customScope;
 
-  const ScopedTestView(this.customScope, {Key? key}) : super(key: key);
+  const ScopedTestView(this.customScope, {super.key});
 
   @override
   ZenScope? get scope => customScope;

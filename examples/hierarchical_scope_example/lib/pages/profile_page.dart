@@ -42,7 +42,7 @@ class ProfilePage extends StatelessWidget {
           } else {
             // Create a new repository and register it
             profileRepo = ProfileRepository(authService: authService);
-            Zen.inject<ProfileRepository>(profileRepo, scope: appScope);
+            Zen.put<ProfileRepository>(profileRepo, scope: appScope);
           }
 
           // Create and register the controller with the profile scope

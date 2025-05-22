@@ -83,7 +83,7 @@ void main() {
       expect(identical(manager.currentScope, manager.rootScope), isTrue);
 
       // Change current scope
-      manager.currentScope = childScope;
+      manager.setCurrentScope(childScope);
       expect(identical(manager.currentScope, childScope), isTrue);
 
       // Create a session that will restore the previous scope when ended
@@ -103,7 +103,7 @@ void main() {
 
       // Create a child scope and set as current
       final childScope = manager.createScope(name: 'CurrentScope');
-      manager.currentScope = childScope;
+      manager.setCurrentScope(childScope);
 
       // Register in current scope
       final service = TestService('testValue');
@@ -113,7 +113,7 @@ void main() {
       expect(manager.find<TestService>()?.value, equals('testValue'));
 
       // Switch back to root scope
-      manager.currentScope = manager.rootScope;
+      manager.setCurrentScope(manager.rootScope);
 
       // Should not be found in root scope
       expect(manager.find<TestService>(), isNull);
