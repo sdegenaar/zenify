@@ -1,3 +1,4 @@
+
 // lib/di/zen_lifecycle.dart
 import 'package:flutter/widgets.dart';
 import 'package:zenify/di/zen_di.dart';
@@ -14,7 +15,6 @@ class ZenLifecycleManager {
 
   // Private constructor
   ZenLifecycleManager._();
-
 
   // App lifecycle observer
   _ZenAppLifecycleObserver? _lifecycleObserver;

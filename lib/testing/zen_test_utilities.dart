@@ -77,13 +77,9 @@ class ZenTestContainer {
   }
 
   /// Find a dependency from the test container
+  /// Find a dependency from the test container
   T? find<T>({String? tag}) {
-    if (T.toString().contains('ZenController') || T is ZenController) {
-      // This is a controller type
-      // We need to use Zen.find for controllers
-      return Zen.find(tag: tag, scope: _scope) as T?;
-    }
-    return Zen.lookup<T>(tag: tag, scope: _scope);
+    return Zen.find<T>(tag: tag, scope: _scope);
   }
 
   /// Dispose all dependencies in the test container

@@ -175,7 +175,7 @@ void main() {
       final result = runBenchmark('Simple resolution', 50000, () {
         final dependency = SimpleDependency(42);
         Zen.put<SimpleDependency>(dependency);
-        Zen.lookup<SimpleDependency>();
+        Zen.find<SimpleDependency>();
         Zen.delete<SimpleDependency>();
       });
 
@@ -190,7 +190,7 @@ void main() {
         }
 
         for (int i = 0; i < 5; i++) {
-          Zen.lookup<SimpleDependency>(tag: 'tag$i');
+          Zen.find<SimpleDependency>(tag: 'tag$i');
         }
 
         for (int i = 0; i < 5; i++) {
@@ -216,12 +216,12 @@ void main() {
         b.a = a;
 
         // Find them
-        final foundA = Zen.lookup<ServiceA>();
-        final foundB = Zen.lookup<ServiceB>();
+        final foundA = Zen.find<ServiceA>();
+        final foundB = Zen.find<ServiceB>();
 
         // Verify circular references
-        expect(foundA?.b?.id, 2);
-        expect(foundB?.a?.id, 1);
+        expect(foundA.b?.id, 2);
+        expect(foundB.a?.id, 1);
 
         // Clean up
         Zen.delete<ServiceA>();
@@ -238,9 +238,9 @@ void main() {
         Zen.registerModules([module]);
 
         // Access dependencies
-        Zen.lookup<SimpleDependency>(tag: 'simple1');
-        Zen.lookup<SimpleDependency>(tag: 'base1');
-        Zen.lookup<NestedDependency>(tag: 'nested1');
+        Zen.find<SimpleDependency>(tag: 'simple1');
+        Zen.find<SimpleDependency>(tag: 'base1');
+        Zen.find<NestedDependency>(tag: 'nested1');
 
         // Clean up
         Zen.delete<SimpleDependency>(tag: 'simple1');

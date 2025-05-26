@@ -43,68 +43,48 @@ class ZenScopeWidget extends StatefulWidget {
   State<ZenScopeWidget> createState() => _ZenScopeWidgetState();
 
   /// Get the current scope from context
-  static ZenScope of(BuildContext context, {bool findRoot = false}) {
-    final inheritedScope = findRoot
-        ? _findRootScopeInheritedWidget(context)
-        : context.dependOnInheritedWidgetOfExactType<_InheritedZenScope>();
+  static ZenScope of(BuildContext context) {
+    final inheritedScope = context.dependOnInheritedWidgetOfExactType<_InheritedZenScope>();
 
     if (inheritedScope == null) {
-      // If no scope found and we want the root, return global root scope
-      if (findRoot) {
-        return Zen.rootScope;
-      }
       throw StateError('No ZenScopeWidget found in the widget tree');
     }
 
-    return findRoot ? _findRootScope(inheritedScope.scope) : inheritedScope.scope;
+    return inheritedScope.scope;
   }
 
   /// Get the current scope from context without creating a dependency
-  static ZenScope? maybeOf(BuildContext context, {bool findRoot = false}) {
-    final inheritedScope = findRoot
-        ? _findRootScopeInheritedWidget(context)
-        : context.getInheritedWidgetOfExactType<_InheritedZenScope>();
-
-    if (inheritedScope == null) {
-      if (findRoot) {
-        return Zen.rootScope;
-      }
-      return null;
-    }
-
-    return findRoot ? _findRootScope(inheritedScope.scope) : inheritedScope.scope;
+  static ZenScope? maybeOf(BuildContext context) {
+    final inheritedScope = context.getInheritedWidgetOfExactType<_InheritedZenScope>();
+    return inheritedScope?.scope;
   }
 
-  /// Find the root scope widget in the widget tree
-  static _InheritedZenScope? _findRootScopeInheritedWidget(BuildContext context) {
-    _InheritedZenScope? result;
+  /// Find the root scope in the widget tree hierarchy
+  ///
+  /// This traverses up the widget tree to find the highest level scope.
+  /// Use this when you need to access app-level dependencies from deep
+  /// in the widget tree.
+  static ZenScope rootOf(BuildContext context) {
+    ZenScope? currentScope;
 
-    // Walk up the widget tree to find all scope widgets
-    context.visitAncestorElements((element) {
-      final widget = element.widget;
-      if (widget is _InheritedZenScope) {
-        result = widget;
-      }
-      return true; // Continue visiting
-    });
+    try {
+      currentScope = of(context);
+    } catch (_) {
+      return Zen.rootScope;
+    }
+
+    // Walk up the parent chain until we find the root
+    ZenScope result = currentScope;
+    while (result.parent != null && result.parent != Zen.rootScope) {
+      result = result.parent!;
+    }
 
     return result;
   }
-
-  /// Find the root scope in a scope hierarchy
-  static ZenScope _findRootScope(ZenScope scope) {
-    ZenScope current = scope;
-    while (current.parent != null && current.parent != Zen.rootScope) {
-      current = current.parent!;
-    }
-    return current;
-  }
 }
 
-// lib/widgets/zen_scope_widget.dart
 class _ZenScopeWidgetState extends State<ZenScopeWidget> {
   late ZenScope scope;
-  ZenController? _createdController;
 
   @override
   void initState() {
@@ -129,7 +109,7 @@ class _ZenScopeWidgetState extends State<ZenScopeWidget> {
       // and update it in didChangeDependencies
       scope = ZenScope(
         id: widget.id,
-        name: '${widget.name ?? "unnamed"}-temp',
+        name: widget.name ?? 'unnamed-temp',
       );
     }
   }
@@ -143,15 +123,15 @@ class _ZenScopeWidgetState extends State<ZenScopeWidget> {
     if (!widget.isRoot && widget.scope == null) {
       final parentScope = ZenScopeWidget.maybeOf(context) ?? Zen.rootScope;
 
-      // Create a new scope with the correct parent
-      final newScope = ZenScope(
-        id: widget.id,
-        name: widget.name,
-        parent: parentScope,
-      );
-
-      // If this is different from our current scope, update it
+      // If we don't have a parent yet, or parent has changed, update it
       if (scope.parent != parentScope) {
+        // Create a new scope with the correct parent
+        final newScope = ZenScope(
+          id: widget.id,
+          name: widget.name,
+          parent: parentScope,
+        );
+
         // Update scope reference
         scope = newScope;
 
@@ -163,10 +143,8 @@ class _ZenScopeWidgetState extends State<ZenScopeWidget> {
 
   void _createAndRegisterController() {
     if (widget.create != null) {
-      _createdController = widget.create!();
-      if (_createdController != null) {
-        Zen.put(_createdController!, scope: scope);
-      }
+      final controller = widget.create!();
+      Zen.put(controller, scope: scope);
     }
   }
 

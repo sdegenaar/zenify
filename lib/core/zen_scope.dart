@@ -987,6 +987,7 @@ class ZenScope {
     return result;
   }
 
+
   /// Access child scopes (for introspection)
   List<ZenScope> get childScopes => List.unmodifiable(_childScopes);
 

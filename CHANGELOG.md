@@ -1,3 +1,14 @@
+## 0.1.7
+
+* Complete Phase 4: API Consistency and Reference System Improvements
+  * Rename `lookup` to `find` for more intuitive API
+  * Add `findOrNull` method for non-throwing dependency lookup
+  * Enhance reference system with `EagerRef` and `LazyRef` implementations
+  * Improve error handling in ZenView for better debugging
+  * Refine scope management in widget integration
+  * Update examples to use new API methods
+  * Fix dependency resolution in hierarchical scopes
+
 ## 0.1.6
 
 * Complete Phase 3: Logging and Testing Improvements

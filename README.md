@@ -1,26 +1,26 @@
 # Zenify
 A modern, flexible state management library for Flutter offering an intuitive approach to reactive state management with a clean, concise API.
 
-> Version 0.1.6 brings enhanced controller lifecycle management, improved performance optimizations, and better testing utilities.
+> Version 0.1.7 brings API consistency improvements with a renamed lookup API, enhanced reference system, and better error handling.
 >
 
 ## Why Zenify?
-Zenify (formerly ZenState) provides a lightweight yet powerful approach to Flutter state management focused on:
+Zenify provides a lightweight yet powerful approach to Flutter state management focused on:
 ### Key Advantages:
-- ✅ Hierarchical Scopes: Nested controller access with proper dependency inheritance
-- ✅ Module System: Organized dependency registration with clear boundaries
-- ✅ Dependency Safety: Automatic circular dependency detection and resolution
-- ✅ Unified Syntax: Consistent API for state management operations
-- ✅ Reduced Boilerplate: Concise syntax for common state operations
-- ✅ Flexibility: Choose the right approach for different scenarios
-- ✅ Performance Monitoring: Built-in metrics to identify bottlenecks
-- ✅ Async Operations: Built-in effect system for handling loading states
-- ✅ Reactive Base: Core reactive primitives for building reactive systems
-- ✅ Zen Effects: Handle async operations with built-in loading, error, and success states
-- ✅ Enhanced Type Safety: Generic type constraints throughout the library with compile-time type checking
-- ✅ Performance Optimizations: Intelligent rebuild management and memory efficiency improvements
-- ✅ Enhanced Testing Utilities: Better support for testing reactive state
-
+✅ **Hierarchical Scopes**: Nested controller access with proper dependency inheritance  
+✅ **Module System**: Organized dependency registration with clear boundaries  
+✅ **Dependency Safety**: Automatic circular dependency detection and resolution  
+✅ **Unified Syntax**: Consistent API for state management operations  
+✅ **Reduced Boilerplate**: Concise syntax for common state operations  
+✅ **Flexibility**: Choose the right approach for different scenarios  
+✅ **Performance Monitoring**: Built-in metrics to identify bottlenecks  
+✅ **Async Operations**: Built-in effect system for handling loading states  
+✅ **Reactive Base**: Core reactive primitives for building reactive systems  
+✅ **Zen Effects**: Handle async operations with built-in loading, error, and success states  
+✅ **Enhanced Type Safety**: Generic type constraints throughout the library with compile-time type checking  
+✅ **Performance Optimizations**: Intelligent rebuild management and memory efficiency improvements  
+✅ **Enhanced Testing Utilities**: Better support for testing reactive state  
+✅ **Improved Reference System**: Type-safe references with eager and lazy initialization options
 ## Quick Start
 ### Installation
 Add Zenify to your pubspec.yaml:
@@ -31,7 +31,7 @@ dependencies:
   zenify:
     git:
       url: https://github.com/sdegenaar/zenify.git
-      ref: v0.1.6
+      ref: v0.1.7
 ```
 ### Initialize Zenify
 ``` dart
@@ -63,12 +63,12 @@ class CounterView extends StatelessWidget {
       child: Scaffold(
         body: Center(
           child: Obx(() {
-            final controller = Zen.find<CounterController>()!;
+            final controller = Zen.find<CounterController>();
             return Text('Count: ${controller.counter.value}');
           }),
         ),
         floatingActionButton: FloatingActionButton(
-          onPressed: () => Zen.find<CounterController>()!.increment(),
+          onPressed: () => Zen.find<CounterController>().increment(),
           child: const Icon(Icons.add),
         ),
       ),
@@ -131,6 +131,34 @@ void main() {
   runApp(const MyApp());
 }
 ```
+### Type-Safe References
+Use the enhanced reference system for type-safe dependency access:
+``` dart
+// Define references in your controller or service
+class UserService extends ZenController {
+  // Eager reference - for dependencies that should always be available
+  final authService = EagerRef<AuthService>();
+  
+  // Lazy reference - for dependencies that should be created on demand
+  final analytics = LazyRef<AnalyticsService>();
+  
+  // Controller reference - specifically for ZenControllers with lifecycle hooks
+  final profileController = ControllerRef<ProfileController>();
+  
+  void initialize() {
+    // Access dependencies safely
+    if (analytics.exists()) {
+      analytics.find().logEvent('UserService initialized');
+    }
+    
+    // Register a dependency if needed
+    authService.put(AuthService());
+    
+    // Register a lazy factory
+    analytics.lazyPut(() => AnalyticsService());
+  }
+}
+```
 ### Circular Dependency Detection
 Zenify automatically detects and reports circular dependencies:
 ``` dart
@@ -139,7 +167,7 @@ class ServiceA extends ZenController {
   late final ServiceB serviceB;
   
   ServiceA() {
-    serviceB = Zen.find<ServiceB>()!;
+    serviceB = Zen.find<ServiceB>();
   }
 }
 
@@ -147,7 +175,7 @@ class ServiceB extends ZenController {
   late final ServiceA serviceA;
   
   ServiceB() {
-    serviceA = Zen.find<ServiceA>()!;
+    serviceA = Zen.find<ServiceA>();
   }
 }
 ```
@@ -264,8 +292,62 @@ ZenMetrics.stopTiming('expensiveOperation');
 // Get insights in development
 ZenMetrics.startPeriodicLogging(const Duration(minutes: 1));
 ```
+## Migrating from GetX
+Zenify's API is inspired by GetX, making migration straightforward:
+### Core API Changes
+
+| GetX | Zenify | Notes |
+| --- | --- | --- |
+| Get.put ()  | Zen.put ()  | Same functionality |
+| Get.find ()  | Zen.find ()  | Same functionality |
+| Get.lazyPut ()  | Zen.lazyPut ()  | Same lazy initialization |
+| Get.delete ()  | Zen.delete ()  | Same functionality |
+### Widget Migration
+
+| GetX | Zenify | Notes |
+| --- | --- | --- |
+| GetX ()  | ZenViewReactive ()  | Similar reactive builder |
+| GetBuilder ()  | ZenBuilder ()  | Manual update builder |
+| Obx(() => ...) | Obx(() => ...) | Identical usage |
+| GetView | ZenView | Base view with controller access |
+### Migration Steps
+1. Replace imports from 'get' to 'zenify'
+2. Change Get references to Zen
+3. Update widget classes (GetX → ZenViewReactive, etc.)
+4. Replace route management with ZenRouteObserver
+5. Update controller lifecycle methods if needed
+
+Zenify maintains GetX's simplicity while adding improved type safety, dependency management, and performance optimizations.
 ## Testing Support
 Zenify provides enhanced testing utilities:
+t
+t
+t
+t
+t
+t
+t
+t
+t
+t
+t
+t
+t
+t
+t
+t
+t
+t
+t
+t
+t
+t
+t
+t
+t
+t
+t
+t
 ``` dart
 // Testing a controller with dependencies
 void main() {
@@ -311,6 +393,12 @@ void main() {
 - Additional performance optimizations
 - More advanced reactive patterns
 - Expanded testing utilities
+
+## Credits
+Zenify draws inspiration from several state management libraries:
+- GetX by Jonny Borges - For the intuitive reactive syntax and dependency injection approach
+- Provider by Remi Rousselet - For context-based dependency inheritance concepts
+- Riverpod by Remi Rousselet - For improved type safety and testability patterns
 
 ## Contributing
 Contributions are welcome! Please feel free to submit a Pull Request.

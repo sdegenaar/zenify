@@ -19,10 +19,10 @@ class ProfilePage extends StatelessWidget {
           final profileScope = ZenScopeWidget.of(scopeContext);
 
           // Get the root app scope - this will have our dependencies
-          final appScope = ZenScopeWidget.of(context, findRoot: true);
+          final appScope = ZenScopeWidget.rootOf(context);
 
           // Check if we have the necessary dependencies in the app scope
-          final authService = Zen.lookup<AuthService>(scope: appScope);
+          final authService = Zen.find<AuthService>(scope: appScope);
 
           if (authService == null) {
             return Scaffold(
@@ -35,7 +35,7 @@ class ProfilePage extends StatelessWidget {
 
           // Create and register ProfileRepository if needed
           ProfileRepository profileRepo;
-          final existingRepo = Zen.lookup<ProfileRepository>(scope: appScope);
+          final existingRepo = Zen.find<ProfileRepository>(scope: appScope);
 
           if (existingRepo != null) {
             profileRepo = existingRepo;

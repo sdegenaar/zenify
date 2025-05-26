@@ -49,7 +49,7 @@ void main() {
 
       final found = Zen.find<TestController>(scope: testScope);
       expect(found, isNotNull);
-      expect(found?.value, 'test');
+      expect(found.value, 'test');
     });
 
     test('should register and find controllers with tags', () {
@@ -64,8 +64,8 @@ void main() {
       final found1 = Zen.find<TestController>(tag: 'tag1', scope: testScope);
       final found2 = Zen.find<TestController>(tag: 'tag2', scope: testScope);
 
-      expect(found1?.value, 'controller1');
-      expect(found2?.value, 'controller2');
+      expect(found1.value, 'controller1');
+      expect(found2.value, 'controller2');
     });
 
     test('should call lifecycle methods when registering controller', () async {
@@ -113,7 +113,7 @@ void main() {
       expect(forcedDelete, isTrue);
 
       // Controller should be gone
-      expect(Zen.find<TestController>(scope: testScope), isNull);
+      expect(Zen.findOrNull<TestController>(scope: testScope), isNull);
     });
 
     test('should create and use scopes', () {
@@ -129,7 +129,7 @@ void main() {
       expect(Zen.find<TestController>(scope: childScope), isNotNull);
 
       // But not in the parent scope
-      expect(Zen.find<TestController>(scope: parentScope), isNull);
+      expect(Zen.findOrNull<TestController>(scope: parentScope), isNull);
     });
 
     test('should handle non-controller dependencies', () {
@@ -138,9 +138,9 @@ void main() {
       final service = TestService('service');
       Zen.put<TestService>(service, scope: testScope);
 
-      final found = Zen.lookup<TestService>(scope: testScope);
+      final found = Zen.find<TestService>(scope: testScope);
       expect(found, isNotNull);
-      expect(found?.value, 'service');
+      expect(found.value, 'service');
     });
 
     test('should create type-safe references', () {
@@ -151,7 +151,7 @@ void main() {
       final ref = Zen.putRef<TestController>(controller, scope: testScope);
 
       // Use the ref to get the controller
-      final retrieved = ref.get();
+      final retrieved = ref.find();
       expect(retrieved, same(controller));
 
       // Use the ref to delete the controller
@@ -159,7 +159,7 @@ void main() {
       expect(deleted, isTrue);
 
       // Controller should be gone
-      expect(ref.find(), isNull);
+      expect(ref.findOrNull(), isNull);
     });
 
     test('should track and auto-dispose unused controllers', () {
@@ -200,7 +200,7 @@ void main() {
       expect(service, isNotNull);
 
       // Verify service value
-      expect(service?.value, equals('from module'));
+      expect(service.value, equals('from module'));
     });
 
     test('should register and use modules', () async {
@@ -221,6 +221,115 @@ void main() {
 
       // Verify service value
       expect(found?.value, equals('from module'));
+    });
+
+    test('should properly clean up with deleteAll', () {
+      // Register several dependencies in the global scope
+      final controller1 = TestController('delete-all-1');
+      final controller2 = TestController('delete-all-2');
+      final service = TestService('delete-all-service');
+
+      Zen.put<TestController>(controller1, tag: 'controller1');
+      Zen.put<TestController>(controller2, tag: 'controller2');
+      Zen.put<TestService>(service);
+
+      // Verify they exist
+      expect(Zen.find<TestController>(tag: 'controller1'), same(controller1));
+      expect(Zen.find<TestController>(tag: 'controller2'), same(controller2));
+      expect(Zen.find<TestService>(), same(service));
+
+      // Call deleteAll
+      Zen.deleteAll(force: true);
+
+      // Verify controllers are disposed
+      expect(controller1.disposeMethodCalled, isTrue);
+      expect(controller2.disposeMethodCalled, isTrue);
+
+      // Verify dependencies no longer exist
+      expect(() => Zen.find<TestController>(tag: 'controller1'), throwsException);
+      expect(() => Zen.find<TestController>(tag: 'controller2'), throwsException);
+      expect(() => Zen.find<TestService>(), throwsException);
+
+      // Verify findOrNull returns null
+      expect(Zen.findOrNull<TestController>(tag: 'controller1'), isNull);
+      expect(Zen.findOrNull<TestController>(tag: 'controller2'), isNull);
+      expect(Zen.findOrNull<TestService>(), isNull);
+    });
+
+    test('should properly handle findOrNull and findOr methods', () {
+      final testScope = ZenTestHelper.createIsolatedTestScope('find-variants');
+
+      // Register a service
+      final service = TestService('find-or');
+      Zen.put<TestService>(service, scope: testScope);
+
+      // Test findOrNull for existing dependency
+      final foundService = Zen.findOrNull<TestService>(scope: testScope);
+      expect(foundService, same(service));
+
+      // Test findOrNull for non-existing dependency
+      final nonExistingController = Zen.findOrNull<TestController>(scope: testScope);
+      expect(nonExistingController, isNull);
+
+      // Test findOr for existing dependency
+      final foundWithOr = Zen.findOr<TestService>(
+        scope: testScope,
+        orElse: () => TestService('fallback'),
+      );
+      expect(foundWithOr, same(service));
+
+      // Test findOr for non-existing dependency
+      final fallbackController = Zen.findOr<TestController>(
+        scope: testScope,
+        orElse: () => TestController('fallback'),
+      );
+      expect(fallbackController.value, equals('fallback'));
+    });
+
+    test('should properly handle lazy initialization', () {
+      final testScope = ZenTestHelper.createIsolatedTestScope('lazy-init');
+
+      // Track initialization
+      bool wasInitialized = false;
+
+      // Register lazy dependency
+      Zen.lazyPut<TestService>(
+            () {
+          wasInitialized = true;
+          return TestService('lazy');
+        },
+        scope: testScope,
+      );
+
+      // Verify not initialized yet
+      expect(wasInitialized, isFalse);
+
+      // Access the dependency
+      final service = Zen.find<TestService>(scope: testScope);
+
+      // Verify initialization happened
+      expect(wasInitialized, isTrue);
+      expect(service.value, equals('lazy'));
+
+      // Verify subsequent lookups return same instance
+      final secondLookup = Zen.find<TestService>(scope: testScope);
+      expect(secondLookup, same(service));
+    });
+
+    test('should call onDispose when disposing controllers', () {
+      final testScope = ZenTestHelper.createIsolatedTestScope('dispose-lifecycle');
+
+      final controller = TestController('dispose-test');
+      Zen.put<TestController>(controller, scope: testScope);
+
+      // Verify not disposed initially
+      expect(controller.disposeMethodCalled, isFalse);
+
+      // Delete the controller
+      Zen.delete<TestController>(scope: testScope);
+
+      // Verify onDispose was called
+      expect(controller.disposeMethodCalled, isTrue);
     });
 
   });

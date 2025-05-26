@@ -49,21 +49,30 @@ class _ZenViewState<T extends ZenController> extends State<ZenView<T>> {
   }
 
   void _initializeController() {
-    // First try to find an existing controller
-    T? instance = Zen.find<T>(tag: widget.tag, scope: widget.scope);
+    T? instance;
 
-    // If not found but we have a createController function, use it
-    if (instance == null && widget.createController != null) {
-      instance = widget.createController!();
-      Zen.put<T>(instance, tag: widget.tag, scope: widget.scope);
-      _didCreateController = true;
+    try {
+      // First try to find an existing controller
+      instance = Zen.findOrNull<T>(tag: widget.tag, scope: widget.scope);
+
+      // If not found but we have a createController function, use it
+      if (instance == null && widget.createController != null) {
+        instance = widget.createController!();
+        Zen.put<T>(instance, tag: widget.tag, scope: widget.scope);
+        _didCreateController = true;
+      }
+
+      // If still null, try to get from DI or throw exception
+      if (instance == null) {
+        instance = Zen.find<T>(tag: widget.tag, scope: widget.scope);
+      }
+    } catch (e) {
+      throw Exception('Failed to get controller of type $T${widget.tag != null ? ' with tag ${widget.tag}' : ''}: $e');
     }
-
-    // If still null, try to get from DI or throw exception
-    instance ??= Zen.get<T>(tag: widget.tag, scope: widget.scope);
 
     _controller = instance;
   }
+
 
   @override
   void dispose() {

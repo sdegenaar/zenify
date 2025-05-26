@@ -106,11 +106,11 @@ void main() {
       Zen.put<MockService>(service, scope: parentScope);
 
       // Controller in child scope should be able to find the service
-      final foundService = Zen.lookup<MockService>(scope: childScope);
+      final foundService = Zen.find<MockService>(scope: childScope);
       expect(foundService, same(service));
 
       // Create controller in child scope
-      final controller = DependentController(foundService!);
+      final controller = DependentController(foundService);
       Zen.put<DependentController>(controller, scope: childScope);
 
       // Verify controller can use the service
@@ -159,15 +159,15 @@ void main() {
       Zen.put<MockService>(service2, tag: "service2", scope: testScope);
 
       // Find each service by tag
-      final foundService1 = Zen.lookup<MockService>(tag: "service1", scope: testScope);
-      final foundService2 = Zen.lookup<MockService>(tag: "service2", scope: testScope);
+      final foundService1 = Zen.find<MockService>(tag: "service1", scope: testScope);
+      final foundService2 = Zen.find<MockService>(tag: "service2", scope: testScope);
 
       expect(foundService1, same(service1));
       expect(foundService2, same(service2));
 
       // Create controllers with different service dependencies
-      final controller1 = DependentController(foundService1!);
-      final controller2 = DependentController(foundService2!);
+      final controller1 = DependentController(foundService1);
+      final controller2 = DependentController(foundService2);
 
       Zen.put<DependentController>(controller1, tag: "controller1", scope: testScope);
       Zen.put<DependentController>(controller2, tag: "controller2", scope: testScope);
@@ -176,15 +176,15 @@ void main() {
       final retrievedController1 = Zen.find<DependentController>(tag: "controller1", scope: testScope);
       final retrievedController2 = Zen.find<DependentController>(tag: "controller2", scope: testScope);
 
-      expect(retrievedController1?.service, same(service1));
-      expect(retrievedController2?.service, same(service2));
+      expect(retrievedController1.service, same(service1));
+      expect(retrievedController2.service, same(service2));
 
       // Test service interactions
-      retrievedController1?.callServiceMethod();
+      retrievedController1.callServiceMethod();
       expect(service1.initialized, true);
       expect(service2.initialized, false);
 
-      retrievedController2?.callServiceMethod();
+      retrievedController2.callServiceMethod();
       expect(service2.initialized, true);
 
       // Clean up the test scope
@@ -243,7 +243,7 @@ void main() {
       expect(controllerRef.exists(), false);
 
       // Get the controller - this will create it
-      final controller = controllerRef.get();
+      final controller = controllerRef.find();
       expect(controller, isA<DependentController>());
       expect(controllerRef.exists(), true);
 
@@ -279,12 +279,12 @@ void main() {
       // Verify scope isolation and inheritance
       final foundParentInParent = Zen.find<ScopedController>(tag: "parent", scope: parentScope);
       final foundParentInChild = Zen.find<ScopedController>(tag: "parent", scope: childScope);
-      final foundChildInParent = Zen.find<ScopedController>(tag: "child", scope: parentScope);
+      final foundChildInParent = Zen.findOrNull<ScopedController>(tag: "child", scope: parentScope); // Use findOrNull here
       final foundChildInChild = Zen.find<ScopedController>(tag: "child", scope: childScope);
 
       expect(foundParentInParent, same(parentController));
       expect(foundParentInChild, same(parentController)); // Parent is visible in child scope
-      expect(foundChildInParent, null); // Child is not visible in parent scope
+      expect(foundChildInParent, isNull); // Child is not visible in parent scope
       expect(foundChildInChild, same(childController));
 
       // Test disposing a parent scope
@@ -305,26 +305,30 @@ void main() {
       // Register a lazy dependency
       Zen.lazyPut<MockService>(() => MockService(), scope: testScope);
 
-      // Should not exist until requested
-      final serviceBeforeAccess = Zen.lookup<MockService>(scope: testScope);
-      expect(serviceBeforeAccess, null);
+      // Check if registered without instantiating
+      expect(testScope.hasFactory<MockService>(), isTrue);
+      // Or use: expect(Zen.isRegistered<MockService>(scope: testScope), isTrue);
+
+      // Ensure not instantiated yet
+      expect(testScope.hasDependency<MockService>(), isFalse);
 
       // Access should create it
-      final service = Zen.get<MockService>(scope: testScope);
+      final service = Zen.find<MockService>(scope: testScope);
       expect(service, isA<MockService>());
 
       // Should exist after access
-      final serviceAfterAccess = Zen.lookup<MockService>(scope: testScope);
+      final serviceAfterAccess = Zen.find<MockService>(scope: testScope);
       expect(serviceAfterAccess, same(service));
 
       // Create a controller with a lazy dependency
       Zen.lazyPut<DependentController>(() => DependentController(service), scope: testScope);
 
-      // Controller should not exist yet
-      expect(Zen.find<DependentController>(scope: testScope), null);
+      // Check controller is registered but not instantiated
+      expect(testScope.hasFactory<DependentController>(), isTrue);
+      expect(testScope.hasDependency<DependentController>(), isFalse);
 
       // Accessing should create it
-      final controller = Zen.get<DependentController>(scope: testScope);
+      final controller = Zen.find<DependentController>(scope: testScope);
       expect(controller, isA<DependentController>());
       expect(controller.service, same(service));
 
@@ -334,6 +338,7 @@ void main() {
       // Clean up the test scope
       testScope.dispose();
     });
+
 
     test('should handle auto-disposal of controllers properly', () {
       // Create a test scope for this specific test

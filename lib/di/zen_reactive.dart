@@ -56,7 +56,7 @@ class ZenReactiveSystem {
     // Create callback that will call the listener with current value
     void callback() {
       try {
-        final instance = Zen.lookup<T>(tag: tag);
+        final instance = Zen.find<T>(tag: tag);
         if (instance != null) {
           listener(instance);
         }
@@ -68,7 +68,7 @@ class ZenReactiveSystem {
     _listeners[key]!.add(callback);
 
     // Call initially with current value if exists
-    final current = Zen.lookup<T>(tag: tag);
+    final current = Zen.find<T>(tag: tag);
     if (current != null) {
       try {
         listener(current);

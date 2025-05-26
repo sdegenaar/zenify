@@ -368,8 +368,8 @@ void main() {
       // Create controllers using Zen.putRef
       final devControllerRef = Zen.putRef<ScopedController>(
           ScopedController(
-              counterService: Zen.lookup<CounterService>(scope: devScope)!,
-              configService: Zen.lookup<ConfigService>(scope: devScope)!,
+              counterService: Zen.find<CounterService>(scope: devScope)!,
+              configService: Zen.find<ConfigService>(scope: devScope)!,
               scopeName: "DevScope"
           ),
           scope: devScope
@@ -377,8 +377,8 @@ void main() {
 
       final prodControllerRef = Zen.putRef<ScopedController>(
           ScopedController(
-              counterService: Zen.lookup<CounterService>(scope: prodScope)!,
-              configService: Zen.lookup<ConfigService>(scope: prodScope)!,
+              counterService: Zen.find<CounterService>(scope: prodScope)!,
+              configService: Zen.find<ConfigService>(scope: prodScope)!,
               scopeName: "ProdScope"
           ),
           scope: prodScope
@@ -394,9 +394,9 @@ void main() {
       expect(prodControllerRef.find()?.isDarkMode, false);
 
       // Test that controllers are isolated
-      devControllerRef.get().incrementCounter();
-      expect(devControllerRef.get().counterValue, 1);
-      expect(prodControllerRef.get().counterValue, 0);
+      devControllerRef.find().incrementCounter();
+      expect(devControllerRef.find().counterValue, 1);
+      expect(prodControllerRef.find().counterValue, 0);
     });
 
     test('should support dynamic scope creation and destruction', () {

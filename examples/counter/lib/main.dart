@@ -184,12 +184,12 @@ class HomePage extends StatelessWidget {
             children: [
               // Local state (Level 1)
               Obx(() {
-                final controller = Zen.find<HomeController>()!;
+                final controller = Zen.find<HomeController>();
                 return Text('Local Counter: ${controller.counter.value}');
               }),
 
               ElevatedButton(
-                onPressed: () => Zen.find<HomeController>()!.incrementLocal(),
+                onPressed: () => Zen.find<HomeController>().incrementLocal(),
                 child: const Text('Increment Local'),
               ),
 
@@ -197,7 +197,7 @@ class HomePage extends StatelessWidget {
 
               // Example of bridged state
               Obx(() {
-                final controller = Zen.find<HomeController>()!;
+                final controller = Zen.find<HomeController>();
                 return Column(
                   children: [
                     Text('Local Message: ${controller.localMessage.value}'),
@@ -208,12 +208,12 @@ class HomePage extends StatelessWidget {
 
               // Global state using Obx
               Obx(() {
-                final controller = Zen.find<HomeController>()!;
+                final controller = Zen.find<HomeController>();
                 return Text('Global Message: ${controller.globalMessage.value}');
               }),
 
               ElevatedButton(
-                onPressed: () => Zen.find<HomeController>()!.updateMessage("Updated: ${DateTime.now().second}"),
+                onPressed: () => Zen.find<HomeController>().updateMessage("Updated: ${DateTime.now().second}"),
                 child: const Text('Update Message'),
               ),
 
@@ -221,7 +221,7 @@ class HomePage extends StatelessWidget {
 
               // Example of ZenEffect
               Obx(() {
-                final controller = Zen.find<HomeController>()!;
+                final controller = Zen.find<HomeController>();
                 return Column(
                   children: [
                     Text('Effect State:'),
@@ -237,7 +237,7 @@ class HomePage extends StatelessWidget {
               }),
 
               ElevatedButton(
-                onPressed: () => Zen.find<HomeController>()!.fetchData(),
+                onPressed: () => Zen.find<HomeController>().fetchData(),
                 child: const Text('Fetch Data'),
               ),
 
@@ -245,13 +245,13 @@ class HomePage extends StatelessWidget {
 
               // Global state
               Obx(() {
-                final controller = Zen.find<HomeController>()!;
+                final controller = Zen.find<HomeController>();
                 return Text('Global Counter: ${controller.globalCounter.value}');
               }),
 
               ElevatedButton(
                 onPressed: () {
-                  final controller = Zen.find<HomeController>()!;
+                  final controller = Zen.find<HomeController>();
                   controller.incrementGlobal();
                 },
                 child: const Text('Increment Global'),
@@ -310,7 +310,7 @@ class HomePage extends StatelessWidget {
                                 ),
                               ),
                               ElevatedButton(
-                                onPressed: () => Zen.find<HomeController>()!
+                                onPressed: () => Zen.find<HomeController>()
                                     .incrementSection('section-a'),
                                 child: const Text('Update A'),
                               ),
@@ -340,7 +340,7 @@ class HomePage extends StatelessWidget {
                                 ),
                               ),
                               ElevatedButton(
-                                onPressed: () => Zen.find<HomeController>()!
+                                onPressed: () => Zen.find<HomeController>()
                                     .incrementSection('section-b'),
                                 child: const Text('Update B'),
                               ),
@@ -354,7 +354,7 @@ class HomePage extends StatelessWidget {
 
                     // Button to update all sections
                     ElevatedButton(
-                      onPressed: () => Zen.find<HomeController>()!.incrementManual(),
+                      onPressed: () => Zen.find<HomeController>().incrementManual(),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.deepPurple,
                         foregroundColor: Colors.white,

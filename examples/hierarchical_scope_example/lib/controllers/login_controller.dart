@@ -8,7 +8,7 @@ class LoginController extends ZenController {
 
   // Constructor with scope
   LoginController({ZenScope? scope})
-      : authService = Zen.lookup<AuthService>(scope: scope);
+      : authService = Zen.find<AuthService>(scope: scope);
 
   // State variables
   bool isLoading = false;

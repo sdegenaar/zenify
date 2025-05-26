@@ -55,7 +55,7 @@ class _ZenBuilderState<T extends ZenController> extends State<ZenBuilder<T>> {
 
   void _initializeController() {
     // Try to find existing controller
-    T? existingController = Zen.find<T>(tag: widget.tag, scope: widget.scope);
+    T? existingController = Zen.findOrNull<T>(tag: widget.tag, scope: widget.scope);
 
     if (existingController == null) {
       if (widget.create != null) {
@@ -64,8 +64,9 @@ class _ZenBuilderState<T extends ZenController> extends State<ZenBuilder<T>> {
         Zen.put<T>(_controller, tag: widget.tag, scope: widget.scope);
         _locallyCreated = true;
       } else {
-        // Try to get from registered factory
-        _controller = Zen.get<T>(tag: widget.tag, scope: widget.scope);
+        // If no controller exists and no factory provided, this will throw
+        // an appropriate exception in the require method of Zen DI
+        _controller = Zen.find<T>(tag: widget.tag, scope: widget.scope);
       }
     } else {
       // Use existing controller

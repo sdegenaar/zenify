@@ -1,108 +1,142 @@
 // lib/controllers/zen_controller_scope.dart
 import 'package:flutter/material.dart';
 import '../core/zen_scope.dart';
-import '../di/di.dart';
+import '../di/zen_di.dart';
 import '../widgets/zen_scope_widget.dart';
-import '../controllers/zen_controller.dart';
+import 'zen_controller.dart';
 import '../core/zen_logger.dart';
 import '../core/zen_config.dart';
 
-/// Widget that automatically manages controller lifecycle
-/// The controller will be disposed when this widget is removed from the tree
+/// A widget that creates and manages a controller's lifecycle.
+///
+/// ZenControllerScope automatically creates a controller if it doesn't exist,
+/// registers it with the appropriate scope, and disposes it when the widget
+/// is removed from the tree (unless [permanent] is set to true).
 class ZenControllerScope<T extends ZenController> extends StatefulWidget {
-  final Widget child;
+  /// Function to create the controller
   final T Function() create;
+
+  /// The child widget
+  final Widget child;
+
+  /// Optional tag for the controller
   final String? tag;
-  final bool autoDisposeOnEmptyUseCount;
-  final List<dynamic> dependencies;
+
+  /// Whether the controller should be permanently registered
   final bool permanent;
-  final ZenScope? scope; // Add explicit scope parameter
+
+  /// Explicit scope to use (if null, will use nearest scope from context)
+  final ZenScope? scope;
+
+  /// Optional list of dependencies for this controller
+  final List<dynamic> dependencies;
 
   const ZenControllerScope({
-    required this.child,
     required this.create,
+    required this.child,
     this.tag,
-    this.autoDisposeOnEmptyUseCount = true,
-    this.dependencies = const [],
     this.permanent = false,
-    this.scope, // Allow passing a specific scope
+    this.scope,
+    this.dependencies = const [],
     super.key,
   });
 
   @override
-  State<ZenControllerScope<T>> createState() => _ZenControllerScopeState<T>();
+  State<ZenControllerScope> createState() => _ZenControllerScopeState<T>();
 }
 
 class _ZenControllerScopeState<T extends ZenController> extends State<ZenControllerScope<T>> {
   late T controller;
-  // Store the scope reference when we initialize
-  late ZenScope _scope;
+  late ZenScope _effectiveScope;
+  bool _initialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Wait for didChangeDependencies for context access
+  }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _initController();
+    if (!_initialized) {
+      _initController();
+      _initialized = true;
+    }
+  }
+
+  @override
+  void didUpdateWidget(ZenControllerScope<T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    // Check if we need to recreate the controller
+    if (widget.key != oldWidget.key) {
+      _disposeController(oldWidget);
+      _initController();
+    }
+  }
+
+  void _disposeController(ZenControllerScope<T> widget) {
+    if (!widget.permanent) {
+      Zen.delete<T>(tag: widget.tag, scope: _effectiveScope);
+
+      if (ZenConfig.enableDebugLogs) {
+        ZenLogger.logDebug('Disposed controller $T${widget.tag != null ? ' (${widget.tag})' : ''}');
+      }
+    }
   }
 
   void _initController() {
-    // Use provided scope or get from context or use root scope
-    _scope = widget.scope ?? ZenScopeWidget.maybeOf(context) ?? Zen.rootScope;
+    // Get the appropriate scope - first try widget's explicit scope, then context, then root
+    _effectiveScope = widget.scope ??
+        ZenScopeWidget.maybeOf(context) ??
+        Zen.rootScope;
 
-    // Check if controller already exists in this scope
-    T? existingController = Zen.find<T>(tag: widget.tag, scope: _scope);
+    // First check if controller already exists
+    final existingController = Zen.findOrNull<T>(tag: widget.tag, scope: _effectiveScope);
 
     if (existingController != null) {
       controller = existingController;
+
       if (ZenConfig.enableDebugLogs) {
-        ZenLogger.logDebug('Using existing controller $T${widget.tag != null ? ' (${widget.tag})' : ''} from scope: $_scope');
+        ZenLogger.logDebug('Using existing controller $T${widget.tag != null ? ' (${widget.tag})' : ''} from scope: $_effectiveScope');
       }
     } else {
-      // Create and register new controller
+      // Create and register a new controller
       controller = widget.create();
-      controller = Zen.put<T>(
+
+      // Register with Zen
+      Zen.put<T>(
         controller,
         tag: widget.tag,
-        dependencies: widget.dependencies,
-        scope: _scope,
         permanent: widget.permanent,
+        dependencies: widget.dependencies,
+        scope: _effectiveScope,
       );
 
       if (ZenConfig.enableDebugLogs) {
-        ZenLogger.logDebug('Controller $T${widget.tag != null ? ' (${widget.tag})' : ''} created in scope: $_scope');
+        ZenLogger.logDebug('Created new controller $T${widget.tag != null ? ' (${widget.tag})' : ''} in scope: $_effectiveScope');
       }
     }
-
-    // Increment use count
-    Zen.incrementUseCount<T>(tag: widget.tag, scope: _scope);
   }
 
   @override
   void dispose() {
-    // Decrement use count
-    final useCount = Zen.decrementUseCount<T>(tag: widget.tag, scope: _scope);
-
-    // Auto-dispose if needed and not permanent
-    if (widget.autoDisposeOnEmptyUseCount && useCount <= 0 && !widget.permanent) {
-      if (ZenConfig.enableDebugLogs) {
-        ZenLogger.logDebug('Auto-disposing controller $T${widget.tag != null ? ' (${widget.tag})' : ''}');
-      }
-
-      // Use stored scope reference
-      Zen.delete<T>(tag: widget.tag, scope: _scope);
-    }
-
+    _disposeController(widget);
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    // If we have a specific scope, use ZenScopeWidget to provide it to children
+    // If we have an explicit scope, provide it to children
     if (widget.scope != null) {
       return ZenScopeWidget(
-        scope: _scope,
+        scope: widget.scope,
         child: widget.child,
       );
     }
+
+    // Otherwise just return the child
     return widget.child;
   }
 }

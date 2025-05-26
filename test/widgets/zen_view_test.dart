@@ -460,7 +460,7 @@ void main() {
       final controller = Zen.find<CounterController>();
 
       // Verify onInit was called
-      expect(controller?.initCalled, isTrue);
+      expect(controller.initCalled, isTrue);
 
       // Replace with a different widget
       await tester.pumpWidget(
@@ -517,7 +517,7 @@ void main() {
           // Verify a controller was created
           final controller = Zen.find<CounterController>();
           expect(controller, isNotNull);
-          expect(controller!.disposeCalled, isFalse);
+          expect(controller.disposeCalled, isFalse);
 
           // Replace with different widget to trigger disposal
           await tester.pumpWidget(
@@ -527,7 +527,7 @@ void main() {
           );
 
           // Now controller should be gone from the registry
-          expect(Zen.find<CounterController>(), isNull);
+          expect(Zen.findOrNull<CounterController>(), isNull);
         });
 
     testWidgets('should access controller via BuildContext extension',
@@ -577,7 +577,7 @@ void main() {
           );
 
           // Controller should be gone
-          expect(Zen.find<CounterController>(), isNull);
+          expect(Zen.findOrNull<CounterController>(), isNull);
         });
   });
 }

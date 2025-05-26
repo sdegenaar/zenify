@@ -11,7 +11,7 @@ class NetworkModule extends ZenModule {
   @override
   void register(ZenScope scope) {
     // Register network service if not already registered
-    if (Zen.lookup<NetworkService>(scope: scope) == null) {
+    if (Zen.find<NetworkService>(scope: scope) == null) {
       // Use putDependency for regular services that don't extend ZenController
       Zen.put<NetworkService>(
           NetworkService(),
@@ -29,7 +29,7 @@ class NetworkModule extends ZenModule {
     super.onInit(scope);
 
     // Additional initialization if needed
-    final networkService = Zen.lookup<NetworkService>(scope: scope);
+    final networkService = Zen.find<NetworkService>(scope: scope);
     if (networkService != null) {
       networkService.initialize();
     }
@@ -42,7 +42,7 @@ class NetworkModule extends ZenModule {
   @override
   void onDispose(ZenScope scope) {
     // Perform any cleanup needed when the module is unloaded
-    final networkService = Zen.lookup<NetworkService>(scope: scope);
+    final networkService = Zen.find<NetworkService>(scope: scope);
     if (networkService != null) {
       networkService.shutdown();
     }

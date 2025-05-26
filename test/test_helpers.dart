@@ -48,11 +48,8 @@ class ZenTestHelper {
   /// Reset the entire DI system for a fresh test environment
   static void resetDI() {
     try {
-      // Clear container first to ensure no factories remain
-      Zen.container.clear();
-
-      // Dispose existing instances
-      Zen.dispose();
+      // Dispose existing instances and clear container
+      Zen.deleteAll(force: true);
 
       // Re-initialize the scope manager
       ZenScopeManager.instance.initialize();
@@ -60,7 +57,8 @@ class ZenTestHelper {
       // Reset use counts
       ZenScopeManager.instance.resetAllUseCounts();
 
-      // Clear reactive system
+      // The following is technically redundant as deleteAll() already does this,
+      // but we keep it to be explicit and ensure nothing is missed
       Zen.reactiveSystem.clearListeners();
     } catch (e) {
       ZenLogger.logError('Error resetting DI system', e);
