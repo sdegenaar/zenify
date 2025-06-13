@@ -50,7 +50,7 @@ dependencies:
   zenify:
     git:
       url: https://github.com/sdegenaar/zenify.git
-      ref: v0.1.7
+      ref: v0.1.8
 ```
 
 
