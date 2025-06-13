@@ -1,140 +1,188 @@
-// lib/zenify/effects/zen_effects.dart
-import 'package:flutter/foundation.dart';
-import 'package:zenify/controllers/zen_controller.dart';
-import 'package:zenify/core/zen_logger.dart';
-import 'package:zenify/core/zen_metrics.dart';
-import 'package:zenify/reactive/reactive.dart';
 
-/// Handles asynchronous side effects with built-in loading, error, and success states
-class ZenEffect<T> extends ChangeNotifier {
-  final RxBool isLoading;
-  final Rx<Object?> error;
-  final Rx<T?> data;
+// lib/effects/zen_effects.dart
+import '../reactive/rx_value.dart';
+import '../controllers/zen_controller.dart';
+import '../workers/zen_workers.dart';
 
-  // Performance metrics
+/// A reactive effect that manages async operations with loading, data, and error states
+/// Uses the Zen reactive system for consistent API and optimal performance
+class ZenEffect<T> {
   final String name;
-  final bool enableMetrics;
 
-  // Track if success() was called, even with null data
-  bool _dataWasSet = false;
+  final Rx<T?> _data = Rx<T?>(null);
+  final RxBool _isLoading = false.obs();
+  final Rx<Object?> _error = Rx<Object?>(null);
+  final RxBool _dataWasSet = false.obs();
 
-  ZenEffect({
-    String? name,
-    T? initialData,
-    this.enableMetrics = true,
-  }) :
-        name = name ?? 'unnamed_effect',
-        isLoading = false.obs(),
-        error = Rx<Object?>(null),
-        data = initialData.obs() {
-    // Listen to state changes to notify listeners
-    isLoading.addListener(() => notifyListeners());
-    error.addListener(() => notifyListeners());
-    data.addListener(() => notifyListeners());
+  bool _disposed = false;
 
-    if (initialData != null) {
-      _dataWasSet = true;
-    }
-  }
+  ZenEffect({required this.name});
 
-  /// Whether the effect has error data
-  bool get hasError => error.value != null;
+  /// The current data value - using Rx for consistent reactive behavior
+  Rx<T?> get data => _data;
 
-  /// Whether the effect has result data
-  /// We consider null as valid data after success() is called
-  bool get hasData => data.value != null || _dataWasSet;
+  /// Whether the effect is currently loading - using RxBool for consistent reactive behavior
+  RxBool get isLoading => _isLoading;
 
-  /// Set the effect to loading state
+  /// The current error, if any - using Rx for consistent reactive behavior
+  Rx<Object?> get error => _error;
+
+  /// Whether data has been set at least once - using RxBool for consistent reactive behavior
+  RxBool get dataWasSet => _dataWasSet;
+
+  /// Whether the effect has data (including null data that was explicitly set)
+  bool get hasData => _dataWasSet.value;
+
+  /// Whether this effect has been disposed
+  bool get isDisposed => _disposed;
+
+  /// Set the loading state
   void loading() {
-    if (enableMetrics) ZenMetrics.startTiming('effect.$name');
-    isLoading.value = true;
-    error.value = null;
-    // Don't reset _dataWasSet here
+    if (_disposed) return;
+    _isLoading.value = true;
+    _error.value = null;
   }
 
-  /// Set the effect to success state with data
-  void success(T result) {
-    _dataWasSet = true; // Set this first to ensure hasData is true even for null
-    data.value = result;
-    isLoading.value = false;
-    error.value = null;
-
-    if (enableMetrics) {
-      ZenMetrics.recordEffectSuccess(name);
-      ZenMetrics.stopTiming('effect.$name');
-    }
-
-    // Explicitly notify listeners in addition to the Rx notifications
-    notifyListeners();
+  /// Set successful data
+  void success(T? data) {
+    if (_disposed) return;
+    _data.value = data;
+    _dataWasSet.value = true;
+    _isLoading.value = false;
+    _error.value = null;
   }
 
-  /// Set the effect to error state
-  void setError(Object? errorValue) {
-    error.value = errorValue;
-    isLoading.value = false;
-
-    if (enableMetrics) {
-      ZenMetrics.recordEffectFailure(name);
-      ZenMetrics.stopTiming('effect.$name');
-    }
-
-    ZenLogger.logError('Effect "$name" failed', errorValue);
-
-    // Explicitly notify listeners
-    notifyListeners();
+  /// Set error state
+  void setError(Object error) {
+    if (_disposed) return;
+    _error.value = error;
+    _isLoading.value = false;
   }
 
-  /// Run an async action with automatic state management
-  Future<T?> run(Future<T> Function() action) async {
-    loading();
+  /// Run an async operation with automatic state management
+  /// Returns null if the effect is disposed during execution
+  Future<T?> run(Future<T> Function() operation) async {
+    if (_disposed) return null;
 
     try {
-      final result = await action();
+      // Set loading state first
+      loading();
+
+      // Check if disposed after setting loading state
+      if (_disposed) return null;
+
+      // Execute the operation
+      final result = await operation();
+
+      // Check if disposed after operation completes
+      if (_disposed) return null;
+
+      // Set success state with the result
       success(result);
+
       return result;
-    } catch (e, stackTrace) {
+    } catch (e) {
+      // Check if disposed before setting error
+      if (_disposed) return null;
+
+      // Set error state
       setError(e);
-      ZenLogger.logError('Effect "$name" failed', e, stackTrace);
-      return null;
+
+      // Re-throw the error so callers can handle it if needed
+      rethrow;
     }
   }
 
   /// Reset the effect to initial state
   void reset() {
-    isLoading.value = false;
-    error.value = null;
-    data.value = null;
-    _dataWasSet = false;
-    notifyListeners();
+    if (_disposed) return;
+    _data.value = null;
+    _dataWasSet.value = false;
+    _isLoading.value = false;
+    _error.value = null;
+  }
+
+  /// Clear only the error state
+  void clearError() {
+    if (_disposed) return;
+    _error.value = null;
+  }
+
+  /// Clear only the data
+  void clearData() {
+    if (_disposed) return;
+    _data.value = null;
+    _dataWasSet.value = false;
+  }
+
+  /// Dispose the effect and clean up resources
+  void dispose() {
+    if (_disposed) return;
+    _disposed = true;
+
+    _data.dispose();
+    _isLoading.dispose();
+    _error.dispose();
+    _dataWasSet.dispose();
   }
 
   @override
-  void dispose() {
-    isLoading.removeListener(() => notifyListeners());
-    error.removeListener(() => notifyListeners());
-    data.removeListener(() => notifyListeners());
-    super.dispose();
-  }
+  String toString() => 'ZenEffect<$T>(name: $name, disposed: $_disposed)';
 }
 
-// Extension methods for ZenController for easy effect creation
-extension ZenEffectExtension on ZenController {
-  ZenEffect<T> createEffect<T>({
-    String? name,
-    T? initialData,
-    bool enableMetrics = true,
-  }) {
-    final effect = ZenEffect<T>(
-      name: name,
-      initialData: initialData,
-      enableMetrics: enableMetrics,
-    );
+/// Extension for easy effect watching with your worker system
+extension ZenEffectWatch<T> on ZenEffect<T> {
+  /// Unified watch method for all effect aspects using ZenWorkers directly
+  void Function() watch(
+      ZenController controller, {
+        void Function(T?)? onData,
+        void Function(bool)? onLoading,
+        void Function(Object?)? onError,
+        String? name,
+      }) {
+    if (isDisposed) {
+      return () {}; // Return no-op disposer for disposed effects
+    }
 
-    // Auto-dispose the effect when controller is disposed
-    addDisposer(() {
-      effect.dispose();
-    });
+    final disposers = <ZenWorkerHandle>[];
 
-    return effect;
+    if (onData != null) {
+      final handle = ZenWorkers.ever<T?>(_data, onData);
+      disposers.add(handle);
+    }
+
+    if (onLoading != null) {
+      final handle = ZenWorkers.ever<bool>(_isLoading, onLoading);
+      disposers.add(handle);
+    }
+
+    if (onError != null) {
+      final handle = ZenWorkers.ever<Object?>(_error, onError);
+      disposers.add(handle);
+    }
+
+    // Return combined disposer
+    return () {
+      for (final handle in disposers) {
+        handle.dispose();
+      }
+    };
   }
+
+  /// Convenience method for watching only data changes
+  void Function() watchData(ZenController controller, void Function(T?) callback, {String? name}) =>
+      watch(controller, onData: callback, name: name);
+
+  /// Convenience method for watching only loading state
+  void Function() watchLoading(ZenController controller, void Function(bool) callback, {String? name}) =>
+      watch(controller, onLoading: callback, name: name);
+
+  /// Convenience method for watching only error state
+  void Function() watchError(ZenController controller, void Function(Object?) callback, {String? name}) =>
+      watch(controller, onError: callback, name: name);
+}
+
+/// Helper function to create effects (similar to createEffect in other frameworks)
+ZenEffect<T> createEffect<T>({required String name}) {
+  return ZenEffect<T>(name: name);
 }

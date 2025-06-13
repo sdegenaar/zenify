@@ -1,3 +1,17 @@
+## 0.1.8
+
+* Major Enhancement: ZenView Integration and Widget System
+  * Add ZenView base class for automatic controller management in pages
+  * Implement direct controller access pattern (controller.property)
+  * Add ZenViewRegistry for controller lifecycle management
+  * Introduce context extensions for nested widget controller access
+  * Replace manual Zen.find() pattern with automatic binding
+  * Add comprehensive ZenView examples and patterns
+  * Improve error handling with clear controller availability messages
+  * Update documentation with ZenView best practices
+  * Add support for tagged controllers in ZenView
+  * Enhance type safety with automatic controller resolution
+
 ## 0.1.7
 
 * Complete Phase 4: API Consistency and Reference System Improvements
@@ -28,7 +42,6 @@
   * Enhance controller discovery with improved scoping
   * Add lazy initialization support for dependencies
   * Improve error reporting for dependency resolution issues
-
 
 ## 0.1.4
 

@@ -1,10 +1,11 @@
-// lib/zenify/testing/zen_test_utilities.dart
+// lib/testing/zen_test_utilities.dart
 import 'package:flutter/material.dart';
 import '../controllers/zen_controller.dart';
 import '../core/zen_scope.dart';
 import '../core/zen_logger.dart';
 import '../core/zen_config.dart';
 import '../di/zen_di.dart';
+import '../reactive/rx_value.dart';
 
 /// Test utility for tracking changes to Rx values
 class RxTester<T> {
@@ -38,48 +39,122 @@ class RxTester<T> {
 class ZenTestContainer {
   final ZenScope _scope;
 
-  ZenTestContainer() : _scope = Zen.createScope(name: 'TestScope') {
+  ZenTestContainer({String? name})
+      : _scope = Zen.createScope(name: name ?? 'TestScope') {
     if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('ZenTestContainer created with scope: $_scope');
+      ZenLogger.logDebug('ZenTestContainer created with scope: ${_scope.name} (${_scope.id})');
     }
   }
 
   /// Register a dependency or controller
-  T register<T>(T Function() factory, {String? tag, bool permanent = false}) {
+  T register<T>(T Function() factory, {String? tag, bool? permanent}) {
     if (ZenConfig.enableDebugLogs) {
       ZenLogger.logDebug('Registering $T in test container');
     }
 
-    // Handle ZenController types differently from other dependencies
-    if (factory() is ZenController) {
-      // Cast both the factory and its return type to the appropriate controller type
-      final controllerFactory = factory as ZenController Function();
-      final controller = controllerFactory();
+    final instance = factory();
 
-      // Use type-specific registration method based on the actual controller type
-      final registeredController = Zen.put(
-          controller,
-          tag: tag,
-          permanent: permanent,
-          scope: _scope
-      );
+    // Register in the test scope
+    _scope.put<T>(
+      instance,
+      tag: tag,
+      permanent: permanent ?? false,
+    );
 
-      return registeredController as T;
-    } else {
-      // For non-controller types, use putDependency
-      return Zen.put<T>(
-          factory(),
-          tag: tag,
-          permanent: permanent,
-          scope: _scope
-      );
+    return instance;
+  }
+
+  /// Register an existing instance
+  T put<T>(T instance, {String? tag, bool? permanent}) {
+    if (ZenConfig.enableDebugLogs) {
+      ZenLogger.logDebug('Putting $T instance in test container');
+    }
+
+    return _scope.put<T>(
+      instance,
+      tag: tag,
+      permanent: permanent ?? false,
+    );
+  }
+
+  /// Register a lazy factory
+  void putLazy<T>(T Function() factory, {String? tag}) {
+    _scope.putLazy<T>(factory, tag: tag);
+
+    if (ZenConfig.enableDebugLogs) {
+      ZenLogger.logDebug('Registered lazy factory for $T in test container');
+    }
+  }
+
+  /// Register a factory function
+  void putFactory<T>(T Function() factory, {String? tag}) {
+    _scope.putFactory<T>(factory, tag: tag);
+
+    if (ZenConfig.enableDebugLogs) {
+      ZenLogger.logDebug('Registered factory for $T in test container');
     }
   }
 
   /// Find a dependency from the test container
-  /// Find a dependency from the test container
   T? find<T>({String? tag}) {
-    return Zen.find<T>(tag: tag, scope: _scope);
+    return _scope.find<T>(tag: tag);
+  }
+
+  /// Find a dependency and throw if not found
+  T get<T>({String? tag}) {
+    final result = find<T>(tag: tag);
+    if (result == null) {
+      throw Exception('Dependency of type $T${tag != null ? ' with tag $tag' : ''} not found in test container');
+    }
+    return result;
+  }
+
+  /// Check if a dependency exists
+  bool exists<T>({String? tag}) {
+    return find<T>(tag: tag) != null;
+  }
+
+  /// Delete a dependency
+  bool delete<T>({String? tag, bool force = false}) {
+    return _scope.delete<T>(tag: tag, force: force);
+  }
+
+  /// Clear all dependencies
+  void clear() {
+    final dependencies = _scope.getAllDependencies();
+    for (final dependency in dependencies) {
+      try {
+        // Try to dispose if it's a controller
+        if (dependency is ZenController && !dependency.isDisposed) {
+          dependency.dispose();
+        }
+      } catch (e) {
+        // Continue clearing even if some fail
+        if (ZenConfig.enableDebugLogs) {
+          ZenLogger.logDebug('Failed to dispose dependency ${dependency.runtimeType}: $e');
+        }
+      }
+    }
+
+    // Clear the scope's dependencies by getting their types and deleting
+    final allDeps = _scope.getAllDependencies();
+    for (final dep in allDeps) {
+      final tag = _scope.getTagForInstance(dep);
+      if (tag != null) {
+        _scope.deleteByTag(tag, force: true);
+      } else {
+        _scope.deleteByType(dep.runtimeType, force: true);
+      }
+    }
+
+    if (ZenConfig.enableDebugLogs) {
+      ZenLogger.logDebug('Cleared all dependencies from test container');
+    }
+  }
+
+  /// Get all registered dependencies
+  List<dynamic> getAllDependencies() {
+    return _scope.getAllDependencies();
   }
 
   /// Dispose all dependencies in the test container
@@ -87,11 +162,18 @@ class ZenTestContainer {
     if (ZenConfig.enableDebugLogs) {
       ZenLogger.logDebug('Disposing ZenTestContainer');
     }
-    _scope.dispose();
+
+    // Dispose the scope
+    if (!_scope.isDisposed) {
+      _scope.dispose();
+    }
   }
 
   /// Get the test scope
   ZenScope get scope => _scope;
+
+  /// Check if the container is disposed
+  bool get isDisposed => _scope.isDisposed;
 }
 
 /// Widget for wrapping test widgets with the test container
@@ -111,13 +193,100 @@ class ZenTestScope extends StatefulWidget {
 
 class _ZenTestScopeState extends State<ZenTestScope> {
   @override
-  void dispose() {
-    // Container is disposed by test
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return widget.child;
+  }
+}
+
+/// Utility functions for testing
+class ZenTestUtils {
+  /// Create a test environment with optional setup
+  static ZenTestContainer createTestEnvironment({
+    String? name,
+    void Function(ZenTestContainer container)? setup,
+  }) {
+    final container = ZenTestContainer(name: name);
+    setup?.call(container);
+    return container;
+  }
+
+  /// Run a test with a clean Zen environment
+  static Future<T> runInTestEnvironment<T>(
+      Future<T> Function(ZenTestContainer container) test, {
+        String? name,
+        void Function(ZenTestContainer container)? setup,
+      }) async {
+    final container = createTestEnvironment(name: name, setup: setup);
+
+    try {
+      return await test(container);
+    } finally {
+      container.dispose();
+    }
+  }
+
+  /// Wait for all pending reactive updates
+  static Future<void> pump() async {
+    // Allow any pending microtasks to complete
+    await Future.delayed(Duration.zero);
+  }
+
+  /// Wait for a specific duration (useful for debounce/throttle testing)
+  static Future<void> wait(Duration duration) async {
+    await Future.delayed(duration);
+  }
+
+  /// Create a mock controller for testing
+  static T createMockController<T extends ZenController>(
+      T Function() factory,
+      ZenTestContainer container, {
+        String? tag,
+      }) {
+    final controller = container.register<T>(factory, tag: tag);
+    return controller;
+  }
+
+  /// Verify that a reactive value changes as expected
+  static Future<bool> verifyReactiveChanges<T>(
+      Rx<T> reactive,
+      List<T> expectedChanges,
+      Future<void> Function() action,
+      ) async {
+    final tester = RxTester(reactive);
+
+    try {
+      await action();
+      await pump(); // Allow updates to propagate
+
+      return tester.expectChanges(expectedChanges);
+    } finally {
+      tester.dispose();
+    }
+  }
+}
+
+/// Test-specific controller base class with additional utilities
+abstract class ZenTestController extends ZenController {
+  /// Track all method calls for verification
+  final List<String> methodCalls = [];
+
+  /// Track method call with name
+  void trackCall(String methodName) {
+    methodCalls.add(methodName);
+  }
+
+  /// Clear method call history
+  void clearCallHistory() {
+    methodCalls.clear();
+  }
+
+  /// Verify method was called
+  bool wasMethodCalled(String methodName) {
+    return methodCalls.contains(methodName);
+  }
+
+  /// Get call count for method
+  int getCallCount(String methodName) {
+    return methodCalls.where((call) => call == methodName).length;
   }
 }

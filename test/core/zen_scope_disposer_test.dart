@@ -1,3 +1,4 @@
+
 // test/core/zen_scope_disposer_test.dart
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zenify/zenify.dart';
@@ -6,22 +7,17 @@ void main() {
   group('ZenScope Disposer', () {
     // Reset singleton state before each test
     setUp(() {
-      // Make sure we have a fresh instance for each test
-      Zen.container.clear(); // Explicitly clear container first
-      ZenScopeManager.instance.dispose();
-      ZenScopeManager.instance.initialize();
+      Zen.reset();
     });
 
     // Clean up after tests
     tearDown(() {
-      Zen.container.clear(); // Clean up after test
-      ZenScopeManager.instance.dispose();
-      ZenScopeManager.instance.initialize();
+      Zen.reset();
     });
 
     test('should execute disposers when scope is disposed', () {
       // Create a scope
-      final scope = ZenScopeManager.instance.createScope(name: 'TestScope');
+      final scope = Zen.createScope(name: 'TestScope');
 
       // Keep track of which disposers were called
       final disposerCalls = <String>[];
@@ -48,7 +44,7 @@ void main() {
 
     test('should continue executing other disposers if one throws', () {
       // Create a scope
-      final scope = ZenScopeManager.instance.createScope(name: 'TestScope');
+      final scope = Zen.createScope(name: 'TestScope');
 
       // Keep track of which disposers were called
       final disposerCalls = <String>[];
@@ -77,8 +73,8 @@ void main() {
 
     test('should execute parent scope disposers when child scope is disposed', () {
       // Create parent and child scopes
-      final parentScope = ZenScopeManager.instance.createScope(name: 'ParentScope');
-      final childScope = ZenScopeManager.instance.createScope(
+      final parentScope = Zen.createScope(name: 'ParentScope');
+      final childScope = Zen.createScope(
           name: 'ChildScope',
           parent: parentScope
       );
@@ -111,12 +107,12 @@ void main() {
 
     test('should execute all child scope disposers when parent scope is disposed', () {
       // Create parent and child scopes
-      final parentScope = ZenScopeManager.instance.createScope(name: 'ParentScope');
-      final childScope1 = ZenScopeManager.instance.createScope(
+      final parentScope = Zen.createScope(name: 'ParentScope');
+      final childScope1 = Zen.createScope(
           name: 'ChildScope1',
           parent: parentScope
       );
-      final childScope2 = ZenScopeManager.instance.createScope(
+      final childScope2 = Zen.createScope(
           name: 'ChildScope2',
           parent: parentScope
       );
@@ -150,7 +146,7 @@ void main() {
 
     test('should clear disposers after execution', () {
       // Create a scope
-      final scope = ZenScopeManager.instance.createScope(name: 'TestScope');
+      final scope = Zen.createScope(name: 'TestScope');
 
       // Track disposer calls
       final disposerCalls = <String>[];
@@ -178,7 +174,7 @@ void main() {
 
     test('should throw when registering disposers on disposed scope', () {
       // Create a scope
-      final scope = ZenScopeManager.instance.createScope(name: 'TestScope');
+      final scope = Zen.createScope(name: 'TestScope');
 
       // Dispose the scope
       scope.dispose();
@@ -187,51 +183,9 @@ void main() {
       expect(() => scope.registerDisposer(() {}), throwsException);
     });
 
-    test('should support ZenScopeManager convenience methods', () {
-      // Create scopes
-      final scope = ZenScopeManager.instance.createScope(name: 'TestScope');
-      final manager = ZenScopeManager.instance;
-
-      // Set current scope
-      manager.setCurrentScope(scope);
-
-      // Track disposer calls
-      final disposerCalls = <String>[];
-
-      // Use convenience methods
-      manager.registerDisposer(() {
-        disposerCalls.add('currentScopeDisposer');
-      });
-
-      manager.registerGlobalDisposer(() {
-        disposerCalls.add('globalDisposer');
-      });
-
-      manager.registerDisposerIn(
-        scope: manager.rootScope,
-        disposer: () {
-          disposerCalls.add('rootScopeDisposer');
-        },
-      );
-
-      // Dispose the current scope
-      scope.dispose();
-
-      // Verify current scope disposer was called
-      expect(disposerCalls, contains('currentScopeDisposer'));
-      expect(disposerCalls, isNot(contains('globalDisposer')));
-      expect(disposerCalls, isNot(contains('rootScopeDisposer')));
-
-      // Dispose everything
-      manager.dispose();
-
-      // Verify all disposers were called
-      expect(disposerCalls, containsAll(['currentScopeDisposer', 'globalDisposer', 'rootScopeDisposer']));
-    });
-
     test('should execute resource cleanup in disposer', () {
       // Create a scope
-      final scope = ZenScopeManager.instance.createScope(name: 'TestScope');
+      final scope = Zen.createScope(name: 'TestScope');
 
       // Create a mock resource
       final mockResource = MockResource();
@@ -250,6 +204,51 @@ void main() {
       // Verify resource was closed
       expect(mockResource.isClosed, isTrue);
     });
+
+    test('should dispose controllers automatically when scope is disposed', () {
+      // Create a scope
+      final scope = Zen.createScope(name: 'TestScope');
+
+      // Create a test controller
+      final controller = TestController();
+
+      // Register controller in scope
+      scope.put(controller, permanent: false);
+
+      // Verify controller is not disposed yet
+      expect(controller.isDisposed, isFalse);
+
+      // Dispose the scope
+      scope.dispose();
+
+      // Verify controller was disposed
+      expect(controller.isDisposed, isTrue);
+    });
+
+    test('should handle nested scope disposal correctly', () {
+      // Create nested scopes
+      final rootScope = Zen.createScope(name: 'Root');
+      final level1Scope = Zen.createScope(name: 'Level1', parent: rootScope);
+      final level2Scope = Zen.createScope(name: 'Level2', parent: level1Scope);
+
+      // Track disposal order
+      final disposalOrder = <String>[];
+
+      rootScope.registerDisposer(() => disposalOrder.add('root'));
+      level1Scope.registerDisposer(() => disposalOrder.add('level1'));
+      level2Scope.registerDisposer(() => disposalOrder.add('level2'));
+
+      // Dispose root scope (should dispose all children)
+      rootScope.dispose();
+
+      // Verify all disposers were called
+      expect(disposalOrder, containsAll(['root', 'level1', 'level2']));
+
+      // Verify all scopes are disposed
+      expect(rootScope.isDisposed, isTrue);
+      expect(level1Scope.isDisposed, isTrue);
+      expect(level2Scope.isDisposed, isTrue);
+    });
   });
 }
 
@@ -262,4 +261,9 @@ class MockResource {
   void close() {
     _isClosed = true;
   }
+}
+
+// Test controller class
+class TestController extends ZenController {
+
 }

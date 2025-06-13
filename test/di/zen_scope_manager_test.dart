@@ -2,374 +2,271 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zenify/zenify.dart';
 
-// Test service class
-class TestService {
-  final String value;
-  TestService(this.value);
-}
-
-// Stateful service for testing factories
-class CounterService {
-  int count = 0;
-
-  void increment() {
-    count++;
-  }
-}
-
 void main() {
+  // Initialize Flutter test framework BEFORE any tests run
+  setUpAll(() {
+    TestWidgetsFlutterBinding.ensureInitialized();
+  });
+
   group('ZenScopeManager', () {
-    // Reset singleton state before each test
     setUp(() {
-      // Make sure we have a fresh instance for each test
-      Zen.container.clear(); // Explicitly clear container first
-      ZenScopeManager.instance.dispose();
+      // Reset manager state before each test
+      try {
+        ZenScopeManager.instance.dispose();
+      } catch (e) {
+        // Ignore disposal errors
+      }
       ZenScopeManager.instance.initialize();
     });
 
-    // Clean up after tests
     tearDown(() {
-      Zen.container.clear(); // Clean up after test
-      ZenScopeManager.instance.dispose();
-      ZenScopeManager.instance.initialize();
+      try {
+        ZenScopeManager.instance.dispose();
+      } catch (e) {
+        // Ignore disposal errors
+      }
     });
 
-    test('should access the singleton instance', () {
-      // Verify we can access the instance
-      expect(ZenScopeManager.instance, isNotNull);
+    test('should provide singleton instance', () {
+      final instance1 = ZenScopeManager.instance;
+      final instance2 = ZenScopeManager.instance;
 
-      // The instance should be the same each time
-      final firstAccess = ZenScopeManager.instance;
-      final secondAccess = ZenScopeManager.instance;
-      expect(identical(firstAccess, secondAccess), isTrue);
+      expect(instance1, isNotNull);
+      expect(identical(instance1, instance2), isTrue);
     });
 
     test('should initialize with root scope', () {
-      // The instance should have a root scope
-      expect(ZenScopeManager.instance.rootScope, isNotNull);
-      expect(ZenScopeManager.instance.rootScope.name, equals('RootScope'));
-
-      // Current scope should default to root scope
-      expect(identical(ZenScopeManager.instance.currentScope,
-          ZenScopeManager.instance.rootScope), isTrue);
-    });
-
-    test('should create scopes with proper parent relationships', () {
       final manager = ZenScopeManager.instance;
 
-      // Create a child scope
+      expect(manager.rootScope, isNotNull);
+      expect(manager.rootScope.name, equals('RootScope'));
+      expect(manager.rootScope.isDisposed, isFalse);
+    });
+
+    test('should create scopes with proper hierarchy', () {
+      final manager = ZenScopeManager.instance;
+
+      // Create child scope of root
       final childScope = manager.createScope(name: 'ChildScope');
 
-      // Verify parent relationship
-      expect(identical(childScope.parent, manager.rootScope), isTrue);
+      expect(childScope, isNotNull);
+      expect(childScope.name, equals('ChildScope'));
+      expect(childScope.parent, equals(manager.rootScope));
+      expect(childScope.isDisposed, isFalse);
 
-      // Create a grandchild scope
+      // Create grandchild scope
       final grandchildScope = manager.createScope(
-          parent: childScope,
-          name: 'GrandchildScope'
+        name: 'GrandchildScope',
+        parent: childScope,
       );
 
-      // Verify parent relationship
-      expect(identical(grandchildScope.parent, childScope), isTrue);
+      expect(grandchildScope.parent, equals(childScope));
+      expect(grandchildScope.name, equals('GrandchildScope'));
     });
 
-    test('should manage the current scope', () {
+    test('should find scopes by ID', () {
       final manager = ZenScopeManager.instance;
 
-      // Create a new scope
-      final childScope = manager.createScope(name: 'CurrentScope');
+      final scope1 = manager.createScope(name: 'Scope1');
+      final scope2 = manager.createScope(name: 'Scope2');
 
-      // Initially current scope is root
-      expect(identical(manager.currentScope, manager.rootScope), isTrue);
-
-      // Change current scope
-      manager.setCurrentScope(childScope);
-      expect(identical(manager.currentScope, childScope), isTrue);
-
-      // Create a session that will restore the previous scope when ended
-      final otherScope = manager.createScope(name: 'OtherScope');
-      final session = manager.beginSession(otherScope);
-
-      // Session should set current scope
-      expect(identical(manager.currentScope, otherScope), isTrue);
-
-      // End session should restore previous scope
-      session.end();
-      expect(identical(manager.currentScope, childScope), isTrue);
+      // Find by ID
+      expect(manager.findScopeById(scope1.id), equals(scope1));
+      expect(manager.findScopeById(scope2.id), equals(scope2));
+      expect(manager.findScopeById('nonexistent'), isNull);
     });
 
-    test('should register dependencies in the current scope', () {
+    test('should find scopes by name', () {
       final manager = ZenScopeManager.instance;
 
-      // Create a child scope and set as current
-      final childScope = manager.createScope(name: 'CurrentScope');
-      manager.setCurrentScope(childScope);
+      final scope1 = manager.createScope(name: 'TestScope');
+      final scope2 = manager.createScope(name: 'TestScope'); // Same name
+      final scope3 = manager.createScope(name: 'OtherScope');
 
-      // Register in current scope
-      final service = TestService('testValue');
-      manager.put<TestService>(service);
+      // Find by name
+      final testScopes = manager.findScopesByName('TestScope');
+      expect(testScopes.length, equals(2));
+      expect(testScopes.contains(scope1), isTrue);
+      expect(testScopes.contains(scope2), isTrue);
 
-      // Should be found in current scope
-      expect(manager.find<TestService>()?.value, equals('testValue'));
+      final otherScopes = manager.findScopesByName('OtherScope');
+      expect(otherScopes.length, equals(1));
+      expect(otherScopes.first, equals(scope3));
 
-      // Switch back to root scope
-      manager.setCurrentScope(manager.rootScope);
-
-      // Should not be found in root scope
-      expect(manager.find<TestService>(), isNull);
-
-      // But should be found when explicitly using child scope
-      expect(manager.findIn<TestService>(scope: childScope)?.value, equals('testValue'));
+      // Non-existent name
+      expect(manager.findScopesByName('NonExistent'), isEmpty);
     });
 
-    test('should properly handle lazy dependency initialization', () {
+    test('should get all scopes', () {
       final manager = ZenScopeManager.instance;
-      int initializationCount = 0;
 
-      // Register a lazily initialized dependency
-      manager.lazily<TestService>(() {
-        initializationCount++;
-        return TestService('lazy-initialized');
-      });
+      // Initially should have just root scope
+      final initialScopes = manager.getAllScopes();
+      expect(initialScopes.length, equals(1));
+      expect(initialScopes.first, equals(manager.rootScope));
 
-      // Verify factory is registered but not called yet
-      expect(initializationCount, equals(0));
+      // Create additional scopes
+      final scope1 = manager.createScope(name: 'Scope1');
+      final scope2 = manager.createScope(name: 'Scope2');
 
-      // First access should initialize the dependency
-      final instance1 = manager.find<TestService>();
-      expect(instance1, isNotNull);
-      expect(instance1?.value, equals('lazy-initialized'));
-      expect(initializationCount, equals(1));
-
-      // Second access should return the same instance without re-initialization
-      final instance2 = manager.find<TestService>();
-      expect(identical(instance2, instance1), isTrue);
-      expect(initializationCount, equals(1)); // Still 1, not re-initialized
-
-      // Test lazy global dependency
-      manager.lazilyGlobal<TestService>(() {
-        initializationCount++;
-        return TestService('global-lazy');
-      }, tag: 'global');
-
-      // Verify factory is registered but not called
-      expect(initializationCount, equals(1));
-
-      // Access the global dependency
-      final globalInstance = manager.findGlobal<TestService>(tag: 'global');
-      expect(globalInstance?.value, equals('global-lazy'));
-      expect(initializationCount, equals(2));
-
-      // Test lazy dependency in a specific scope
-      final childScope = manager.createScope(name: 'LazyChild');
-      manager.lazilyIn<TestService>(
-              () {
-            initializationCount++;
-            return TestService('scope-specific');
-          },
-          scope: childScope,
-          tag: 'scoped'
-      );
-
-      // Verify factory is registered but not called
-      expect(initializationCount, equals(2));
-
-      // Access the scoped dependency
-      final scopedInstance = manager.findIn<TestService>(
-          scope: childScope,
-          tag: 'scoped'
-      );
-      expect(scopedInstance?.value, equals('scope-specific'));
-      expect(initializationCount, equals(3));
+      final allScopes = manager.getAllScopes();
+      expect(allScopes.length, equals(3));
+      expect(allScopes.contains(manager.rootScope), isTrue);
+      expect(allScopes.contains(scope1), isTrue);
+      expect(allScopes.contains(scope2), isTrue);
     });
 
-    test('should properly handle factory registration with putFactory', () {
+    test('should clean up disposed scopes from maps', () {
       final manager = ZenScopeManager.instance;
-      int factoryCallCount = 0;
 
-      // Register a factory that creates new instances each time
-      manager.putFactory<TestService>(() {
-        factoryCallCount++;
-        return TestService('factory-instance-$factoryCallCount');
-      });
+      final scope = manager.createScope(name: 'DisposableScope');
+      final scopeId = scope.id;
 
-      // Verify the factory hasn't been called yet
-      expect(factoryCallCount, equals(0));
+      // Verify scope exists in manager
+      expect(manager.findScopeById(scopeId), equals(scope));
+      expect(manager.findScopesByName('DisposableScope'), contains(scope));
+      expect(manager.getAllScopes(), contains(scope));
 
-      // First access should call the factory
-      final instance1 = manager.find<TestService>();
-      expect(instance1, isNotNull);
-      expect(instance1?.value, equals('factory-instance-1'));
-      expect(factoryCallCount, equals(1));
+      // Dispose the scope
+      scope.dispose();
 
-      // Second access should call the factory again and create a new instance
-      final instance2 = manager.find<TestService>();
-      expect(instance2, isNotNull);
-      expect(instance2?.value, equals('factory-instance-2'));
-      expect(factoryCallCount, equals(2));
-
-      // Instances should be different
-      expect(identical(instance1, instance2), isFalse);
-
-      // Test with a stateful service to confirm instances are separate
-      manager.putFactory<CounterService>(() => CounterService());
-
-      final counterInstance1 = manager.find<CounterService>();
-      final counterInstance2 = manager.find<CounterService>();
-
-      expect(counterInstance1, isNotNull);
-      expect(counterInstance2, isNotNull);
-      expect(identical(counterInstance1, counterInstance2), isFalse);
-
-      // Modify one instance
-      counterInstance1?.increment();
-      expect(counterInstance1?.count, equals(1));
-
-      // The other instance should not be affected
-      expect(counterInstance2?.count, equals(0));
+      // Verify scope is removed from manager maps
+      expect(manager.findScopeById(scopeId), isNull);
+      expect(manager.findScopesByName('DisposableScope'), isEmpty);
+      expect(manager.getAllScopes(), isNot(contains(scope)));
     });
 
-    test('should support global and scoped factories', () {
+    test('should support scopes without names', () {
       final manager = ZenScopeManager.instance;
-      int rootFactoryCount = 0;
-      int childFactoryCount = 0;
 
-      // Register a factory in root scope
-      manager.putFactoryGlobal<TestService>(() {
-        rootFactoryCount++;
-        return TestService('root-factory-$rootFactoryCount');
-      });
+      final unnamedScope = manager.createScope();
 
-      // Create a child scope
-      final childScope = manager.createScope(name: 'ChildScope');
+      expect(unnamedScope, isNotNull);
+      expect(unnamedScope.name, isNull);
+      expect(unnamedScope.parent, equals(manager.rootScope));
 
-      // Register a factory in child scope
-      manager.putFactoryIn<TestService>(
-              () {
-            childFactoryCount++;
-            return TestService('child-factory-$childFactoryCount');
-          },
-          scope: childScope,
-          tag: 'child'
-      );
+      // Should be findable by ID but not by name
+      expect(manager.findScopeById(unnamedScope.id), equals(unnamedScope));
+      expect(manager.findScopesByName(''), isEmpty);
 
-      // Test the root factory
-      final rootInstance1 = manager.findGlobal<TestService>();
-      final rootInstance2 = manager.findGlobal<TestService>();
-
-      expect(rootInstance1?.value, equals('root-factory-1'));
-      expect(rootInstance2?.value, equals('root-factory-2'));
-      expect(rootFactoryCount, equals(2));
-      expect(identical(rootInstance1, rootInstance2), isFalse);
-
-      // Test the child scope factory
-      final childInstance1 = manager.findIn<TestService>(scope: childScope, tag: 'child');
-      final childInstance2 = manager.findIn<TestService>(scope: childScope, tag: 'child');
-
-      expect(childInstance1?.value, equals('child-factory-1'));
-      expect(childInstance2?.value, equals('child-factory-2'));
-      expect(childFactoryCount, equals(2));
-      expect(identical(childInstance1, childInstance2), isFalse);
+      // Should be in getAllScopes
+      expect(manager.getAllScopes(), contains(unnamedScope));
     });
 
-    test('should support mixing lazy singletons and factories', () {
+    test('should generate scope hierarchy dump', () {
       final manager = ZenScopeManager.instance;
-      int singletonCount = 0;
-      int factoryCount = 0;
 
-      // Register a lazy singleton
-      manager.lazily<TestService>(() {
-        singletonCount++;
-        return TestService('singleton-$singletonCount');
-      }, tag: 'singleton');
+      // Create hierarchy
+      final parentScope = manager.createScope(name: 'Parent');
+      final childScope = manager.createScope(name: 'Child', parent: parentScope);
+      manager.createScope(name: 'Grandchild', parent: childScope);
 
-      // Register a factory
-      manager.putFactory<TestService>(() {
-        factoryCount++;
-        return TestService('factory-$factoryCount');
-      }, tag: 'factory');
+      final dump = manager.dumpScopeHierarchy();
 
-      // Test the singleton behavior
-      final singleton1 = manager.find<TestService>(tag: 'singleton');
-      final singleton2 = manager.find<TestService>(tag: 'singleton');
-
-      expect(singleton1?.value, equals('singleton-1'));
-      expect(singleton2?.value, equals('singleton-1'));  // Same value
-      expect(singletonCount, equals(1));  // Only created once
-      expect(identical(singleton1, singleton2), isTrue);  // Same instance
-
-      // Test the factory behavior
-      final factory1 = manager.find<TestService>(tag: 'factory');
-      final factory2 = manager.find<TestService>(tag: 'factory');
-
-      expect(factory1?.value, equals('factory-1'));
-      expect(factory2?.value, equals('factory-2'));  // Different value
-      expect(factoryCount, equals(2));  // Created twice
-      expect(identical(factory1, factory2), isFalse);  // Different instances
+      expect(dump, isNotNull);
+      expect(dump, contains('RootScope'));
+      expect(dump, contains('Parent'));
+      expect(dump, contains('Child'));
+      expect(dump, contains('Grandchild'));
     });
 
-    test('should handle factory disposal correctly', () {
+    test('should handle deleteAll across all scopes', () {
       final manager = ZenScopeManager.instance;
-      int factoryCallCount = 0;
 
-      // Create a child scope
-      final childScope = manager.createScope(name: 'FactoryScope');
+      // Create scopes and register some dependencies
+      final scope1 = manager.createScope(name: 'Scope1');
+      final scope2 = manager.createScope(name: 'Scope2');
 
-      // Register a factory in the child scope
-      manager.putFactoryIn<TestService>(
-              () {
-            factoryCallCount++;
-            return TestService('factory-$factoryCallCount');
-          },
-          scope: childScope
-      );
+      // Register some test dependencies
+      manager.rootScope.put('rootDep');
+      scope1.put('scope1Dep');
+      scope2.put('scope2Dep');
 
-      // Test the factory works before disposal
-      final instance1 = manager.findIn<TestService>(scope: childScope);
-      expect(instance1?.value, equals('factory-1'));
+      // Verify dependencies exist
+      expect(manager.rootScope.find<String>(), equals('rootDep'));
+      expect(scope1.find<String>(), equals('scope1Dep'));
+      expect(scope2.find<String>(), equals('scope2Dep'));
 
-      // Dispose the child scope
-      childScope.dispose();
+      // Delete all dependencies
+      manager.deleteAll(force: true);
 
-      // Factory should no longer be available
-      final instance2 = manager.findIn<TestService>(scope: childScope);
-      expect(instance2, isNull);
-
-      // Create a new scope with the same name
-      final newScope = manager.createScope(name: 'FactoryScope');
-
-      // Factory should not exist in the new scope
-      final instance3 = manager.findIn<TestService>(scope: newScope);
-      expect(instance3, isNull);
+      // Verify all dependencies are gone
+      expect(manager.rootScope.find<String>(), isNull);
+      expect(scope1.find<String>(), isNull);
+      expect(scope2.find<String>(), isNull);
     });
 
-    test('should cleanup properly when disposed', () {
+    test('should dispose all scopes when manager is disposed', () {
       final manager = ZenScopeManager.instance;
 
-      // Create child scopes
-      final childScope1 = manager.createScope(name: 'Child1');
-      final childScope2 = manager.createScope(name: 'Child2');
+      final scope1 = manager.createScope(name: 'Scope1');
+      final scope2 = manager.createScope(name: 'Scope2');
 
-      // Register services in different scopes
-      manager.putGlobal<TestService>(TestService('root'));
-      manager.putIn<TestService>(TestService('child1'), scope: childScope1, tag: 'child1');
-      manager.putIn<TestService>(TestService('child2'), scope: childScope2, tag: 'child2');
+      expect(manager.rootScope.isDisposed, isFalse);
+      expect(scope1.isDisposed, isFalse);
+      expect(scope2.isDisposed, isFalse);
 
-      // Verify services exist
-      expect(manager.findGlobal<TestService>()?.value, equals('root'));
-      expect(manager.findIn<TestService>(scope: childScope1, tag: 'child1')?.value, equals('child1'));
-      expect(manager.findIn<TestService>(scope: childScope2, tag: 'child2')?.value, equals('child2'));
-
-      // Dispose the manager
+      // Dispose manager
       manager.dispose();
 
       // All scopes should be disposed
       expect(manager.rootScope.isDisposed, isTrue);
-      expect(childScope1.isDisposed, isTrue);
-      expect(childScope2.isDisposed, isTrue);
 
-      // Reinitialize for next test
+      // Maps should be cleared
+      expect(manager.getAllScopes(), isEmpty);
+      expect(manager.findScopeById(scope1.id), isNull);
+      expect(manager.findScopeById(scope2.id), isNull);
+    });
+
+    test('should reinitialize cleanly after disposal', () {
+      final manager = ZenScopeManager.instance;
+
+      // Create some scopes
+      final scope1 = manager.createScope(name: 'Scope1');
+      scope1.put('testDependency');
+
+      // Dispose
+      manager.dispose();
+
+      // Reinitialize
       manager.initialize();
+
+      // Should have fresh root scope
+      expect(manager.rootScope, isNotNull);
+      expect(manager.rootScope.name, equals('RootScope'));
+      expect(manager.rootScope.isDisposed, isFalse);
+      expect(manager.rootScope.find<String>(), isNull);
+
+      // Old scope references should be disposed
+      expect(scope1.isDisposed, isTrue);
+
+      // Maps should be clean except for new root
+      expect(manager.getAllScopes().length, equals(1));
+      expect(manager.getAllScopes().first, equals(manager.rootScope));
+    });
+
+    test('should handle multiple scopes with same name correctly', () {
+      final manager = ZenScopeManager.instance;
+
+      final scope1 = manager.createScope(name: 'SameName');
+      final scope2 = manager.createScope(name: 'SameName');
+      final scope3 = manager.createScope(name: 'SameName');
+
+      final sameNameScopes = manager.findScopesByName('SameName');
+      expect(sameNameScopes.length, equals(3));
+      expect(sameNameScopes.contains(scope1), isTrue);
+      expect(sameNameScopes.contains(scope2), isTrue);
+      expect(sameNameScopes.contains(scope3), isTrue);
+
+      // Dispose one scope
+      scope2.dispose();
+
+      // Should now only find 2
+      final remainingScopes = manager.findScopesByName('SameName');
+      expect(remainingScopes.length, equals(2));
+      expect(remainingScopes.contains(scope1), isTrue);
+      expect(remainingScopes.contains(scope2), isFalse);
+      expect(remainingScopes.contains(scope3), isTrue);
     });
   });
 }

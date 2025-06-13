@@ -1,25 +1,24 @@
-name: lite_mode_example
-description: A demonstration of ZenState in Lite mode (without Riverpod)
+name: todo
+description: A todo app example showcasing Zenify package
 publish_to: 'none'
 version: 1.0.0+1
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
-  flutter: ">=3.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  flutter_riverpod: ^2.6.1 # Make this optional future release ??
   zenify:
-    path: ../../  # This references the main package
-
-  cupertino_icons: ^1.0.8
+    path: ../../
+  shared_preferences: ^2.5.3
+  intl: ^0.20.2
+  uuid: ^4.5.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^5.0.0
+  flutter_lints: ^6.0.0
 
 flutter:
   uses-material-design: true

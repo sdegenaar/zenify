@@ -48,6 +48,7 @@ class ZenControllerScope<T extends ZenController> extends StatefulWidget {
 class _ZenControllerScopeState<T extends ZenController> extends State<ZenControllerScope<T>> {
   late T controller;
   late ZenScope _effectiveScope;
+  ZenScope? _storedScope; // Store the scope reference when stable
   bool _initialized = false;
 
   @override
@@ -59,6 +60,10 @@ class _ZenControllerScopeState<T extends ZenController> extends State<ZenControl
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+
+    // ✅ Store the scope reference while the widget tree is stable
+    _storedScope = widget.scope ?? ZenScopeWidget.maybeOf(context) ?? Zen.rootScope;
+
     if (!_initialized) {
       _initController();
       _initialized = true;
@@ -78,65 +83,88 @@ class _ZenControllerScopeState<T extends ZenController> extends State<ZenControl
 
   void _disposeController(ZenControllerScope<T> widget) {
     if (!widget.permanent) {
-      Zen.delete<T>(tag: widget.tag, scope: _effectiveScope);
+      // Use the stored scope instead of calling _getCurrentScope()
+      final scopeToUse = widget.scope ?? _storedScope ?? Zen.rootScope;
 
-      if (ZenConfig.enableDebugLogs) {
-        ZenLogger.logDebug('Disposed controller $T${widget.tag != null ? ' (${widget.tag})' : ''}');
+      try {
+        scopeToUse.delete<T>(tag: widget.tag, force: true);
+
+        if (ZenConfig.enableDebugLogs) {
+          ZenLogger.logDebug('Disposed controller $T${widget.tag != null ? ' (${widget.tag})' : ''}');
+        }
+      } catch (e) {
+        if (ZenConfig.enableDebugLogs) {
+          ZenLogger.logError('Error disposing controller $T: $e');
+        }
       }
     }
   }
 
-  void _initController() {
-    // Get the appropriate scope - first try widget's explicit scope, then context, then root
-    _effectiveScope = widget.scope ??
+  ZenScope _getCurrentScope() {
+    // Use stored scope when available, fallback to lookup only if necessary
+    return _storedScope ??
+        widget.scope ??
         ZenScopeWidget.maybeOf(context) ??
         Zen.rootScope;
+  }
+
+  void _initController() {
+    // Get the appropriate scope
+    _effectiveScope = _getCurrentScope();
 
     // First check if controller already exists
-    final existingController = Zen.findOrNull<T>(tag: widget.tag, scope: _effectiveScope);
+    T? existingController;
+
+    if (widget.scope != null) {
+      // Check in specific scope only (not hierarchy)
+      existingController = widget.scope!.findInThisScope<T>(tag: widget.tag);
+    } else {
+      // Check in current scope hierarchy
+      existingController = _effectiveScope.find<T>(tag: widget.tag);
+    }
 
     if (existingController != null) {
       controller = existingController;
 
       if (ZenConfig.enableDebugLogs) {
-        ZenLogger.logDebug('Using existing controller $T${widget.tag != null ? ' (${widget.tag})' : ''} from scope: $_effectiveScope');
+        ZenLogger.logDebug('Using existing controller $T${widget.tag != null ? ' (${widget.tag})' : ''} from scope: ${_effectiveScope.name ?? _effectiveScope.id}');
       }
     } else {
       // Create and register a new controller
       controller = widget.create();
 
-      // Register with Zen
-      Zen.put<T>(
-        controller,
-        tag: widget.tag,
-        permanent: widget.permanent,
-        dependencies: widget.dependencies,
-        scope: _effectiveScope,
-      );
+      // Register with appropriate scope
+      if (widget.scope != null) {
+        // Register in specific scope
+        widget.scope!.put<T>(
+          controller,
+          tag: widget.tag,
+          permanent: widget.permanent,
+        );
+      } else {
+        // Register in current effective scope
+        _effectiveScope.put<T>(
+          controller,
+          tag: widget.tag,
+          permanent: widget.permanent,
+        );
+      }
 
       if (ZenConfig.enableDebugLogs) {
-        ZenLogger.logDebug('Created new controller $T${widget.tag != null ? ' (${widget.tag})' : ''} in scope: $_effectiveScope');
+        ZenLogger.logDebug('Created and registered controller $T${widget.tag != null ? ' (${widget.tag})' : ''} in scope: ${_effectiveScope.name ?? _effectiveScope.id}');
       }
     }
   }
 
   @override
   void dispose() {
+    // Call dispose using the current widget configuration
     _disposeController(widget);
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    // If we have an explicit scope, provide it to children
-    if (widget.scope != null) {
-      return ZenScopeWidget(
-        scope: widget.scope,
-        child: widget.child,
-      );
-    }
-
-    // Otherwise just return the child
     return widget.child;
   }
 }

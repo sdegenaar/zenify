@@ -1,267 +1,156 @@
-// lib/widgets/zen_view.dart
-
 import 'package:flutter/material.dart';
+import 'package:zenify/widgets/widgets.dart';
 import '../controllers/zen_controller.dart';
 import '../core/zen_scope.dart';
 import '../di/zen_di.dart';
-import 'zen_builder.dart';
 
-/// Base class for views with automatic controller binding
+/// Base class for views with automatic controller binding.
 abstract class ZenView<T extends ZenController> extends StatefulWidget {
   const ZenView({super.key});
 
-  /// Get the controller tag (optional)
+  /// Optional controller tag
   String? get tag => null;
 
-  /// Create a controller instance if it doesn't exist
+  /// Optional controller factory
   T Function()? get createController => null;
 
-  /// Get the scope for controller resolution (optional)
+  /// Optional scope
   ZenScope? get scope => null;
 
-  /// Whether to dispose the controller when this view is removed
-  bool get disposeControllerOnRemove => false;
-
-  /// Build the view with the controller
+  /// Build the view
   Widget build(BuildContext context);
-
-  @override
-  StatefulElement createElement() {
-    return _ZenViewElement(this);
-  }
 
   @override
   State<ZenView<T>> createState() => _ZenViewState<T>();
 }
 
-/// State class for ZenView that handles controller lifecycle
 class _ZenViewState<T extends ZenController> extends State<ZenView<T>> {
-  /// Controller instance
-  late T _controller;
-
-  /// Flag to track if controller was created by this view
-  bool _didCreateController = false;
+  T? _controller;
+  bool _isInitialized = false;
 
   @override
-  void initState() {
-    super.initState();
-    _initializeController();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_isInitialized) {
+      _initializeController();
+      _isInitialized = true;
+    }
   }
 
   void _initializeController() {
-    T? instance;
+    T? instance = _findController();
 
-    try {
-      // First try to find an existing controller
-      instance = Zen.findOrNull<T>(tag: widget.tag, scope: widget.scope);
+    if (instance == null && widget.createController != null) {
+      instance = widget.createController!();
+      _registerController(instance);
+    }
 
-      // If not found but we have a createController function, use it
-      if (instance == null && widget.createController != null) {
-        instance = widget.createController!();
-        Zen.put<T>(instance, tag: widget.tag, scope: widget.scope);
-        _didCreateController = true;
-      }
-
-      // If still null, try to get from DI or throw exception
-      if (instance == null) {
-        instance = Zen.find<T>(tag: widget.tag, scope: widget.scope);
-      }
-    } catch (e) {
-      throw Exception('Failed to get controller of type $T${widget.tag != null ? ' with tag ${widget.tag}' : ''}: $e');
+    if (instance == null) {
+      throw Exception('Controller $T not found. Register it or provide createController.');
     }
 
     _controller = instance;
+
+    // Register immediately after finding/creating the controller
+    _ZenViewRegistry.register<T>(_controller!);
   }
 
+  T? _findController() {
+    final targetScope = widget.scope ?? (context.mounted ? context.zenScope : null);
+
+    if (targetScope != null) {
+      final controller = targetScope.find<T>(tag: widget.tag);
+      if (controller != null) return controller;
+    }
+
+    return Zen.findOrNull<T>(tag: widget.tag);
+  }
+
+  void _registerController(T controller) {
+    final targetScope = widget.scope ?? (context.mounted ? context.zenScope : null);
+    if (targetScope != null) {
+      targetScope.put<T>(controller, tag: widget.tag);
+    } else {
+      Zen.put<T>(controller, tag: widget.tag);
+    }
+  }
 
   @override
   void dispose() {
-    // Dispose controller if created by this view and disposal is enabled
-    if (_didCreateController && widget.disposeControllerOnRemove) {
-      Zen.delete<T>(tag: widget.tag, scope: widget.scope);
+    // Unregister when disposing
+    if (_controller != null) {
+      _ZenViewRegistry.unregister<T>();
     }
     super.dispose();
   }
 
-  /// Get the controller - can be accessed by the widget through the state
-  T get controller => _controller;
-
   @override
   Widget build(BuildContext context) {
-    // Create a new BuildContext that provides the controller
-    return _ControllerProvider<T>(
-      controller: _controller,
-      child: Builder(
-        builder: (context) => widget.build(context),
-      ),
-    );
-  }
-}
-
-/// InheritedWidget that provides the controller to the widget tree
-class _ControllerProvider<T extends ZenController> extends InheritedWidget {
-  final T controller;
-
-  const _ControllerProvider({
-    required this.controller,
-    required super.child,
-  });
-
-  @override
-  bool updateShouldNotify(_ControllerProvider<T> oldWidget) {
-    return controller != oldWidget.controller;
-  }
-
-  /// Find the controller in the widget tree
-  static T? maybeOf<T extends ZenController>(BuildContext context) {
-    final provider = context.dependOnInheritedWidgetOfExactType<_ControllerProvider<T>>();
-    return provider?.controller;
-  }
-
-  /// Find the controller in the widget tree, throws if not found
-  static T of<T extends ZenController>(BuildContext context) {
-    final controller = maybeOf<T>(context);
-    if (controller == null) {
-      throw Exception('No controller provider of type $T found in the widget tree');
+    if (_controller == null) {
+      return const Center(child: CircularProgressIndicator());
     }
-    return controller;
+
+    // Directly build - controller is already registered
+    return widget.build(context);
   }
 }
 
-/// Extension on ZenView to access the controller
+/// Simple controller registry
+class _ZenViewRegistry {
+  static final Map<Type, ZenController> _controllers = {};
+
+  static void register<T extends ZenController>(T controller) {
+    _controllers[T] = controller;
+  }
+
+  static void unregister<T extends ZenController>() {
+    _controllers.remove(T);
+  }
+
+  static T? get<T extends ZenController>() {
+    return _controllers[T] as T?;
+  }
+}
+
+/// Controller access extension
 extension ZenViewExtension<T extends ZenController> on ZenView<T> {
-  /// Getter for the controller
-  /// This is used internally and provides access to the controller
-  /// in the build method.
   T get controller {
-    // Check if the current context is set (during build)
-    if (_ZenController._currentContext != null) {
-      return _ControllerProvider.of<T>(_ZenController._currentContext!);
-    }
-
-    // Fallback - check if we can get it from the registry
-    // This makes the code more testable
-    final controller = Zen.find<T>(tag: tag, scope: scope);
+    final controller = _ZenViewRegistry.get<T>();
     if (controller != null) {
       return controller;
     }
 
-    throw Exception('Controller can only be accessed during the build method or after being registered');
+    // Fallback to DI lookup for edge cases
+    final scope = this.scope;
+    if (scope != null) {
+      final foundController = scope.find<T>(tag: tag);
+      if (foundController != null) {
+        return foundController;
+      }
+    }
+
+    final globalController = Zen.findOrNull<T>(tag: tag);
+    if (globalController != null) {
+      return globalController;
+    }
+
+    throw Exception('Controller $T not available. Access from build method only.');
   }
 }
 
-/// Helper class for managing current context
-class _ZenController {
-  static BuildContext? _currentContext;
-
-  static void setCurrent(BuildContext? context) {
-    _currentContext = context;
-  }
-}
-
-/// Widget that provides reactive updates when the controller changes
-class ZenViewReactive<T extends ZenController> extends StatelessWidget {
-  /// Builder function that receives the controller
-  final Widget Function(BuildContext, T) buildWithController;
-
-  /// Controller tag
-  final String? tag;
-
-  /// Controller creation function
-  final T Function()? createController;
-
-  /// Scope for controller resolution
-  final ZenScope? scope;
-
-  /// Whether to dispose the controller when this view is removed
-  final bool disposeControllerOnRemove;
-
-  /// Constructor for direct usage
-  const ZenViewReactive({
-    super.key,
-    required this.buildWithController,
-    this.tag,
-    this.createController,
-    this.scope,
-    this.disposeControllerOnRemove = false,
-  }) : assert(disposeControllerOnRemove == false || createController != null,
-  'disposeControllerOnRemove can only be true when createController is provided');
-
-  @override
-  Widget build(BuildContext context) {
-    return ZenBuilder<T>(
-      tag: tag,
-      create: createController,
-      scope: scope,
-      disposeOnRemove: disposeControllerOnRemove,
-      builder: (controller) => buildWithController(context, controller),
-    );
-  }
-}
-
-/// Base class for creating custom ZenViewReactive widgets through subclassing
-abstract class ZenViewReactiveBase<T extends ZenController> extends StatelessWidget {
-  const ZenViewReactiveBase({super.key});
-
-  /// Get the controller tag (optional)
-  String? get tag => null;
-
-  /// Create a controller instance if it doesn't exist
-  T Function()? get createController => null;
-
-  /// Get scope for the controller
-  ZenScope? get scope => null;
-
-  /// Whether to dispose the controller when this view is removed
-  bool get disposeControllerOnRemove => false;
-
-  /// Build method that will receive the controller - must be implemented
-  Widget buildWithController(BuildContext context, T controller);
-
-  @override
-  Widget build(BuildContext context) {
-    return ZenBuilder<T>(
-      tag: tag,
-      create: createController,
-      scope: scope,
-      disposeOnRemove: disposeControllerOnRemove && createController != null,
-      builder: (controller) => buildWithController(context, controller),
-    );
-  }
-}
-
-/// Method channel for BuildContext-based controller access
-extension ZenBuilderExtensions on BuildContext {
-  /// Get the controller from the widget tree
+/// Context extension for nested widgets
+extension ZenViewContextExtensions on BuildContext {
   T controller<T extends ZenController>() {
-    final controller = _ControllerProvider.maybeOf<T>(this);
+    final controller = _ZenViewRegistry.get<T>();
     if (controller != null) {
       return controller;
     }
 
-    // Fall back to finding ancestor state
-    final state = findAncestorStateOfType<_ZenViewState<T>>();
-    if (state != null) {
-      return state.controller;
+    final globalController = Zen.findOrNull<T>();
+    if (globalController != null) {
+      return globalController;
     }
 
-    throw Exception('No controller of type $T found in the widget tree');
-  }
-}
-
-/// Custom element that captures build context
-class _ZenViewElement extends StatefulElement {
-  _ZenViewElement(ZenView super.widget);
-
-  @override
-  Widget build() {
-    // Set the current context before building
-    _ZenController.setCurrent(this);
-    try {
-      return super.build();
-    } finally {
-      // Clear the context after building
-      _ZenController.setCurrent(null);
-    }
+    throw Exception('Controller $T not found.');
   }
 }

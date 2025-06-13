@@ -33,7 +33,7 @@ export 'di/zen_di.dart' show Zen;
 export 'di/zen_lifecycle.dart';
 
 // Re-export worker functions
-export 'workers/rx_workers.dart' show ZenWorkers;
+export 'workers/zen_workers.dart' show ZenWorkers;
 
 // Widget builders for convenient access
 export 'widgets/rx_widgets.dart' show Obx;

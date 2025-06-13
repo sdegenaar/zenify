@@ -2,7 +2,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zenify/zenify.dart';
-import '../test_helpers.dart';
 
 // Test controller that tracks lifecycle events
 class LifecycleController extends ZenController {
@@ -68,14 +67,14 @@ class LifecycleController extends ZenController {
 // Simple screen with a controller
 class TestScreen extends StatelessWidget {
   final String name;
+  final ZenScope? scope;
 
-  const TestScreen({required this.name, super.key});
+  const TestScreen({required this.name, this.scope, super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Get controller from the parent scope
-    final scope = ZenScopeWidget.of(context);
-    final controller = Zen.find<LifecycleController>(scope: scope);
+    // Get controller from the specified scope or root scope
+    final controller = scope?.find<LifecycleController>() ?? Zen.findOrNull<LifecycleController>();
 
     // Handle case where controller is not found
     if (controller == null) {
@@ -106,6 +105,21 @@ class TestScreen extends StatelessWidget {
   }
 }
 
+// Test module for controller disposal test
+class DisposableModule extends ZenModule {
+  final LifecycleController controller;
+
+  DisposableModule(this.controller);
+
+  @override
+  String get name => 'DisposableModule';
+
+  @override
+  void register(ZenScope scope) {
+    scope.put<LifecycleController>(controller);
+  }
+}
+
 void main() {
   group('Controller Lifecycle Integration', () {
     late LifecycleController rootController;
@@ -116,18 +130,18 @@ void main() {
       // Initialize WidgetsFlutterBinding for tests
       WidgetsFlutterBinding.ensureInitialized();
 
-      // Clear any previous dependencies - do this BEFORE creating new controllers
-      Zen.deleteAll(force: true);
+      // Initialize Zen system
+      Zen.init();
 
       // Create an isolated test scope
-      testScope = ZenTestHelper.createIsolatedTestScope('ControllerLifecycleTest');
+      testScope = Zen.createScope(name: 'ControllerLifecycleTest');
 
       // Initialize controllers
       rootController = LifecycleController();
       screenController = LifecycleController();
 
-      // Register global controller in test scope
-      Zen.put<LifecycleController>(rootController, tag: 'root', scope: testScope);
+      // Register global controller in root scope
+      Zen.put<LifecycleController>(rootController, tag: 'root');
     });
 
     tearDown(() {
@@ -145,23 +159,19 @@ void main() {
         testScope.dispose();
       }
 
-      // Force clean up everything
-      Zen.deleteAll(force: true);
+      // Reset Zen system
+      Zen.reset();
     });
 
     testWidgets('should properly initialize controllers with widgets',
             (WidgetTester tester) async {
-          // Register screenController in the test scope BEFORE creating the widget
-          Zen.put<LifecycleController>(screenController, scope: testScope);
+          // Register screenController in the test scope
+          testScope.put<LifecycleController>(screenController);
 
           // Build our app with testScope
           await tester.pumpWidget(
             MaterialApp(
-              home: ZenScopeWidget(
-                name: 'TestScope',
-                scope: testScope, // Use the test scope directly
-                child: const TestScreen(name: 'Home'),
-              ),
+              home: TestScreen(name: 'Home', scope: testScope),
             ),
           );
 
@@ -190,32 +200,20 @@ void main() {
           // Create fresh controller for this test to avoid state leakage
           final navTestController = LifecycleController();
 
-          // IMPORTANT: Register the controller in the test scope BEFORE using it in widgets
-          Zen.put<LifecycleController>(navTestController, scope: testScope);
+          // Register the controller in the test scope
+          testScope.put<LifecycleController>(navTestController);
 
           // Build app with navigation
           await tester.pumpWidget(
             MaterialApp(
               initialRoute: '/',
               routes: {
-                '/': (context) => ZenScopeWidget(
-                  name: 'HomeScope',
-                  scope: testScope, // Use test scope directly
-                  // Don't use the create parameter since we registered the controller already
-                  child: const TestScreen(name: 'Home'),
-                ),
-                '/next': (context) => Builder(
-                  builder: (context) {
-                    // Use same controller as previous screen
-                    final prevScreenName = ModalRoute.of(context)!.settings.arguments as String;
-                    return ZenScopeWidget(
-                      name: 'NextScope',
-                      scope: testScope, // Use test scope directly
-                      // Don't use create parameter here either
-                      child: TestScreen(name: 'Next from $prevScreenName'),
-                    );
-                  },
-                ),
+                '/': (context) => TestScreen(name: 'Home', scope: testScope),
+                '/next': (context) {
+                  // Use same scope for next screen
+                  final prevScreenName = ModalRoute.of(context)!.settings.arguments as String;
+                  return TestScreen(name: 'Next from $prevScreenName', scope: testScope);
+                },
               },
             ),
           );
@@ -239,7 +237,7 @@ void main() {
           expect(find.text('Screen Next from Home'), findsOneWidget);
           expect(find.text('Counter: 1'), findsOneWidget);
 
-          // Increment on second screen - again finding button by type
+          // Increment on second screen
           final incrementButtonOnNextScreen = find.byType(ElevatedButton).first;
           await tester.tap(incrementButtonOnNextScreen);
           await tester.pump();
@@ -287,9 +285,7 @@ void main() {
                         if (showWidget)
                           Expanded(
                             child: ZenScopeWidget(
-                              name: 'DisposableScope',
-                              scope: testScope, // Use test scope as parent
-                              create: () => disposableController,
+                              moduleBuilder: () => DisposableModule(disposableController),
                               child: const Center(child: Text('Scoped Widget')),
                             ),
                           ),
@@ -314,132 +310,198 @@ void main() {
           await tester.tap(find.text('Toggle Widget'));
           await tester.pumpAndSettle();
 
-          // Controller should now be disposed
+          // When using the moduleBuilder approach, the widget should dispose the scope
           expect(disposableController.hasEvent('onDispose'), isTrue);
           expect(disposableController.isDisposed, isTrue);
         });
 
     testWidgets('should handle app lifecycle events properly',
             (WidgetTester tester) async {
-          // Create isolated scope for this test
-          final testScope = ZenTestHelper.createIsolatedTestScope('lifecycle-test');
-
-          // Create the controller for this test
+          // Create a controller that observes app lifecycle
           final lifecycleController = LifecycleController();
 
-          // Register controller in the scope
-          Zen.put<LifecycleController>(lifecycleController, scope: testScope);
+          // Register in test scope
+          testScope.put<LifecycleController>(lifecycleController);
 
-          // Start observing app lifecycle - THIS IS THE KEY PART THAT WAS MISSING
-          lifecycleController.startObservingAppLifecycle();
-
-          // Build our app and widget tree
+          // Build widget
           await tester.pumpWidget(
             MaterialApp(
-              home: ZenScopeWidget(
-                name: 'LifecycleTestScope',
-                scope: testScope,
-                child: const TestScreen(name: 'Home'),
-              ),
+              home: TestScreen(name: 'Lifecycle', scope: testScope),
             ),
           );
 
           await tester.pumpAndSettle();
 
-          // Simulate app lifecycle events
-          WidgetsBinding.instance.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+          // Controller should start observing lifecycle when initialized
+          lifecycleController.startObservingAppLifecycle();
 
-          // Now the onPause event should be triggered
+          // Simulate app lifecycle events
+          final binding = tester.binding;
+
+          // Test pause event
+          binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+          await tester.pump();
           expect(lifecycleController.hasEvent('onPause'), isTrue);
 
-          // Reset for next test
-          WidgetsBinding.instance.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+          // Test resume event
+          binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+          await tester.pump();
           expect(lifecycleController.hasEvent('onResume'), isTrue);
 
-          // Cleanup
+          // Test inactive event
+          binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+          await tester.pump();
+          expect(lifecycleController.hasEvent('onInactive'), isTrue);
+
+          // Test detached event
+          binding.handleAppLifecycleStateChanged(AppLifecycleState.detached);
+          await tester.pump();
+          expect(lifecycleController.hasEvent('onDetached'), isTrue);
+
+          // Test hidden event
+          binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+          await tester.pump();
+          expect(lifecycleController.hasEvent('onHidden'), isTrue);
+
+          // Stop observing to clean up
           lifecycleController.stopObservingAppLifecycle();
         });
 
-    testWidgets('should support multiple controller scopes',
-            (WidgetTester tester) async {
-          // Create parent scope
-          final parentScope = ZenTestHelper.createIsolatedTestScope('parent-scope');
+    test('should track controller lifecycle events correctly', () async {
+      final controller = LifecycleController();
 
-          // Create child scope with parent reference - automatically establishes parent-child relationship
-          final childScope = ZenScope(name: 'child-scope', parent: parentScope);
+      // Initially no events
+      expect(controller.events, isEmpty);
+      expect(controller.isInitialized, isFalse);
+      expect(controller.isReady, isFalse);
 
-          // Create controllers for the test
-          final parentController = LifecycleController();
-          final childController = LifecycleController();
+      // Call onInit
+      controller.onInit();
+      expect(controller.hasEvent('onInit'), isTrue);
+      expect(controller.isInitialized, isTrue);
+      expect(controller.isReady, isFalse);
 
-          // Register controllers in their respective scopes
-          Zen.put<LifecycleController>(parentController, scope: parentScope);
-          Zen.put<LifecycleController>(childController, scope: childScope);
+      // Call onReady
+      controller.onReady();
+      expect(controller.hasEvent('onReady'), isTrue);
+      expect(controller.isReady, isTrue);
 
-          // Build a simple widget tree with both scopes
-          await tester.pumpWidget(
-            MaterialApp(
-              home: Material(
-                child: ZenScopeWidget(
-                  scope: parentScope,
-                  child: Builder(
-                    builder: (context) {
-                      // Access controller from parent scope
-                      final parent = Zen.find<LifecycleController>(scope: ZenScopeWidget.of(context));
+      // Call lifecycle events
+      controller.onPause();
+      controller.onResume();
+      controller.onInactive();
+      controller.onDetached();
+      controller.onHidden();
 
-                      return Column(
-                        children: [
-                          Text('Parent: ${parent.hashCode}'),
+      expect(controller.hasEvent('onPause'), isTrue);
+      expect(controller.hasEvent('onResume'), isTrue);
+      expect(controller.hasEvent('onInactive'), isTrue);
+      expect(controller.hasEvent('onDetached'), isTrue);
+      expect(controller.hasEvent('onHidden'), isTrue);
 
-                          // Child scope
-                          ZenScopeWidget(
-                            scope: childScope,
-                            child: Builder(
-                              builder: (context) {
-                                // Access controller from child scope
-                                final child = Zen.find<LifecycleController>(scope: ZenScopeWidget.of(context));
+      // Dispose
+      controller.dispose();
+      expect(controller.hasEvent('onDispose'), isTrue);
+      expect(controller.isDisposed, isTrue);
+    });
 
-                                // Try to access parent controller through hierarchy
-                                final parentFromChild = Zen.find<LifecycleController>(
-                                    scope: ZenScopeWidget.of(context).parent
-                                );
+    test('should handle worker lifecycle with controller', () {
+      final controller = LifecycleController();
+      controller.onInit();
 
-                                return Column(
-                                  children: [
-                                    Text('Child: ${child.hashCode}'),
-                                    Text('Parent via child: ${parentFromChild.hashCode}'),
-                                  ],
-                                );
-                              },
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                ),
-              ),
-            ),
-          );
+      // Create some workers
+      final counter = ValueNotifier<int>(0);
 
-          await tester.pumpAndSettle();
+      final everWorker = controller.ever(counter, (value) {
+        // Worker callback
+      });
 
-          // Verify parent controller is accessible from parent scope
-          expect(Zen.find<LifecycleController>(scope: parentScope), equals(parentController));
+      final onceWorker = controller.once(counter, (value) {
+        // Worker callback
+      });
 
-          // Verify child controller is accessible from child scope
-          expect(Zen.find<LifecycleController>(scope: childScope), equals(childController));
+      expect(everWorker.isActive, isTrue);
+      expect(onceWorker.isActive, isTrue);
 
-          // Verify parent controller is accessible through hierarchy
-          expect(Zen.find<LifecycleController>(scope: childScope.parent), equals(parentController));
+      // Pause all workers
+      controller.pauseAllWorkers();
+      expect(everWorker.isPaused, isTrue);
+      expect(onceWorker.isPaused, isTrue);
 
-          // Verify child controller is different from parent controller
-          expect(childController, isNot(equals(parentController)));
+      // Resume all workers
+      controller.resumeAllWorkers();
+      expect(everWorker.isActive, isTrue);
+      expect(onceWorker.isActive, isTrue);
 
-          // Verify the text widgets show the different controllers
-          expect(find.text('Parent: ${parentController.hashCode}'), findsOneWidget);
-          expect(find.text('Child: ${childController.hashCode}'), findsOneWidget);
-          expect(find.text('Parent via child: ${parentController.hashCode}'), findsOneWidget);
-        });
+      // Get worker stats
+      final stats = controller.getWorkerStats();
+      expect(stats['total_active'], equals(2));
+      expect(stats['total_paused'], equals(0));
+
+      // Dispose controller should dispose workers
+      controller.dispose();
+      expect(everWorker.isDisposed, isTrue);
+      expect(onceWorker.isDisposed, isTrue);
+    });
+
+    test('should handle scoped controller registration and lookup', () {
+      final scope1 = Zen.createScope(name: 'Scope1');
+      final scope2 = Zen.createScope(name: 'Scope2');
+
+      final controller1 = LifecycleController();
+      final controller2 = LifecycleController();
+
+      // Register in different scopes
+      scope1.put<LifecycleController>(controller1);
+      scope2.put<LifecycleController>(controller2);
+
+      // Find in correct scopes
+      expect(scope1.find<LifecycleController>(), same(controller1));
+      expect(scope2.find<LifecycleController>(), same(controller2));
+
+      // Should not find in wrong scopes
+      expect(scope1.findInThisScope<LifecycleController>(), same(controller1));
+      expect(scope2.findInThisScope<LifecycleController>(), same(controller2));
+
+      // Clean up
+      scope1.dispose();
+      scope2.dispose();
+
+      expect(controller1.isDisposed, isTrue);
+      expect(controller2.isDisposed, isTrue);
+    });
+
+    test('should handle controller effects correctly', () {
+      final controller = LifecycleController();
+      controller.onInit();
+
+      // Create an effect
+      final effect = controller.createEffect<String>(name: 'testEffect');
+      expect(effect.name, equals('testEffect'));
+
+      // Effect should be disposed when controller is disposed
+      controller.dispose();
+      expect(effect.isDisposed, isTrue);
+    });
+
+    test('should handle disposer functions correctly', () {
+      final controller = LifecycleController();
+      controller.onInit();
+
+      bool disposerCalled = false;
+
+      // Add a disposer
+      controller.addDisposer(() {
+        disposerCalled = true;
+      });
+
+      expect(disposerCalled, isFalse);
+
+      // Dispose controller
+      controller.dispose();
+
+      expect(disposerCalled, isTrue);
+      expect(controller.isDisposed, isTrue);
+    });
   });
 }

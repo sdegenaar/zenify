@@ -51,12 +51,12 @@ void main() {
     // Initialize the DI system
     Zen.init();
     ZenConfig.enableDebugLogs = false;
-    Zen.deleteAll(force: true);
+    Zen.reset();
   });
 
   tearDown(() {
     // Clean up after each test
-    Zen.deleteAll(force: true);
+    Zen.reset();
   });
 
   group('ZenControllerScope Tests', () {
@@ -72,7 +72,7 @@ void main() {
               return CounterController();
             },
             child: ZenBuilder<CounterController>(
-              builder: (controller) {
+              builder: (context, controller) {
                 return Text('Count: ${controller.count}');
               },
             ),
@@ -119,7 +119,7 @@ void main() {
       );
 
       // Verify controller exists
-      expect(Zen.isRegistered<CounterController>(), isTrue);
+      expect(Zen.findOrNull<CounterController>(), isNotNull); // ✅ Fixed: Use findOrNull instead of isRegistered
       expect(disposerCalled, isFalse);
 
       // Replace the widget to trigger disposal
@@ -134,7 +134,7 @@ void main() {
 
       // Verify controller was disposed
       expect(disposerCalled, isTrue);
-      expect(Zen.isRegistered<CounterController>(), isFalse);
+      expect(Zen.findOrNull<CounterController>(), isNull); // ✅ Fixed: Use findOrNull instead of isRegistered
     });
 
     testWidgets('should maintain controller when widget rebuilds', (tester) async {
@@ -154,7 +154,7 @@ void main() {
                       return CounterController();
                     },
                     child: ZenBuilder<CounterController>(
-                      builder: (controller) {
+                      builder: (context, controller) {
                         return Text('Count: ${controller.count}');
                       },
                     ),
@@ -243,7 +243,7 @@ void main() {
 
       // Put a controller in the first scope
       final controller1 = CounterController();
-      Zen.put<CounterController>(controller1, tag: 'scope1', scope: scope1);
+      scope1.put<CounterController>(controller1, tag: 'scope1');
 
       // Variable to track if exception was thrown
       bool exceptionThrown = false;
@@ -283,7 +283,7 @@ void main() {
       );
 
       // Verify controller exists
-      expect(Zen.isRegistered<CounterController>(), isTrue);
+      expect(Zen.findOrNull<CounterController>(), isNotNull); // ✅ Fixed: Use findOrNull instead of isRegistered
 
       // Replace the widget to trigger disposal
       await tester.pumpWidget(
@@ -295,7 +295,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Controller should still exist because it's permanent
-      expect(Zen.isRegistered<CounterController>(), isTrue);
+      expect(Zen.findOrNull<CounterController>(), isNotNull); // ✅ Fixed: Use findOrNull instead of isRegistered
 
       // Clean up after test
       Zen.delete<CounterController>(force: true);
@@ -311,7 +311,7 @@ void main() {
                 create: () => CounterController(),
                 child: ZenBuilder<CounterController>(
                   tag: 'counter1',
-                  builder: (controller) {
+                  builder: (context, controller) {
                     return Text('Counter 1: ${controller.count}');
                   },
                 ),
@@ -325,7 +325,7 @@ void main() {
                 },
                 child: ZenBuilder<CounterController>(
                   tag: 'counter2',
-                  builder: (controller) {
+                  builder: (context, controller) {
                     return Text('Counter 2: ${controller.count}');
                   },
                 ),
@@ -361,7 +361,7 @@ void main() {
           home: ZenControllerScope<LifecycleController>(
             create: () => lifecycleController,
             child: ZenBuilder<LifecycleController>(
-              builder: (controller) {
+              builder: (context, controller) {
                 return Text('Lifecycle status: Init=${controller.onInitCalled}, Ready=${controller.onReadyCalled}');
               },
             ),
@@ -386,10 +386,6 @@ void main() {
 
       expect(lifecycleController.onReadyCalled, isTrue);
     });
-
-    // Additional tests for zen_controller_scope_test.dart
-
-    // Additional tests for zen_controller_scope_test.dart
 
     testWidgets('should handle many controllers efficiently', (tester) async {
       // Create a list to track controllers
@@ -432,7 +428,7 @@ void main() {
       // Verify all controllers are registered and can be found
       for (int i = 0; i < controllerCount; i++) {
         final tagName = 'counter_$i';
-        expect(Zen.isRegistered<CounterController>(tag: tagName), isTrue);
+        expect(Zen.findOrNull<CounterController>(tag: tagName), isNotNull); // ✅ Fixed: Use findOrNull instead of isRegistered
       }
 
       // Modify a controller and verify it updates
@@ -447,12 +443,11 @@ void main() {
       // Verify controllers are no longer registered
       for (int i = 0; i < controllerCount; i++) {
         final tagName = 'counter_$i';
-        expect(Zen.isRegistered<CounterController>(tag: tagName), isFalse);
+        expect(Zen.findOrNull<CounterController>(tag: tagName), isNull); // ✅ Fixed: Use findOrNull instead of isRegistered
       }
     });
 
     testWidgets('should handle error in controller creation gracefully', (tester) async {
-      // Define a failing controller outside the test
       // Track if error handler was called
       bool errorHandlerCalled = false;
 
@@ -508,7 +503,7 @@ void main() {
       );
 
       // Verify controller exists
-      expect(Zen.isRegistered<CounterController>(), isTrue);
+      expect(Zen.findOrNull<CounterController>(), isNotNull); // ✅ Fixed: Use findOrNull instead of isRegistered
 
       // Remove the widget
       await tester.pumpWidget(const MaterialApp(home: SizedBox()));
@@ -516,13 +511,12 @@ void main() {
 
       // Verify controller was disposed
       expect(disposeCalled, isTrue);
-      expect(Zen.isRegistered<CounterController>(), isFalse);
+      expect(Zen.findOrNull<CounterController>(), isNull); // ✅ Fixed: Use findOrNull instead of isRegistered
     });
-
 
     testWidgets('should create new controller when key changes', (tester) async {
       // First reset the DI system to ensure clean environment
-      Zen.deleteAll(force: true);
+      Zen.reset();
 
       // Use unique keys for each test run
       final key1 = UniqueKey();
@@ -542,7 +536,7 @@ void main() {
               return controller;
             },
             child: ZenBuilder<CounterController>(
-              builder: (controller) {
+              builder: (context, controller) {
                 return Text('Count: ${controller.count}');
               },
             ),
@@ -580,7 +574,7 @@ void main() {
               return controller;
             },
             child: ZenBuilder<CounterController>(
-              builder: (controller) {
+              builder: (context, controller) {
                 return Text('Count: ${controller.count}');
               },
             ),

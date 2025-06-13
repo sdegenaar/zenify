@@ -60,16 +60,16 @@ class BenchmarkModule extends ZenModule {
 
   @override
   void register(ZenScope scope) {
-    // Register several dependencies
-    scope.register<SimpleDependency>(
+    // Use put() instead of register()
+    scope.put<SimpleDependency>(
         SimpleDependency(moduleId),
         tag: 'simple$moduleId'
     );
 
     final simple = SimpleDependency(moduleId * 10);
-    scope.register<SimpleDependency>(simple, tag: 'base$moduleId');
+    scope.put<SimpleDependency>(simple, tag: 'base$moduleId');
 
-    scope.register<NestedDependency>(
+    scope.put<NestedDependency>(
         NestedDependency(simple, moduleId),
         tag: 'nested$moduleId'
     );
@@ -81,83 +81,175 @@ class BenchmarkResult {
   final String name;
   final int iterations;
   final Duration duration;
+  final int errorCount;
 
-  BenchmarkResult(this.name, this.iterations, this.duration);
+  BenchmarkResult(this.name, this.iterations, this.duration, this.errorCount);
 
   double get operationsPerSecond =>
       iterations / duration.inMicroseconds * 1000000;
 
+  double get avgMicrosecondsPerOperation =>
+      duration.inMicroseconds / iterations;
+
+  double get errorRate => (errorCount / iterations) * 100;
 
   @override
   String toString() =>
-      '$name: ${operationsPerSecond.toStringAsFixed(2)} operations/second '
-          '(${(duration.inMicroseconds / iterations).toStringAsFixed(2)} microseconds per operation)';
+      '$name: ${operationsPerSecond.toStringAsFixed(2)} ops/sec, '
+          '${avgMicrosecondsPerOperation.toStringAsFixed(2)} microseconds per op';
+}
+
+// Global benchmark tracking
+class BenchmarkTracker {
+  static final List<BenchmarkResult> _results = [];
+  static int _totalBenchmarks = 0;
+  static int _failedBenchmarks = 0;
+
+  static void addResult(BenchmarkResult result) {
+    _results.add(result);
+    _totalBenchmarks++;
+    if (result.errorRate > 0) {
+      _failedBenchmarks++;
+    }
+  }
+
+  static void printSummary() {
+    print('');
+    print('🏁 BENCHMARK SUITE COMPLETE');
+    print('════════════════════════════════════════════════════════════');
+    print('   • Total benchmarks: $_totalBenchmarks');
+    print('   • Successful: ${_totalBenchmarks - _failedBenchmarks}');
+    print('   • With errors: $_failedBenchmarks');
+    print('');
+
+    if (_results.isNotEmpty) {
+      print('📊 PERFORMANCE SUMMARY:');
+      for (final result in _results) {
+        final status = result.errorRate > 0 ? '⚠️ ' : '✅';
+        print('   $status ${result.toString()}');
+        if (result.errorRate > 0) {
+          print('      └─ Error rate: ${result.errorRate.toStringAsFixed(1)}%');
+        }
+      }
+
+      // Find fastest and slowest
+      _results.sort((a, b) => b.operationsPerSecond.compareTo(a.operationsPerSecond));
+      print('');
+      print('🥇 Fastest: ${_results.first.name} (${_results.first.operationsPerSecond.toStringAsFixed(2)} ops/sec)');
+      print('🐌 Slowest: ${_results.last.name} (${_results.last.operationsPerSecond.toStringAsFixed(2)} ops/sec)');
+      print('');
+      print('📖 Legend: ops/sec = operations per second, microseconds = μs');
+    }
+    print('════════════════════════════════════════════════════════════');
+    print('');
+  }
+
+  static void reset() {
+    _results.clear();
+    _totalBenchmarks = 0;
+    _failedBenchmarks = 0;
+  }
 }
 
 void main() {
-  setUp(() {
+  setUpAll(() {
     TestWidgetsFlutterBinding.ensureInitialized();
+    print('🚀 STARTING ZENIFY DEPENDENCY RESOLUTION BENCHMARKS');
+    print('════════════════════════════════════════════════════════════');
+    print('📖 Legend: ops/sec = operations per second, μs = microseconds');
+    print('');
+    BenchmarkTracker.reset();
+  });
+
+  setUp(() {
     Zen.init();
-    ZenConfig.enableDebugLogs = false; // Disable logs for benchmarking
+    // Disable debug logs during benchmarks for accurate timing
+    ZenConfig.enableDebugLogs = false;
     ZenConfig.checkForCircularDependencies = false;
   });
 
   tearDown(() {
-    Zen.deleteAll(force: true);
+    Zen.reset();
+  });
+
+  tearDownAll(() {
+    BenchmarkTracker.printSummary();
   });
 
   group('Dependency Resolution Benchmarks', () {
 
     // Define the runBenchmark function here
     BenchmarkResult runBenchmark(String name, int iterations, Function() benchmarkFn) {
-      // Warm-up (with clean-up after each iteration)
+      // Log benchmark start
+      print('🔄 Running: $name ($iterations iterations)...');
+
+      int warmupErrors = 0;
+
+      // Silent warm-up (no per-iteration logging)
       for (int i = 0; i < 100; i++) {
         try {
           benchmarkFn();
         } catch (e) {
-          ZenLogger.logError('Warm-up error', e);
+          warmupErrors++;
+          // Only log if warm-up is completely broken
+          if (warmupErrors == 1) {
+            print('   ⚠️  Warning: Warm-up errors detected');
+          }
         }
 
-        // Clean up between warm-up iterations, but don't force disposal
         try {
-          Zen.deleteAll(force: false);
+          Zen.reset();
+          Zen.init();
         } catch (e) {
-          // Ignore clean-up errors during warm-up
+          // Silent cleanup
         }
       }
 
-      // Reset state completely before actual benchmark
+      // Reset before actual benchmark
       try {
-        Zen.deleteAll(force: true); // Force complete cleanup
-        Zen.init(); // Reinitialize Zen
+        Zen.reset();
+        Zen.init();
       } catch (e) {
-        ZenLogger.logError('Reset error', e);
+        print('   ❌ CRITICAL: Failed to reset before benchmark - $e');
       }
 
-      // Actual benchmark
+      // Silent benchmark execution for accurate timing
+      int errorCount = 0;
       final stopwatch = Stopwatch()..start();
+
       for (int i = 0; i < iterations; i++) {
         try {
           benchmarkFn();
         } catch (e) {
-          ZenLogger.logError('Benchmark error at iteration $i', e);
-          continue; // Skip this iteration but continue the benchmark
+          errorCount++;
+          // Don't log individual errors during timing
         }
 
-        // Only clean up at the end of each iteration if it's a multi-step benchmark
-        // This avoids scope disposal issues during the benchmark
         if (i < iterations - 1) {
           try {
-            Zen.deleteAll(force: false);
+            Zen.reset();
+            Zen.init();
           } catch (e) {
-            // Ignore internal cleanup errors
+            // Silent cleanup
           }
         }
       }
       stopwatch.stop();
 
-      final result = BenchmarkResult(name, iterations, stopwatch.elapsed);
-      ZenLogger.logInfo(result.toString());
+      final result = BenchmarkResult(name, iterations, stopwatch.elapsed, errorCount);
+
+      // Log results immediately after timing
+      final status = errorCount > 0 ? '⚠️ ' : '✅';
+      print('   $status ${result.operationsPerSecond.toStringAsFixed(2)} ops/sec '
+          '(${result.avgMicrosecondsPerOperation.toStringAsFixed(2)} microseconds per op)');
+
+      if (errorCount > 0) {
+        print('   └─ ${errorCount}/$iterations errors (${result.errorRate.toStringAsFixed(1)}%)');
+      }
+
+      // Track result for summary
+      BenchmarkTracker.addResult(result);
+
       return result;
     }
 
@@ -169,6 +261,11 @@ void main() {
       });
 
       expect(result.operationsPerSecond > 0, true);
+
+      // Performance threshold check
+      if (result.operationsPerSecond < 1000) {
+        print('   ⚠️  Performance warning: Registration slower than expected');
+      }
     });
 
     test('benchmark simple dependency resolution', () {
@@ -180,6 +277,10 @@ void main() {
       });
 
       expect(result.operationsPerSecond > 0, true);
+
+      if (result.operationsPerSecond < 5000) {
+        print('   ⚠️  Performance warning: Resolution slower than expected');
+      }
     });
 
     test('benchmark tagged dependency resolution', () {
@@ -201,17 +302,16 @@ void main() {
       expect(result.operationsPerSecond > 0, true);
     });
 
-    test('benchmark automatic dependency resolution with circular references', () {
+    test('benchmark circular reference handling', () {
       final result = runBenchmark('Circular references', 1000, () {
-        // Use the top-level classes, don't define them here
         final a = ServiceA();
         final b = ServiceB();
 
-        // Register them first (without dependencies)
+        // Register them first
         Zen.put<ServiceA>(a);
         Zen.put<ServiceB>(b);
 
-        // Then set up the circular reference
+        // Set up circular reference
         a.b = b;
         b.a = a;
 
@@ -233,24 +333,225 @@ void main() {
 
     test('benchmark module-based dependency registration', () {
       final result = runBenchmark('Module-based registration', 1000, () {
-        // Use the top-level module class
+        final scope = Zen.createScope(name: 'BenchmarkScope');
         final module = BenchmarkModule(1);
-        Zen.registerModules([module]);
 
-        // Access dependencies
-        Zen.find<SimpleDependency>(tag: 'simple1');
-        Zen.find<SimpleDependency>(tag: 'base1');
-        Zen.find<NestedDependency>(tag: 'nested1');
+        try {
+          // Register the module in the scope
+          module.register(scope);
 
-        // Clean up
-        Zen.delete<SimpleDependency>(tag: 'simple1');
-        Zen.delete<SimpleDependency>(tag: 'base1');
-        Zen.delete<NestedDependency>(tag: 'nested1');
+          // Access dependencies from the scope
+          scope.find<SimpleDependency>(tag: 'simple1');
+          scope.find<SimpleDependency>(tag: 'base1');
+          scope.find<NestedDependency>(tag: 'nested1');
+        } finally {
+          // Clean up the scope
+          scope.dispose();
+        }
       });
 
       expect(result.operationsPerSecond > 0, true);
     });
 
-    // Add other benchmark tests as needed...
+    test('benchmark nested dependency creation', () {
+      final result = runBenchmark('Nested dependencies', 5000, () {
+        final simple = SimpleDependency(1);
+        Zen.put<SimpleDependency>(simple);
+
+        final nested = NestedDependency(simple, 2);
+        Zen.put<NestedDependency>(nested);
+
+        final deep = DeepNestingDependency(nested, 3);
+        Zen.put<DeepNestingDependency>(deep);
+
+        // Access all levels
+        Zen.find<SimpleDependency>();
+        Zen.find<NestedDependency>();
+        Zen.find<DeepNestingDependency>();
+
+        // Clean up
+        Zen.delete<DeepNestingDependency>();
+        Zen.delete<NestedDependency>();
+        Zen.delete<SimpleDependency>();
+      });
+
+      expect(result.operationsPerSecond > 0, true);
+    });
+
+    test('benchmark complex dependency with collections', () {
+      final result = runBenchmark('Complex dependencies', 2000, () {
+        // Create multiple simple dependencies
+        final dependencies = <SimpleDependency>[];
+        for (int i = 0; i < 10; i++) {
+          final dep = SimpleDependency(i);
+          dependencies.add(dep);
+          Zen.put<SimpleDependency>(dep, tag: 'dep$i');
+        }
+
+        // Create complex dependency
+        final complex = ComplexDependency(
+            dependencies,
+            {'count': dependencies.length, 'version': 1},
+            'BenchmarkComplex'
+        );
+        Zen.put<ComplexDependency>(complex);
+
+        // Access it
+        final found = Zen.find<ComplexDependency>();
+        expect(found.dependencies.length, 10);
+
+        // Clean up
+        Zen.delete<ComplexDependency>();
+        for (int i = 0; i < 10; i++) {
+          Zen.delete<SimpleDependency>(tag: 'dep$i');
+        }
+      });
+
+      expect(result.operationsPerSecond > 0, true);
+    });
+
+    test('benchmark controller registration and access', () {
+      final result = runBenchmark('Controller operations', 5000, () {
+        final controller = BenchmarkController(42);
+        Zen.put<BenchmarkController>(controller);
+
+        final found = Zen.find<BenchmarkController>();
+        expect(found.value, 42);
+
+        Zen.delete<BenchmarkController>();
+      });
+
+      expect(result.operationsPerSecond > 0, true);
+    });
+
+    test('benchmark scope isolation', () {
+      final result = runBenchmark('Scope isolation', 1000, () {
+        final scope1 = Zen.createScope(name: 'Scope1');
+        final scope2 = Zen.createScope(name: 'Scope2');
+
+        try {
+          // Register same type in different scopes
+          scope1.put<SimpleDependency>(SimpleDependency(1));
+          scope2.put<SimpleDependency>(SimpleDependency(2));
+
+          // Access from each scope
+          final dep1 = scope1.find<SimpleDependency>();
+          final dep2 = scope2.find<SimpleDependency>();
+
+          expect(dep1?.id, 1);
+          expect(dep2?.id, 2);
+        } finally {
+          scope1.dispose();
+          scope2.dispose();
+        }
+      });
+
+      expect(result.operationsPerSecond > 0, true);
+    });
+
+    test('benchmark massive dependency batch operations', () {
+      final result = runBenchmark('Batch operations', 100, () {
+        // Register 100 dependencies
+        for (int i = 0; i < 100; i++) {
+          Zen.put<SimpleDependency>(SimpleDependency(i), tag: 'batch$i');
+        }
+
+        // Find all of them
+        for (int i = 0; i < 100; i++) {
+          final dep = Zen.find<SimpleDependency>(tag: 'batch$i');
+          expect(dep.id, i);
+        }
+
+        // Delete all of them
+        for (int i = 0; i < 100; i++) {
+          Zen.delete<SimpleDependency>(tag: 'batch$i');
+        }
+      });
+
+      expect(result.operationsPerSecond > 0, true);
+    });
+
+    test('benchmark scope hierarchy performance', () {
+      final result = runBenchmark('Scope hierarchy', 1000, () {
+        final grandParent = Zen.createScope(name: 'GrandParent');
+        final parent = Zen.createScope(parent: grandParent, name: 'Parent');
+        final child = Zen.createScope(parent: parent, name: 'Child');
+
+        try {
+          // Register at different levels
+          grandParent.put<SimpleDependency>(SimpleDependency(1), tag: 'level1');
+          parent.put<SimpleDependency>(SimpleDependency(2), tag: 'level2');
+          child.put<SimpleDependency>(SimpleDependency(3), tag: 'level3');
+
+          // Access from child (should traverse hierarchy)
+          child.find<SimpleDependency>(tag: 'level1'); // From grandparent
+          child.find<SimpleDependency>(tag: 'level2'); // From parent
+          child.find<SimpleDependency>(tag: 'level3'); // From self
+
+        } finally {
+          child.dispose();
+          parent.dispose();
+          grandParent.dispose();
+        }
+      });
+
+      expect(result.operationsPerSecond > 0, true);
+    });
+
+    test('benchmark dependency stress test', () {
+      final result = runBenchmark('Dependency stress test', 50, () {
+        // Create a complex dependency graph
+        final scopes = <ZenScope>[];
+
+        try {
+          // Create multiple scopes
+          for (int i = 0; i < 10; i++) {
+            final scope = Zen.createScope(name: 'StressScope$i');
+            scopes.add(scope);
+
+            // Register multiple dependencies per scope
+            for (int j = 0; j < 10; j++) {
+              scope.put<SimpleDependency>(SimpleDependency(i * 10 + j), tag: 'stress_${i}_$j');
+            }
+          }
+
+          // Access dependencies across all scopes
+          for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 10; j++) {
+              final dep = scopes[i].find<SimpleDependency>(tag: 'stress_${i}_$j');
+              expect(dep?.id, i * 10 + j);
+            }
+          }
+
+        } finally {
+          // Clean up all scopes
+          for (final scope in scopes) {
+            scope.dispose();
+          }
+        }
+      });
+
+      expect(result.operationsPerSecond > 0, true);
+    });
+
+    test('benchmark memory cleanup performance', () {
+      final result = runBenchmark('Memory cleanup', 1000, () {
+        // Create and immediately dispose dependencies
+        for (int i = 0; i < 20; i++) {
+          final dep = SimpleDependency(i);
+          Zen.put<SimpleDependency>(dep, tag: 'cleanup$i');
+          Zen.delete<SimpleDependency>(tag: 'cleanup$i');
+        }
+
+        // Create and dispose a scope
+        final scope = Zen.createScope(name: 'CleanupScope');
+        for (int i = 0; i < 10; i++) {
+          scope.put<SimpleDependency>(SimpleDependency(i), tag: 'scoped$i');
+        }
+        scope.dispose();
+      });
+
+      expect(result.operationsPerSecond > 0, true);
+    });
   });
 }

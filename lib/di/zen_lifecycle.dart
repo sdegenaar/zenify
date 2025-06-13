@@ -1,12 +1,11 @@
 
 // lib/di/zen_lifecycle.dart
 import 'package:flutter/widgets.dart';
-import 'package:zenify/di/zen_di.dart';
-
-import '../controllers/zen_controller.dart' show ZenController;
+import '../controllers/zen_controller.dart';
 import '../core/zen_config.dart';
-import '../core/zen_logger.dart' show ZenLogger;
+import '../core/zen_logger.dart';
 import '../core/zen_scope.dart';
+import 'zen_di.dart';
 
 /// Manages lifecycle events for controllers
 class ZenLifecycleManager {
@@ -50,57 +49,43 @@ class ZenLifecycleManager {
     }
   }
 
-  /// Start auto dispose timer for cleaning up unused controllers
-  void startAutoDisposeTimer(
-      List<ZenController> Function() getAllControllers,
-      ZenScope? Function(ZenController) findControllerScope,
-      ) {
-    Future.delayed(ZenConfig.controllerCacheExpiry, () {
-      if (!ZenConfig.enableAutoDispose) return;
+  /// Get all controllers from all scopes
+  List<ZenController> _getAllControllers() {
+    final controllers = <ZenController>[];
 
-      final now = DateTime.now();
-      final controllers = getAllControllers();
+    // Get all scopes - start with root and traverse hierarchy
+    final allScopes = _getAllScopes();
 
-      for (final controller in controllers) {
-        if (controller.isDisposed) continue;
-
-        // Try to find the scope this controller is in
-        ZenScope? controllerScope = findControllerScope(controller);
-        if (controllerScope == null) continue;
-
-        // Skip if permanent
-        final tag = controllerScope.getTagForInstance(controller);
-        final type = controller.runtimeType;
-
-        if (controllerScope.isPermanent(type: type, tag: tag)) {
-          continue;
-        }
-
-        // Check if use count is 0
-        final useCount = tag != null
-            ? controllerScope.getUseCountByType(type: type, tag: tag)
-            : controllerScope.getUseCountByType(type: type, tag: null);
-
-        if (useCount > 0) continue;
-
-        // Check if expired
-        final age = now.difference(controller.createdAt);
-        if (age > ZenConfig.controllerCacheExpiry) {
-          if (ZenConfig.enableDebugLogs) {
-            ZenLogger.logDebug('Auto-disposing unused controller $type${tag != null ? ' with tag $tag' : ''} after ${age.inSeconds}s');
-          }
-
-          if (tag != null) {
-            controllerScope.deleteByTag(tag);
-          } else {
-            controllerScope.deleteByType(type);
-          }
-        }
+    for (final scope in allScopes) {
+      if (!scope.isDisposed) {
+        controllers.addAll(scope.findAllOfType<ZenController>());
       }
+    }
 
-      // Schedule next check
-      startAutoDisposeTimer(getAllControllers, findControllerScope);
-    });
+    return controllers;
+  }
+
+  /// Get all scopes in the system by traversing from root
+  List<ZenScope> _getAllScopes() {
+    final allScopes = <ZenScope>[];
+    final visited = <String>{};
+
+    void traverseScope(ZenScope scope) {
+      if (visited.contains(scope.id) || scope.isDisposed) return;
+
+      visited.add(scope.id);
+      allScopes.add(scope);
+
+      // Traverse all child scopes
+      for (final child in scope.childScopes) {
+        traverseScope(child);
+      }
+    }
+
+    // Start from root scope
+    traverseScope(Zen.rootScope);
+
+    return allScopes;
   }
 
   /// Clean up resources
@@ -116,8 +101,8 @@ class ZenLifecycleManager {
 class _ZenAppLifecycleObserver extends WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Forward lifecycle events to all controllers
-    final allControllers = Zen.allControllers;
+    // Get all controllers from lifecycle manager
+    final allControllers = ZenLifecycleManager.instance._getAllControllers();
 
     switch (state) {
       case AppLifecycleState.resumed:

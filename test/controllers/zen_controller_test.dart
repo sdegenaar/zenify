@@ -42,7 +42,6 @@ class TestController extends ZenController {
     super.onInit();
   }
 
-
   @override
   void onReady() {
     // Check if already ready using the parent class's flag
@@ -56,7 +55,6 @@ class TestController extends ZenController {
     onReadyCalled = true;
     super.onReady();
   }
-
 
   @override
   void onDispose() {
@@ -101,6 +99,12 @@ class TestController extends ZenController {
   }
 }
 
+// Additional test controller for multiple instances
+class AnotherTestController extends ZenController {
+  final String name;
+  AnotherTestController(this.name);
+}
+
 void main() {
   group('ZenController', () {
     late TestController controller;
@@ -109,6 +113,10 @@ void main() {
       // Initialize WidgetsFlutterBinding for lifecycle callbacks
       WidgetsFlutterBinding.ensureInitialized();
 
+      // Initialize Zen
+      Zen.init();
+      ZenConfig.enableDebugLogs = true; // Enable for debugging
+
       controller = TestController();
     });
 
@@ -116,6 +124,8 @@ void main() {
       if (!controller.isDisposed) {
         controller.dispose();
       }
+      // Reset Zen
+      Zen.reset();
     });
 
     test('should call lifecycle methods in the right order', () async {
@@ -148,7 +158,79 @@ void main() {
 
       expect(controller.onInitCalled, isFalse);
       expect(controller.onReadyCalled, isFalse);
+    });
 
+    test('should work with ZenScope registration and tagged lookup', () {
+      // Create a test scope
+      final testScope = Zen.createScope(name: 'controller-tag-test');
+
+      // Create multiple controllers
+      final controllerA = TestController();
+      final controllerB = TestController();
+      final controllerC = TestController();
+
+      testScope.put<TestController>(controllerA, tag: 'A');
+      testScope.put<TestController>(controllerB, tag: 'B');
+      testScope.put<TestController>(controllerC);
+
+      // Test tagged lookups
+      final foundA = testScope.find<TestController>(tag: 'A');
+      final foundB = testScope.find<TestController>(tag: 'B');
+      final foundC = testScope.find<TestController>();
+
+      // Verify tagged controllers are found
+      expect(foundA, same(controllerA));
+      expect(foundB, same(controllerB));
+      expect(foundC, same(controllerC));
+
+      // Test findAllOfType
+      final allControllers = testScope.findAllOfType<TestController>();
+
+      expect(allControllers.length, 3);
+      expect(allControllers, containsAll([controllerA, controllerB, controllerC]));
+
+      // Verify all controllers were auto-initialized
+      expect(controllerA.isInitialized, isTrue);
+      expect(controllerA.isReady, isTrue);
+      expect(controllerB.isInitialized, isTrue);
+      expect(controllerB.isReady, isTrue);
+      expect(controllerC.isInitialized, isTrue);
+      expect(controllerC.isReady, isTrue);
+
+      // Clean up
+      testScope.dispose();
+    });
+
+    test('should work with different controller types and tags', () {
+      // Create a test scope
+      final testScope = Zen.createScope(name: 'multi-type-test');
+
+      // Create different types of controllers
+      final testController1 = TestController();
+      final testController2 = TestController();
+      final anotherController1 = AnotherTestController('first');
+      final anotherController2 = AnotherTestController('second');
+
+      // Register with different tags
+      testScope.put<TestController>(testController1, tag: 'test1');
+      testScope.put<TestController>(testController2, tag: 'test2');
+      testScope.put<AnotherTestController>(anotherController1, tag: 'another1');
+      testScope.put<AnotherTestController>(anotherController2, tag: 'another2');
+
+      // Test findAllOfType for each type
+      final allTestControllers = testScope.findAllOfType<TestController>();
+      final allAnotherControllers = testScope.findAllOfType<AnotherTestController>();
+      final allZenControllers = testScope.findAllOfType<ZenController>();
+
+      expect(allTestControllers.length, 2);
+      expect(allAnotherControllers.length, 2);
+      expect(allZenControllers.length, 4); // All controllers extend ZenController
+
+      expect(allTestControllers, containsAll([testController1, testController2]));
+      expect(allAnotherControllers, containsAll([anotherController1, anotherController2]));
+
+      // Clean up
+      testScope.dispose();
     });
 
     test('should track created at timestamp', () {

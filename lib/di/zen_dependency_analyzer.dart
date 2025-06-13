@@ -1,3 +1,4 @@
+
 // lib/di/zen_dependency_analyzer.dart
 
 import '../core/zen_config.dart';
@@ -13,53 +14,20 @@ class ZenDependencyAnalyzer {
   ZenDependencyAnalyzer._();
 
   /// Detect circular dependencies across all scopes
+  /// Note: Basic implementation - real circular dependency detection would require
+  /// analyzing constructor dependencies, which isn't available in the current scope API
   bool detectCycles(dynamic start, List<ZenScope> scopes) {
     try {
       // Safety check - if start is null, there can't be a cycle
       if (start == null) return false;
 
-      final visited = <dynamic>{};
-      final recursionStack = <dynamic>{};
-
-      // Helper function for recursion
-      bool detectCyclesRecursive(dynamic current) {
-        // Safety check
-        if (current == null) return false;
-
-        // Depth limiter
-        if (recursionStack.length > 100) {
-          ZenLogger.logWarning('Cycle detection reached depth limit - possible deep circular reference');
-          return true;
-        }
-
-        // If already in stack, we found a cycle
-        if (recursionStack.contains(current)) {
-          return true;
-        }
-
-        // If already visited and no cycle found, skip
-        if (visited.contains(current)) {
-          return false;
-        }
-
-        visited.add(current);
-        recursionStack.add(current);
-
-        // Check dependencies in all scopes
-        for (final scope in scopes) {
-          final dependencies = scope.getDependenciesOf(current);
-          for (final dependency in dependencies) {
-            if (detectCyclesRecursive(dependency)) {
-              return true;
-            }
-          }
-        }
-
-        recursionStack.remove(current);
-        return false;
+      // Since we don't have access to actual dependency relationships in the current
+      // scope implementation, we can only do basic checks
+      if (ZenConfig.enableDebugLogs) {
+        ZenLogger.logDebug('Cycle detection is limited - requires constructor dependency analysis');
       }
 
-      return detectCyclesRecursive(start);
+      return false; // No cycles detectable with current API
     } catch (e, stack) {
       ZenLogger.logError('Error in cycle detection', e, stack);
       return true; // Assume cycle exists if error
@@ -77,28 +45,20 @@ class ZenDependencyAnalyzer {
     buffer.writeln('=== DEPENDENCY ANALYSIS ===\n');
     var problemFound = false;
 
-    // Check for circular dependencies
-    for (final scope in scopes) {
-      final allDeps = scope.findAllOfType<Object>();
-
-      for (final dep in allDeps) {
-        if (detectCycles(dep, scopes)) {
-          final tag = scope.getTagForInstance(dep);
-          buffer.write('CIRCULAR DEPENDENCY: ${dep.runtimeType}');
-          if (tag != null) buffer.write(' (tag: $tag)');
-          buffer.writeln(' is part of a dependency cycle');
-          problemFound = true;
-        }
-      }
-    }
-
     // Check for dependencies registered in multiple scopes
     final typeToScopes = <Type, List<ZenScope>>{};
+    final instanceToScopes = <String, List<ZenScope>>{};
+
     for (final scope in scopes) {
+      if (scope.isDisposed) continue;
+
       final deps = scope.findAllOfType<Object>();
       for (final dep in deps) {
         final type = dep.runtimeType;
+        final instanceKey = '${type.toString()}_${dep.hashCode}';
+
         typeToScopes.putIfAbsent(type, () => []).add(scope);
+        instanceToScopes.putIfAbsent(instanceKey, () => []).add(scope);
       }
     }
 
@@ -110,12 +70,28 @@ class ZenDependencyAnalyzer {
           buffer.writeln('  - ${scope.name ?? scope.id}');
         }
         problemFound = true;
+        buffer.writeln();
+      }
+    }
+
+    // Check for potential memory leaks (same instance in multiple scopes)
+    for (final entry in instanceToScopes.entries) {
+      if (entry.value.length > 1) {
+        buffer.writeln('POTENTIAL MEMORY LEAK: Same instance registered in multiple scopes:');
+        for (final scope in entry.value) {
+          buffer.writeln('  - ${scope.name ?? scope.id}');
+        }
+        problemFound = true;
+        buffer.writeln();
       }
     }
 
     if (!problemFound) {
       buffer.writeln('No problematic dependencies detected');
     }
+
+    buffer.writeln('\nNOTE: Advanced circular dependency detection requires constructor');
+    buffer.writeln('dependency analysis, which is not available with the current scope API.');
 
     return buffer.toString();
   }
@@ -131,6 +107,8 @@ class ZenDependencyAnalyzer {
     buffer.writeln('=== ZEN DEPENDENCY GRAPH ===\n');
 
     for (final scope in scopes) {
+      if (scope.isDisposed) continue;
+
       buffer.writeln('SCOPE: ${scope.name ?? scope.id}');
       final dependencies = scope.findAllOfType<Object>();
 
@@ -139,29 +117,106 @@ class ZenDependencyAnalyzer {
         continue;
       }
 
+      // Group by type for better visualization
+      final typeGroups = <Type, List<dynamic>>{};
       for (final instance in dependencies) {
         final type = instance.runtimeType;
-        final tag = scope.getTagForInstance(instance);
-        final dependsOn = scope.getDependenciesOf(instance);
+        typeGroups.putIfAbsent(type, () => []).add(instance);
+      }
 
-        buffer.write('  $type');
-        if (tag != null) buffer.write(' (tag: $tag)');
+      for (final entry in typeGroups.entries) {
+        final type = entry.key;
+        final instances = entry.value;
 
-        if (dependsOn.isEmpty) {
-          buffer.writeln(' - no dependencies');
+        if (instances.length == 1) {
+          buffer.writeln('  $type');
         } else {
-          buffer.writeln(' depends on:');
-          for (final dep in dependsOn) {
-            final depTag = scope.getTagForInstance(dep);
-            buffer.write('    - ${dep.runtimeType}');
-            if (depTag != null) buffer.write(' (tag: $depTag)');
-            buffer.writeln();
+          buffer.writeln('  $type (${instances.length} instances)');
+          for (int i = 0; i < instances.length; i++) {
+            buffer.writeln('    [${i + 1}] ${instances[i].hashCode}');
           }
         }
       }
       buffer.writeln();
     }
 
+    buffer.writeln('NOTE: This visualization shows registered dependencies but cannot');
+    buffer.writeln('display actual dependency relationships without constructor analysis.');
+
     return buffer.toString();
+  }
+
+  /// Get a summary of all dependencies across scopes
+  String getDependencySummary(List<ZenScope> scopes) {
+    final buffer = StringBuffer();
+
+    buffer.writeln('=== ZEN DEPENDENCY SUMMARY ===\n');
+
+    var totalDependencies = 0;
+    final allTypes = <Type>{};
+
+    for (final scope in scopes) {
+      if (scope.isDisposed) continue;
+
+      final deps = scope.findAllOfType<Object>();
+      totalDependencies += deps.length;
+
+      for (final dep in deps) {
+        allTypes.add(dep.runtimeType);
+      }
+    }
+
+    buffer.writeln('Total Scopes: ${scopes.where((s) => !s.isDisposed).length}');
+    buffer.writeln('Total Dependencies: $totalDependencies');
+    buffer.writeln('Unique Types: ${allTypes.length}');
+    buffer.writeln();
+
+    // List all unique types
+    if (allTypes.isNotEmpty) {
+      buffer.writeln('Registered Types:');
+      final sortedTypes = allTypes.toList()..sort((a, b) => a.toString().compareTo(b.toString()));
+      for (final type in sortedTypes) {
+        buffer.writeln('  - $type');
+      }
+    }
+
+    return buffer.toString();
+  }
+
+  /// Analyze scope hierarchy
+  String analyzeScopeHierarchy(List<ZenScope> scopes) {
+    final buffer = StringBuffer();
+
+    buffer.writeln('=== SCOPE HIERARCHY ANALYSIS ===\n');
+
+    // Find root scopes (those without parents)
+    final rootScopes = scopes.where((s) => s.parent == null && !s.isDisposed).toList();
+
+    if (rootScopes.isEmpty) {
+      buffer.writeln('No root scopes found');
+      return buffer.toString();
+    }
+
+    for (final rootScope in rootScopes) {
+      _analyzeScope(rootScope, buffer, 0);
+    }
+
+    return buffer.toString();
+  }
+
+  void _analyzeScope(ZenScope scope, StringBuffer buffer, int depth) {
+    final indent = '  ' * depth;
+    final dependencies = scope.findAllOfType<Object>();
+
+    buffer.write('$indent${scope.name ?? scope.id}');
+    if (scope.isDisposed) {
+      buffer.write(' (DISPOSED)');
+    }
+    buffer.writeln(' - ${dependencies.length} dependencies');
+
+    // Analyze child scopes
+    for (final child in scope.childScopes) {
+      _analyzeScope(child, buffer, depth + 1);
+    }
   }
 }

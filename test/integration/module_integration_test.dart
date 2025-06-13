@@ -1,7 +1,6 @@
 // test/integration/module_integration_test.dart
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zenify/zenify.dart';
-import '../test_helpers.dart';
 
 // Mock services for testing
 class NetworkService {
@@ -9,6 +8,10 @@ class NetworkService {
 
   Future<Map<String, dynamic>> post(String endpoint, Map<String, dynamic> data) async {
     return {'success': true, 'token': 'mock-token'};
+  }
+
+  void initialize() {
+    initialized = true;
   }
 }
 
@@ -109,35 +112,29 @@ class ProfileController extends ZenController {
   }
 }
 
-// Define modules for testing
+// Define modules for testing using the actual ZenModule API
 class NetworkModule extends ZenModule {
+  final NetworkService? _testService; // Optional test service injection
+
+  NetworkModule({NetworkService? testService}) : _testService = testService;
+
   @override
   String get name => 'NetworkModule';
 
   @override
   void register(ZenScope scope) {
-    // Register network service
-    scope.register<NetworkService>(
-      NetworkService(),
-    );
-  }
+    // Use test service if provided, otherwise create new one
+    final networkService = _testService ?? NetworkService();
+    scope.put<NetworkService>(networkService);
 
-  @override
-  void onInit(ZenScope scope) {
-    // Initialize module if needed
-    final networkService = scope.find<NetworkService>();
-    if (networkService != null) {
-      networkService.initialized = true;
-    }
+    // Initialize the service
+    networkService.initialize();
   }
 }
 
 class AuthModule extends ZenModule {
   @override
   String get name => 'AuthModule';
-
-  @override
-  List<ZenModule> get dependencies => [NetworkModule()];
 
   @override
   void register(ZenScope scope) {
@@ -148,25 +145,18 @@ class AuthModule extends ZenModule {
     }
 
     // Register auth service with its dependencies
-    scope.register<AuthService>(
-      AuthService(networkService: networkService),
-    );
+    final authService = AuthService(networkService: networkService);
+    scope.put<AuthService>(authService);
 
     // Register auth controller
-    scope.register<AuthController>(
-      AuthController(
-        authService: scope.find<AuthService>()!,
-      ),
-    );
+    final authController = AuthController(authService: authService);
+    scope.put<AuthController>(authController);
   }
 }
 
 class ProfileModule extends ZenModule {
   @override
   String get name => 'ProfileModule';
-
-  @override
-  List<ZenModule> get dependencies => [AuthModule()];
 
   @override
   void register(ZenScope scope) {
@@ -177,72 +167,26 @@ class ProfileModule extends ZenModule {
     }
 
     // Register profile repository
-    scope.register<ProfileRepository>(
-      ProfileRepository(authService: authService),
-    );
+    final profileRepository = ProfileRepository(authService: authService);
+    scope.put<ProfileRepository>(profileRepository);
 
     // Register profile controller
-    scope.register<ProfileController>(
-      ProfileController(
-        profileRepository: scope.find<ProfileRepository>()!,
-      ),
-    );
+    final profileController = ProfileController(profileRepository: profileRepository);
+    scope.put<ProfileController>(profileController);
   }
 }
 
-// Circular dependency modules defined outside of the test function
-class ModuleA extends ZenModule {
-  @override
-  String get name => 'ModuleA';
+// Helper function to register modules in the correct order
+void registerModulesInOrder(ZenScope scope) {
+  // Register modules in dependency order manually
+  final networkModule = NetworkModule();
+  final authModule = AuthModule();
+  final profileModule = ProfileModule();
 
-  @override
-  List<ZenModule> get dependencies => [ModuleB()];
-
-  @override
-  void register(ZenScope scope) {
-    scope.register<String>(
-      'ModuleA',
-      tag: 'moduleA',
-    );
-  }
-}
-
-class ModuleB extends ZenModule {
-  @override
-  String get name => 'ModuleB';
-
-  @override
-  List<ZenModule> get dependencies => [ModuleA()];
-
-  @override
-  void register(ZenScope scope) {
-    scope.register<String>(
-      'ModuleB',
-      tag: 'moduleB',
-    );
-  }
-}
-
-// Helper function to register module and its dependencies in the correct order
-void registerModuleWithDependencies(ZenModule module, ZenScope scope, Set<String> registered) {
-  // Skip if this module is already registered
-  if (registered.contains(module.name)) {
-    return;
-  }
-
-  // First register all dependencies
-  for (final dependency in module.dependencies) {
-    registerModuleWithDependencies(dependency, scope, registered);
-  }
-
-  // Then register this module
-  module.register(scope);
-
-  // Initialize the module
-  module.onInit(scope);
-
-  // Mark as registered
-  registered.add(module.name);
+  // Register in correct order
+  networkModule.register(scope);
+  authModule.register(scope);
+  profileModule.register(scope);
 }
 
 void main() {
@@ -256,16 +200,17 @@ void main() {
 
   tearDown(() {
     // Clean up after each test
-    Zen.deleteAll(force: true);
+    Zen.reset();
   });
 
   group('ZenModule Integration', () {
     test('should register and initialize a single module', () {
-      // Create an isolated test scope
-      final testScope = ZenTestHelper.createIsolatedTestScope('single-module-test');
+      // Create a test scope
+      final testScope = Zen.createScope(name: 'single-module-test');
 
-      // Register the module using our helper
-      registerModuleWithDependencies(NetworkModule(), testScope, {});
+      // Register the network module
+      final networkModule = NetworkModule();
+      networkModule.register(testScope);
 
       // Verify that the module was registered
       final networkService = testScope.find<NetworkService>();
@@ -277,12 +222,11 @@ void main() {
     });
 
     test('should register modules with dependencies in correct order', () {
-      // Create an isolated test scope
-      final testScope = ZenTestHelper.createIsolatedTestScope('module-dependencies-test');
+      // Create a test scope
+      final testScope = Zen.createScope(name: 'module-dependencies-test');
 
-      // Register the module and all its dependencies
-      final registered = <String>{};
-      registerModuleWithDependencies(ProfileModule(), testScope, registered);
+      // Register modules in dependency order
+      registerModulesInOrder(testScope);
 
       // Verify that all dependencies were registered
       final networkService = testScope.find<NetworkService>();
@@ -302,38 +246,125 @@ void main() {
     });
 
     test('should provide controllers registered through modules', () {
-      // Create an isolated test scope
-      final testScope = ZenTestHelper.createIsolatedTestScope('controllers-test');
+      // Create a test scope
+      final testScope = Zen.createScope(name: 'controllers-test');
 
-      // Register the module and all its dependencies
-      final registered = <String>{};
-      registerModuleWithDependencies(ProfileModule(), testScope, registered);
+      // Register modules in dependency order
+      registerModulesInOrder(testScope);
 
-      // Get controllers
+      // Test 1: Verify all controllers are available
       final authController = testScope.find<AuthController>();
       final profileController = testScope.find<ProfileController>();
 
       expect(authController, isNotNull);
       expect(profileController, isNotNull);
 
-      // Verify controller dependencies
+      // Test 2: Verify all services are available
+      final networkService = testScope.find<NetworkService>();
       final authService = testScope.find<AuthService>();
       final profileRepository = testScope.find<ProfileRepository>();
 
+      expect(networkService, isNotNull);
+      expect(authService, isNotNull);
+      expect(profileRepository, isNotNull);
+
+      // Test 3: Verify controller dependencies are correctly wired
       expect(authController!.authService, same(authService));
       expect(profileController!.profileRepository, same(profileRepository));
 
+      // Test 4: Verify service dependencies are correctly wired
+      expect(authService!.networkService, same(networkService));
+      expect(profileRepository!.authService, same(authService));
+
+      // Test 5: Verify singleton behavior - same instances should be returned
+      final authController2 = testScope.find<AuthController>();
+      final profileController2 = testScope.find<ProfileController>();
+      final networkService2 = testScope.find<NetworkService>();
+
+      expect(authController2, same(authController));
+      expect(profileController2, same(profileController));
+      expect(networkService2, same(networkService));
+
+      // Test 6: Verify controller lifecycle - should be initialized and ready
+      expect(authController.isInitialized, isTrue);
+      expect(profileController.isInitialized, isTrue);
+
+      // Test 7: Verify hierarchical scope lookup works
+      final childScope = Zen.createScope(name: 'child-scope', parent: testScope);
+
+      // Controllers should be found from parent scope
+      expect(childScope.find<AuthController>(), same(authController));
+      expect(childScope.find<ProfileController>(), same(profileController));
+      expect(childScope.find<NetworkService>(), same(networkService));
+
+      // But not when searching only in child scope
+      expect(childScope.findInThisScope<AuthController>(), isNull);
+      expect(childScope.findInThisScope<ProfileController>(), isNull);
+      expect(childScope.findInThisScope<NetworkService>(), isNull);
+
+      // Test 8: Verify all dependencies exist in scope
+      expect(testScope.exists<AuthController>(), isTrue);
+      expect(testScope.exists<ProfileController>(), isTrue);
+      expect(testScope.exists<AuthService>(), isTrue);
+      expect(testScope.exists<ProfileRepository>(), isTrue);
+      expect(testScope.exists<NetworkService>(), isTrue);
+
+      // Test 9: Verify type-based lookups work
+      final allControllers = testScope.findAllOfType<ZenController>();
+      expect(allControllers.length, equals(2));
+      expect(allControllers, containsAll([authController, profileController]));
+
+      // Test 10: Verify functional capabilities
+      expect(authController.isLoggedIn, isFalse);
+      expect(authController.error, isNull);
+
+      expect(profileController.profile, isNull);
+      expect(profileController.error, isNull);
+      expect(profileController.isLoading, isFalse);
+
+      // Test 11: Verify service functionality
+      expect(networkService!.initialized, isTrue);
+      expect(authService.isLoggedIn, isFalse);
+      expect(authService.token, isNull);
+
+      // Test 12: Verify shared service instances
+      expect(authService.networkService, same(networkService));
+      expect(profileRepository.authService, same(authService));
+
+      // Test 13: Verify permanent vs temporary dependencies
+      // Controllers should be temporary by default
+      expect(testScope.delete<AuthController>(), isTrue);
+      expect(testScope.delete<ProfileController>(), isTrue);
+
       // Clean up
+      childScope.dispose();
+      testScope.dispose();
+    });
+
+    test('should handle tag conflicts and replacements', () {
+      final testScope = Zen.createScope(name: 'tag-conflict-test');
+
+      // Register initial service
+      final networkService1 = NetworkService();
+      testScope.put<NetworkService>(networkService1, tag: 'api');
+
+      // Replace with new service (same tag)
+      final networkService2 = NetworkService();
+      testScope.put<NetworkService>(networkService2, tag: 'api');
+
+      // Should have the new service, not the old one
+      expect(testScope.find<NetworkService>(tag: 'api'), same(networkService2));
+      expect(testScope.find<NetworkService>(tag: 'api'), isNot(same(networkService1)));
+
       testScope.dispose();
     });
 
     test('should integrate modules with the dependency injection system', () async {
-      // Create an isolated test scope
-      final testScope = ZenTestHelper.createIsolatedTestScope('integration-test');
+      // Create a test scope
+      final testScope = Zen.createScope(name: 'integration-test');
 
-      // Register the module and all its dependencies
-      final registered = <String>{};
-      registerModuleWithDependencies(ProfileModule(), testScope, registered);
+      // Register modules
+      registerModulesInOrder(testScope);
 
       // Get controllers
       final authController = testScope.find<AuthController>();
@@ -356,22 +387,22 @@ void main() {
     });
 
     test('should support scoped module registration', () {
-      // Create an isolated test scope
-      final testScope = ZenTestHelper.createIsolatedTestScope('scoped-module-test');
+      // Create a test scope
+      final testScope = Zen.createScope(name: 'scoped-module-test');
 
       // Create a custom scope as a child of the test scope
-      final customScope = ZenScope(name: 'CustomScope', parent: testScope);
+      final customScope = Zen.createScope(name: 'CustomScope', parent: testScope);
 
       // Register the network module in the custom scope
-      final registered = <String>{};
-      registerModuleWithDependencies(NetworkModule(), customScope, registered);
+      final networkModule = NetworkModule();
+      networkModule.register(customScope);
 
       // Verify that dependencies are registered in the scope
       final networkService = customScope.find<NetworkService>();
       expect(networkService, isNotNull);
       expect(networkService!.initialized, true);
 
-      // But not in the parent scope
+      // But not in the parent scope's own dependencies
       final rootNetworkService = testScope.findInThisScope<NetworkService>();
       expect(rootNetworkService, isNull);
 
@@ -381,19 +412,19 @@ void main() {
     });
 
     test('should support module re-registration with different configurations', () {
-      // Create an isolated test scope
-      final testScope = ZenTestHelper.createIsolatedTestScope('re-registration-test');
+      // Create a test scope
+      final testScope = Zen.createScope(name: 're-registration-test');
 
       // Register network module in the root scope
-      final rootRegistered = <String>{};
-      registerModuleWithDependencies(NetworkModule(), testScope, rootRegistered);
+      final networkModule1 = NetworkModule();
+      networkModule1.register(testScope);
 
-      // Create a test scope
-      final customScope = ZenScope(name: 'TestScope', parent: testScope);
+      // Create a custom scope
+      final customScope = Zen.createScope(name: 'TestScope', parent: testScope);
 
-      // Register the same module in the test scope
-      final testRegistered = <String>{};
-      registerModuleWithDependencies(NetworkModule(), customScope, testRegistered);
+      // Register the same module in the custom scope
+      final networkModule2 = NetworkModule();
+      networkModule2.register(customScope);
 
       // Get services from both scopes
       final rootNetworkService = testScope.findInThisScope<NetworkService>();
@@ -410,12 +441,11 @@ void main() {
     });
 
     test('should handle end-to-end authentication and profile flow', () async {
-      // Create an isolated test scope
-      final testScope = ZenTestHelper.createIsolatedTestScope('e2e-test');
+      // Create a test scope
+      final testScope = Zen.createScope(name: 'e2e-test');
 
-      // Register the module and all its dependencies
-      final registered = <String>{};
-      registerModuleWithDependencies(ProfileModule(), testScope, registered);
+      // Register modules
+      registerModulesInOrder(testScope);
 
       // Get controllers
       final authController = testScope.find<AuthController>();
@@ -449,52 +479,98 @@ void main() {
       testScope.dispose();
     });
 
-    test('should handle module registration with circular dependencies', () {
-      // Create an isolated test scope
-      final testScope = ZenTestHelper.createIsolatedTestScope('circular-deps-test');
+    test('should handle lazy module registration', () {
+      // Create a test scope
+      final testScope = Zen.createScope(name: 'lazy-module-test');
 
-      try {
-        // For circular dependencies, just register them directly
-        // Don't use the dependency-aware helper
-        final moduleA = ModuleA();
-        moduleA.register(testScope);
+      bool networkServiceCreated = false;
+      bool authServiceCreated = false;
 
-        final moduleB = ModuleB();
-        moduleB.register(testScope);
+      // Register lazy network service
+      testScope.putLazy<NetworkService>(() {
+        networkServiceCreated = true;
+        final service = NetworkService();
+        service.initialize();
+        return service;
+      });
 
-        // Initialize the modules
-        moduleA.onInit(testScope);
-        moduleB.onInit(testScope);
+      // Register lazy auth service
+      testScope.putLazy<AuthService>(() {
+        authServiceCreated = true;
+        final networkService = testScope.find<NetworkService>();
+        return AuthService(networkService: networkService!);
+      });
 
-        // Should have registered both modules
-        final valueA = testScope.find<String>(tag: 'moduleA');
-        final valueB = testScope.find<String>(tag: 'moduleB');
+      // Services should not be created yet
+      expect(networkServiceCreated, false);
+      expect(authServiceCreated, false);
 
-        expect(valueA, 'ModuleA');
-        expect(valueB, 'ModuleB');
-      } catch (e) {
-        // Even if there's an exception, at least one should be registered
-        final valueA = testScope.find<String>(tag: 'moduleA');
-        final valueB = testScope.find<String>(tag: 'moduleB');
-        expect(valueA != null || valueB != null, true);
-      }
+      // Access auth service (should create both due to dependency)
+      final authService = testScope.find<AuthService>();
+      expect(authService, isNotNull);
+      expect(networkServiceCreated, true);
+      expect(authServiceCreated, true);
+
+      // Subsequent access should return same instances
+      final networkService = testScope.find<NetworkService>();
+      final authService2 = testScope.find<AuthService>();
+
+      expect(authService2, same(authService));
+      expect(authService!.networkService, same(networkService));
+
+      // Clean up
+      testScope.dispose();
+    });
+
+    test('should handle factory module registration', () {
+      // Create a test scope
+      final testScope = Zen.createScope(name: 'factory-module-test');
+
+      int networkServiceCount = 0;
+
+      // Register factory for network service (new instance each time)
+      testScope.putFactory<NetworkService>(() {
+        networkServiceCount++;
+        final service = NetworkService();
+        service.initialize();
+        return service;
+      });
+
+      // First access
+      final networkService1 = testScope.find<NetworkService>();
+      expect(networkService1, isNotNull);
+      expect(networkService1!.initialized, true);
+      expect(networkServiceCount, 1);
+
+      // Second access should create new instance
+      final networkService2 = testScope.find<NetworkService>();
+      expect(networkService2, isNotNull);
+      expect(networkService2!.initialized, true);
+      expect(networkServiceCount, 2);
+
+      // Should be different instances
+      expect(identical(networkService1, networkService2), false);
 
       // Clean up
       testScope.dispose();
     });
 
     test('should properly clean up modules when scope is disposed', () {
-      // Create an isolated test scope
-      final testScope = ZenTestHelper.createIsolatedTestScope('cleanup-test');
+      // Create a test scope
+      final testScope = Zen.createScope(name: 'cleanup-test');
 
       // Create a custom scope
-      final customScope = ZenScope(name: 'CustomScope', parent: testScope);
+      final customScope = Zen.createScope(name: 'CustomScope', parent: testScope);
 
-      // Register the auth module in the custom scope
-      final registered = <String>{};
-      registerModuleWithDependencies(AuthModule(), customScope, registered);
+      // Register auth and network modules in the custom scope
+      final networkModule = NetworkModule();
+      final authModule = AuthModule();
+
+      networkModule.register(customScope);
+      authModule.register(customScope);
 
       // Verify registration
+      expect(customScope.find<NetworkService>(), isNotNull);
       expect(customScope.find<AuthService>(), isNotNull);
       expect(customScope.find<AuthController>(), isNotNull);
 
@@ -502,15 +578,78 @@ void main() {
       customScope.dispose();
 
       // Create a new scope with the same name
-      final newScope = ZenScope(name: 'CustomScope', parent: testScope);
+      final newScope = Zen.createScope(name: 'CustomScope', parent: testScope);
 
       // Verify nothing is registered in the new scope
-      expect(newScope.find<AuthService>(), isNull);
-      expect(newScope.find<AuthController>(), isNull);
+      expect(newScope.findInThisScope<NetworkService>(), isNull);
+      expect(newScope.findInThisScope<AuthService>(), isNull);
+      expect(newScope.findInThisScope<AuthController>(), isNull);
 
       // Clean up
       newScope.dispose();
       testScope.dispose();
+    });
+
+    test('should handle module registration with tagged services', () {
+      final testScope = Zen.createScope(name: 'tagged-services-test');
+
+      // Create a service instance for testing
+      final testNetworkService = NetworkService();
+
+      // Register module with the test service
+      final networkModule = NetworkModule(testService: testNetworkService);
+      networkModule.register(testScope);
+
+      // Verify that the exact service was registered
+      final foundService = testScope.find<NetworkService>();
+      expect(foundService, isNotNull);
+      expect(foundService, same(testNetworkService));
+      expect(foundService!.initialized, isTrue);
+
+      testScope.dispose();
+    });
+
+    test('should support hierarchical module inheritance', () {
+      // Create scope hierarchy
+      final rootScope = Zen.createScope(name: 'RootScope');
+      final childScope = Zen.createScope(name: 'ChildScope', parent: rootScope);
+      final grandchildScope = Zen.createScope(name: 'GrandchildScope', parent: childScope);
+
+      // Register network module in root
+      final networkModule = NetworkModule();
+      networkModule.register(rootScope);
+
+      // Register auth module in child
+      final authModule = AuthModule();
+      authModule.register(childScope);
+
+      // Register profile module in grandchild
+      final profileModule = ProfileModule();
+      profileModule.register(grandchildScope);
+
+      // Verify hierarchical access
+      final networkFromRoot = rootScope.find<NetworkService>();
+      final networkFromChild = childScope.find<NetworkService>();
+      final networkFromGrandchild = grandchildScope.find<NetworkService>();
+
+      expect(networkFromRoot, isNotNull);
+      expect(networkFromChild, same(networkFromRoot)); // Inherited from parent
+      expect(networkFromGrandchild, same(networkFromRoot)); // Inherited from grandparent
+
+      // Auth service should be accessible from child and grandchild
+      expect(rootScope.findInThisScope<AuthService>(), isNull);
+      expect(childScope.find<AuthService>(), isNotNull);
+      expect(grandchildScope.find<AuthService>(), isNotNull);
+
+      // Profile should only be in grandchild
+      expect(rootScope.find<ProfileRepository>(), isNull);
+      expect(childScope.find<ProfileRepository>(), isNull);
+      expect(grandchildScope.find<ProfileRepository>(), isNotNull);
+
+      // Clean up
+      grandchildScope.dispose();
+      childScope.dispose();
+      rootScope.dispose();
     });
   });
 }

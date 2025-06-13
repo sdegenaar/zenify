@@ -63,7 +63,7 @@ void main() {
 
   tearDown(() {
     // Clean up after each test
-    Zen.deleteAll(force: true);
+    Zen.reset();
   });
 
   group('Scoped Dependencies', () {
@@ -76,8 +76,8 @@ void main() {
       final counterA = CounterService();
       final counterB = CounterService();
 
-      scopeA.register<CounterService>(counterA);
-      scopeB.register<CounterService>(counterB);
+      scopeA.put<CounterService>(counterA);
+      scopeB.put<CounterService>(counterB);
 
       // Verify counters are properly isolated
       final foundCounterA = scopeA.find<CounterService>();
@@ -95,12 +95,16 @@ void main() {
       // Verify they remain isolated when accessed through scope
       expect(scopeA.find<CounterService>()?.value, 1);
       expect(scopeB.find<CounterService>()?.value, 0);
+
+      // Clean up
+      scopeA.dispose();
+      scopeB.dispose();
     });
 
     test('should support scope hierarchy with dependency inheritance', () {
       // Create parent scope with a config service
       final parentScope = Zen.createScope(name: "ParentScope");
-      parentScope.register<ConfigService>(
+      parentScope.put<ConfigService>(
           ConfigService(environment: "production")
       );
 
@@ -109,8 +113,8 @@ void main() {
       final childScopeB = Zen.createScope(parent: parentScope, name: "ChildB");
 
       // Each child scope gets its own counter service
-      childScopeA.register<CounterService>(CounterService());
-      childScopeB.register<CounterService>(CounterService());
+      childScopeA.put<CounterService>(CounterService());
+      childScopeB.put<CounterService>(CounterService());
 
       // Verify both child scopes can access the parent config
       expect(childScopeA.find<ConfigService>()?.environment, "production");
@@ -122,12 +126,17 @@ void main() {
       // Verify changes are isolated to that scope
       expect(childScopeA.find<CounterService>()?.value, 1);
       expect(childScopeB.find<CounterService>()?.value, 0);
+
+      // Clean up
+      childScopeA.dispose();
+      childScopeB.dispose();
+      parentScope.dispose();
     });
 
     test('should shadow parent dependencies when registered in child scope', () {
       // Create parent scope with a config service
       final parentScope = Zen.createScope(name: "ParentScope");
-      parentScope.register<ConfigService>(
+      parentScope.put<ConfigService>(
           ConfigService(environment: "production")
       );
 
@@ -138,7 +147,7 @@ void main() {
       expect(childScope.find<ConfigService>()?.environment, "production");
 
       // Register a different config in child scope
-      childScope.register<ConfigService>(
+      childScope.put<ConfigService>(
           ConfigService(environment: "development", isDarkMode: true)
       );
 
@@ -149,6 +158,10 @@ void main() {
       // Parent should still have its original config
       expect(parentScope.find<ConfigService>()?.environment, "production");
       expect(parentScope.find<ConfigService>()?.isDarkMode, false);
+
+      // Clean up
+      childScope.dispose();
+      parentScope.dispose();
     });
 
     test('should clean up properly when a scope is disposed', () {
@@ -160,8 +173,8 @@ void main() {
       final parentConfig = ConfigService(environment: "production");
       final childCounter = CounterService();
 
-      parentScope.register<ConfigService>(parentConfig);
-      childScope.register<CounterService>(childCounter);
+      parentScope.put<ConfigService>(parentConfig);
+      childScope.put<CounterService>(childCounter);
 
       // Verify dependencies are accessible
       expect(childScope.find<ConfigService>(), same(parentConfig));
@@ -174,7 +187,7 @@ void main() {
       final newChildScope = Zen.createScope(parent: parentScope, name: "ChildScope");
 
       // Child dependency should be gone
-      expect(newChildScope.find<CounterService>(), isNull);
+      expect(newChildScope.findInThisScope<CounterService>(), isNull);
 
       // Parent dependency should still be accessible
       expect(newChildScope.find<ConfigService>(), same(parentConfig));
@@ -187,6 +200,10 @@ void main() {
 
       // Parent dependency should be gone
       expect(newParentScope.find<ConfigService>(), isNull);
+
+      // Clean up
+      newChildScope.dispose();
+      newParentScope.dispose();
     });
 
     test('should support disposing child scopes when parent is disposed', () {
@@ -196,9 +213,9 @@ void main() {
       final leafScope = Zen.createScope(parent: middleScope, name: "LeafScope");
 
       // Register dependencies at each level
-      rootScope.register<String>("Root", tag: "level");
-      middleScope.register<String>("Middle", tag: "level");
-      leafScope.register<String>("Leaf", tag: "level");
+      rootScope.put<String>("Root", tag: "level");
+      middleScope.put<String>("Middle", tag: "level");
+      leafScope.put<String>("Leaf", tag: "level");
 
       // Verify dependencies
       expect(leafScope.find<String>(tag: "level"), "Leaf");
@@ -217,23 +234,28 @@ void main() {
       expect(newLeafScope.find<String>(tag: "level"), isNull);
       expect(newMiddleScope.find<String>(tag: "level"), isNull);
       expect(newRootScope.find<String>(tag: "level"), isNull);
+
+      // Clean up
+      newLeafScope.dispose();
+      newMiddleScope.dispose();
+      newRootScope.dispose();
     });
 
     test('should register and resolve dependencies with type and tag combinations', () {
       final scope = Zen.createScope(name: "TestScope");
 
       // Register multiple instances of same type with different tags
-      scope.register<ConfigService>(
+      scope.put<ConfigService>(
         ConfigService(environment: "production"),
         tag: "prod",
       );
 
-      scope.register<ConfigService>(
+      scope.put<ConfigService>(
         ConfigService(environment: "staging"),
         tag: "staging",
       );
 
-      scope.register<ConfigService>(
+      scope.put<ConfigService>(
         ConfigService(environment: "development"),
         tag: "dev",
       );
@@ -243,16 +265,19 @@ void main() {
       expect(scope.find<ConfigService>(tag: "staging")?.environment, "staging");
       expect(scope.find<ConfigService>(tag: "dev")?.environment, "development");
 
-      // Default type lookup should fail (ambiguous)
+      // Default type lookup should fail when multiple tagged instances exist
       expect(scope.findInThisScope<ConfigService>(), isNull);
 
       // Register an untagged instance
-      scope.register<ConfigService>(
+      scope.put<ConfigService>(
           ConfigService(environment: "default")
       );
 
       // Now default type lookup should work
       expect(scope.find<ConfigService>()?.environment, "default");
+
+      // Clean up
+      scope.dispose();
     });
 
     test('should support scoped controllers with dependencies', () {
@@ -261,11 +286,11 @@ void main() {
       final scope2 = Zen.createScope(name: "Scope2");
 
       // Register dependencies in each scope
-      scope1.register<CounterService>(CounterService());
-      scope1.register<ConfigService>(ConfigService(environment: "scope1"));
+      scope1.put<CounterService>(CounterService());
+      scope1.put<ConfigService>(ConfigService(environment: "scope1"));
 
-      scope2.register<CounterService>(CounterService());
-      scope2.register<ConfigService>(ConfigService(environment: "scope2", isDarkMode: true));
+      scope2.put<CounterService>(CounterService());
+      scope2.put<ConfigService>(ConfigService(environment: "scope2", isDarkMode: true));
 
       // Create controllers in each scope
       final controller1 = ScopedController(
@@ -281,8 +306,8 @@ void main() {
       );
 
       // Register controllers in their respective scopes
-      scope1.register<ScopedController>(controller1);
-      scope2.register<ScopedController>(controller2);
+      scope1.put<ScopedController>(controller1);
+      scope2.put<ScopedController>(controller2);
 
       // Verify controller dependencies are from the correct scope
       expect(controller1.environment, "scope1");
@@ -299,6 +324,10 @@ void main() {
       controller2.incrementCounter();
       expect(controller1.counterValue, 1);
       expect(controller2.counterValue, 2);
+
+      // Clean up
+      scope1.dispose();
+      scope2.dispose();
     });
 
     test('should allow finding all instances of a type across scopes', () {
@@ -309,10 +338,10 @@ void main() {
       final grandchild = Zen.createScope(parent: childA, name: "Grandchild");
 
       // Register resource services in each scope
-      rootScope.register<ResourceService>(ResourceService(scopeName: "Root"));
-      childA.register<ResourceService>(ResourceService(scopeName: "ChildA"));
-      childB.register<ResourceService>(ResourceService(scopeName: "ChildB"));
-      grandchild.register<ResourceService>(ResourceService(scopeName: "Grandchild"));
+      rootScope.put<ResourceService>(ResourceService(scopeName: "Root"));
+      childA.put<ResourceService>(ResourceService(scopeName: "ChildA"));
+      childB.put<ResourceService>(ResourceService(scopeName: "ChildB"));
+      grandchild.put<ResourceService>(ResourceService(scopeName: "Grandchild"));
 
       // Add different resources to each service
       rootScope.find<ResourceService>()?.addResource("level", "root");
@@ -320,7 +349,7 @@ void main() {
       childB.find<ResourceService>()?.addResource("level", "childB");
       grandchild.find<ResourceService>()?.addResource("level", "grandchild");
 
-      // Find all resource services in the hierarchy
+      // Find all resource services using the actual API
       final rootServices = rootScope.findAllOfType<ResourceService>();
       final childAServices = childA.findAllOfType<ResourceService>();
       final childBServices = childB.findAllOfType<ResourceService>();
@@ -343,60 +372,71 @@ void main() {
       expect(childAServices.any((s) => s.getResource("level") == "root"), false);
 
       expect(grandchildServices.first.getResource("level"), "grandchild");
+
+      // Clean up
+      grandchild.dispose();
+      childB.dispose();
+      childA.dispose();
+      rootScope.dispose();
     });
 
-    test('should support multiple scope registrations with Zen helper methods', () {
+    test('should support lazy and factory dependencies in scopes', () {
       // Create scopes
       final devScope = Zen.createScope(name: "DevScope");
       final prodScope = Zen.createScope(name: "ProdScope");
 
-      // Register dependencies using Zen helper methods
-      Zen.put<ConfigService>(
-          ConfigService(environment: "development", isDarkMode: true),
-          scope: devScope
+      // Register lazy dependencies
+      devScope.putLazy<ConfigService>(() =>
+          ConfigService(environment: "development", isDarkMode: true)
       );
 
-      Zen.put<ConfigService>(
-          ConfigService(environment: "production", isDarkMode: false),
-          scope: prodScope
+      prodScope.putLazy<ConfigService>(() =>
+          ConfigService(environment: "production", isDarkMode: false)
       );
 
-      // Register counter service in both scopes
-      Zen.put<CounterService>(CounterService(), scope: devScope);
-      Zen.put<CounterService>(CounterService(), scope: prodScope);
+      // Register factory counter services (new instance each time)
+      devScope.putFactory<CounterService>(() => CounterService());
+      prodScope.putFactory<CounterService>(() => CounterService());
 
-      // Create controllers using Zen.putRef
-      final devControllerRef = Zen.putRef<ScopedController>(
-          ScopedController(
-              counterService: Zen.find<CounterService>(scope: devScope)!,
-              configService: Zen.find<ConfigService>(scope: devScope)!,
-              scopeName: "DevScope"
-          ),
-          scope: devScope
+      // Access services - lazy should create singleton, factory should create new instances
+      final devConfig1 = devScope.find<ConfigService>();
+      final devConfig2 = devScope.find<ConfigService>();
+      expect(devConfig1, same(devConfig2)); // Same instance from lazy
+
+      final devCounter1 = devScope.find<CounterService>();
+      final devCounter2 = devScope.find<CounterService>();
+      expect(devCounter1, isNot(same(devCounter2))); // Different instances from factory
+
+      // Create controllers using the services
+      final devController = ScopedController(
+        counterService: devScope.find<CounterService>()!,
+        configService: devScope.find<ConfigService>()!,
+        scopeName: "DevScope",
       );
 
-      final prodControllerRef = Zen.putRef<ScopedController>(
-          ScopedController(
-              counterService: Zen.find<CounterService>(scope: prodScope)!,
-              configService: Zen.find<ConfigService>(scope: prodScope)!,
-              scopeName: "ProdScope"
-          ),
-          scope: prodScope
+      final prodController = ScopedController(
+        counterService: prodScope.find<CounterService>()!,
+        configService: prodScope.find<ConfigService>()!,
+        scopeName: "ProdScope",
       );
 
-      // Verify controllers are correctly registered in their scopes
-      expect(devControllerRef.find(), isNotNull);
-      expect(prodControllerRef.find(), isNotNull);
+      devScope.put<ScopedController>(devController);
+      prodScope.put<ScopedController>(prodController);
 
-      expect(devControllerRef.find()?.environment, "development");
-      expect(devControllerRef.find()?.isDarkMode, true);
-      expect(prodControllerRef.find()?.environment, "production");
-      expect(prodControllerRef.find()?.isDarkMode, false);
+      // Verify controllers have correct configurations
+      expect(devController.environment, "development");
+      expect(devController.isDarkMode, true);
+      expect(prodController.environment, "production");
+      expect(prodController.isDarkMode, false);
 
       // Test that controllers are isolated
-      devControllerRef.find().incrementCounter();
-      expect(devControllerRef.find().counterValue, 1);
-      expect(prodControllerRef.find().counterValue, 0);
+      devController.incrementCounter();
+      expect(devController.counterValue, 1);
+      expect(prodController.counterValue, 0);
+
+      // Clean up
+      devScope.dispose();
+      prodScope.dispose();
     });
 
     test('should support dynamic scope creation and destruction', () {
@@ -409,7 +449,7 @@ void main() {
         final userScope = Zen.createScope(name: "UserScope-$userId");
 
         // Register user-specific configuration
-        userScope.register<ConfigService>(
+        userScope.put<ConfigService>(
             ConfigService(
               environment: "user-instance",
               isDarkMode: i % 2 == 0, // Even users get dark mode
@@ -417,7 +457,7 @@ void main() {
         );
 
         // Register user-specific counter
-        userScope.register<CounterService>(CounterService());
+        userScope.put<CounterService>(CounterService());
 
         // Store scope reference
         userScopes[userId] = userScope;
@@ -460,26 +500,113 @@ void main() {
       userScopes["user2"] = user2Scope;
 
       // Register fresh config and counter
-      user2Scope.register<ConfigService>(
+      user2Scope.put<ConfigService>(
           ConfigService(environment: "user-instance", isDarkMode: true)
       );
-      user2Scope.register<CounterService>(CounterService());
+      user2Scope.put<CounterService>(CounterService());
 
       // Verify user 2 has a fresh counter
       expect(userScopes["user2"]?.find<CounterService>()?.value, 0);
 
-      // Create a separate scope for global resources instead of using root scope
+      // Create a separate scope for global resources
       final globalScope = Zen.createScope(name: "GlobalScope");
-      globalScope.register<ResourceService>(ResourceService(scopeName: "Global"));
+      globalScope.put<ResourceService>(ResourceService(scopeName: "Global"));
 
-      // Make the global scope a parent of all user scopes
+      // Verify that user scopes don't have access to the global resource
       for (final userScope in userScopes.values) {
-        // Also verify that user scopes don't have access to the global resource
-        expect(userScope.find<ResourceService>(), isNull);
-        // And verify the global scope has the expected service
-        expect(globalScope.find<ResourceService>()?.scopeName, "Global");
+        expect(userScope.findInThisScope<ResourceService>(), isNull);
       }
 
+      // And verify the global scope has the expected service
+      expect(globalScope.find<ResourceService>()?.scopeName, "Global");
+
+      // Clean up all scopes
+      for (final scope in userScopes.values) {
+        scope.dispose();
+      }
+      globalScope.dispose();
+    });
+
+    test('should handle complex scope relationships', () {
+      // Create a complex scope hierarchy
+      final appScope = Zen.createScope(name: "AppScope");
+      final featureAScope = Zen.createScope(parent: appScope, name: "FeatureA");
+      final featureBScope = Zen.createScope(parent: appScope, name: "FeatureB");
+      final sharedScope = Zen.createScope(parent: appScope, name: "SharedScope");
+
+      // Create a scope that depends on multiple features
+      final integrationScope = Zen.createScope(parent: sharedScope, name: "Integration");
+
+      // Register app-level config
+      appScope.put<ConfigService>(ConfigService(environment: "app-level"));
+
+      // Register feature-specific services
+      featureAScope.put<CounterService>(CounterService(), tag: "featureA");
+      featureBScope.put<CounterService>(CounterService(), tag: "featureB");
+
+      // Register shared resources
+      sharedScope.put<ResourceService>(ResourceService(scopeName: "Shared"));
+
+      // Test access patterns
+      expect(featureAScope.find<ConfigService>()?.environment, "app-level"); // Inherited
+      expect(featureBScope.find<ConfigService>()?.environment, "app-level"); // Inherited
+      expect(integrationScope.find<ConfigService>()?.environment, "app-level"); // Inherited
+      expect(integrationScope.find<ResourceService>()?.scopeName, "Shared"); // From parent
+
+      // Test scope isolation
+      expect(featureAScope.findInThisScope<CounterService>(tag: "featureB"), isNull);
+      expect(featureBScope.findInThisScope<CounterService>(tag: "featureA"), isNull);
+
+      // Test cross-scope access doesn't work
+      expect(featureAScope.find<CounterService>(tag: "featureB"), isNull);
+      expect(featureBScope.find<CounterService>(tag: "featureA"), isNull);
+
+      // But each can access their own
+      expect(featureAScope.find<CounterService>(tag: "featureA"), isNotNull);
+      expect(featureBScope.find<CounterService>(tag: "featureB"), isNotNull);
+
+      // Clean up
+      integrationScope.dispose();
+      sharedScope.dispose();
+      featureBScope.dispose();
+      featureAScope.dispose();
+      appScope.dispose();
+    });
+
+    test('should support tagged dependencies across scope hierarchy', () {
+      // Create scope hierarchy
+      final rootScope = Zen.createScope(name: "Root");
+      final childScope = Zen.createScope(parent: rootScope, name: "Child");
+
+      // Register tagged services at different levels
+      rootScope.put<ConfigService>(ConfigService(environment: "root-prod"), tag: "prod");
+      rootScope.put<ConfigService>(ConfigService(environment: "root-dev"), tag: "dev");
+
+      childScope.put<ConfigService>(ConfigService(environment: "child-prod"), tag: "prod");
+      // Child doesn't have dev config, should inherit from parent
+
+      // Test tag resolution with shadowing
+      expect(childScope.find<ConfigService>(tag: "prod")?.environment, "child-prod"); // Shadowed
+      expect(childScope.find<ConfigService>(tag: "dev")?.environment, "root-dev"); // Inherited
+
+      // Test that parent still has original values
+      expect(rootScope.find<ConfigService>(tag: "prod")?.environment, "root-prod");
+      expect(rootScope.find<ConfigService>(tag: "dev")?.environment, "root-dev");
+
+      // Register a controller that uses both configs
+      final controller = ScopedController(
+        counterService: CounterService(), // Local instance
+        configService: childScope.find<ConfigService>(tag: "prod")!, // Shadowed config
+        scopeName: "Child",
+      );
+
+      childScope.put<ScopedController>(controller);
+
+      expect(controller.environment, "child-prod");
+
+      // Clean up
+      childScope.dispose();
+      rootScope.dispose();
     });
   });
 }

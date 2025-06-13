@@ -18,28 +18,66 @@ class CounterController extends ZenController {
   }
 }
 
+// Test service for dependency injection
+class TestService {
+  String getValue() => 'test-value';
+}
+
+// Test module for module-based dependency injection
+class TestModule extends ZenModule {
+  @override
+  String get name => 'TestModule';
+
+  @override
+  List<ZenModule> get dependencies => [];
+
+  @override
+  void register(ZenScope scope) {
+    scope.put<CounterController>(CounterController());
+    scope.put<TestService>(TestService());
+  }
+}
+
+// Test module that depends on another module
+class DependentModule extends ZenModule {
+  @override
+  String get name => 'DependentModule';
+
+  @override
+  List<ZenModule> get dependencies => [TestModule()];
+
+  @override
+  void register(ZenScope scope) {
+    // This module depends on TestService from TestModule
+    final service = scope.find<TestService>();
+    if (service != null) {
+      scope.put<String>(service.getValue(), tag: 'serviceValue');
+    } else {
+      scope.put<String>('fallback-value', tag: 'serviceValue');
+    }
+  }
+}
+
 void main() {
   setUp(() {
     // Initialize Zen
     Zen.init();
-    ZenConfig.enableDebugLogs = true;
-
-    // Ensure we're using a clean environment for each test
-    Zen.deleteAll(force: true);
+    ZenConfig.enableDebugLogs = false;
   });
 
   tearDown(() {
-    Zen.deleteAll(force: true);
+    Zen.reset();
   });
 
   group('ZenScopeWidget Tests', () {
-    testWidgets('should create and access a scope', (WidgetTester tester) async {
+    testWidgets('should create and access a scope using scope parameter', (WidgetTester tester) async {
       late ZenScope capturedScope;
+      final customScope = Zen.createScope(name: 'TestScope');
 
       await tester.pumpWidget(
         MaterialApp(
           home: ZenScopeWidget(
-            name: 'TestScope',
+            scope: customScope,
             child: Builder(
               builder: (context) {
                 capturedScope = ZenScopeWidget.of(context);
@@ -51,8 +89,94 @@ void main() {
       );
 
       expect(capturedScope, isNotNull);
+      expect(capturedScope, equals(customScope));
       expect(capturedScope.name, 'TestScope');
       expect(find.text('Inside Scope'), findsOneWidget);
+    });
+
+    testWidgets('should create a scope from a module using moduleBuilder', (WidgetTester tester) async {
+      late ZenScope capturedScope;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ZenScopeWidget(
+            moduleBuilder: () => TestModule(),
+            child: Builder(
+              builder: (context) {
+                capturedScope = ZenScopeWidget.of(context);
+                return const Text('Inside Module Scope');
+              },
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(capturedScope, isNotNull);
+      expect(capturedScope.name, 'TestModule');
+      expect(find.text('Inside Module Scope'), findsOneWidget);
+
+      // Verify the module registered its dependencies
+      final controller = capturedScope.find<CounterController>();
+      final service = capturedScope.find<TestService>();
+      expect(controller, isNotNull);
+      expect(service, isNotNull);
+    });
+
+    testWidgets('should use custom scopeName if provided', (WidgetTester tester) async {
+      late ZenScope capturedScope;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ZenScopeWidget(
+            moduleBuilder: () => TestModule(),
+            scopeName: 'CustomModuleScope',
+            child: Builder(
+              builder: (context) {
+                capturedScope = ZenScopeWidget.of(context);
+                return const Text('Inside Custom Scope');
+              },
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(capturedScope, isNotNull);
+      expect(capturedScope.name, 'CustomModuleScope');
+      expect(find.text('Inside Custom Scope'), findsOneWidget);
+    });
+
+    testWidgets('should register module dependencies', (WidgetTester tester) async {
+      late ZenScope capturedScope;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ZenScopeWidget(
+            moduleBuilder: () => DependentModule(),
+            child: Builder(
+              builder: (context) {
+                capturedScope = ZenScopeWidget.of(context);
+                return const Text('Dependent Module Scope');
+              },
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(capturedScope, isNotNull);
+
+      // Verify that dependencies from TestModule are registered
+      final service = capturedScope.find<TestService>();
+      expect(service, isNotNull);
+
+      // Verify that DependentModule's own registrations work
+      final serviceValue = capturedScope.find<String>(tag: 'serviceValue');
+      expect(serviceValue, equals('test-value'));
     });
 
     testWidgets('should create nested scopes with correct hierarchy', (WidgetTester tester) async {
@@ -62,12 +186,12 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: ZenScopeWidget(
-            name: 'ParentScope',
+            moduleBuilder: () => TestModule(),
             child: Builder(
               builder: (parentContext) {
                 parentScope = ZenScopeWidget.of(parentContext);
                 return ZenScopeWidget(
-                  name: 'ChildScope',
+                  moduleBuilder: () => DependentModule(),
                   child: Builder(
                     builder: (childContext) {
                       childScope = ZenScopeWidget.of(childContext);
@@ -81,35 +205,23 @@ void main() {
         ),
       );
 
+      await tester.pumpAndSettle();
+
       expect(childScope.parent, equals(parentScope));
       expect(find.text('Nested Scope'), findsOneWidget);
-    });
 
-    testWidgets('should create a controller in scope via create parameter', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: ZenScopeWidget(
-            name: 'TestScope',
-            create: () => CounterController(),
-            child: Builder(
-              builder: (context) {
-                final scope = ZenScopeWidget.of(context);
+      // Verify that child scope can access parent scope's services
+      final parentService = parentScope.find<TestService>();
+      final childServiceFromParent = childScope.find<TestService>();
 
-                return ZenBuilder<CounterController>(
-                  scope: scope,
-                  create: () => CounterController(),
-                  builder: (controller) {
-                    return Text('Counter: ${controller.count}');
-                  },
-                );
-              },
-            ),
-          ),
-        ),
-      );
+      // The TestService should be accessible from both scopes, but they might be different instances
+      expect(parentService, isNotNull);
+      expect(childServiceFromParent, isNotNull);
 
-      await tester.pumpAndSettle();
-      expect(find.text('Counter: 0'), findsOneWidget);
+      // Verify that child-specific dependency is only in child scope
+      final serviceValue = childScope.find<String>(tag: 'serviceValue');
+      expect(serviceValue, equals('test-value'));
+      expect(parentScope.find<String>(tag: 'serviceValue'), isNull);
     });
 
     testWidgets('should maintain separate controller instances in different scopes',
@@ -120,18 +232,14 @@ void main() {
                 children: [
                   // First scoped counter
                   ZenScopeWidget(
-                    name: 'Scope1',
+                    moduleBuilder: () => TestModule(),
+                    scopeName: 'Scope1',
                     child: Builder(
                       builder: (context) {
                         final scope = ZenScopeWidget.of(context);
-
-                        // Manually register controller in this scope
-                        final controller = CounterController();
-                        Zen.put<CounterController>(controller, scope: scope);
-
                         return ZenBuilder<CounterController>(
                           scope: scope,
-                          builder: (controller) {
+                          builder: (context, controller) {
                             return ElevatedButton(
                               onPressed: controller.increment,
                               child: Text('Counter 1: ${controller.count}'),
@@ -143,18 +251,14 @@ void main() {
                   ),
                   // Second scoped counter
                   ZenScopeWidget(
-                    name: 'Scope2',
+                    moduleBuilder: () => TestModule(),
+                    scopeName: 'Scope2',
                     child: Builder(
                       builder: (context) {
                         final scope = ZenScopeWidget.of(context);
-
-                        // Register the second controller in its own scope
-                        final controller = CounterController();
-                        Zen.put<CounterController>(controller, scope: scope);
-
                         return ZenBuilder<CounterController>(
                           scope: scope,
-                          builder: (controller) {
+                          builder: (context, controller) {
                             return ElevatedButton(
                               onPressed: controller.increment,
                               child: Text('Counter 2: ${controller.count}'),
@@ -194,24 +298,31 @@ void main() {
         });
 
     testWidgets('should clean up scope when widget is disposed', (WidgetTester tester) async {
-      late ZenScope capturedScope;
+      // Use a unique controller so we can verify it's disposed
+      final controller = CounterController();
+      final testScope = Zen.createScope(name: 'DisposableScope');
+      testScope.put<CounterController>(controller);
+
+      // Keep a weak reference to detect if the controller is garbage collected
+      bool isControllerDisposed = false;
+      controller.addDisposer(() {
+        isControllerDisposed = true;
+      });
 
       await tester.pumpWidget(
         MaterialApp(
           home: ZenScopeWidget(
-            name: 'DisposableScope',
-            child: Builder(
-              builder: (context) {
-                capturedScope = ZenScopeWidget.of(context);
-                return const Text('Disposable');
-              },
-            ),
+            scope: testScope,
+            child: const Text('Disposable'),
           ),
         ),
       );
 
-      // Verify scope is created
-      expect(capturedScope, isNotNull);
+      await tester.pumpAndSettle();
+
+      // Verify setup
+      expect(find.text('Disposable'), findsOneWidget);
+      expect(isControllerDisposed, isFalse);
 
       // Dispose by replacing the widget
       await tester.pumpWidget(
@@ -220,99 +331,130 @@ void main() {
         ),
       );
 
-      // Scope should be disposed (can't directly test this but we can verify it's no longer accessible)
-      expect(find.text('Disposable'), findsNothing);
-      expect(find.text('Replaced'), findsOneWidget);
+      // Only the controller should be disposed, not the scope since we provided it
+      expect(isControllerDisposed, isFalse);
+      expect(testScope.isDisposed, isFalse);
+
+      // Now create a test with an owned scope
+      isControllerDisposed = false;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ZenScopeWidget(
+            moduleBuilder: () => TestModule(),
+            child: const Text('Owned Scope'),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Replace the widget, forcing disposal
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Text('Replaced Again'),
+        ),
+      );
+
+      // Verify UI updated
+      expect(find.text('Owned Scope'), findsNothing);
+      expect(find.text('Replaced Again'), findsOneWidget);
     });
 
-    testWidgets('ZenBuilder should respond to controller updates in the correct scope',
-            (WidgetTester tester) async {
-          // Create a custom scope
-          final customScope = Zen.createScope(name: 'CustomScope');
+    testWidgets('should use new module when moduleBuilder changes', (WidgetTester tester) async {
+      // Use StatefulBuilder instead of a custom class
+      bool useTestModule = true;
 
-          // Create two controllers in different scopes
-          final rootController = CounterController();
-          final scopedController = CounterController();
-
-          Zen.put<CounterController>(rootController);
-          Zen.put<CounterController>(scopedController, scope: customScope);
-
-          await tester.pumpWidget(
-            MaterialApp(
-              home: Column(
+      await tester.pumpWidget(
+        MaterialApp(
+          home: StatefulBuilder(
+            builder: (context, setState) {
+              return Column(
                 children: [
-                  // Builder that uses the root controller
-                  ZenBuilder<CounterController>(
-                    builder: (controller) => Text('Root: ${controller.count}'),
-                  ),
-                  // Builder that uses the scoped controller
-                  ZenBuilder<CounterController>(
-                    scope: customScope,
-                    builder: (controller) => Text('Scoped: ${controller.count}'),
-                  ),
                   ElevatedButton(
                     onPressed: () {
-                      rootController.increment();
-                      scopedController.increment();
+                      setState(() {
+                        useTestModule = !useTestModule;
+                      });
                     },
-                    child: const Text('Increment Both'),
+                    child: const Text('Toggle Module'),
+                  ),
+                  ZenScopeWidget(
+                    moduleBuilder: () => useTestModule ? TestModule() : DependentModule(),
+                    child: Builder(
+                      builder: (context) {
+                        final scope = ZenScopeWidget.of(context);
+                        final hasServiceValue = scope.find<String>(tag: 'serviceValue') != null;
+
+                        return Text(
+                          useTestModule
+                              ? 'Using TestModule'
+                              : 'Using DependentModule: $hasServiceValue',
+                        );
+                      },
+                    ),
                   ),
                 ],
-              ),
-            ),
-          );
+              );
+            },
+          ),
+        ),
+      );
 
-          // Verify initial state
-          expect(find.text('Root: 0'), findsOneWidget);
-          expect(find.text('Scoped: 0'), findsOneWidget);
+      await tester.pumpAndSettle();
 
-          // Tap button to increment both
-          await tester.tap(find.text('Increment Both'));
-          await tester.pump();
+      // Initially should use TestModule
+      expect(find.text('Using TestModule'), findsOneWidget);
 
-          // Both should update
-          expect(find.text('Root: 1'), findsOneWidget);
-          expect(find.text('Scoped: 1'), findsOneWidget);
-        });
+      // Toggle to DependentModule
+      await tester.tap(find.text('Toggle Module'));
+      await tester.pumpAndSettle();
 
-    // Test for selective updates using IDs
-    testWidgets('ZenBuilder should respond to targeted updates with IDs',
-            (WidgetTester tester) async {
-          final controller = CounterController();
-          Zen.put<CounterController>(controller);
+      // Now should use DependentModule
+      expect(find.text('Using DependentModule: true'), findsOneWidget);
+    });
 
-          await tester.pumpWidget(
-            MaterialApp(
-              home: Column(
-                children: [
-                  ZenBuilder<CounterController>(
-                    id: 'counter1',
-                    builder: (controller) => Text('Counter1: ${controller.count}'),
-                  ),
-                  ZenBuilder<CounterController>(
-                    id: 'counter2',
-                    builder: (controller) => Text('Counter2: ${controller.count}'),
-                  ),
-                  ElevatedButton(
-                    onPressed: () => controller.incrementWithId('counter1'),
-                    child: const Text('Increment Counter1'),
-                  ),
-                ],
-              ),
-            ),
-          );
+    testWidgets('ZenScopeWidget.of() should throw when no scope is found', (WidgetTester tester) async {
+      bool didThrow = false;
 
-          // Verify initial state
-          expect(find.text('Counter1: 0'), findsOneWidget);
-          expect(find.text('Counter2: 0'), findsOneWidget);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) {
+              try {
+                ZenScopeWidget.of(context);
+              } catch (e) {
+                didThrow = true;
+              }
+              return const Text('Tried to find scope');
+            },
+          ),
+        ),
+      );
 
-          // Tap button to increment only counter1
-          await tester.tap(find.text('Increment Counter1'));
-          await tester.pump();
+      await tester.pumpAndSettle();
 
-          // Only counter1 should update
-          expect(find.text('Counter1: 1'), findsOneWidget);
-          expect(find.text('Counter2: 0'), findsOneWidget);
-        });
+      expect(didThrow, isTrue);
+      expect(find.text('Tried to find scope'), findsOneWidget);
+    });
+
+    testWidgets('ZenScopeWidget.maybeOf() should return null when no scope is found', (WidgetTester tester) async {
+      late ZenScope? nullScope;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) {
+              nullScope = ZenScopeWidget.maybeOf(context);
+              return const Text('No Scope');
+            },
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(nullScope, isNull);
+      expect(find.text('No Scope'), findsOneWidget);
+    });
   });
 }

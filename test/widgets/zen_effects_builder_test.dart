@@ -1,209 +1,559 @@
-// test/zen_effects_builder_test.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zenify/zenify.dart';
 
-// Test controller with an effect
-class UserController extends ZenController {
-  final userEffect = ZenEffect<Map<String, dynamic>?>(name: 'userEffect');
-
-  Future<void> loadUser() async {
-    try {
-      // Simulate a successful API call
-      final userData = {'id': '123', 'name': 'Test User'};
-      userEffect.success(userData);
-    } catch (e) {
-      userEffect.setError('Failed to load user');
-    }
-  }
-
-  Future<void> loadUserWithError() async {
-    userEffect.setError('Failed to load user');
-  }
-}
-
 void main() {
-  setUp(() {
-    TestWidgetsFlutterBinding.ensureInitialized();
-    Zen.init();
-  });
+  group('ZenEffectBuilder', () {
+    late ZenEffect<String> effect;
 
-  tearDown(() {
-    Zen.deleteAll(force: true);
-  });
+    setUp(() {
+      effect = createEffect<String>(name: 'test');
+    });
 
-  group('ZenEffectBuilder Widget', () {
-    testWidgets('should render loading state correctly', (WidgetTester tester) async {
-      // Create controller with effect
-      final controller = UserController();
-      Zen.put<UserController>(controller);
+    tearDown(() {
+      effect.dispose();
+    });
+
+    testWidgets('should show initial state when effect is in initial state', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ZenEffectBuilder<String>(
+            effect: effect,
+            onLoading: () => const Text('Loading'),
+            onSuccess: (data) => Text('Success: $data'),
+            onError: (error) => Text('Error: $error'),
+            onInitial: () => const Text('Initial'),
+          ),
+        ),
+      );
+
+      expect(find.text('Initial'), findsOneWidget);
+      expect(find.text('Loading'), findsNothing);
+      expect(find.text('Success: test'), findsNothing);
+    });
+
+    testWidgets('should show empty widget when no onInitial provided and in initial state', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ZenEffectBuilder<String>(
+            effect: effect,
+            onLoading: () => const Text('Loading'),
+            onSuccess: (data) => Text('Success: $data'),
+            onError: (error) => Text('Error: $error'),
+          ),
+        ),
+      );
+
+      expect(find.text('Initial'), findsNothing);
+      expect(find.text('Loading'), findsNothing);
+      expect(find.text('Success: test'), findsNothing);
+      expect(find.byType(SizedBox), findsOneWidget);
+    });
+
+    testWidgets('should show loading state when effect is loading', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ZenEffectBuilder<String>(
+            effect: effect,
+            onLoading: () => const Text('Loading'),
+            onSuccess: (data) => Text('Success: $data'),
+            onError: (error) => Text('Error: $error'),
+            onInitial: () => const Text('Initial'),
+          ),
+        ),
+      );
 
       // Start loading
-      controller.userEffect.loading();
+      effect.loading();
+      await tester.pump();
+
+      expect(find.text('Loading'), findsOneWidget);
+      expect(find.text('Initial'), findsNothing);
+      expect(find.text('Success: test'), findsNothing);
+    });
+
+    testWidgets('should show success state when effect has data', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ZenEffectBuilder<String>(
+            effect: effect,
+            onLoading: () => const Text('Loading'),
+            onSuccess: (data) => Text('Success: $data'),
+            onError: (error) => Text('Error: $error'),
+            onInitial: () => const Text('Initial'),
+          ),
+        ),
+      );
+
+      // Set success data
+      effect.success('test data');
+      await tester.pump();
+
+      expect(find.text('Success: test data'), findsOneWidget);
+      expect(find.text('Loading'), findsNothing);
+      expect(find.text('Initial'), findsNothing);
+    });
+
+    testWidgets('should show success state even when data is null', (tester) async {
+      final nullableEffect = createEffect<String?>(name: 'nullable_test');
 
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: ZenEffectBuilder<Map<String, dynamic>?>(
-              effect: controller.userEffect,
-              onLoading: () => const CircularProgressIndicator(),
-              onSuccess: (data) => data != null
-                  ? Text('User: ${data['name']}')
-                  : const Text('No data'),
-              onError: (error) => Text('Error: $error'),
+          home: ZenEffectBuilder<String?>(
+            effect: nullableEffect,
+            onLoading: () => const Text('Loading'),
+            onSuccess: (data) => Text('Success: ${data ?? 'null'}'),
+            onError: (error) => Text('Error: $error'),
+            onInitial: () => const Text('Initial'),
+          ),
+        ),
+      );
+
+      // Set null data explicitly
+      nullableEffect.success(null);
+      await tester.pump();
+
+      expect(find.text('Success: null'), findsOneWidget);
+      expect(find.text('Initial'), findsNothing);
+
+      nullableEffect.dispose();
+    });
+
+    testWidgets('should show error state when effect has error', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ZenEffectBuilder<String>(
+            effect: effect,
+            onLoading: () => const Text('Loading'),
+            onSuccess: (data) => Text('Success: $data'),
+            onError: (error) => Text('Error: $error'),
+            onInitial: () => const Text('Initial'),
+          ),
+        ),
+      );
+
+      // Set error
+      effect.setError('test error');
+      await tester.pump();
+
+      expect(find.text('Error: test error'), findsOneWidget);
+      expect(find.text('Loading'), findsNothing);
+      expect(find.text('Initial'), findsNothing);
+      expect(find.text('Success: test'), findsNothing);
+    });
+
+    testWidgets('should transition through states correctly', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ZenEffectBuilder<String>(
+            effect: effect,
+            onLoading: () => const Text('Loading'),
+            onSuccess: (data) => Text('Success: $data'),
+            onError: (error) => Text('Error: $error'),
+            onInitial: () => const Text('Initial'),
+          ),
+        ),
+      );
+
+      // Initial state
+      expect(find.text('Initial'), findsOneWidget);
+
+      // Start loading
+      effect.loading();
+      await tester.pump();
+      expect(find.text('Loading'), findsOneWidget);
+      expect(find.text('Initial'), findsNothing);
+
+      // Success
+      effect.success('test data');
+      await tester.pump();
+      expect(find.text('Success: test data'), findsOneWidget);
+      expect(find.text('Loading'), findsNothing);
+
+      // Error
+      effect.setError('test error');
+      await tester.pump();
+      expect(find.text('Error: test error'), findsOneWidget);
+      expect(find.text('Success: test data'), findsNothing);
+
+      // Reset to initial
+      effect.reset();
+      await tester.pump();
+      expect(find.text('Initial'), findsOneWidget);
+      expect(find.text('Error: test error'), findsNothing);
+    });
+
+    testWidgets('should use custom builder when provided', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ZenEffectBuilder<String>(
+            effect: effect,
+            onLoading: () => const Text('Loading'),
+            onSuccess: (data) => Text('Success: $data'),
+            onError: (error) => Text('Error: $error'),
+            onInitial: () => const Text('Initial'),
+            builder: (context, child) => Container(
+              key: const Key('custom_container'),
+              padding: const EdgeInsets.all(16),
+              child: child,
             ),
           ),
         ),
       );
 
-      // Should show loading indicator
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byKey(const Key('custom_container')), findsOneWidget);
+      expect(find.text('Initial'), findsOneWidget);
+
+      // Verify custom builder is used for all states
+      effect.loading();
+      await tester.pump();
+      expect(find.byKey(const Key('custom_container')), findsOneWidget);
+      expect(find.text('Loading'), findsOneWidget);
+
+      effect.success('test');
+      await tester.pump();
+      expect(find.byKey(const Key('custom_container')), findsOneWidget);
+      expect(find.text('Success: test'), findsOneWidget);
+
+      effect.setError('error');
+      await tester.pump();
+      expect(find.byKey(const Key('custom_container')), findsOneWidget);
+      expect(find.text('Error: error'), findsOneWidget);
     });
 
-    testWidgets('should render success state with data', (WidgetTester tester) async {
-      // Create controller with effect
-      final controller = UserController();
-      Zen.put<UserController>(controller);
+    testWidgets('should handle effect changes when widget updates', (tester) async {
+      final effect1 = createEffect<String>(name: 'effect1');
+      final effect2 = createEffect<String>(name: 'effect2');
 
+      effect1.success('data from effect1');
+      effect2.success('data from effect2');
+
+      // Start with effect1
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: ZenEffectBuilder<Map<String, dynamic>?>(
-              effect: controller.userEffect,
-              onLoading: () => const CircularProgressIndicator(),
-              onSuccess: (data) => data != null
-                  ? Text('User: ${data['name']}')
-                  : const Text('No data'),
-              onError: (error) => Text('Error: $error'),
-            ),
+          home: ZenEffectBuilder<String>(
+            effect: effect1,
+            onLoading: () => const Text('Loading'),
+            onSuccess: (data) => Text('Success: $data'),
+            onError: (error) => Text('Error: $error'),
           ),
         ),
       );
 
-      // Load user (success)
-      await controller.loadUser();
-      await tester.pump();
+      expect(find.text('Success: data from effect1'), findsOneWidget);
 
-      // Should show success view with user data
-      expect(find.text('User: Test User'), findsOneWidget);
-    });
-
-    testWidgets('should render error state', (WidgetTester tester) async {
-      // Create controller with effect
-      final controller = UserController();
-      Zen.put<UserController>(controller);
-
+      // Update to effect2
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: ZenEffectBuilder<Map<String, dynamic>?>(
-              effect: controller.userEffect,
-              onLoading: () => const CircularProgressIndicator(),
-              onSuccess: (data) => data != null
-                  ? Text('User: ${data['name']}')
-                  : const Text('No data'),
-              onError: (error) => Text('Error: $error'),
-            ),
+          home: ZenEffectBuilder<String>(
+            effect: effect2,
+            onLoading: () => const Text('Loading'),
+            onSuccess: (data) => Text('Success: $data'),
+            onError: (error) => Text('Error: $error'),
           ),
         ),
       );
 
-      // Load user with error
-      await controller.loadUserWithError();
-      await tester.pump();
+      expect(find.text('Success: data from effect2'), findsOneWidget);
+      expect(find.text('Success: data from effect1'), findsNothing);
 
-      // Should show error view
-      expect(find.text('Error: Failed to load user'), findsOneWidget);
+      effect1.dispose();
+      effect2.dispose();
     });
 
-    testWidgets('should update when effect state changes', (WidgetTester tester) async {
-      // Create controller with effect
-      final controller = UserController();
-      Zen.put<UserController>(controller);
-
+    testWidgets('should not rebuild when disposed', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: ZenEffectBuilder<Map<String, dynamic>?>(
-              effect: controller.userEffect,
-              onLoading: () => const CircularProgressIndicator(),
-              onSuccess: (data) => data != null
-                  ? Text('User: ${data['name']}')
-                  : const Text('No data'),
-              onError: (error) => Text('Error: $error'),
-            ),
+          home: ZenEffectBuilder<String>(
+            effect: effect,
+            onLoading: () => const Text('Loading'),
+            onSuccess: (data) => Text('Success: $data'),
+            onError: (error) => Text('Error: $error'),
+            onInitial: () => const Text('Initial'),
           ),
         ),
       );
 
-      // Start with loading
-      controller.userEffect.loading();
+      expect(find.text('Initial'), findsOneWidget);
+
+      // Remove the widget
+      await tester.pumpWidget(const MaterialApp(home: SizedBox()));
+
+      // Try to trigger state change (should not cause any issues)
+      effect.success('test data');
       await tester.pump();
 
-      // Should show loading indicator
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
-
-      // Then show error
-      controller.userEffect.setError('Failed to load user');
-      await tester.pump();
-
-      // Should show error view
-      expect(find.text('Error: Failed to load user'), findsOneWidget);
-
-      // Finally show success
-      controller.userEffect.success({'id': '123', 'name': 'Test User'});
-      await tester.pump();
-
-      // Should show success view
-      expect(find.text('User: Test User'), findsOneWidget);
+      // Should not throw or cause any issues
+      expect(find.text('Success: test data'), findsNothing);
     });
 
-    // Add this to the test that's failing
-    testWidgets('should handle null data', (WidgetTester tester) async {
-      final effect = ZenEffect<Map<String, dynamic>?>(name: 'testEffect');
-
-      // Build a simple widget with the effect
+    testWidgets('should work with run method', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Material(
-            child: ZenEffectBuilder<Map<String, dynamic>?>(
+          home: ZenEffectBuilder<String>(
+            effect: effect,
+            onLoading: () => const Text('Loading'),
+            onSuccess: (data) => Text('Success: $data'),
+            onError: (error) => Text('Error: $error'),
+            onInitial: () => const Text('Initial'),
+          ),
+        ),
+      );
+
+      expect(find.text('Initial'), findsOneWidget);
+
+      // Use run method which automatically handles loading/success/error states
+      final future = effect.run(() async {
+        await Future.delayed(const Duration(milliseconds: 100));
+        return 'async data';
+      });
+
+      // Should show loading immediately
+      await tester.pump();
+      expect(find.text('Loading'), findsOneWidget);
+
+      // Advance the timer to complete the delay
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // Wait for completion
+      await future;
+      await tester.pump();
+      expect(find.text('Success: async data'), findsOneWidget);
+    });
+
+    testWidgets('should work with run method without delays', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ZenEffectBuilder<String>(
+            effect: effect,
+            onLoading: () => const Text('Loading'),
+            onSuccess: (data) => Text('Success: $data'),
+            onError: (error) => Text('Error: $error'),
+            onInitial: () => const Text('Initial'),
+          ),
+        ),
+      );
+
+      expect(find.text('Initial'), findsOneWidget);
+
+      // Use run method without delay
+      final future = effect.run(() async {
+        return 'immediate data';
+      });
+
+      // Should show loading briefly
+      await tester.pump();
+
+      // Complete the future
+      await future;
+      await tester.pump();
+
+      expect(find.text('Success: immediate data'), findsOneWidget);
+    });
+
+    testWidgets('should work with manual error state transition', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ZenEffectBuilder<String>(
+            effect: effect,
+            onLoading: () => const Text('Loading'),
+            onSuccess: (data) => Text('Success: $data'),
+            onError: (error) => Text('Error: $error'),
+            onInitial: () => const Text('Initial'),
+          ),
+        ),
+      );
+
+      expect(find.text('Initial'), findsOneWidget);
+
+      // Manual test of the error flow without using run()
+      // This simulates what run() would do when an error occurs
+
+      // 1. Set loading state (what run() does first)
+      effect.loading();
+      await tester.pump();
+      expect(find.text('Loading'), findsOneWidget);
+
+      // 2. Set error state (what run() does when an exception occurs)
+      effect.setError(Exception('async error'));
+      await tester.pump();
+      expect(find.text('Error: Exception: async error'), findsOneWidget);
+    });
+
+    group('Edge cases', () {
+      testWidgets('should handle rapid state changes', (tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: ZenEffectBuilder<String>(
               effect: effect,
               onLoading: () => const Text('Loading'),
+              onSuccess: (data) => Text('Success: $data'),
               onError: (error) => Text('Error: $error'),
+              onInitial: () => const Text('Initial'),
+            ),
+          ),
+        );
+
+        // Rapid state changes
+        effect.loading();
+        effect.success('data1');
+        effect.setError('error1');
+        effect.loading();
+        effect.success('data2');
+
+        await tester.pump();
+        expect(find.text('Success: data2'), findsOneWidget);
+      });
+
+      testWidgets('should handle complex data types', (tester) async {
+        final complexEffect = createEffect<Map<String, dynamic>>(name: 'complex');
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: ZenEffectBuilder<Map<String, dynamic>>(
+              effect: complexEffect,
+              onLoading: () => const Text('Loading'),
+              onSuccess: (data) => Text('Success: ${data['key']}'),
+              onError: (error) => Text('Error: $error'),
+              onInitial: () => const Text('Initial'),
+            ),
+          ),
+        );
+
+        complexEffect.success({'key': 'complex value'});
+        await tester.pump();
+
+        expect(find.text('Success: complex value'), findsOneWidget);
+
+        complexEffect.dispose();
+      });
+
+      testWidgets('should handle multiple effects on same widget', (tester) async {
+        final effect1 = createEffect<String>(name: 'effect1');
+        final effect2 = createEffect<String>(name: 'effect2');
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Column(
+              children: [
+                ZenEffectBuilder<String>(
+                  effect: effect1,
+                  onLoading: () => const Text('Loading 1'),
+                  onSuccess: (data) => Text('Success 1: $data'),
+                  onError: (error) => Text('Error 1: $error'),
+                  onInitial: () => const Text('Initial 1'),
+                ),
+                ZenEffectBuilder<String>(
+                  effect: effect2,
+                  onLoading: () => const Text('Loading 2'),
+                  onSuccess: (data) => Text('Success 2: $data'),
+                  onError: (error) => Text('Error 2: $error'),
+                  onInitial: () => const Text('Initial 2'),
+                ),
+              ],
+            ),
+          ),
+        );
+
+        expect(find.text('Initial 1'), findsOneWidget);
+        expect(find.text('Initial 2'), findsOneWidget);
+
+        effect1.success('data 1');
+        effect2.setError('error 2');
+
+        await tester.pump();
+
+        expect(find.text('Success 1: data 1'), findsOneWidget);
+        expect(find.text('Error 2: error 2'), findsOneWidget);
+        expect(find.text('Initial 1'), findsNothing);
+        expect(find.text('Initial 2'), findsNothing);
+
+        effect1.dispose();
+        effect2.dispose();
+      });
+
+      testWidgets('should handle state priority correctly', (tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: ZenEffectBuilder<String>(
+              effect: effect,
+              onLoading: () => const Text('Loading'),
+              onSuccess: (data) => Text('Success: $data'),
+              onError: (error) => Text('Error: $error'),
+              onInitial: () => const Text('Initial'),
+            ),
+          ),
+        );
+
+        // Set both error and loading - loading should take priority
+        effect.setError('test error');
+        effect.loading();
+
+        await tester.pump();
+        expect(find.text('Loading'), findsOneWidget);
+        expect(find.text('Error: test error'), findsNothing);
+
+        // Set both success and error - error should take priority
+        effect.success('test data');
+        effect.setError('new error');
+
+        await tester.pump();
+        expect(find.text('Error: new error'), findsOneWidget);
+        expect(find.text('Success: test data'), findsNothing);
+      });
+    });
+
+    group('Performance tests', () {
+      testWidgets('should not rebuild unnecessarily', (tester) async {
+        int buildCount = 0;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: ZenEffectBuilder<String>(
+              effect: effect,
+              onLoading: () {
+                buildCount++;
+                return const Text('Loading');
+              },
               onSuccess: (data) {
-                // Use ZenLogger instead of print
-                ZenLogger.logDebug('onSuccess called with: $data');
-                return data == null
-                    ? const Text('No data')
-                    : Text('Data: ${data['name']}');
+                buildCount++;
+                return Text('Success: $data');
+              },
+              onError: (error) {
+                buildCount++;
+                return Text('Error: $error');
+              },
+              onInitial: () {
+                buildCount++;
+                return const Text('Initial');
               },
             ),
           ),
-        ),
-      );
+        );
 
-      // Initial state should be empty (no success yet)
-      expect(find.text('No data'), findsNothing);
+        expect(buildCount, 1); // Initial build
 
-      // Set null data
-      effect.success(null);
+        // Setting the same state multiple times should not trigger rebuilds
+        effect.loading();
+        await tester.pump();
+        expect(buildCount, 2); // Loading build
 
-      // Make sure hasData is true
-      expect(effect.hasData, isTrue);
+        effect.loading(); // Same state
+        await tester.pump();
+        expect(buildCount, 2); // No additional build
 
-      // Trigger a frame
-      await tester.pump();
+        effect.success('data');
+        await tester.pump();
+        expect(buildCount, 3); // Success build
 
-      // Log widget tree for debugging using ZenLogger instead of print
-      ZenLogger.logDebug('Widget tree:');
-      for (var widget in tester.allWidgets) {
-        if (widget is Text) {
-          ZenLogger.logDebug('Text widget found: "${widget.data}"');
-        }
-      }
+        effect.success('data'); // Same data
+        await tester.pump();
+        expect(buildCount, 3); // No additional build
 
-      // Should now show "No data"
-      expect(find.text('No data'), findsOneWidget);
+        effect.success('different data'); // Different data
+        await tester.pump();
+        expect(buildCount, 4); // New build for different data
+      });
     });
   });
 }

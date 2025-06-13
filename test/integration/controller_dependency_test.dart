@@ -2,8 +2,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zenify/zenify.dart';
 
-import '../test_helpers.dart';
-
 // Mock controllers and services for testing
 class MockService {
   bool initialized = false;
@@ -32,15 +30,23 @@ class DependentController extends ZenController {
 }
 
 class CircularControllerA extends ZenController {
-  final CircularControllerB? controllerB;
+  CircularControllerB? controllerB;
 
-  CircularControllerA({this.controllerB});
+  CircularControllerA();
+
+  void setControllerB(CircularControllerB controllerB) {
+    this.controllerB = controllerB;
+  }
 }
 
 class CircularControllerB extends ZenController {
-  final CircularControllerA? controllerA;
+  CircularControllerA? controllerA;
 
-  CircularControllerB({this.controllerA});
+  CircularControllerB();
+
+  void setControllerA(CircularControllerA controllerA) {
+    this.controllerA = controllerA;
+  }
 }
 
 class ScopedController extends ZenController {
@@ -62,21 +68,21 @@ void main() {
 
   tearDown(() {
     // Clean up after each test
-    Zen.deleteAll(force: true);
+    Zen.reset();
   });
 
   group('Controller Dependencies', () {
     test('should inject service dependency into controller', () {
       // Create a test scope for this specific test
-      final testScope = ZenTestHelper.createIsolatedTestScope('inject-dependency');
+      final testScope = Zen.createScope(name: 'inject-dependency');
 
       // Register the service first
       final service = MockService();
-      Zen.put<MockService>(service, scope: testScope);
+      testScope.put<MockService>(service);
 
       // Create controller with dependency
       final controller = DependentController(service);
-      Zen.put<DependentController>(controller, scope: testScope);
+      testScope.put<DependentController>(controller);
 
       // Verify the service is properly injected
       expect(controller.service, same(service));
@@ -87,31 +93,28 @@ void main() {
       expect(service.initialized, true);
 
       // Cleanup
-      Zen.delete<DependentController>(scope: testScope);
+      testScope.delete<DependentController>();
 
       // Clean up the test scope
       testScope.dispose();
     });
 
     test('should find dependencies across scopes correctly', () {
-      // Create a test scope for this specific test
-      final rootTestScope = ZenTestHelper.createIsolatedTestScope('scope-dependencies');
-
-      // Create a parent scope and a child scope
-      final parentScope = Zen.createScope(name: "ParentScope", parent: rootTestScope);
+      // Create parent and child scopes
+      final parentScope = Zen.createScope(name: "ParentScope");
       final childScope = Zen.createScope(parent: parentScope, name: "ChildScope");
 
       // Register service in parent scope
       final service = MockService();
-      Zen.put<MockService>(service, scope: parentScope);
+      parentScope.put<MockService>(service);
 
       // Controller in child scope should be able to find the service
-      final foundService = Zen.find<MockService>(scope: childScope);
+      final foundService = childScope.find<MockService>();
       expect(foundService, same(service));
 
       // Create controller in child scope
-      final controller = DependentController(foundService);
-      Zen.put<DependentController>(controller, scope: childScope);
+      final controller = DependentController(foundService!);
+      childScope.put<DependentController>(controller);
 
       // Verify controller can use the service
       controller.callServiceMethod();
@@ -120,24 +123,23 @@ void main() {
       // Cleanup
       childScope.dispose();
       parentScope.dispose();
-      rootTestScope.dispose();
     });
 
     test('should track and dispose controllers with dependencies', () {
       // Create a test scope for this specific test
-      final testScope = ZenTestHelper.createIsolatedTestScope('track-dispose');
+      final testScope = Zen.createScope(name: 'track-dispose');
 
       // Register service
       final service = MockService();
-      Zen.put<MockService>(service, scope: testScope);
+      testScope.put<MockService>(service);
 
       // Create controller with dependency
       final controller = DependentController(service);
-      Zen.put<DependentController>(controller, scope: testScope);
+      testScope.put<DependentController>(controller);
 
       // Dispose controller
       expect(controller.isDisposed, false);
-      Zen.delete<DependentController>(scope: testScope);
+      testScope.delete<DependentController>();
       expect(controller.isDisposed, true);
 
       // Service should not be automatically disposed
@@ -149,35 +151,35 @@ void main() {
 
     test('should handle controllers with tagged dependencies', () {
       // Create a test scope for this specific test
-      final testScope = ZenTestHelper.createIsolatedTestScope('tagged-dependencies');
+      final testScope = Zen.createScope(name: 'tagged-dependencies');
 
       // Register two services with different tags
       final service1 = MockService();
       final service2 = MockService();
 
-      Zen.put<MockService>(service1, tag: "service1", scope: testScope);
-      Zen.put<MockService>(service2, tag: "service2", scope: testScope);
+      testScope.put<MockService>(service1, tag: "service1");
+      testScope.put<MockService>(service2, tag: "service2");
 
       // Find each service by tag
-      final foundService1 = Zen.find<MockService>(tag: "service1", scope: testScope);
-      final foundService2 = Zen.find<MockService>(tag: "service2", scope: testScope);
+      final foundService1 = testScope.find<MockService>(tag: "service1");
+      final foundService2 = testScope.find<MockService>(tag: "service2");
 
       expect(foundService1, same(service1));
       expect(foundService2, same(service2));
 
       // Create controllers with different service dependencies
-      final controller1 = DependentController(foundService1);
-      final controller2 = DependentController(foundService2);
+      final controller1 = DependentController(foundService1!);
+      final controller2 = DependentController(foundService2!);
 
-      Zen.put<DependentController>(controller1, tag: "controller1", scope: testScope);
-      Zen.put<DependentController>(controller2, tag: "controller2", scope: testScope);
+      testScope.put<DependentController>(controller1, tag: "controller1");
+      testScope.put<DependentController>(controller2, tag: "controller2");
 
       // Verify correct dependencies
-      final retrievedController1 = Zen.find<DependentController>(tag: "controller1", scope: testScope);
-      final retrievedController2 = Zen.find<DependentController>(tag: "controller2", scope: testScope);
+      final retrievedController1 = testScope.find<DependentController>(tag: "controller1");
+      final retrievedController2 = testScope.find<DependentController>(tag: "controller2");
 
-      expect(retrievedController1.service, same(service1));
-      expect(retrievedController2.service, same(service2));
+      expect(retrievedController1!.service, same(service1));
+      expect(retrievedController2!.service, same(service2));
 
       // Test service interactions
       retrievedController1.callServiceMethod();
@@ -191,96 +193,52 @@ void main() {
       testScope.dispose();
     });
 
-    test('should detect circular dependencies when declared', () {
+    test('should handle circular dependencies when manually created', () {
       // Create a test scope for this specific test
-      final testScope = ZenTestHelper.createIsolatedTestScope('circular-dependencies');
+      final testScope = Zen.createScope(name: 'circular-dependencies');
 
-      // Create circular dependency controllers
-      CircularControllerA controllerA = CircularControllerA();
-      final controllerB = CircularControllerB(controllerA: controllerA);
+      // Create circular dependency controllers manually
+      final controllerA = CircularControllerA();
+      final controllerB = CircularControllerB();
 
-      // This creates a circular dependency when we update A to reference B
-      controllerA = CircularControllerA(controllerB: controllerB);
+      // Set up circular references
+      controllerA.setControllerB(controllerB);
+      controllerB.setControllerA(controllerA);
 
-      // Register with the dependency tracking
-      expect(() {
-        Zen.put<CircularControllerA>(
-          controllerA,
-          dependencies: [controllerB], // Declare dependency on B
-          scope: testScope,
-        );
+      // Register both controllers
+      testScope.put<CircularControllerA>(controllerA);
+      testScope.put<CircularControllerB>(controllerB);
 
-        Zen.put<CircularControllerB>(
-          controllerB,
-          dependencies: [controllerA], // Declare dependency on A
-          scope: testScope,
-        );
-      },
-          // The system should allow circular dependencies but log warnings
-          // So we don't expect an exception, but the dependency graph should
-          // detect and track the cycle
-          returnsNormally);
+      // Verify they can find each other
+      final foundA = testScope.find<CircularControllerA>();
+      final foundB = testScope.find<CircularControllerB>();
 
-      // Clean up the test scope
-      testScope.dispose();
-    });
-
-    test('should support controller references for type safety', () {
-      // Create a test scope for this specific test
-      final testScope = ZenTestHelper.createIsolatedTestScope('controller-references');
-
-      // Register service
-      final service = MockService();
-      Zen.put<MockService>(service, scope: testScope);
-
-      // Create controller with dependency using references
-      final controllerRef = Zen.lazyRef<DependentController>(
-            () => DependentController(service),
-        scope: testScope,
-      );
-
-      // Controller shouldn't exist yet (lazy)
-      expect(controllerRef.exists(), false);
-
-      // Get the controller - this will create it
-      final controller = controllerRef.find();
-      expect(controller, isA<DependentController>());
-      expect(controllerRef.exists(), true);
-
-      // Test controller functionality
-      controller.callServiceMethod();
-      expect(controller.serviceCallMade, true);
-      expect(service.initialized, true);
-
-      // Clean up using the reference
-      controllerRef.delete();
-      expect(controller.isDisposed, true);
-      expect(controllerRef.exists(), false);
+      expect(foundA, same(controllerA));
+      expect(foundB, same(controllerB));
+      expect(foundA!.controllerB, same(controllerB));
+      expect(foundB!.controllerA, same(controllerA));
 
       // Clean up the test scope
       testScope.dispose();
     });
 
     test('should support dependency injection in scoped controllers', () {
-      // Create a test scope for this specific test
-      final rootTestScope = ZenTestHelper.createIsolatedTestScope('scoped-controllers');
-
       // Create scopes
-      final parentScope = Zen.createScope(name: "ParentScope", parent: rootTestScope);
+      final parentScope = Zen.createScope(name: "ParentScope");
       final childScope = Zen.createScope(parent: parentScope, name: "ChildScope");
 
       // Create controllers tied to specific scopes
       final parentController = ScopedController(parentScope);
       final childController = ScopedController(childScope);
 
-      Zen.put<ScopedController>(parentController, scope: parentScope, tag: "parent");
-      Zen.put<ScopedController>(childController, scope: childScope, tag: "child");
+      parentScope.put<ScopedController>(parentController, tag: "parent");
+      childScope.put<ScopedController>(childController, tag: "child");
 
       // Verify scope isolation and inheritance
-      final foundParentInParent = Zen.find<ScopedController>(tag: "parent", scope: parentScope);
-      final foundParentInChild = Zen.find<ScopedController>(tag: "parent", scope: childScope);
-      final foundChildInParent = Zen.findOrNull<ScopedController>(tag: "child", scope: parentScope); // Use findOrNull here
-      final foundChildInChild = Zen.find<ScopedController>(tag: "child", scope: childScope);
+      final foundParentInParent = parentScope.find<ScopedController>(tag: "parent");
+      final foundParentInChild = childScope.find<ScopedController>(tag: "parent");
+      final foundChildInParent = parentScope.findInThisScope<ScopedController>(tag: "child");
+      final foundChildInChild = childScope.find<ScopedController>(tag: "child");
 
       expect(foundParentInParent, same(parentController));
       expect(foundParentInChild, same(parentController)); // Parent is visible in child scope
@@ -293,87 +251,210 @@ void main() {
       // After parent scope disposal, both controllers should be disposed
       expect(parentController.isDisposed, true);
       expect(childController.isDisposed, true);
-
-      // Clean up the root test scope
-      rootTestScope.dispose();
     });
 
     test('should handle lazy dependencies correctly', () {
       // Create a test scope for this specific test
-      final testScope = ZenTestHelper.createIsolatedTestScope('lazy-dependencies');
+      final testScope = Zen.createScope(name: 'lazy-dependencies');
+
+      bool factoryCalled = false;
 
       // Register a lazy dependency
-      Zen.lazyPut<MockService>(() => MockService(), scope: testScope);
+      testScope.putLazy<MockService>(() {
+        factoryCalled = true;
+        return MockService();
+      });
 
-      // Check if registered without instantiating
-      expect(testScope.hasFactory<MockService>(), isTrue);
-      // Or use: expect(Zen.isRegistered<MockService>(scope: testScope), isTrue);
-
-      // Ensure not instantiated yet
-      expect(testScope.hasDependency<MockService>(), isFalse);
+      // Factory should not be called yet
+      expect(factoryCalled, false);
 
       // Access should create it
-      final service = Zen.find<MockService>(scope: testScope);
+      final service = testScope.find<MockService>();
       expect(service, isA<MockService>());
+      expect(factoryCalled, true);
 
-      // Should exist after access
-      final serviceAfterAccess = Zen.find<MockService>(scope: testScope);
+      // Should return same instance on subsequent calls
+      final serviceAfterAccess = testScope.find<MockService>();
       expect(serviceAfterAccess, same(service));
 
       // Create a controller with a lazy dependency
-      Zen.lazyPut<DependentController>(() => DependentController(service), scope: testScope);
+      bool controllerFactoryCalled = false;
+      testScope.putLazy<DependentController>(() {
+        controllerFactoryCalled = true;
+        return DependentController(service!);
+      });
 
-      // Check controller is registered but not instantiated
-      expect(testScope.hasFactory<DependentController>(), isTrue);
-      expect(testScope.hasDependency<DependentController>(), isFalse);
+      expect(controllerFactoryCalled, false);
 
       // Accessing should create it
-      final controller = Zen.find<DependentController>(scope: testScope);
+      final controller = testScope.find<DependentController>();
       expect(controller, isA<DependentController>());
-      expect(controller.service, same(service));
+      expect(controllerFactoryCalled, true);
+      expect(controller!.service, same(service));
 
-      // Controller should exist now
-      expect(Zen.find<DependentController>(scope: testScope), same(controller));
+      // Controller should return same instance
+      expect(testScope.find<DependentController>(), same(controller));
 
       // Clean up the test scope
       testScope.dispose();
     });
 
-
-    test('should handle auto-disposal of controllers properly', () {
+    test('should handle factory dependencies correctly', () {
       // Create a test scope for this specific test
-      final testScope = ZenTestHelper.createIsolatedTestScope('auto-disposal');
+      final testScope = Zen.createScope(name: 'factory-dependencies');
 
-      // Enable auto-dispose with a very short timeout for testing
-      ZenConfig.enableAutoDispose = true;
-      ZenConfig.controllerCacheExpiry = Duration(milliseconds: 100);
+      int factoryCallCount = 0;
 
-      // Register a service and controller
+      // Register a factory dependency (new instance each time)
+      testScope.putFactory<MockService>(() {
+        factoryCallCount++;
+        return MockService();
+      });
+
+      // First access should create instance
+      final service1 = testScope.find<MockService>();
+      expect(service1, isA<MockService>());
+      expect(factoryCallCount, 1);
+
+      // Second access should create new instance
+      final service2 = testScope.find<MockService>();
+      expect(service2, isA<MockService>());
+      expect(factoryCallCount, 2);
+
+      // Should be different instances
+      expect(service1, isNot(same(service2)));
+
+      // Clean up the test scope
+      testScope.dispose();
+    });
+
+    test('should handle dependency deletion correctly', () {
+      // Create a test scope for this specific test
+      final testScope = Zen.createScope(name: 'dependency-deletion');
+
+      // Register service and controller
       final service = MockService();
-      Zen.put<MockService>(service, scope: testScope);
+      testScope.put<MockService>(service);
 
       final controller = DependentController(service);
-      Zen.put<DependentController>(controller, scope: testScope);
+      testScope.put<DependentController>(controller, permanent: false);
 
-      // Use the controller
-      Zen.incrementUseCount<DependentController>(scope: testScope);
-      expect(Zen.getUseCount<DependentController>(scope: testScope), 1);
+      // Verify they exist
+      expect(testScope.find<MockService>(), same(service));
+      expect(testScope.find<DependentController>(), same(controller));
 
-      // Release the controller
-      Zen.decrementUseCount<DependentController>(scope: testScope);
-      expect(Zen.getUseCount<DependentController>(scope: testScope), 0);
+      // Delete controller (should dispose it)
+      final deleted = testScope.delete<DependentController>();
+      expect(deleted, true);
+      expect(controller.isDisposed, true);
+      expect(testScope.find<DependentController>(), isNull);
 
-      // Wait for auto-dispose timeout
-      expect(controller.isDisposed, false);
+      // Service should still exist
+      expect(testScope.find<MockService>(), same(service));
 
-      // This is a bit hacky for testing - in real code you wouldn't force auto-dispose
-      // directly, but for testing we need to simulate the timer callback
-      Zen.delete<DependentController>(scope: testScope);
+      // Clean up the test scope
+      testScope.dispose();
+    });
 
+    test('should handle permanent vs temporary dependencies', () {
+      // Create a test scope for this specific test
+      final testScope = Zen.createScope(name: 'permanent-temp');
+
+      // Register permanent service
+      final service = MockService();
+      testScope.put<MockService>(service, permanent: true);
+
+      // Register temporary controller
+      final controller = DependentController(service);
+      testScope.put<DependentController>(controller, permanent: false);
+
+      // Try to delete permanent service (should fail without force)
+      final serviceDeleted = testScope.delete<MockService>();
+      expect(serviceDeleted, false);
+      expect(testScope.find<MockService>(), same(service));
+
+      // Delete temporary controller (should succeed)
+      final controllerDeleted = testScope.delete<DependentController>();
+      expect(controllerDeleted, true);
       expect(controller.isDisposed, true);
 
-      // Restore default config
-      ZenConfig.enableAutoDispose = false;
+      // Force delete permanent service
+      final forceDeleted = testScope.delete<MockService>(force: true);
+      expect(forceDeleted, true);
+      expect(testScope.find<MockService>(), isNull);
+
+      // Clean up the test scope
+      testScope.dispose();
+    });
+
+    test('should handle multiple dependencies of same type with tags', () {
+      // Create a test scope for this specific test
+      final testScope = Zen.createScope(name: 'multiple-dependencies');
+
+      // Temporarily enable debug logs for this test
+      final originalDebugState = ZenConfig.enableDebugLogs;
+      ZenConfig.enableDebugLogs = true;
+
+      try {
+        // Register multiple services of same type
+        final serviceA = MockService();
+        final serviceB = MockService();
+        final serviceC = MockService();
+
+        testScope.put<MockService>(serviceA, tag: 'A');
+        testScope.put<MockService>(serviceB, tag: 'B');
+        testScope.put<MockService>(serviceC); // No tag
+
+        // Verify existence checks
+        expect(testScope.exists<MockService>(tag: 'A'), isTrue);
+        expect(testScope.exists<MockService>(tag: 'B'), isTrue);
+        expect(testScope.exists<MockService>(), isTrue);
+
+        // Verify individual service lookups
+        expect(testScope.find<MockService>(tag: 'A'), same(serviceA));
+        expect(testScope.find<MockService>(tag: 'B'), same(serviceB));
+        expect(testScope.find<MockService>(), same(serviceC));
+
+        // Find all services of type
+        final allServices = testScope.findAllOfType<MockService>();
+        expect(allServices.length, 3);
+        expect(allServices, containsAll([serviceA, serviceB, serviceC]));
+      } finally {
+        // Restore debug state
+        ZenConfig.enableDebugLogs = originalDebugState;
+
+        // Clean up the test scope
+        testScope.dispose();
+      }
+    });
+
+    test('should handle dependency existence checks', () {
+      // Create a test scope for this specific test
+      final testScope = Zen.createScope(name: 'existence-checks');
+
+      // Initially no dependencies
+      expect(testScope.exists<MockService>(), false);
+      expect(testScope.exists<DependentController>(), false);
+
+      // Register service
+      final service = MockService();
+      testScope.put<MockService>(service);
+
+      expect(testScope.exists<MockService>(), true);
+      expect(testScope.exists<DependentController>(), false);
+
+      // Register controller
+      final controller = DependentController(service);
+      testScope.put<DependentController>(controller);
+
+      expect(testScope.exists<MockService>(), true);
+      expect(testScope.exists<DependentController>(), true);
+
+      // Check tagged existence
+      expect(testScope.exists<MockService>(tag: 'nonexistent'), false);
+
+      testScope.put<MockService>(MockService(), tag: 'tagged');
+      expect(testScope.exists<MockService>(tag: 'tagged'), true);
 
       // Clean up the test scope
       testScope.dispose();

@@ -34,29 +34,55 @@ class EagerRef<T> implements Ref<T> {
   /// Get the instance (throws if not found)
   @override
   T find() {
-    final result = Zen.find<T>(tag: tag, scope: scope);
-    if (result == null) {
-      throw Exception('Dependency of type $T${tag != null ? ' with tag $tag' : ''} not found');
+    if (scope != null) {
+      return scope!.findRequired<T>(tag: tag);
+    } else {
+      return Zen.find<T>(tag: tag);
     }
-    return result;
   }
 
   /// Find the instance (returns null if not found)
   @override
-  T? findOrNull() => Zen.findOrNull<T>(tag: tag, scope: scope);
+  T? findOrNull() {
+    if (scope != null) {
+      return scope!.find<T>(tag: tag);
+    } else {
+      return Zen.findOrNull<T>(tag: tag);
+    }
+  }
 
   /// Delete the instance
   @override
-  bool delete({bool force = false}) =>
-      Zen.delete<T>(tag: tag, force: force, scope: scope);
+  bool delete({bool force = false}) {
+    if (scope != null) {
+      return scope!.delete<T>(tag: tag, force: force);
+    } else {
+      return Zen.delete<T>(tag: tag, force: force);
+    }
+  }
 
-  /// Check if instance exists - for eager instances this directly checks
+  /// Check if instance exists
   @override
-  bool exists() => findOrNull() != null;
+  bool exists() {
+    if (scope != null) {
+      return scope!.exists<T>(tag: tag);
+    } else {
+      return Zen.findOrNull<T>(tag: tag) != null;
+    }
+  }
 
-  /// Register a instance
-  T put(T instance, {bool permanent = false, List<dynamic> dependencies = const []}) =>
-      Zen.put<T>(instance, tag: tag, permanent: permanent, dependencies: dependencies, scope: scope);
+  /// Register an instance
+  T put(T instance, {bool? isPermanent}) {
+    if (scope != null) {
+      return scope!.put<T>(
+        instance,
+        tag: tag,
+        permanent: isPermanent ?? false,
+      );
+    } else {
+      return Zen.put<T>(instance, tag: tag, isPermanent: isPermanent);
+    }
+  }
 }
 
 /// Reference to a lazily instantiated dependency
@@ -67,56 +93,49 @@ class LazyRef<T> implements Ref<T> {
   @override
   final ZenScope? scope;
 
-  bool _accessed = false;
-
   LazyRef({this.tag, this.scope});
 
   @override
   T find() {
-    _accessed = true;
-    final result = Zen.find<T>(tag: tag, scope: scope);
-    if (result == null) {
-      throw Exception('Dependency of type $T${tag != null ? ' with tag $tag' : ''} not found');
+    if (scope != null) {
+      return scope!.findRequired<T>(tag: tag);
+    } else {
+      return Zen.find<T>(tag: tag);
     }
-    return result;
   }
 
   @override
   T? findOrNull() {
-    final result = Zen.findOrNull<T>(tag: tag, scope: scope);
-    if (result != null) {
-      _accessed = true;
+    if (scope != null) {
+      return scope!.find<T>(tag: tag);
+    } else {
+      return Zen.findOrNull<T>(tag: tag);
     }
-    return result;
   }
 
   @override
   bool delete({bool force = false}) {
-    return Zen.delete<T>(tag: tag, force: force, scope: scope);
+    if (scope != null) {
+      return scope!.delete<T>(tag: tag, force: force);
+    } else {
+      return Zen.delete<T>(tag: tag, force: force);
+    }
   }
 
-  /// For lazy references, exists() returns true only if the dependency has already been instantiated
+  /// For lazy references, check if dependency is registered or instantiated
   @override
   bool exists() {
-    // If we've already accessed it and found it, we can check directly
-    if (_accessed) {
-      return findOrNull() != null;
+    final targetScope = scope ?? Zen.rootScope;
+    return targetScope.contains<T>(tag: tag);
+  }
+
+  /// Register a lazy factory
+  void putLazy(T Function() factory, {bool isPermanent = true}) {
+    if (scope != null) {
+      scope!.putLazy<T>(factory, tag: tag, isPermanent: isPermanent);
+    } else {
+      Zen.putLazy<T>(factory, tag: tag, isPermanent: isPermanent);
     }
-
-    // If we haven't accessed it yet, check if an actual instance exists (not just a factory)
-    final targetScope = scope ?? Zen.currentScope;
-    return targetScope.hasDependency<T>(tag: tag);
-  }
-
-  /// Register a dependency
-  T put(T instance, {bool permanent = false, List<dynamic> dependencies = const []}) {
-    _accessed = true;
-    return Zen.put<T>(instance, tag: tag, permanent: permanent, dependencies: dependencies, scope: scope);
-  }
-
-  /// Register a factory for lazy creation
-  void lazyPut(T Function() factory, {bool permanent = false}) {
-    Zen.lazyPut<T>(factory, tag: tag, permanent: permanent, scope: scope);
   }
 }
 
@@ -133,122 +152,71 @@ class ControllerRef<T extends ZenController> implements Ref<T> {
   /// Get the controller instance (throws if not found)
   @override
   T find() {
-    final result = Zen.find<T>(tag: tag, scope: scope);
-    if (result == null) {
-      throw Exception('Controller of type $T${tag != null ? ' with tag $tag' : ''} not found');
+    if (scope != null) {
+      return scope!.findRequired<T>(tag: tag);
+    } else {
+      return Zen.find<T>(tag: tag);
     }
-    return result;
   }
 
   /// Get the controller if it exists, otherwise null
   @override
   T? findOrNull() {
-    return Zen.findOrNull<T>(tag: tag, scope: scope);
+    if (scope != null) {
+      return scope!.find<T>(tag: tag);
+    } else {
+      return Zen.findOrNull<T>(tag: tag);
+    }
   }
 
   /// Delete the controller
   @override
   bool delete({bool force = false}) {
-    return Zen.delete<T>(tag: tag, force: force, scope: scope);
+    if (scope != null) {
+      return scope!.delete<T>(tag: tag, force: force);
+    } else {
+      return Zen.delete<T>(tag: tag, force: force);
+    }
   }
 
   /// Check if controller exists
   @override
   bool exists() {
-    return findOrNull() != null;
+    if (scope != null) {
+      return scope!.exists<T>(tag: tag);
+    } else {
+      return Zen.findOrNull<T>(tag: tag) != null;
+    }
   }
 
   /// Register a controller instance
-  T put(T controller, {bool permanent = false, List<dynamic> dependencies = const []}) {
-    return Zen.put<T>(controller, tag: tag, permanent: permanent, dependencies: dependencies, scope: scope);
-  }
-
-  /// Increment use count
-  int incrementUseCount() => Zen.incrementUseCount<T>(tag: tag, scope: scope);
-
-  /// Decrement use count
-  int decrementUseCount() => Zen.decrementUseCount<T>(tag: tag, scope: scope);
-}
-
-/// Reference to a lazily instantiated controller
-class LazyControllerRef<T extends ZenController> implements Ref<T> {
-  @override
-  final String? tag;
-
-  @override
-  final ZenScope? scope;
-
-  bool _accessed = false;
-
-  LazyControllerRef({this.tag, this.scope});
-
-  @override
-  T find() {
-    _accessed = true;
-    final result = Zen.find<T>(tag: tag, scope: scope);
-    if (result == null) {
-      throw Exception('Controller of type $T${tag != null ? ' with tag $tag' : ''} not found');
+  T put(T controller, {bool isPermanent = false}) {
+    if (scope != null) {
+      return scope!.put<T>(
+        controller,
+        tag: tag,
+        permanent: isPermanent,
+      );
+    } else {
+      return Zen.put<T>(controller, tag: tag, isPermanent: isPermanent);
     }
-    return result;
   }
-
-  @override
-  T? findOrNull() {
-    final result = Zen.findOrNull<T>(tag: tag, scope: scope);
-    if (result != null) {
-      _accessed = true;
-    }
-    return result;
-  }
-
-  @override
-  bool delete({bool force = false}) {
-    return Zen.delete<T>(tag: tag, force: force, scope: scope);
-  }
-
-  /// For lazy controllers, exists() returns true only if the controller has already been instantiated
-  @override
-  bool exists() {
-    // If we've already accessed it and found it, we can check directly
-    if (_accessed) {
-      return findOrNull() != null;
-    }
-
-    // If we haven't accessed it yet, check if an actual instance exists (not just a factory)
-    final targetScope = scope ?? Zen.currentScope;
-    return targetScope.hasDependency<T>(tag: tag);
-  }
-
-  /// Register a controller instance
-  T put(T controller, {bool permanent = false, List<dynamic> dependencies = const []}) {
-    _accessed = true;
-    return Zen.put<T>(controller, tag: tag, permanent: permanent, dependencies: dependencies, scope: scope);
-  }
-
-  /// Increment use count
-  int incrementUseCount() => Zen.incrementUseCount<T>(tag: tag, scope: scope);
-
-  /// Decrement use count
-  int decrementUseCount() => Zen.decrementUseCount<T>(tag: tag, scope: scope);
 }
 
 /// Extension methods for the ZenController class
-extension ZenControllerExtension on ZenController {
+extension ZenControllerRefExtension on ZenController {
   /// Create a typed reference to this controller instance
   ControllerRef<T> asRef<T extends ZenController>({
     String? tag,
-    bool permanent = false,
+    bool isPermanent = false,
     ZenScope? scope,
-    List<dynamic> dependencies = const [],
   }) {
     if (this is T) {
-      Zen.put<T>(
-        this as T,
-        tag: tag,
-        permanent: permanent,
-        scope: scope,
-        dependencies: dependencies,
-      );
+      if (scope != null) {
+        scope.put<T>(this as T, tag: tag, permanent: isPermanent);
+      } else {
+        Zen.put<T>(this as T, tag: tag, isPermanent: isPermanent);
+      }
       return ControllerRef<T>(tag: tag, scope: scope);
     }
     throw Exception('Controller is not of type $T');
@@ -257,36 +225,66 @@ extension ZenControllerExtension on ZenController {
   /// Register this controller in the DI container
   T register<T extends ZenController>({
     String? tag,
-    bool permanent = false,
+    bool isPermanent = false,
     ZenScope? scope,
   }) {
     if (this is T) {
-      return Zen.put<T>(this as T, tag: tag, permanent: permanent, scope: scope);
+      if (scope != null) {
+        return scope.put<T>(this as T, tag: tag, permanent: isPermanent);
+      } else {
+        return Zen.put<T>(this as T, tag: tag, isPermanent: isPermanent);
+      }
     }
     throw Exception('Controller is not of type $T');
   }
 }
 
 /// Extension for any object to be registered in the DI container
-extension ZenObjectExtension<T> on T {
+extension ZenObjectRefExtension<T> on T {
   /// Register this instance in the DI container
   T put({
     String? tag,
-    bool permanent = false,
+    bool? isPermanent,
     ZenScope? scope,
-    List<dynamic> dependencies = const [],
   }) {
-    return Zen.put<T>(this, tag: tag, permanent: permanent, dependencies: dependencies, scope: scope);
+    if (scope != null) {
+      return scope.put<T>(
+        this,
+        tag: tag,
+        permanent: isPermanent ?? false,
+      );
+    } else {
+      return Zen.put<T>(this, tag: tag, isPermanent: isPermanent);
+    }
   }
 
   /// Create a reference to this instance
   EagerRef<T> asRef({
     String? tag,
-    bool permanent = false,
+    bool? isPermanent,
     ZenScope? scope,
-    List<dynamic> dependencies = const [],
   }) {
-    Zen.put<T>(this, tag: tag, permanent: permanent, dependencies: dependencies, scope: scope);
+    put(tag: tag, isPermanent: isPermanent, scope: scope);
     return EagerRef<T>(tag: tag, scope: scope);
+  }
+}
+
+/// Convenience functions for creating references
+class ZenRef {
+  ZenRef._();
+
+  /// Create an eager reference
+  static EagerRef<T> eager<T>({String? tag, ZenScope? scope}) {
+    return EagerRef<T>(tag: tag, scope: scope);
+  }
+
+  /// Create a lazy reference
+  static LazyRef<T> lazy<T>({String? tag, ZenScope? scope}) {
+    return LazyRef<T>(tag: tag, scope: scope);
+  }
+
+  /// Create a controller reference
+  static ControllerRef<T> controller<T extends ZenController>({String? tag, ZenScope? scope}) {
+    return ControllerRef<T>(tag: tag, scope: scope);
   }
 }

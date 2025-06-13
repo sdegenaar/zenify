@@ -1,11 +1,13 @@
-// lib/zenify/widgets/zen_effect_builder.dart
+// lib/widgets/zen_effect_builder.dart
 import 'package:flutter/material.dart';
-import 'package:zenify/effects/zen_effects.dart';
+import '../effects/zen_effects.dart';
 
 /// A widget that responds to different states of a [ZenEffect].
 ///
 /// This widget automatically rebuilds when the state of the provided effect changes,
 /// showing the appropriate UI for each state (loading, success, error, or initial).
+///
+/// Optimized for production with reduced rebuilds and better performance.
 class ZenEffectBuilder<T> extends StatefulWidget {
   /// The effect to observe
   final ZenEffect<T> effect;
@@ -17,7 +19,7 @@ class ZenEffectBuilder<T> extends StatefulWidget {
   final Widget Function(T data) onSuccess;
 
   /// Builder for the error state, provides the error
-  final Widget Function(dynamic error) onError;
+  final Widget Function(Object error) onError;
 
   /// Builder for the initial state (optional)
   final Widget Function()? onInitial;
@@ -40,59 +42,104 @@ class ZenEffectBuilder<T> extends StatefulWidget {
 }
 
 class _ZenEffectBuilderState<T> extends State<ZenEffectBuilder<T>> {
+  // Cache the current state to avoid unnecessary rebuilds
+  late bool _isLoading;
+  late Object? _error;
+  late T? _data;
+  late bool _dataWasSet;
+
   @override
   void initState() {
     super.initState();
-    // Subscribe to effect changes
-    widget.effect.addListener(_onEffectChanged);
+    _updateCachedState();
+    _subscribeToEffect();
   }
 
   @override
   void didUpdateWidget(ZenEffectBuilder<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.effect != widget.effect) {
-      oldWidget.effect.removeListener(_onEffectChanged);
-      widget.effect.addListener(_onEffectChanged);
+      _unsubscribeFromEffect(oldWidget.effect);
+      _updateCachedState();
+      _subscribeToEffect();
     }
   }
 
   @override
   void dispose() {
-    widget.effect.removeListener(_onEffectChanged);
+    _unsubscribeFromEffect(widget.effect);
     super.dispose();
   }
 
-  void _onEffectChanged() {
-    if (mounted) {
+  void _updateCachedState() {
+    _isLoading = widget.effect.isLoading.value;
+    _error = widget.effect.error.value;
+    _data = widget.effect.data.value;
+    _dataWasSet = widget.effect.dataWasSet.value;
+  }
+
+  void _onEffectChange() {
+    if (!mounted || widget.effect.isDisposed) return;
+
+    // Check if state actually changed before triggering rebuild
+    final newIsLoading = widget.effect.isLoading.value;
+    final newError = widget.effect.error.value;
+    final newData = widget.effect.data.value;
+    final newDataWasSet = widget.effect.dataWasSet.value;
+
+    if (_isLoading != newIsLoading ||
+        _error != newError ||
+        _data != newData ||
+        _dataWasSet != newDataWasSet) {
       setState(() {
-        // Force rebuild
+        _isLoading = newIsLoading;
+        _error = newError;
+        _data = newData;
+        _dataWasSet = newDataWasSet;
       });
     }
   }
 
+  void _subscribeToEffect() {
+    if (widget.effect.isDisposed) return;
+
+    // Subscribe to all the ValueNotifier properties directly
+    widget.effect.isLoading.addListener(_onEffectChange);
+    widget.effect.error.addListener(_onEffectChange);
+    widget.effect.data.addListener(_onEffectChange);
+    widget.effect.dataWasSet.addListener(_onEffectChange);
+  }
+
+  void _unsubscribeFromEffect(ZenEffect<T> effect) {
+    if (effect.isDisposed) return;
+
+    // Remove listeners from all ValueNotifier properties
+    effect.isLoading.removeListener(_onEffectChange);
+    effect.error.removeListener(_onEffectChange);
+    effect.data.removeListener(_onEffectChange);
+    effect.dataWasSet.removeListener(_onEffectChange);
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Use local variables for clarity and to ensure proper invalidation
-    final isLoading = widget.effect.isLoading.value;
-    final hasError = widget.effect.hasError;
-    final hasData = widget.effect.hasData;
-    final data = widget.effect.data.value;
+    // Handle disposed effect case
+    if (widget.effect.isDisposed) {
+      return widget.onInitial?.call() ?? const SizedBox.shrink();
+    }
 
     Widget child;
 
-    // Important: Use if-else pattern to ensure only one state is chosen
-    if (isLoading) {
+    // State logic with clear priority: loading > error > success > initial
+    if (_isLoading) {
       child = widget.onLoading();
-    } else if (hasError) {
-      child = widget.onError(widget.effect.error.value);
-    } else if (hasData) {
-      // We need to cast to T, but handle the case where T is nullable
-      child = widget.onSuccess(data as T);
+    } else if (_error != null) {
+      child = widget.onError(_error!);
+    } else if (_dataWasSet) {
+      // Use dataWasSet flag to handle null data correctly
+      child = widget.onSuccess(_data as T);
     } else {
       // Initial state
-      child = widget.onInitial != null
-          ? widget.onInitial!()
-          : const SizedBox.shrink(); // Empty widget if no initial builder
+      child = widget.onInitial?.call() ?? const SizedBox.shrink();
     }
 
     // Apply custom builder if provided
