@@ -5,8 +5,6 @@
 
 A modern, production-ready state management library for Flutter offering an intuitive approach to reactive state management with a clean, concise API.
 
-> **Version 0.1.7** brings API consistency improvements with enhanced reference system, better error handling, and improved developer experience.
-
 ## What is Zenify?
 
 Zenify is a lightweight yet powerful state management library that brings true "zen" to Flutter development. It combines the best aspects of existing solutions while addressing their limitations, creating a balanced approach that's both intuitive and robust.
