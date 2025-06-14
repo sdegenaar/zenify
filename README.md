@@ -171,7 +171,9 @@ class ProductDetailPage extends ZenView<ProductDetailController> {
       body: ZenEffectBuilder<Product>(
         effect: controller.productDetailEffect,
         onLoading: () => const Center(child: CircularProgressIndicator()),
-        onError: (error) => ErrorWidget(error: error),
+        onError: (error) => Center(
+          child: Text('Error: $error', style: TextStyle(color: Colors.red)),
+        ),
         onSuccess: (product) => ProductDetailView(product: product),
       ),
     );
@@ -196,10 +198,12 @@ For nested widgets that need controller access, you have several options:
 ```dart
 // Option 1: Use context extension (within a ZenView)
 class MyNestedWidget extends StatelessWidget {
+  const MyNestedWidget({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     final controller = context.controller<CounterController>();
-    return Text('Count: ${controller.counter.value}');
+    return Obx(() => Text('Count: ${controller.counter.value}'));
   }
 }
 
@@ -207,20 +211,22 @@ class MyNestedWidget extends StatelessWidget {
 class MyNestedWidget extends StatelessWidget {
   final CounterController controller;
   
-  const MyNestedWidget({required this.controller});
+  const MyNestedWidget({Key? key, required this.controller}) : super(key: key);
   
   @override
   Widget build(BuildContext context) {
-    return Text('Count: ${controller.counter.value}');
+    return Obx(() => Text('Count: ${controller.counter.value}'));
   }
 }
 
 // Option 3: Manual lookup (less preferred)
 class MyNestedWidget extends StatelessWidget {
+  const MyNestedWidget({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     final controller = Zen.find<CounterController>();
-    return Text('Count: ${controller.counter.value}');
+    return Obx(() => Text('Count: ${controller.counter.value}'));
   }
 }
 ```
@@ -410,18 +416,26 @@ Zenify supports hierarchical scoping for controllers, allowing for better organi
 
 ```dart
 // Create nested scopes
-ZenControllerScope<ParentController>(
-  create: () => ParentController(),
-  child: ZenControllerScope<ChildController>(
-    create: () => ChildController(),
-    child: Builder(
-      builder: (context) {
-        // Child controllers can access parent controllers
-        final child = Zen.find<ChildController>();
-        final parent = Zen.find<ParentController>(); // Available due to hierarchical scope
-        return YourWidget();
-      },
-    ),
+ZenScope(
+  child: Builder(
+    builder: (context) {
+      // Register parent controller
+      Zen.put<ParentController>(() => ParentController());
+      
+      return ZenScope(
+        child: Builder(
+          builder: (context) {
+            // Register child controller
+            Zen.put<ChildController>(() => ChildController());
+            
+            // Child controllers can access parent controllers
+            final child = Zen.find<ChildController>();
+            final parent = Zen.find<ParentController>(); // Available due to hierarchical scope
+            return YourWidget();
+          },
+        ),
+      );
+    },
   ),
 );
 ```
@@ -486,40 +500,13 @@ class UserService extends ZenController {
 ```
 
 
-## 🛣️ Routing Integration with ZenModuleBuilder
+## 🛣️ Routing Integration with ZenModulePage
 
-Zenify provides seamless integration with Flutter's routing system through `ZenModuleBuilder`, enabling automatic module lifecycle management tied to your navigation.
+Zenify provides seamless integration with Flutter's routing system through , enabling automatic module lifecycle management tied to your navigation. `ZenModulePage`
 
-### ZenModuleBuilder Widget
+### ZenModulePage Widget
 
-The `ZenModuleBuilder` widget automatically manages module registration and disposal based on route navigation:
-
-```dart
-class ProductDetailPage extends StatelessWidget {
-  final String productId;
-  
-  const ProductDetailPage({Key? key, required this.productId}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return ZenModuleBuilder(
-      modules: [ProductModule()],
-      builder: (context) => Scaffold(
-        appBar: AppBar(title: const Text('Product Details')),
-        body: ZenView<ProductDetailController>(
-          builder: (controller) => ProductDetailView(
-            product: controller.product.value,
-            onAddToCart: controller.addToCart,
-          ),
-        ),
-      ),
-    );
-  }
-}
-```
-
-
-### Route-Based Module Management
+The `ZenModulePage` widget automatically manages module registration and disposal based on route navigation. Use it directly in your route builders:
 
 Integrate modules with your routing system for automatic cleanup:
 
@@ -533,9 +520,10 @@ class AppRoutes {
     switch (settings.name) {
       case home:
         return MaterialPageRoute(
-          builder: (_) => ZenModuleBuilder(
-            modules: [HomeModule()],
-            builder: (_) => const HomePage(),
+          builder: (_) => ZenModulePage(
+            moduleBuilder: () => HomeModule(),
+            page: const HomePage(),
+            scopeName: 'HomeScope',
           ),
         );
         
@@ -544,17 +532,19 @@ class AppRoutes {
         final productId = args?['productId'] as String? ?? '';
         
         return MaterialPageRoute(
-          builder: (_) => ZenModuleBuilder(
-            modules: [ProductDetailModule()],
-            builder: (_) => ProductDetailPage(productId: productId),
+          builder: (_) => ZenModulePage(
+            moduleBuilder: () => ProductDetailModule(),
+            page: ProductDetailPage(productId: productId),
+            scopeName: 'ProductDetailScope',
           ),
         );
         
       case cart:
         return MaterialPageRoute(
-          builder: (_) => ZenModuleBuilder(
-            modules: [CartModule()],
-            builder: (_) => const CartPage(),
+          builder: (_) => ZenModulePage(
+            moduleBuilder: () => CartModule(),
+            page: const CartPage(),
+            scopeName: 'CartScope',
           ),
         );
         
@@ -648,13 +638,13 @@ class AnalyticsModule extends ZenModule {
 ```
 
 
-### Benefits of ZenModuleBuilder
+### Benefits of ZenModulePage
 
-✅ **Automatic Cleanup**: Modules are automatically disposed when leaving routes  
-✅ **Dependency Isolation**: Each route can have its own isolated dependencies  
-✅ **Memory Efficiency**: Controllers and services are cleaned up when not needed  
-✅ **Hierarchical Dependencies**: Child modules can access parent module services  
-✅ **Lifecycle Management**: Initialize and cleanup resources at the right time  
+✅ **Automatic Cleanup**: Modules are automatically disposed when leaving routes
+✅ **Dependency Isolation**: Each route can have its own isolated dependencies
+✅ **Memory Efficiency**: Controllers and services are cleaned up when not needed
+✅ **Hierarchical Dependencies**: Child modules can access parent module services
+✅ **Lifecycle Management**: Initialize and cleanup resources at the right time
 ✅ **Debug-Friendly**: Clear logging of module registration and disposal
 
 ## 📊 State Management Approaches
@@ -701,9 +691,12 @@ Obx(() => ListView.builder(
   itemCount: controller.filteredTodos.length,
   itemBuilder: (context, index) {
     final todo = controller.filteredTodos[index];
-    return TodoListItem(todo: todo, onToggle: () => controller.toggleTodo(index));
+    return TodoListItem(
+      todo: todo, 
+      onToggle: () => controller.toggleTodo(index),
+    );
   },
-));
+))
 ```
 
 
@@ -740,12 +733,12 @@ class PerformanceController extends ZenController {
 ZenBuilder<PerformanceController>(
   id: 'counter',
   builder: (controller) => Text('Counter: ${controller.counter}'),
-);
+)
 
 ZenBuilder<PerformanceController>(
   id: 'status',
   builder: (controller) => Text('Status: ${controller.status}'),
-);
+)
 ```
 
 
@@ -757,8 +750,15 @@ Handle async operations with built-in loading, error, and success states:
 
 ```dart
 class UserController extends ZenController {
-  final userEffect = ZenEffect<User>(name: 'userLoad');
-  final deleteEffect = ZenEffect<void>(name: 'userDelete');
+  late final ZenEffect<User> userEffect;
+  late final ZenEffect<void> deleteEffect;
+
+  @override
+  void onInit() {
+    super.onInit();
+    userEffect = createEffect<User>(name: 'userLoad');
+    deleteEffect = createEffect<void>(name: 'userDelete');
+  }
 
   Future<void> loadUser(int userId) async {
     await userEffect.run(() async {
@@ -787,7 +787,7 @@ ZenEffectBuilder<User>(
   onLoading: () => const CircularProgressIndicator(),
   onError: (error) => Text('Error: $error'),
   onSuccess: (user) => UserDetailCard(user: user),
-);
+)
 ```
 
 
@@ -939,18 +939,20 @@ Zenify's API is inspired by GetX, making migration straightforward:
 
 #### Migration Steps
 
-1. **Update Dependencies**: Replace `get` with `zenify` in `pubspec.yaml`
+1. **Update Dependencies**: Replace with `zenify` in `get``pubspec.yaml`
 2. **Update Imports**: Change `import 'package:get/get.dart';` to `import 'package:zenify/zenify.dart';`
-3. **Update References**: Change `Get.` to `Zen.` for dependency injection
+3. **Update References**: Change `Get.` to for dependency injection `Zen.`
 4. **Update Widgets**: Replace `GetX` with `ZenBuilder` for manual updates
 5. **Update Modules**: Convert `GetX` bindings to `ZenModule`
-6. **Update Controllers**: Extend `ZenController` instead of `GetxController`
+6. **Update Controllers**: Extend instead of `GetxController` `ZenController`
 
 ### From Provider
 
 ```dart
 // Before (Provider)
 class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
@@ -958,17 +960,19 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => CounterModel()),
         ChangeNotifierProvider(create: (_) => UserModel()),
       ],
-      child: MaterialApp(home: MyHomePage()),
+      child: const MaterialApp(home: MyHomePage()),
     );
   }
 }
 
 // After (Zenify)
 class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return ZenScope(
-      child: MaterialApp(home: MyHomePage()),
+      child: const MaterialApp(home: MyHomePage()),
     );
   }
 }
@@ -978,7 +982,7 @@ void main() async {
   await Zen.registerModules([
     AppModule(), // Contains CounterController and UserController
   ]);
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 ```
 
@@ -990,15 +994,15 @@ void main() async {
 1. **Core Modules**: Register shared services in global modules
 2. **Feature Modules**: Create specific modules for each major feature/route
 3. **Dependency Checking**: Always verify required dependencies exist in parent scopes
-4. **Lifecycle Hooks**: Use `onInit` and `onDispose` for resource management
+4. **Lifecycle Hooks**: Use and for resource management `onInit``onDispose`
 5. **Error Handling**: Provide clear error messages when dependencies are missing
 
 ### Performance Optimization
 
-1. **Use Effects**: Leverage `ZenEffect` for async operations with built-in state management
+1. **Use Effects**: Leverage for async operations with built-in state management `ZenEffect`
 2. **Selective Updates**: Use `ZenBuilder` with specific IDs for fine-grained updates
 3. **Memory Management**: Dispose controllers and effects properly in `onClose`
-4. **Module Cleanup**: Use `ZenModuleBuilder` for automatic resource cleanup on navigation
+4. **Module Cleanup**: Use for automatic resource cleanup on navigation `ZenModulePage`
 
 ### Testing Strategy
 
@@ -1039,10 +1043,9 @@ void main() async {
 ## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
-
 ### Development Setup
 
-```shell script
+```bash
 git clone https://github.com/sdegenaar/zenify.git
 cd zenify
 flutter pub get
