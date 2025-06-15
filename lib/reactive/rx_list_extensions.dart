@@ -1,4 +1,6 @@
 // lib/reactive/rx_list_extensions.dart
+import 'dart:math' as math;
+
 import 'rx_value.dart';
 import 'rx_tracking.dart';
 
@@ -84,6 +86,10 @@ extension ReactiveListInterface<T> on Rx<List<T>> {
     return value.last;
   }
 
+  // ============================================================================
+  // EXISTING MODIFICATION METHODS
+  // ============================================================================
+
   // Core modification methods
   void add(T item) {
     value = [...value, item];
@@ -105,6 +111,165 @@ extension ReactiveListInterface<T> on Rx<List<T>> {
     if (value.isNotEmpty) {
       value = <T>[];
     }
+  }
+
+  // ============================================================================
+  // NEW MISSING METHODS - ADD THESE!
+  // ============================================================================
+
+  /// Remove elements from [start] (inclusive) to [end] (exclusive)
+  void removeRange(int start, int end) {
+    if (start < 0 || end > value.length || start > end) {
+      throw RangeError('Invalid range: start=$start, end=$end, length=${value.length}');
+    }
+    final newList = List<T>.from(value);
+    newList.removeRange(start, end);
+    value = newList;
+  }
+
+  /// Remove and return the element at [index]
+  T removeAt(int index) {
+    if (index < 0 || index >= value.length) {
+      throw RangeError.index(index, value);
+    }
+    final newList = List<T>.from(value);
+    final removed = newList.removeAt(index);
+    value = newList;
+    return removed;
+  }
+
+  /// Remove and return the last element
+  T removeLast() {
+    if (value.isEmpty) {
+      throw StateError('No element');
+    }
+    final newList = List<T>.from(value);
+    final removed = newList.removeLast();
+    value = newList;
+    return removed;
+  }
+
+  /// Insert [element] at [index]
+  void insert(int index, T element) {
+    if (index < 0 || index > value.length) {
+      throw RangeError.index(index, value);
+    }
+    final newList = List<T>.from(value);
+    newList.insert(index, element);
+    value = newList;
+  }
+
+  /// Insert all [elements] starting at [index]
+  void insertAll(int index, Iterable<T> elements) {
+    if (index < 0 || index > value.length) {
+      throw RangeError.index(index, value);
+    }
+    if (elements.isEmpty) return;
+    final newList = List<T>.from(value);
+    newList.insertAll(index, elements);
+    value = newList;
+  }
+
+  /// Replace elements from [start] to [end] with [replacements]
+  void replaceRange(int start, int end, Iterable<T> replacements) {
+    if (start < 0 || end > value.length || start > end) {
+      throw RangeError('Invalid range: start=$start, end=$end, length=${value.length}');
+    }
+    final newList = List<T>.from(value);
+    newList.replaceRange(start, end, replacements);
+    value = newList;
+  }
+
+  /// Set all elements starting at [index] to [elements]
+  void setAll(int index, Iterable<T> elements) {
+    if (index < 0 || index > value.length) {
+      throw RangeError.index(index, value);
+    }
+    final newList = List<T>.from(value);
+    newList.setAll(index, elements);
+    value = newList;
+  }
+
+  /// Set elements from [start] to [end] to values from [iterable]
+  void setRange(int start, int end, Iterable<T> iterable, [int skipCount = 0]) {
+    if (start < 0 || end > value.length || start > end) {
+      throw RangeError('Invalid range: start=$start, end=$end, length=${value.length}');
+    }
+    final newList = List<T>.from(value);
+    newList.setRange(start, end, iterable, skipCount);
+    value = newList;
+  }
+
+  /// Fill elements from [start] to [end] with [fillValue]
+  void fillRange(int start, int end, [T? fillValue]) {
+    if (start < 0 || end > value.length || start > end) {
+      throw RangeError('Invalid range: start=$start, end=$end, length=${value.length}');
+    }
+    final newList = List<T>.from(value);
+    newList.fillRange(start, end, fillValue);
+    value = newList;
+  }
+
+  /// Remove elements that satisfy [test]
+  void removeWhere(bool Function(T element) test) {
+    final newList = List<T>.from(value);
+    newList.removeWhere(test);
+    value = newList;
+  }
+
+  /// Keep only elements that satisfy [test]
+  void retainWhere(bool Function(T element) test) {
+    final newList = List<T>.from(value);
+    newList.retainWhere(test);
+    value = newList;
+  }
+
+  /// Sort the list using [compare] function
+  void sort([int Function(T a, T b)? compare]) {
+    final newList = List<T>.from(value);
+    newList.sort(compare);
+    value = newList;
+  }
+
+  /// Shuffle the list randomly
+  void shuffle([math.Random? random]) {
+    final newList = List<T>.from(value);
+    newList.shuffle(random);
+    value = newList;
+  }
+
+  // ============================================================================
+  // QUERY METHODS (existing ones)
+  // ============================================================================
+
+  /// Get a sublist from [start] to [end]
+  List<T> sublist(int start, [int? end]) {
+    RxTracking.track(this);
+    return value.sublist(start, end);
+  }
+
+  /// Get elements from [start] to [end] as an iterable
+  Iterable<T> getRange(int start, int end) {
+    RxTracking.track(this);
+    return value.getRange(start, end);
+  }
+
+  /// Find index of [element] starting from [start]
+  int indexOf(T element, [int start = 0]) {
+    RxTracking.track(this);
+    return value.indexOf(element, start);
+  }
+
+  /// Find last index of [element] starting from [start]
+  int lastIndexOf(T element, [int? start]) {
+    RxTracking.track(this);
+    return value.lastIndexOf(element, start);
+  }
+
+  /// Check if list contains [element]
+  bool contains(Object? element) {
+    RxTracking.track(this);
+    return value.contains(element);
   }
 
   // Performance optimization methods

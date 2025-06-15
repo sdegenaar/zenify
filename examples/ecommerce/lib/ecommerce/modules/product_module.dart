@@ -2,7 +2,6 @@
 import 'package:zenify/zenify.dart';
 import '../../shared/services/product_service.dart';
 import '../controllers/home_controller.dart';
-import '../controllers/product_detail_controller.dart';
 
 /// Module for product-related features
 class ProductModule extends ZenModule {
@@ -17,20 +16,12 @@ class ProductModule extends ZenModule {
     final productService = Zen.find<ProductService>();
     ZenLogger.logDebug('ProductService found: ${productService != null}');
 
-    if (productService == null) {
-      ZenLogger.logError('ProductService not found! Cannot register controllers.');
-      throw Exception('ProductService not found in any parent scope');
-    }
-
     // Register controllers directly (not as factories for now)
     try {
       final homeController = HomeController(productService: productService);
       scope.put<HomeController>(homeController);
       ZenLogger.logDebug('HomeController registered successfully');
 
-      // final productDetailController = ProductDetailController(productService: productService);
-      // scope.put<ProductDetailController>(productDetailController);
-      // ZenLogger.logDebug('ProductDetailController registered successfully');
     } catch (e) {
       ZenLogger.logError('Error registering controllers: $e');
       rethrow;

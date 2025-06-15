@@ -1,3 +1,17 @@
+## 0.1.9
+
+* Enhanced Testing and Logging Infrastructure
+  * Add comprehensive memory leak detection test suite with tracking utilities
+  * Implement resource lifecycle monitoring for controllers, scopes, and services
+  * Add stress tests for rapid creation/disposal scenarios
+  * Implement dependency resolution benchmark suite for performance monitoring
+  * Add widget lifecycle tests with safe ZenView implementation patterns
+  * Enhance error handling in test teardown processes
+  * Add performance monitoring utilities with operations-per-second metrics
+  * Improve test coverage for module registration and cleanup
+  * Add hierarchical scope disposal verification tests
+  * Implement batch operations benchmarking for large-scale dependency management
+
 ## 0.1.8
 
 * Major Enhancement: ZenView Integration and Widget System
