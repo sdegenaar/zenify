@@ -17,8 +17,12 @@ class CartBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cartService = Zen.findOrNull<CartService>();
+    return ZenConsumer<CartService>(
+      builder: (cartService) => _buildCartBadge(context, cartService),
+    );
+  }
 
+  Widget _buildCartBadge(BuildContext context, CartService? cartService) {
     if (cartService == null) {
       // Fallback if cart service is not available
       return IconButton(
@@ -53,7 +57,7 @@ class CartBadge extends StatelessWidget {
                 height: 20,
                 decoration: BoxDecoration(
                   color: Colors.red,
-                  shape: BoxShape.circle, // This makes it perfectly round
+                  shape: BoxShape.circle,
                   border: Border.all(
                     color: Theme.of(context).scaffoldBackgroundColor,
                     width: 1.5,
@@ -66,7 +70,7 @@ class CartBadge extends StatelessWidget {
                       color: Colors.white,
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
-                      height: 1.0, // Removes extra line height
+                      height: 1.0,
                     ),
                     textAlign: TextAlign.center,
                   ),

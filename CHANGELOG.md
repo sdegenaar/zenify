@@ -1,3 +1,14 @@
+## 0.2.0
+
+* Major Enhancement: Widget System Expansion and Performance Optimization
+  * Add ZenConsumer widget for efficient dependency access with automatic caching
+  * Add comprehensive test suite for ZenConsumer widget functionality
+  * Enhance widget system documentation with complete comparison table
+  * Add examples demonstrating ZenConsumer for optional services and dependencies
+  * Improve README with detailed widget selection guidelines and best practices
+  * Add performance-optimized patterns for different UI scenarios
+  * Update migration guide with widget system improvements
+
 ## 0.1.9
 
 * Enhanced Testing and Logging Infrastructure

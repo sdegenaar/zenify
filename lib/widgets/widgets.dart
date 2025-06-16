@@ -7,3 +7,4 @@ export 'zen_scope_widget.dart';
 export 'zen_effect_builder.dart';
 export 'zen_view.dart';
 export 'zen_module_page.dart';
+export 'zen_consumer.dart';
