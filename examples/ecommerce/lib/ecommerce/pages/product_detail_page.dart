@@ -382,8 +382,8 @@ class ProductDetailPage extends ZenView<ProductDetailController> {
                         child: ProductCard(
                           product: relatedProduct,
                           onTap: () {
-                            Navigator.of(context).pushReplacementNamed(
-                              AppRoutes.productDetail,
+                            Navigator.of(context).pushNamed(
+                            AppRoutes.productDetail,
                               arguments: {'productId': relatedProduct.id},
                             );
                           },
