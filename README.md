@@ -3,7 +3,7 @@
 [![pub package](https://img.shields.io/pub/v/zenify.svg)](https://pub.dev/packages/zenify)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A modern, production-ready state management library for Flutter offering an intuitive approach to reactive state management with a clean, concise API.
+A modern state management library for Flutter offering an intuitive approach to reactive state management with a clean, concise API.
 
 ## What is Zenify?
 
