@@ -101,10 +101,6 @@ class CounterController extends ZenController {
 
 The recommended approach is to extend `ZenView` for your pages:
 
-### Using with Module Registration
-
-For controllers registered via modules, simply omit the `createController`:
-
 ```dart
 class ProductDetailPage extends ZenView<ProductDetailController> {
   final String productId;
