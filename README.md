@@ -101,13 +101,58 @@ class CounterController extends ZenController {
 
 The recommended approach is to extend `ZenView` for your pages:
 
+### Using with Module Registration
+
+For controllers registered via modules, simply omit the `createController`:
+
+```dart
+class ProductDetailPage extends ZenView<ProductDetailController> {
+  final String productId;
+
+  const ProductDetailPage({
+    super.key,
+    required this.productId,
+  });
+
+  @override
+  ProductDetailController Function()? get createController => () {
+    return ProductDetailController(
+      productService: Zen.find<ProductService>(),
+    )..initialize(productId); // Initialize immediately
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: ZenEffectBuilder<Product>(
+          effect: controller.productDetailEffect,
+          onLoading: () => const Text('Loading...'),
+          onError: (error) => const Text('Product Details'),
+          onSuccess: (product) => Text(product.name),
+        ),
+      ),
+      body: ZenEffectBuilder<Product>(
+        effect: controller.productDetailEffect,
+        onLoading: () => const Center(child: CircularProgressIndicator()),
+        onError: (error) => Center(
+          child: Text('Error: $error', style: TextStyle(color: Colors.red)),
+        ),
+        onSuccess: (product) => ProductDetailView(product: product),
+      ),
+    );
+  }
+}
+```
+
+### Using with Module Registration
+
+For controllers registered via modules, simply omit the `createController`:
+
 ```dart
 class CounterPage extends ZenView<CounterController> {
   const CounterPage({Key? key}) : super(key: key);
-
-  @override
-  CounterController Function()? get createController => () => CounterController();
-
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -141,37 +186,6 @@ class CounterPage extends ZenView<CounterController> {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-```
-
-### Using with Module Registration
-
-For controllers registered via modules, simply omit the `createController`:
-
-```dart
-class ProductDetailPage extends ZenView<ProductDetailController> {
-  final String productId;
-
-  const ProductDetailPage({Key? key, required this.productId}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    // Controller is automatically found from the current scope
-    // Initialize with product ID when page loads
-    controller.initialize(productId);
-
-    return Scaffold(
-      appBar: AppBar(title: const Text('Product Details')),
-      body: ZenEffectBuilder<Product>(
-        effect: controller.productDetailEffect,
-        onLoading: () => const Center(child: CircularProgressIndicator()),
-        onError: (error) => Center(
-          child: Text('Error: $error', style: TextStyle(color: Colors.red)),
-        ),
-        onSuccess: (product) => ProductDetailView(product: product),
       ),
     );
   }
