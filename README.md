@@ -443,46 +443,47 @@ Use `ZenConsumer` to efficiently access any dependency with automatic caching:
 ```dart
 // Access services efficiently
 ZenConsumer<CartService>(
-builder: (cartService) => cartService != null
-? CartIcon(itemCount: cartService.itemCount)
-    : const EmptyCartIcon(),
+  builder: (cartService) => cartService != null
+      ? CartIcon(itemCount: cartService.itemCount)
+      : const EmptyCartIcon(),
 )
 
 // Access optional dependencies gracefully
 ZenConsumer<AuthService>(
-tag: 'premium',
-builder: (authService) => authService?.isAuthenticated.value == true
-? const PremiumFeatures()
-    : const UpgradePrompt(),
+  tag: 'premium',
+  builder: (authService) => authService?.isAuthenticated.value == true
+      ? const PremiumFeatures()
+      : const UpgradePrompt(),
 )
 
 // Use in complex widgets
 class ProductCard extends StatelessWidget {
-final Product product;
+  final Product product;
 
-const ProductCard({Key? key, required this.product}) : super(key: key);
+  const ProductCard({Key? key, required this.product}) : super(key: key);
 
-@override
-Widget build(BuildContext context) {
-return Card(
-child: Column(
-children: [
-Text(product.name),
-Text('\$${product.price}'),
-ZenConsumer<CartService>(
-builder: (cartService) => ElevatedButton(
-onPressed: cartService != null
-? () => cartService.addItem(product)
-    : null,
-child: const Text('Add to Cart'),
-),
-),
-],
-),
-);
-}
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Column(
+        children: [
+          Text(product.name),
+          Text('\$${product.price}'),
+          ZenConsumer<CartService>(
+            builder: (cartService) => ElevatedButton(
+              onPressed: cartService != null
+                  ? () => cartService.addItem(product)
+                  : null,
+              child: const Text('Add to Cart'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 ```
+
 
 ### ZenBuilder - Manual Updates with Performance Control
 
