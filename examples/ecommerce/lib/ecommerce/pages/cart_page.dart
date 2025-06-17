@@ -84,33 +84,45 @@ class CartPage extends ZenView<CartController> {
     );
   }
 
+
   Widget _buildEmptyCart(BuildContext context) {
-    return Center(
+    return SingleChildScrollView(
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.shopping_cart_outlined,
-            size: 80,
-            color: Colors.grey.shade400,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Your cart is empty',
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Add items to your cart to see them here',
-            style: TextStyle(
-              color: Colors.grey.shade600,
+          // Empty cart message
+          SizedBox(
+            height: MediaQuery.of(context).size.height * 0.4,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.shopping_cart_outlined,
+                  size: 80,
+                  color: Colors.grey.shade400,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Your cart is empty',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Add items to your cart to see them here',
+                  style: TextStyle(
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: () => Navigator.of(context).pushReplacementNamed(AppRoutes.home),
+                  child: const Text('Continue Shopping'),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 24),
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pushReplacementNamed(AppRoutes.home),
-            child: const Text('Continue Shopping'),
-          ),
+
+          // Recommended products section
+          _buildRecommendedProducts(context),
         ],
       ),
     );
@@ -244,7 +256,7 @@ class CartPage extends ZenView<CartController> {
         color: Theme.of(context).colorScheme.surface,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, -5),
           ),

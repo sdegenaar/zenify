@@ -5,7 +5,7 @@ import '../core/zen_scope.dart';
 import '../core/zen_logger.dart';
 import '../core/zen_config.dart';
 import '../di/zen_di.dart';
-import '../reactive/rx_value.dart';
+import '../reactive/core/rx_value.dart';
 
 /// Test utility for tracking changes to Rx values
 class RxTester<T> {

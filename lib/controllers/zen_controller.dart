@@ -4,7 +4,7 @@ import 'package:flutter/widgets.dart';
 import '../core/zen_logger.dart';
 import '../core/zen_config.dart';
 import '../core/zen_metrics.dart';
-import '../reactive/rx_value.dart';
+import '../reactive/core/rx_value.dart';
 import '../workers/zen_workers.dart';
 import '../effects/zen_effects.dart';
 

@@ -35,7 +35,8 @@ Struggling with state management in Flutter? Zenify offers an elegant solution t
 ✅ **Enhanced Type Safety**: Generic type constraints throughout the library  
 ✅ **Performance Optimizations**: Intelligent rebuild management and memory efficiency  
 ✅ **Enhanced Testing Utilities**: Comprehensive support for testing reactive state  
-✅ **Improved Reference System**: Type-safe references with eager and lazy initialization
+✅ **Improved Reference System**: Type-safe references with eager and lazy initialization  
+✅ **Production-Ready Reactive System**: Comprehensive error handling and resilient operations
 
 ## 🚀 Quick Start
 
@@ -50,9 +51,8 @@ dependencies:
   zenify:
     git:
       url: https://github.com/sdegenaar/zenify.git
-      ref: v0.2.0
+      ref: v0.3.0
 ```
-
 
 ### Initialize Zenify
 
@@ -76,7 +76,6 @@ void main() async {
 }
 ```
 
-
 ### Your First ZenController
 
 ```dart
@@ -97,7 +96,6 @@ class CounterController extends ZenController {
   }
 }
 ```
-
 
 ### Using in Pages with ZenView
 
@@ -149,7 +147,6 @@ class CounterPage extends ZenView<CounterController> {
 }
 ```
 
-
 ### Using with Module Registration
 
 For controllers registered via modules, simply omit the `createController`:
@@ -181,7 +178,6 @@ class ProductDetailPage extends ZenView<ProductDetailController> {
 }
 ```
 
-
 ### Benefits of ZenView
 
 ✅ **Direct Controller Access**: Use `controller.property` instead of `Zen.find<T>()`  
@@ -190,6 +186,251 @@ class ProductDetailPage extends ZenView<ProductDetailController> {
 ✅ **Cleaner Code**: Less boilerplate, more readable  
 ✅ **Error Handling**: Clear exceptions when controllers aren't available  
 ✅ **Consistent Pattern**: All pages follow the same structure
+
+## ⚡ Production-Ready Reactive System
+
+**New in v0.3.0** - Zenify includes a comprehensive reactive system designed for production applications with robust error handling and performance optimization.
+
+### RxFuture - Reactive Async Operations
+
+Handle async operations with automatic state management:
+
+```dart
+class DataController extends ZenController {
+  late final RxFuture<List<User>> usersFuture;
+
+  @override
+  void onInit() {
+    super.onInit();
+
+    // Create reactive future with factory function
+    usersFuture = RxFuture.fromFactory(() => userService.getUsers());
+
+    // Or set future directly
+    // usersFuture = RxFuture(userService.getUsers());
+  }
+
+  void refreshData() {
+    usersFuture.refresh(); // Automatically handles loading states
+  }
+
+  void handleError() {
+    if (usersFuture.hasError) {
+      // Access both wrapped and original errors
+      final originalError = usersFuture.originalError;
+      final errorMessage = usersFuture.errorMessage;
+      showSnackbar('Error: $errorMessage');
+    }
+  }
+}
+
+// In UI - automatic state management
+Obx(() {
+if (controller.usersFuture.isLoading) {
+return const CircularProgressIndicator();
+}
+
+if (controller.usersFuture.hasError) {
+return ErrorWidget(controller.usersFuture.errorMessage ?? 'Unknown error');
+}
+
+if (controller.usersFuture.hasData) {
+return UserList(users: controller.usersFuture.data!);
+}
+
+return const SizedBox.shrink();
+})
+```
+
+### RxComputed - Smart Dependency Tracking
+
+Create computed values that automatically update when dependencies change:
+
+```dart
+class ShoppingController extends ZenController {
+  final RxList<CartItem> cartItems = <CartItem>[].obs();
+  final RxDouble taxRate = 0.08.obs();
+
+  // Computed values with automatic dependency tracking
+  late final RxComputed<double> subtotal;
+  late final RxComputed<double> tax;
+  late final RxComputed<double> total;
+  late final RxComputed<int> itemCount;
+
+  @override
+  void onInit() {
+    super.onInit();
+
+    // These automatically update when cartItems or taxRate change
+    subtotal = computed(() =>
+        cartItems.fold(0.0, (sum, item) => sum + (item.price * item.quantity))
+    );
+
+    tax = computed(() => subtotal.value * taxRate.value);
+
+    total = computed(() => subtotal.value + tax.value);
+
+    itemCount = computed(() =>
+        cartItems.fold(0, (sum, item) => sum + item.quantity)
+    );
+  }
+
+  void addItem(CartItem item) {
+    cartItems.add(item); // All computed values automatically update!
+  }
+
+  @override
+  void onClose() {
+    // Computed values automatically dispose their dependencies
+    subtotal.dispose();
+    tax.dispose();
+    total.dispose();
+    itemCount.dispose();
+    super.onClose();
+  }
+}
+
+// In UI - automatic updates
+Obx(() => Text('Subtotal: \$${controller.subtotal.value.toStringAsFixed(2)}'))
+Obx(() => Text('Tax: \$${controller.tax.value.toStringAsFixed(2)}'))
+Obx(() => Text('Total: \$${controller.total.value.toStringAsFixed(2)}'))
+```
+
+### RxResult - Robust Error Handling
+
+Handle operations that can fail with explicit error handling:
+
+```dart
+class UserController extends ZenController {
+  final RxList<User> users = <User>[].obs();
+
+  Future<void> saveUser(User user) async {
+    // Try* methods return RxResult for explicit error handling
+    final result = await RxResult.tryExecuteAsync(() async {
+      return await userService.saveUser(user);
+    }, 'save user');
+
+    result.onSuccess((savedUser) {
+      // Success - update the list
+      final index = users.indexWhere((u) => u.id == savedUser.id);
+      if (index != -1) {
+        users[index] = savedUser;
+      } else {
+        users.add(savedUser);
+      }
+      showSuccessMessage('User saved successfully');
+    });
+
+    result.onFailure((error) {
+      // Failure - show error message
+      showErrorMessage('Failed to save user: ${error.message}');
+    });
+  }
+
+  void updateUserSafely(int index, User newUser) {
+    // Safe list operations with error handling
+    final result = users.trySetAt(index, newUser);
+
+    if (result.isFailure) {
+      showErrorMessage('Invalid index: $index');
+    }
+  }
+
+  User? getUserSafely(int index) {
+    // Safe access with fallback
+    return users.tryElementAt(index).valueOrNull;
+  }
+}
+```
+
+### Advanced Reactive Patterns
+
+```dart
+class AdvancedController extends ZenController {
+  final RxString searchQuery = ''.obs();
+  final RxList<Product> products = <Product>[].obs();
+  final RxBool isLoading = false.obs();
+
+  @override
+  void onInit() {
+    super.onInit();
+
+    // Debounced search with error handling
+    searchQuery.debounce(const Duration(milliseconds: 500), (query) async {
+      if (query.isEmpty) {
+        products.clear();
+        return;
+      }
+
+      isLoading.value = true;
+
+      final result = await RxResult.tryExecuteAsync(() async {
+        return await productService.search(query);
+      }, 'search products');
+
+      result.onSuccess((results) {
+        products.assignAll(results);
+      });
+
+      result.onFailure((error) {
+        products.clear();
+        showError('Search failed: ${error.message}');
+      });
+
+      isLoading.value = false;
+    });
+
+    // Performance tracking
+    products.addListener(() {
+      products.trackChange(); // Track for performance monitoring
+    });
+  }
+
+  void clearSearch() {
+    searchQuery.value = '';
+    products.clear();
+  }
+}
+```
+
+### Error Configuration for Production
+
+Configure error handling behavior for different environments:
+
+```dart
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Configure reactive error handling for production
+  setRxErrorConfig(RxErrorConfig(
+    logErrors: kDebugMode, // Only log in debug mode
+    throwOnCriticalErrors: false, // Graceful degradation in production
+    maxRetries: 3,
+    retryDelay: const Duration(milliseconds: 500),
+    customLogger: (error) {
+      // Use your logging service
+      FirebaseCrashlytics.instance.recordError(
+        error.originalError,
+        error.stackTrace,
+        reason: error.message,
+      );
+    },
+  ));
+
+  runApp(const MyApp());
+}
+```
+
+### Key Benefits of the Reactive System
+
+✅ **Production-Ready**: Comprehensive error handling and resilient operations  
+✅ **Type Safety**: Full generic support with compile-time guarantees  
+✅ **Memory Efficient**: Automatic cleanup and leak prevention  
+✅ **Performance Optimized**: Smart dependency tracking and minimal rebuilds  
+✅ **Error Resilient**: Graceful degradation with fallback values  
+✅ **Async Ready**: Built-in support for futures and async operations  
+✅ **Testing Friendly**: Extensive testing utilities and mocking support  
+✅ **Resource Management**: Automatic disposal and subscription cleanup
 
 ## 🔧 Widget System
 
@@ -202,47 +443,46 @@ Use `ZenConsumer` to efficiently access any dependency with automatic caching:
 ```dart
 // Access services efficiently
 ZenConsumer<CartService>(
-  builder: (cartService) => cartService != null 
-    ? CartIcon(itemCount: cartService.itemCount)
+builder: (cartService) => cartService != null
+? CartIcon(itemCount: cartService.itemCount)
     : const EmptyCartIcon(),
 )
 
 // Access optional dependencies gracefully
 ZenConsumer<AuthService>(
-  tag: 'premium',
-  builder: (authService) => authService?.isAuthenticated.value == true
-    ? const PremiumFeatures()
+tag: 'premium',
+builder: (authService) => authService?.isAuthenticated.value == true
+? const PremiumFeatures()
     : const UpgradePrompt(),
 )
 
 // Use in complex widgets
 class ProductCard extends StatelessWidget {
-  final Product product;
-  
-  const ProductCard({Key? key, required this.product}) : super(key: key);
+final Product product;
 
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Column(
-        children: [
-          Text(product.name),
-          Text('\$${product.price}'),
-          ZenConsumer<CartService>(
-            builder: (cartService) => ElevatedButton(
-              onPressed: cartService != null 
-                ? () => cartService.addItem(product)
-                : null,
-              child: const Text('Add to Cart'),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+const ProductCard({Key? key, required this.product}) : super(key: key);
+
+@override
+Widget build(BuildContext context) {
+return Card(
+child: Column(
+children: [
+Text(product.name),
+Text('\$${product.price}'),
+ZenConsumer<CartService>(
+builder: (cartService) => ElevatedButton(
+onPressed: cartService != null
+? () => cartService.addItem(product)
+    : null,
+child: const Text('Add to Cart'),
+),
+),
+],
+),
+);
+}
 }
 ```
-
 
 ### ZenBuilder - Manual Updates with Performance Control
 
@@ -267,19 +507,19 @@ class PerformanceOptimizedView extends StatelessWidget {
             ],
           ),
         ),
-        
+
         // Only rebuilds when controller.update(['content']) is called
         ZenBuilder<DashboardController>(
           id: 'content',
           builder: (context, controller) => Expanded(
             child: ListView.builder(
               itemCount: controller.items.length,
-              itemBuilder: (context, index) => 
-                ItemWidget(item: controller.items[index]),
+              itemBuilder: (context, index) =>
+                  ItemWidget(item: controller.items[index]),
             ),
           ),
         ),
-        
+
         // Only rebuilds when controller.update(['footer']) is called
         ZenBuilder<DashboardController>(
           id: 'footer',
@@ -319,7 +559,6 @@ class DashboardController extends ZenController {
 }
 ```
 
-
 ### Obx - Reactive Updates
 
 Use `Obx` for automatic rebuilds when reactive values change:
@@ -352,7 +591,6 @@ class ReactiveWidget extends StatelessWidget {
   }
 }
 ```
-
 
 ### Widget Comparison
 
@@ -417,7 +655,6 @@ class MyNestedWidget extends StatelessWidget {
 }
 ```
 
-
 ## 🎯 ZenView Patterns
 
 ### Simple Page with Local Controller
@@ -451,7 +688,6 @@ class SettingsPage extends ZenView<SettingsController> {
   }
 }
 ```
-
 
 ### Page with Module-Registered Controller
 
@@ -499,7 +735,6 @@ class HomePage extends ZenView<HomeController> {
   }
 }
 ```
-
 
 ### Page with Tagged Controller
 
@@ -549,7 +784,6 @@ class ChatPage extends ZenView<ChatController> {
 }
 ```
 
-
 ## 🏗️ Dependency Management
 
 ### Global Module Registration
@@ -594,7 +828,6 @@ class CoreModule extends ZenModule {
   }
 }
 ```
-
 
 ### Hierarchical Scopes
 
@@ -661,7 +894,6 @@ class ProductDetailController extends ZenController {
 }
 ```
 
-
 **Key Benefits:**
 - 🔄 **Automatic Cleanup**: Scopes dispose when pages are popped
 - 🎯 **Smart Resolution**: Dependencies resolve from nearest scope
@@ -697,7 +929,6 @@ class AuthModule extends ZenModule {
 }
 ```
 
-
 ### Type-Safe References
 
 Use the enhanced reference system for type-safe dependency access:
@@ -726,7 +957,6 @@ class UserService extends ZenController {
 }
 ```
 
-
 ## 🛣️ Routing Integration with ZenModulePage
 
 Zenify provides seamless integration with Flutter's routing system through `ZenModulePage`, enabling automatic module lifecycle management tied to your navigation.
@@ -751,11 +981,11 @@ class AppRoutes {
             scopeName: 'HomeScope',
           ),
         );
-        
+
       case productDetail:
         final args = settings.arguments as Map<String, dynamic>?;
         final productId = args?['productId'] as String? ?? '';
-        
+
         return MaterialPageRoute(
           builder: (_) => ZenModulePage(
             moduleBuilder: () => ProductDetailModule(),
@@ -763,7 +993,7 @@ class AppRoutes {
             scopeName: 'ProductDetailScope',
           ),
         );
-        
+
       case cart:
         return MaterialPageRoute(
           builder: (_) => ZenModulePage(
@@ -772,7 +1002,7 @@ class AppRoutes {
             scopeName: 'CartScope',
           ),
         );
-        
+
       default:
         return MaterialPageRoute(
           builder: (_) => const NotFoundPage(),
@@ -781,7 +1011,6 @@ class AppRoutes {
   }
 }
 ```
-
 
 ### Advanced Module Dependencies
 
@@ -823,7 +1052,6 @@ class ProductModule extends ZenModule {
 }
 ```
 
-
 ### Module Lifecycle Hooks
 
 Leverage module lifecycle for complex initialization and cleanup:
@@ -861,7 +1089,6 @@ class AnalyticsModule extends ZenModule {
   }
 }
 ```
-
 
 ### Benefits of ZenModulePage
 
@@ -908,7 +1135,6 @@ TabBarView(
 )
 ```
 
-
 ### Conditional Feature Modules
 
 ```dart
@@ -926,7 +1152,6 @@ Widget build(BuildContext context) {
       );
 }
 ```
-
 
 ### Reusable Component Scoping
 
@@ -947,7 +1172,6 @@ class ChatWidget extends StatelessWidget {
   }
 }
 ```
-
 
 ### When to Use ZenScopeWidget vs ZenModulePage
 
@@ -975,7 +1199,6 @@ class MyNestedWidget extends StatelessWidget {
   }
 }
 ```
-
 
 **Benefits:**
 - **Granular Control**: Create scopes exactly where needed
@@ -1035,7 +1258,6 @@ Obx(() => ListView.builder(
 ))
 ```
 
-
 ### Manual Updates
 
 For fine-grained control and maximum performance:
@@ -1076,7 +1298,6 @@ ZenBuilder<PerformanceController>(
   builder: (context, controller) => Text('Status: ${controller.status}'),
 )
 ```
-
 
 ## 🔥 Advanced Features
 
@@ -1126,7 +1347,6 @@ ZenEffectBuilder<User>(
 )
 ```
 
-
 ### Workers for Reactive Operations
 
 ```dart
@@ -1158,7 +1378,6 @@ class SearchController extends ZenController {
 }
 ```
 
-
 ### Performance Monitoring
 
 ```dart
@@ -1189,7 +1408,6 @@ class AnalyticsController extends ZenController {
   }
 }
 ```
-
 
 ## 🧪 Testing Support
 
@@ -1228,33 +1446,44 @@ void main() {
     });
   });
 
+  group('Reactive System Tests', () {
+    test('RxFuture should handle successful operations', () async {
+      final future = Future.delayed(Duration(milliseconds: 10), () => 42);
+      final rxFuture = RxFuture<int>(future);
+
+      expect(rxFuture.isLoading, true);
+      
+      await future;
+      await Future.delayed(Duration(milliseconds: 20));
+      
+      expect(rxFuture.hasData, true);
+      expect(rxFuture.data, 42);
+    });
+
+    test('RxResult should handle errors gracefully', () {
+      final result = RxResult.tryExecute(() {
+        throw Exception('Test error');
+      }, 'test operation');
+
+      expect(result.isFailure, true);
+      expect(result.errorOrNull?.message, contains('test operation'));
+    });
+  });
+
   group('Widget Tests', () {
     testWidgets('Counter increments test', (tester) async {
       // Setup test environment
-      final testContainer = ZenTestContainer();
-      testContainer.register<CounterController>(() => CounterController());
-
-      await tester.pumpWidget(
-        ZenTestScope(
-          container: testContainer,
-          child: const MaterialApp(home: CounterView()),
-        ),
-      );
-
-      // Verify initial state
-      expect(find.text('Count: 0'), findsOneWidget);
-
-      // Tap increment button
+      await tester.pumpWidget(TestApp());
+      
+      // Test interactions
       await tester.tap(find.byIcon(Icons.add));
       await tester.pump();
-
-      // Verify incremented state
+      
       expect(find.text('Count: 1'), findsOneWidget);
     });
   });
 }
 ```
-
 
 ## 🔄 Migration Guide
 
@@ -1320,7 +1549,6 @@ void main() async {
 }
 ```
 
-
 ## 📱 Best Practices
 
 ### Widget Selection
@@ -1346,6 +1574,21 @@ void main() async {
 4. **Memory Management**: Dispose controllers and effects properly in `onClose`
 5. **Module Cleanup**: Use `ZenModulePage` for automatic resource cleanup on navigation
 
+### Performance Tips
+
+1. **Use computed values** for derived state instead of manual calculations
+2. **Leverage try* methods** for operations that might fail
+3. **Configure error handling** appropriately for your environment
+4. **Use ZenBuilder** for fine-grained performance control
+5. **Dispose resources** properly to prevent memory leaks
+
+### Error Handling Guidelines
+
+1. **Use RxResult** for operations that can fail
+2. **Configure global error handling** for production
+3. **Provide fallback values** for resilient UIs
+4. **Log errors** appropriately for debugging
+
 ### Testing Strategy
 
 1. **Unit Tests**: Test controllers in isolation using dependency injection
@@ -1353,34 +1596,12 @@ void main() async {
 3. **Integration Tests**: Test module interactions and lifecycle
 4. **Mock Dependencies**: Replace services with mocks for testing
 
-## ⚠️ Known Limitations
+### Code Organization
 
-- **Beta Stage**: While stable, this library is still in active development
-- **API Evolution**: Some breaking changes may occur in future versions
-- **Performance**: Continuously optimized but may need tuning for very large-scale applications
-- **Documentation**: Comprehensive but continuously improving
-
-## 🗺️ Roadmap
-
-### Phase 1: Core Stability ✅
-- Stable reactive system
-- Basic dependency injection
-- Testing utilities
-
-### Phase 2: Advanced Features ✅
-- Zen Effects for async operations
-- Enhanced module system
-- Performance monitoring
-
-### Phase 3: Developer Experience 🚧
-- Visual state inspector
-- Advanced debugging tools
-- IDE extensions
-
-### Phase 4: Production Ready
-- Performance optimizations
-- Comprehensive benchmarks
-- Production deployment guides
+1. **Group related functionality** in modules
+2. **Use hierarchical scopes** for dependency management
+3. **Keep controllers focused** on single responsibilities
+4. **Test reactive logic** thoroughly
 
 ## 🤝 Contributing
 
@@ -1423,5 +1644,3 @@ Zenify draws inspiration from several excellent state management libraries:
 - 💬 [Discussions](https://github.com/sdegenaar/zenify/discussions)
 
 ---
-
-Made with ❤️ by the Zenify team

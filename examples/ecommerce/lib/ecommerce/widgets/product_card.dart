@@ -36,7 +36,7 @@ class ProductCard extends StatelessWidget {
               flex: 3, // Give more space to image
               child: Stack(
                 children: [
-                  Container(
+                  SizedBox(
                     width: double.infinity,
                     child: Image.network(
                       product.imageUrl,
@@ -61,7 +61,7 @@ class ProductCard extends StatelessWidget {
                       right: 8,
                       child: Container(
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.8),
+                          color: Colors.white.withValues(alpha: 0.8),
                           shape: BoxShape.circle,
                         ),
                         child: IconButton(
@@ -90,7 +90,7 @@ class ProductCard extends StatelessWidget {
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.7),
+                          color: Colors.black.withValues(alpha: 0.7),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Row(

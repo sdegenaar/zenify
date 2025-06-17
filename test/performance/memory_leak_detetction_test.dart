@@ -1,6 +1,5 @@
 
 // test/memory_leak_detection_test.dart
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zenify/zenify.dart';
@@ -235,7 +234,7 @@ class TestModule extends ZenModule {
 /// A safe ZenView implementation that doesn't use reactive Obx widgets
 /// This prevents hanging issues during widget disposal in tests
 class SafeZenTestView extends StatefulWidget {
-  const SafeZenTestView({Key? key}) : super(key: key);
+  const SafeZenTestView({super.key});
 
   @override
   State<SafeZenTestView> createState() => _SafeZenTestViewState();

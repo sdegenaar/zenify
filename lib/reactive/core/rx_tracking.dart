@@ -1,7 +1,7 @@
 // lib/zenify/rx_tracking.dart
 import 'package:flutter/foundation.dart';
-import '../core/zen_logger.dart';
-import '../core/zen_config.dart';
+import '../../core/zen_logger.dart';
+import '../../core/zen_config.dart';
 
 /// Internal tracking system for Rx values
 /// This allows Obx widgets to track which Rx values are used in their build methods

@@ -6,7 +6,7 @@ class ZenBuilderDemoController extends ZenController {
   // Plain values (no .obs())
   int _counter = 0;
   String _message = 'Hello ZenBuilder!';
-  List<String> _items = [];
+  final List<String> _items = [];
   bool _featureA = false;
   bool _featureB = false;
 

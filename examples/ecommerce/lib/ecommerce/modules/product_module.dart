@@ -14,7 +14,7 @@ class ProductModule extends ZenModule {
 
     // Check if ProductService is available
     final productService = Zen.find<ProductService>();
-    ZenLogger.logDebug('ProductService found: ${productService != null}');
+    ZenLogger.logDebug('ProductService found: $productService');
 
     // Register controllers directly (not as factories for now)
     try {

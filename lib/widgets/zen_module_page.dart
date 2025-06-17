@@ -208,15 +208,6 @@ class _ZenScopeProvider extends InheritedWidget {
     final provider = context.dependOnInheritedWidgetOfExactType<_ZenScopeProvider>();
     return provider?.scope;
   }
-
-  /// Get the current scope from the widget tree, throws if not found
-  static ZenScope of(BuildContext context) {
-    final scope = maybeOf(context);
-    if (scope == null) {
-      throw Exception('No ZenScope found in the widget tree. Make sure you are using ZenModulePage.');
-    }
-    return scope;
-  }
 }
 
 /// Extension to access the current scope from BuildContext

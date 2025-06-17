@@ -1,7 +1,5 @@
-
-// test/performance/dependency_resolution_benchmark.dart
-
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/foundation.dart'; // Add this import
 import 'package:zenify/zenify.dart';
 
 // Simple classes for benchmarking
@@ -114,34 +112,34 @@ class BenchmarkTracker {
   }
 
   static void printSummary() {
-    print('');
-    print('🏁 BENCHMARK SUITE COMPLETE');
-    print('════════════════════════════════════════════════════════════');
-    print('   • Total benchmarks: $_totalBenchmarks');
-    print('   • Successful: ${_totalBenchmarks - _failedBenchmarks}');
-    print('   • With errors: $_failedBenchmarks');
-    print('');
+    debugPrint('');
+    debugPrint('🏁 BENCHMARK SUITE COMPLETE');
+    debugPrint('════════════════════════════════════════════════════════════');
+    debugPrint('   • Total benchmarks: $_totalBenchmarks');
+    debugPrint('   • Successful: ${_totalBenchmarks - _failedBenchmarks}');
+    debugPrint('   • With errors: $_failedBenchmarks');
+    debugPrint('');
 
     if (_results.isNotEmpty) {
-      print('📊 PERFORMANCE SUMMARY:');
+      debugPrint('📊 PERFORMANCE SUMMARY:');
       for (final result in _results) {
         final status = result.errorRate > 0 ? '⚠️ ' : '✅';
-        print('   $status ${result.toString()}');
+        debugPrint('   $status ${result.toString()}');
         if (result.errorRate > 0) {
-          print('      └─ Error rate: ${result.errorRate.toStringAsFixed(1)}%');
+          debugPrint('      └─ Error rate: ${result.errorRate.toStringAsFixed(1)}%');
         }
       }
 
       // Find fastest and slowest
       _results.sort((a, b) => b.operationsPerSecond.compareTo(a.operationsPerSecond));
-      print('');
-      print('🥇 Fastest: ${_results.first.name} (${_results.first.operationsPerSecond.toStringAsFixed(2)} ops/sec)');
-      print('🐌 Slowest: ${_results.last.name} (${_results.last.operationsPerSecond.toStringAsFixed(2)} ops/sec)');
-      print('');
-      print('📖 Legend: ops/sec = operations per second, microseconds = μs');
+      debugPrint('');
+      debugPrint('🥇 Fastest: ${_results.first.name} (${_results.first.operationsPerSecond.toStringAsFixed(2)} ops/sec)');
+      debugPrint('🐌 Slowest: ${_results.last.name} (${_results.last.operationsPerSecond.toStringAsFixed(2)} ops/sec)');
+      debugPrint('');
+      debugPrint('📖 Legend: ops/sec = operations per second, microseconds = μs');
     }
-    print('════════════════════════════════════════════════════════════');
-    print('');
+    debugPrint('════════════════════════════════════════════════════════════');
+    debugPrint('');
   }
 
   static void reset() {
@@ -154,10 +152,10 @@ class BenchmarkTracker {
 void main() {
   setUpAll(() {
     TestWidgetsFlutterBinding.ensureInitialized();
-    print('🚀 STARTING ZENIFY DEPENDENCY RESOLUTION BENCHMARKS');
-    print('════════════════════════════════════════════════════════════');
-    print('📖 Legend: ops/sec = operations per second, μs = microseconds');
-    print('');
+    debugPrint('🚀 STARTING ZENIFY DEPENDENCY RESOLUTION BENCHMARKS');
+    debugPrint('════════════════════════════════════════════════════════════');
+    debugPrint('📖 Legend: ops/sec = operations per second, μs = microseconds');
+    debugPrint('');
     BenchmarkTracker.reset();
   });
 
@@ -177,11 +175,9 @@ void main() {
   });
 
   group('Dependency Resolution Benchmarks', () {
-
-    // Define the runBenchmark function here
     BenchmarkResult runBenchmark(String name, int iterations, Function() benchmarkFn) {
       // Log benchmark start
-      print('🔄 Running: $name ($iterations iterations)...');
+      debugPrint('🔄 Running: $name ($iterations iterations)...');
 
       int warmupErrors = 0;
 
@@ -193,7 +189,7 @@ void main() {
           warmupErrors++;
           // Only log if warm-up is completely broken
           if (warmupErrors == 1) {
-            print('   ⚠️  Warning: Warm-up errors detected');
+            debugPrint('   ⚠️  Warning: Warm-up errors detected');
           }
         }
 
@@ -210,7 +206,7 @@ void main() {
         Zen.reset();
         Zen.init();
       } catch (e) {
-        print('   ❌ CRITICAL: Failed to reset before benchmark - $e');
+        debugPrint('   ❌ CRITICAL: Failed to reset before benchmark - $e');
       }
 
       // Silent benchmark execution for accurate timing
@@ -240,11 +236,11 @@ void main() {
 
       // Log results immediately after timing
       final status = errorCount > 0 ? '⚠️ ' : '✅';
-      print('   $status ${result.operationsPerSecond.toStringAsFixed(2)} ops/sec '
+      debugPrint('   $status ${result.operationsPerSecond.toStringAsFixed(2)} ops/sec '
           '(${result.avgMicrosecondsPerOperation.toStringAsFixed(2)} microseconds per op)');
 
       if (errorCount > 0) {
-        print('   └─ ${errorCount}/$iterations errors (${result.errorRate.toStringAsFixed(1)}%)');
+        debugPrint('   └─ $errorCount/$iterations errors (${result.errorRate.toStringAsFixed(1)}%)');
       }
 
       // Track result for summary
@@ -264,7 +260,7 @@ void main() {
 
       // Performance threshold check
       if (result.operationsPerSecond < 1000) {
-        print('   ⚠️  Performance warning: Registration slower than expected');
+        debugPrint('   ⚠️  Performance warning: Registration slower than expected');
       }
     });
 
@@ -279,7 +275,7 @@ void main() {
       expect(result.operationsPerSecond > 0, true);
 
       if (result.operationsPerSecond < 5000) {
-        print('   ⚠️  Performance warning: Resolution slower than expected');
+        debugPrint('   ⚠️  Performance warning: Resolution slower than expected');
       }
     });
 

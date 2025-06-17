@@ -1,6 +1,6 @@
 
 // lib/effects/zen_effects.dart
-import '../reactive/rx_value.dart';
+import '../reactive/core/rx_value.dart';
 import '../controllers/zen_controller.dart';
 import '../workers/zen_workers.dart';
 

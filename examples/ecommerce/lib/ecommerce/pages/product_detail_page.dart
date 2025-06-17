@@ -125,7 +125,7 @@ class ProductDetailPage extends ZenView<ProductDetailController> {
                 right: 16,
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.8),
+                    color: Colors.white.withValues(alpha: 0.8),
                     shape: BoxShape.circle,
                   ),
                   child: IconButton(
@@ -223,7 +223,7 @@ class ProductDetailPage extends ZenView<ProductDetailController> {
                   children: product.categories.map((category) {
                     return Chip(
                       label: Text(category),
-                      backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+                      backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                     );
                   }).toList(),
                 ),

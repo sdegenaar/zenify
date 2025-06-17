@@ -1,19 +1,29 @@
 // lib/reactive/reactive.dart
-// Production-ready reactive components barrel file
 
-// Core reactive interfaces
-export 'reactive_base.dart';
+// Core reactive system
+export 'core/reactive_base.dart';
+export 'core/rx_value.dart';
+export 'core/rx_tracking.dart';
+export 'core/rx_error_handling.dart';
 
-// Core reactive value class with basic extensions
-export 'rx_value.dart';
+// Computed and derived values
+export 'computed/rx_computed.dart';
 
-// Collection-specific extensions
-export 'rx_list_extensions.dart';
-export 'rx_map_extensions.dart';
-export 'rx_set_extensions.dart';
+// Async reactive values
+export 'async/rx_future.dart';
 
-// Type-specific extensions for primitives
-export 'rx_type_extensions.dart';
+// Type-specific extensions
+export 'extensions/rx_type_extensions.dart';
 
-// Internal tracking system (for extensions and internal use)
-export 'rx_tracking.dart' show RxTracking;
+// Collection extensions
+export 'extensions/rx_list_extensions.dart';
+export 'extensions/rx_map_extensions.dart';
+export 'extensions/rx_set_extensions.dart';
+
+// Transformations and utilities
+export 'utils/rx_transformations.dart';
+export 'utils/rx_timing.dart';
+export 'utils/rx_logger.dart';  //
+
+// Testing utilities (only export in test environment)
+export 'testing/rx_testing.dart';
