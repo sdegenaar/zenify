@@ -20,7 +20,7 @@ class ZenConfig {
 
   /// Auto-dispose settings
   static bool enableAutoDispose = true;
-  static Duration controllerCacheExpiry = Duration(minutes: 10);
+  static Duration controllerCacheExpiry = const Duration(minutes: 10);
 
   /// Navigation and routing settings
   static bool enableNavigationLogging = false;
@@ -45,7 +45,7 @@ class ZenConfig {
     enablePerformanceTracking = false;
     enableMetrics = false;
     enableAutoDispose = true;
-    controllerCacheExpiry = Duration(minutes: 30);
+    controllerCacheExpiry = const Duration(minutes: 30);
     enableNavigationLogging = false;
     enableRouteLogging = false;
     useRxTracking = true;

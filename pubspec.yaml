@@ -4,7 +4,7 @@ version: 0.4.0
 homepage: https://github.com/sdegenaar/zenify
 repository: https://github.com/sdegenaar/zenify
 issue_tracker: https://github.com/sdegenaar/zenify/issues
-documentation: https://github.com/sdegenaar/zenify/tree/main/docs
+documentation: https://github.com/sdegenaar/zenify/tree/main/doc
 
 environment:
   sdk: '>=3.0.0 <4.0.0'

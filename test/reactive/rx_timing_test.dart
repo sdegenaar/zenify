@@ -19,7 +19,7 @@ void main() {
       var callCount = 0;
       String? lastValue;
 
-      value.debounce(Duration(milliseconds: 100), (val) {
+      value.debounce(const Duration(milliseconds: 100), (val) {
         callCount++;
         lastValue = val.toString();
       });
@@ -32,7 +32,7 @@ void main() {
       expect(callCount, 0); // Should not be called yet
 
       // Wait for debounce
-      await Future.delayed(Duration(milliseconds: 150));
+      await Future.delayed(const Duration(milliseconds: 150));
 
       expect(callCount, 1);
       expect(lastValue, '3'); // Only last value
@@ -43,7 +43,7 @@ void main() {
       var callCount = 0;
       final receivedValues = <int>[];
 
-      value.throttle(Duration(milliseconds: 100), (val) {
+      value.throttle(const Duration(milliseconds: 100), (val) {
         callCount++;
         receivedValues.add(val);
       });
@@ -57,7 +57,7 @@ void main() {
       expect(receivedValues, [1]);
 
       // Wait for throttle to reset
-      await Future.delayed(Duration(milliseconds: 150));
+      await Future.delayed(const Duration(milliseconds: 150));
 
       value.value = 4; // Should be called again
       expect(callCount, 2);
@@ -92,8 +92,8 @@ void main() {
     test('should cleanup timing resources', () {
       final value = 0.obs();
 
-      value.debounce(Duration(milliseconds: 100), (val) {});
-      value.throttle(Duration(milliseconds: 100), (val) {});
+      value.debounce(const Duration(milliseconds: 100), (val) {});
+      value.throttle(const Duration(milliseconds: 100), (val) {});
 
       // Should not throw
       expect(() => value.cleanupTiming(), returnsNormally);
@@ -105,8 +105,8 @@ void main() {
       final value1 = 0.obs();
       final value2 = 1.obs();
 
-      value1.debounce(Duration(milliseconds: 100), (val) {});
-      value2.throttle(Duration(milliseconds: 100), (val) {});
+      value1.debounce(const Duration(milliseconds: 100), (val) {});
+      value2.throttle(const Duration(milliseconds: 100), (val) {});
 
       expect(RxTimingUtils.trackedInstanceCount, 2);
 

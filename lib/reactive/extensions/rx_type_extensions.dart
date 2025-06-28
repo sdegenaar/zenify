@@ -40,7 +40,7 @@ extension RxIntExtensions on Rx<int> {
   RxResult<void> tryDivide(num divisor) {
     return RxResult.tryExecute(() {
       if (divisor == 0) {
-        throw RxException('Division by zero');
+        throw const RxException('Division by zero');
       }
       value = (value / divisor).round();
     }, 'divide by $divisor');
@@ -50,7 +50,7 @@ extension RxIntExtensions on Rx<int> {
   RxResult<void> tryModulo(int divisor) {
     return RxResult.tryExecute(() {
       if (divisor == 0) {
-        throw RxException('Modulo by zero');
+        throw const RxException('Modulo by zero');
       }
       value = value % divisor;
     }, 'modulo by $divisor');
@@ -60,7 +60,7 @@ extension RxIntExtensions on Rx<int> {
   RxResult<void> tryPower(int exponent) {
     return RxResult.tryExecute(() {
       if (exponent < 0) {
-        throw RxException('Negative exponent not supported for integers');
+        throw const RxException('Negative exponent not supported for integers');
       }
       var result = 1;
       for (var i = 0; i < exponent; i++) {
@@ -188,7 +188,7 @@ extension RxDoubleExtensions on Rx<double> {
   RxResult<void> tryDivide(num divisor) {
     return RxResult.tryExecute(() {
       if (divisor == 0) {
-        throw RxException('Division by zero');
+        throw const RxException('Division by zero');
       }
       value = value / divisor;
     }, 'divide by $divisor');

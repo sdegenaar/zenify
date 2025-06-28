@@ -513,7 +513,7 @@ void main() {
                 builder: (context) {
                   // Capture the scope during build
                   capturedScope = context.zenScope;
-                  return Text('Test');
+                  return const Text('Test');
                 },
               ),
               useParentScope: true,
@@ -626,7 +626,7 @@ void main() {
 
       // Dispose by replacing widget tree
       await tester.pumpWidget(
-        MaterialApp(home: Scaffold(body: Text('Gone'))),
+        const MaterialApp(home: Scaffold(body: Text('Gone'))),
       );
 
       await tester.pumpAndSettle();
@@ -655,7 +655,7 @@ void main() {
 
       // Dispose widget
       await tester.pumpWidget(
-        MaterialApp(home: Scaffold(body: Text('Gone'))),
+        const MaterialApp(home: Scaffold(body: Text('Gone'))),
       );
 
       await tester.pumpAndSettle();
@@ -697,7 +697,7 @@ void main() {
 
       // Dispose widget
       await tester.pumpWidget(
-        MaterialApp(home: Scaffold(body: Text('Gone'))),
+        const MaterialApp(home: Scaffold(body: Text('Gone'))),
       );
 
       await tester.pumpAndSettle();
@@ -790,7 +790,7 @@ void main() {
       expect(module.disposeCalled, isFalse);
 
       await tester.pumpWidget(
-        MaterialApp(home: Scaffold(body: Text('Disposed'))),
+        const MaterialApp(home: Scaffold(body: Text('Disposed'))),
       );
 
       await tester.pumpAndSettle();
@@ -948,7 +948,7 @@ void main() {
 
       // Step 4: Remove all auto-dispose children by changing the widget tree
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: Text('All auto-dispose children removed'),
           ),

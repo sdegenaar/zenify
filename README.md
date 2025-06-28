@@ -62,8 +62,8 @@ dependencies:
   zenify:
     git:
       url: https://github.com/sdegenaar/zenify.git
-      ref: v0.4.0
-  # Will be available on pub.dev soon as: zenify: ^0.4.0
+      ref: v0.4.1
+  # Will be available on pub.dev soon as: zenify: ^0.4.1
 ```
 ### 2. Initialize
 ``` dart
@@ -114,7 +114,7 @@ class CounterPage extends ZenView<CounterController> {
 - **Zero Overhead**: Built on Flutter's ValueNotifier foundation
 - **Production Tested**: Real-world app migration validates performance
 
-_See [Performance Guide](docs/performance_guide.md) for detailed benchmarks_
+_See [Performance Guide](doc/performance_guide.md) for detailed benchmarks_
 ## Handle Async Operations with Effects
 ``` dart
 class UserController extends ZenController {
@@ -167,17 +167,17 @@ class UserController extends ZenController {
 ## Complete Documentation
 **New to Zenify?** Start with the guides that match your needs:
 ### Core Guides
-- **[Reactive Core Guide](docs/reactive_core_guide.md)** - Master reactive values, collections, and computed properties
-- **[Effects Usage Guide](docs/effects_usage_guide.md)** - Master async operations with built-in loading/error states
-- **[State Management Patterns](docs/state_management_patterns.md)** - Architectural patterns and best practices
-- **[Hierarchical Scopes Guide](docs/hierarchical_scopes_guide.md)** - Advanced dependency injection and scope management
+- **[Reactive Core Guide](doc/reactive_core_guide.md)** - Master reactive values, collections, and computed properties
+- **[Effects Usage Guide](doc/effects_usage_guide.md)** - Master async operations with built-in loading/error states
+- **[State Management Patterns](doc/state_management_patterns.md)** - Architectural patterns and best practices
+- **[Hierarchical Scopes Guide](doc/hierarchical_scopes_guide.md)** - Advanced dependency injection and scope management
 
 ### Examples & Learning
-- **[Counter App](examples/counter)** - Simple reactive state (5 minutes)
-- **[Todo App](examples/todo)** - CRUD operations with effects (10 minutes)
-- **[E-commerce App](examples/ecommerce)** - Real-world patterns (20 minutes)
-- **[Hierarchical Scopes Demo](examples/hierarchical_scopes)** - Advanced dependency patterns
-- **[Showcase App](examples/zenify_showcase)** - All features demonstrated
+- **[Counter App](example/counter)** - Simple reactive state (5 minutes)
+- **[Todo App](example/todo)** - CRUD operations with effects (10 minutes)
+- **[E-commerce App](example/ecommerce)** - Real-world patterns (20 minutes)
+- **[Hierarchical Scopes Demo](example/hierarchical_scopes)** - Advanced dependency patterns
+- **[Showcase App](example/zenify_showcase)** - All features demonstrated
 
 ### Quick References *(Coming Soon)*
 - **Core Concepts** - Controllers, reactive state, and UI widgets
@@ -237,21 +237,21 @@ Zenify draws inspiration from several excellent state management libraries:
 ## Community & Support
 - **Found a bug?** [Open an issue](https://github.com/sdegenaar/zenify/issues)
 - **Have an idea?** [Start a discussion](https://github.com/sdegenaar/zenify/discussions)
-- **Need help?** Check our [comprehensive guides](docs/)
+- **Need help?** Check our [comprehensive guides](doc/)
 - **Want to contribute?** See [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ## License
 Zenify is released under the [MIT License](LICENSE).
 ## 🚀 Ready to Get Started?
 **Choose your path:**
-- 👋 **New to Zenify?** → Start with [Counter Example](examples/counter) (5 min)
-- 🏗️ **Building something real?** → See [E-commerce Example](examples/ecommerce) (20 min)
-- 🔄 **Migrating from GetX/Provider?** → Check [Migration Guide](docs/migration_guide.md)
-- 🏢 **Enterprise project?** → Review [Hierarchical Scopes Guide](docs/hierarchical_scopes_guide.md)
+- 👋 **New to Zenify?** → Start with [Counter Example](example/counter) (5 min)
+- 🏗️ **Building something real?** → See [E-commerce Example](example/ecommerce) (20 min)
+- 🔄 **Migrating from GetX/Provider?** → Check [Migration Guide](doc/migration_guide.md)
+- 🏢 **Enterprise project?** → Review [Hierarchical Scopes Guide](doc/hierarchical_scopes_guide.md)
 
 **Questions? We're here to help!**
 - 💬 [Start a Discussion](https://github.com/sdegenaar/zenify/discussions)
-- 📚 [Browse Documentation](docs/)
+- 📚 [Browse Documentation](doc/)
 - 🐛 [Report Issues](https://github.com/sdegenaar/zenify/issues)
 
 **Ready to bring zen to your Flutter development?** Start exploring and experience the difference! ✨

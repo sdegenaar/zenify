@@ -390,7 +390,7 @@ void main() {
     testWidgets('should handle many controllers efficiently', (tester) async {
       // Create a list to track controllers
       final List<CounterController> controllers = [];
-      final int controllerCount = 20; // Reduced from 50 to ensure test runs faster
+      const int controllerCount = 20; // Reduced from 50 to ensure test runs faster
 
       // Build a widget with many nested scopes
       await tester.pumpWidget(

@@ -1133,7 +1133,7 @@ void main() {
 
       // Now dispose the widget by replacing it
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: Text('Widget Disposed'),
           ),

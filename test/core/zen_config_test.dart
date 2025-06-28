@@ -48,7 +48,7 @@ void main() {
       ZenConfig.enablePerformanceTracking = true;
       ZenConfig.enableMetrics = true;
       ZenConfig.enableAutoDispose = false;
-      ZenConfig.controllerCacheExpiry = Duration(minutes: 5);
+      ZenConfig.controllerCacheExpiry = const Duration(minutes: 5);
       ZenConfig.enableNavigationLogging = true;
       ZenConfig.enableRouteLogging = true;
       ZenConfig.useRxTracking = false;
@@ -63,7 +63,7 @@ void main() {
       expect(ZenConfig.enablePerformanceMetrics, false); // Alias check
       expect(ZenConfig.enableMetrics, false);
       expect(ZenConfig.enableAutoDispose, true);
-      expect(ZenConfig.controllerCacheExpiry, Duration(minutes: 30));
+      expect(ZenConfig.controllerCacheExpiry, const Duration(minutes: 30));
       expect(ZenConfig.enableNavigationLogging, false);
       expect(ZenConfig.enableRouteLogging, false);
       expect(ZenConfig.useRxTracking, true);
@@ -76,7 +76,7 @@ void main() {
       ZenConfig.enablePerformanceTracking = true;
       ZenConfig.enableMetrics = true;
       ZenConfig.enableAutoDispose = false;
-      ZenConfig.controllerCacheExpiry = Duration(minutes: 5);
+      ZenConfig.controllerCacheExpiry = const Duration(minutes: 5);
       ZenConfig.enableNavigationLogging = true;
       ZenConfig.enableRouteLogging = true;
       ZenConfig.useRxTracking = false;
@@ -88,7 +88,7 @@ void main() {
       expect(ZenConfig.enablePerformanceMetrics, true); // Alias check
       expect(ZenConfig.enableMetrics, true);
       expect(ZenConfig.enableAutoDispose, false);
-      expect(ZenConfig.controllerCacheExpiry, Duration(minutes: 5));
+      expect(ZenConfig.controllerCacheExpiry, const Duration(minutes: 5));
       expect(ZenConfig.enableNavigationLogging, true);
       expect(ZenConfig.enableRouteLogging, true);
       expect(ZenConfig.useRxTracking, false);
@@ -143,7 +143,7 @@ void main() {
         performanceTracking: true,
         metrics: true,
         autoDispose: false,
-        cacheExpiry: Duration(minutes: 5),
+        cacheExpiry: const Duration(minutes: 5),
         navigationLogging: true,
         routeLogging: true,
         rxTracking: false,
@@ -156,7 +156,7 @@ void main() {
       expect(ZenConfig.enablePerformanceMetrics, true); // Alias check
       expect(ZenConfig.enableMetrics, true);
       expect(ZenConfig.enableAutoDispose, false);
-      expect(ZenConfig.controllerCacheExpiry, Duration(minutes: 5));
+      expect(ZenConfig.controllerCacheExpiry, const Duration(minutes: 5));
       expect(ZenConfig.enableNavigationLogging, true);
       expect(ZenConfig.enableRouteLogging, true);
       expect(ZenConfig.useRxTracking, false);
@@ -180,7 +180,7 @@ void main() {
       expect(ZenConfig.enablePerformanceMetrics, false); // Default (alias)
       expect(ZenConfig.enableMetrics, true); // Changed
       expect(ZenConfig.enableAutoDispose, true); // Default
-      expect(ZenConfig.controllerCacheExpiry, Duration(minutes: 30)); // Default
+      expect(ZenConfig.controllerCacheExpiry, const Duration(minutes: 30)); // Default
       expect(ZenConfig.enableNavigationLogging, true); // Changed
       expect(ZenConfig.enableRouteLogging, false); // Default
       expect(ZenConfig.useRxTracking, true); // Default

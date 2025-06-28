@@ -287,7 +287,7 @@ class _SafeZenTestViewState extends State<SafeZenTestView> {
                   });
                 }
               },
-              child: Text('Increment'),
+              child: const Text('Increment'),
             ),
           ],
         ),
@@ -453,7 +453,7 @@ void main() {
       }
 
       // Wait for cleanup
-      await Future.delayed(Duration(milliseconds: 100));
+      await Future.delayed(const Duration(milliseconds: 100));
 
       // Verify resource cleanup
       expect(ZenResourceTracker.totalResourceCount, equals(initialResourceCount));
@@ -503,7 +503,7 @@ void main() {
 
       ZenWorkers.debounce(controller.message, (value) {
         ZenLogger.logDebug('Message worker triggered: $value');
-      }, Duration(milliseconds: 100));
+      }, const Duration(milliseconds: 100));
 
       ZenLogger.logDebug('Workers created, starting reactive updates...');
 
@@ -511,7 +511,7 @@ void main() {
       for (int i = 0; i < 5; i++) {
         controller.increment();
         controller.updateMessage('update $i');
-        await Future.delayed(Duration(milliseconds: 10));
+        await Future.delayed(const Duration(milliseconds: 10));
       }
 
       ZenLogger.logDebug('Reactive updates completed, disposing controller...');
@@ -522,7 +522,7 @@ void main() {
       expect(controller.disposeCalled, isTrue);
 
       // Wait for worker cleanup
-      await Future.delayed(Duration(milliseconds: 200));
+      await Future.delayed(const Duration(milliseconds: 200));
 
       expect(ZenResourceTracker.totalResourceCount, equals(initialResourceCount));
       MemoryLeakDetector.expectNoLeaks('Worker cleanup test');
@@ -620,7 +620,7 @@ void main() {
       expect(childScope1.isDisposed, isTrue);
       expect(childScope2.isDisposed, isTrue);
 
-      await Future.delayed(Duration(milliseconds: 100));
+      await Future.delayed(const Duration(milliseconds: 100));
 
       expect(ZenResourceTracker.totalResourceCount, equals(initialResourceCount));
       MemoryLeakDetector.expectNoLeaks('Scope hierarchy disposal test');
@@ -662,14 +662,14 @@ void main() {
               builder: (context) {
                 final ctrl = Zen.findOrNull<TestController>(tag: 'widget-test');
                 if (ctrl == null) {
-                  return Text('No controller');
+                  return const Text('No controller');
                 }
                 return Column(
                   children: [
                     Text('Counter: ${ctrl.counter.value}'),
                     ElevatedButton(
                       onPressed: ctrl.increment,
-                      child: Text('Increment'),
+                      child: const Text('Increment'),
                     ),
                   ],
                 );
@@ -732,7 +732,7 @@ void main() {
       expect(controller.disposeCalled, isTrue);
 
       // Wait for cleanup
-      await Future.delayed(Duration(milliseconds: 50));
+      await Future.delayed(const Duration(milliseconds: 50));
 
       expect(ZenResourceTracker.totalResourceCount, equals(initialResourceCount));
       MemoryLeakDetector.expectNoLeaks('ZenView lifecycle simulation');
@@ -765,7 +765,7 @@ void main() {
                   Builder(
                     builder: (context) {
                       final ctrl = Zen.findOrNull<TestController>(tag: 'widget-multi-$i');
-                      if (ctrl == null) return SizedBox.shrink();
+                      if (ctrl == null) return const SizedBox.shrink();
                       return Text('Controller $i: ${ctrl.counter.value}');
                     },
                   ),
@@ -775,7 +775,7 @@ void main() {
                       controller.increment();
                     }
                   },
-                  child: Text('Increment All'),
+                  child: const Text('Increment All'),
                 ),
               ],
             ),
@@ -831,12 +831,12 @@ void main() {
         // Log progress every 5 iterations
         if (i % 5 == 0) {
           ZenLogger.logDebug('Stress test progress: ${i + 1}/20 completed');
-          await Future.delayed(Duration(milliseconds: 10));
+          await Future.delayed(const Duration(milliseconds: 10));
         }
       }
 
       // Allow final cleanup
-      await Future.delayed(Duration(milliseconds: 100));
+      await Future.delayed(const Duration(milliseconds: 100));
 
       expect(ZenResourceTracker.totalResourceCount, equals(initialResourceCount));
       MemoryLeakDetector.expectNoLeaks('Stress test');
@@ -867,11 +867,11 @@ void main() {
         // Periodic cleanup and logging
         if (batch % 3 == 0) {
           ZenLogger.logDebug('Memory pressure test batch ${batch + 1}/10 completed');
-          await Future.delayed(Duration(milliseconds: 10));
+          await Future.delayed(const Duration(milliseconds: 10));
         }
       }
 
-      await Future.delayed(Duration(milliseconds: 100));
+      await Future.delayed(const Duration(milliseconds: 100));
 
       expect(ZenResourceTracker.totalResourceCount, equals(initialResourceCount));
       MemoryLeakDetector.expectNoLeaks('Memory pressure test');

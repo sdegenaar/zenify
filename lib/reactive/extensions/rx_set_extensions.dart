@@ -213,7 +213,7 @@ extension RxSetExtensions<T> on Rx<Set<T>> {
   RxResult<T> get tryFirst {
     return RxResult.tryExecute(() {
       if (value.isEmpty) {
-        throw RxException('Cannot get first element of empty set');
+        throw const RxException('Cannot get first element of empty set');
       }
       return value.first;
     }, 'get first element from set');
@@ -222,7 +222,7 @@ extension RxSetExtensions<T> on Rx<Set<T>> {
   RxResult<T> get tryLast {
     return RxResult.tryExecute(() {
       if (value.isEmpty) {
-        throw RxException('Cannot get last element of empty set');
+        throw const RxException('Cannot get last element of empty set');
       }
       return value.last;
     }, 'get last element from set');
@@ -231,10 +231,10 @@ extension RxSetExtensions<T> on Rx<Set<T>> {
   RxResult<T> get trySingle {
     return RxResult.tryExecute(() {
       if (value.isEmpty) {
-        throw RxException('Cannot get single element of empty set');
+        throw const RxException('Cannot get single element of empty set');
       }
       if (value.length > 1) {
-        throw RxException('Set has more than one element');
+        throw const RxException('Set has more than one element');
       }
       return value.single;
     }, 'get single element from set');

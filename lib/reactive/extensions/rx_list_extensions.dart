@@ -370,7 +370,7 @@ extension RxListExtensions<T> on Rx<List<T>> {
     return RxResult.tryExecute(() {
       RxTracking.track(this);
       if (value.isEmpty) {
-        throw RxException('Cannot get first element of empty list');
+        throw const RxException('Cannot get first element of empty list');
       }
       return value.first;
     }, 'get first element');
@@ -380,7 +380,7 @@ extension RxListExtensions<T> on Rx<List<T>> {
     return RxResult.tryExecute(() {
       RxTracking.track(this);
       if (value.isEmpty) {
-        throw RxException('Cannot get last element of empty list');
+        throw const RxException('Cannot get last element of empty list');
       }
       return value.last;
     }, 'get last element');
@@ -390,10 +390,10 @@ extension RxListExtensions<T> on Rx<List<T>> {
     return RxResult.tryExecute(() {
       RxTracking.track(this);
       if (value.isEmpty) {
-        throw RxException('Cannot get single element of empty list');
+        throw const RxException('Cannot get single element of empty list');
       }
       if (value.length > 1) {
-        throw RxException('List has more than one element');
+        throw const RxException('List has more than one element');
       }
       return value.single;
     }, 'get single element');

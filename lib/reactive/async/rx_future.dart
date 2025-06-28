@@ -128,7 +128,7 @@ class RxFuture<T> extends ValueNotifier<AsyncSnapshot<T>> {
         value = const AsyncSnapshot.waiting();
         _watchFuture(_currentFuture!);
       } else {
-        throw RxException('No future or factory available to refresh');
+        throw const RxException('No future or factory available to refresh');
       }
     }, 'refresh future');
   }
