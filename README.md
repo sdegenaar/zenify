@@ -4,11 +4,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A modern state management library for Flutter that brings true "zen" to your development experience. Clean, intuitive, and powerful.
-
 ## Why Zenify?
-
 **Stop fighting with state management.** Zenify offers an elegant solution that keeps your codebase clean and your mind at peace:
-
 - **🚀 Less Boilerplate**: Write less code while accomplishing more
 - **🏗️ Module System**: Organize dependencies into clean, reusable modules
 - **🔗 Natural Hierarchy**: Nested scopes that automatically inherit from parents
@@ -17,17 +14,57 @@ A modern state management library for Flutter that brings true "zen" to your dev
 - **✨ Elegant Async Handling**: Built-in effects system for loading, error, and success states
 - **🧪 Testing Ready**: Comprehensive testing utilities out of the box
 
-## Quick Start (30 seconds)
+## What Makes Zenify Different?
 
+Zenify builds on the shoulders of giants, taking inspiration from excellent libraries like **GetX**, **Provider**, and **Riverpod**. Our focus is on bringing **hierarchical dependency injection** and **automatic lifecycle management** to Flutter state management.
+
+**Zenify's unique strengths:**
+- 🏗️ **Native hierarchical scopes** - Dependencies flow naturally from parent to child
+- 🔄 **Automatic cleanup** - No manual disposal needed, prevents memory leaks
+- ✨ **Built-in async effects** - Loading/error states handled automatically
+- 🧪 **Production-validated** - Currently being tested in real-world migration
+
+**When to consider Zenify:**
+- You need complex dependency hierarchies (multi-module apps)
+- You want automatic lifecycle management
+- You're building new projects and can embrace cutting-edge tools
+- You value minimal boilerplate with maximum power
+
+**When to stick with established solutions:**
+- You need absolute stability for large existing codebases
+- Your team is already productive with current tools
+- You prefer the mature ecosystem of existing libraries
+
+## Development Status
+
+> **🚧 Active Development Phase**
+>
+> **Progress: Real-world production migration in progress** ⚙️
+>
+> Zenify is currently in active development with a **real-world production migration underway**. While the core APIs are stable and thoroughly tested, we're continuously improving based on real production feedback.
+>
+> **What this means for you:**
+> - ✅ **Core features are production-ready** - Hierarchical DI, reactive state, and effects system
+> - ✅ **Comprehensive test coverage** - Memory leak detection, lifecycle tests, performance benchmarks
+> - ✅ **Real-world validation** - Currently migrating a production Flutter app to Zenify
+> - ⚠️ **API refinements possible** - Minor breaking changes may occur before v1.0
+> - 📈 **Rapid improvements** - Features and optimizations added based on production usage
+>
+> **Perfect for:** New projects, prototypes, and developers who want cutting-edge state management
+>
+> **Consider waiting if:** You need absolute API stability for large existing codebases
+
+
+## Quick Start (30 seconds)
 ### 1. Install
-```yaml
+``` yaml
 dependencies:
   zenify:
     git:
       url: https://github.com/sdegenaar/zenify.git
       ref: v0.4.0
+  # Will be available on pub.dev soon as: zenify: ^0.4.0
 ```
-
 ### 2. Initialize
 ``` dart
 void main() async {
@@ -71,6 +108,13 @@ class CounterPage extends ZenView<CounterController> {
 }
 ```
 **That's it!** You have a fully reactive counter with automatic cleanup and type safety.
+## ⚡ Performance Highlights
+- **Minimal Rebuilds**: Only affected widgets update
+- **Memory Efficient**: Automatic scope cleanup prevents leaks
+- **Zero Overhead**: Built on Flutter's ValueNotifier foundation
+- **Production Tested**: Real-world app migration validates performance
+
+_See [Performance Guide](docs/performance_guide.md) for detailed benchmarks_
 ## Handle Async Operations with Effects
 ``` dart
 class UserController extends ZenController {
@@ -89,12 +133,9 @@ ZenEffectBuilder<User>(
   onError: (error) => ErrorMessage(error),
 )
 ```
-
 ## Organize with Modules
-
 Scale your app with clean dependency organization:
-
-```dart
+``` dart
 // Define feature modules
 class UserModule extends ZenModule {
   @override
@@ -116,7 +157,6 @@ ZenRoute(
 class UserController extends ZenController {
   final userService = Zen.find<UserService>(); // Available from module
 }
-
 ```
 **Benefits:**
 - 🗂️ **Organized Dependencies** - Group related services together
@@ -139,7 +179,7 @@ class UserController extends ZenController {
 - **[Hierarchical Scopes Demo](examples/hierarchical_scopes)** - Advanced dependency patterns
 - **[Showcase App](examples/zenify_showcase)** - All features demonstrated
 
-### Quick References
+### Quick References *(Coming Soon)*
 - **Core Concepts** - Controllers, reactive state, and UI widgets
 - **API Reference** - Complete method and class documentation
 - **Migration Guide** - Moving from other state management solutions
@@ -188,6 +228,12 @@ ZenBuilder<Controller>(
 )
 // Only rebuilds when controller.update(['specific-section']) is called
 ```
+## Credits
+Zenify draws inspiration from several excellent state management libraries:
+- **GetX** by Jonny Borges - For the intuitive reactive syntax and dependency injection approach
+- **Provider** by Remi Rousselet - For context-based dependency inheritance concepts
+- **Riverpod** by Remi Rousselet - For improved type safety and testability patterns
+
 ## Community & Support
 - **Found a bug?** [Open an issue](https://github.com/sdegenaar/zenify/issues)
 - **Have an idea?** [Start a discussion](https://github.com/sdegenaar/zenify/discussions)
@@ -196,4 +242,16 @@ ZenBuilder<Controller>(
 
 ## License
 Zenify is released under the [MIT License](LICENSE).
-**Ready to bring zen to your Flutter development?** Start with the [Counter Example](examples/counter) and explore the [comprehensive guides](docs/) to master advanced patterns.
+## 🚀 Ready to Get Started?
+**Choose your path:**
+- 👋 **New to Zenify?** → Start with [Counter Example](examples/counter) (5 min)
+- 🏗️ **Building something real?** → See [E-commerce Example](examples/ecommerce) (20 min)
+- 🔄 **Migrating from GetX/Provider?** → Check [Migration Guide](docs/migration_guide.md)
+- 🏢 **Enterprise project?** → Review [Hierarchical Scopes Guide](docs/hierarchical_scopes_guide.md)
+
+**Questions? We're here to help!**
+- 💬 [Start a Discussion](https://github.com/sdegenaar/zenify/discussions)
+- 📚 [Browse Documentation](docs/)
+- 🐛 [Report Issues](https://github.com/sdegenaar/zenify/issues)
+
+**Ready to bring zen to your Flutter development?** Start exploring and experience the difference! ✨
