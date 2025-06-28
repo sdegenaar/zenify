@@ -1,14 +1,14 @@
 name: zenify
-description: A Flutter state management library that eliminates boilerplate with hierarchical dependency injection, automatic lifecycle management, and intuitive reactive patterns.
+description: A modern state management library for Flutter that brings true "zen" to your development experience.
 version: 0.4.0
 homepage: https://github.com/sdegenaar/zenify
 repository: https://github.com/sdegenaar/zenify
 issue_tracker: https://github.com/sdegenaar/zenify/issues
-documentation: https://github.com/sdegenaar/zenify/wiki
+documentation: https://github.com/sdegenaar/zenify/tree/main/docs
 
 environment:
-  sdk: ">=3.0.0 <4.0.0"
-  flutter: ">=3.0.0"
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: ">=3.10.0"
 
 dependencies:
   flutter:
@@ -17,7 +17,4 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^6.0.0
-
-flutter:
-# Add any assets or fonts if needed
+  flutter_lints: ^3.0.0
