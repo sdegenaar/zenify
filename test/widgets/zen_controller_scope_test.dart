@@ -119,7 +119,7 @@ void main() {
       );
 
       // Verify controller exists
-      expect(Zen.findOrNull<CounterController>(), isNotNull); // ✅ Fixed: Use findOrNull instead of isRegistered
+      expect(Zen.findOrNull<CounterController>(), isNotNull);
       expect(disposerCalled, isFalse);
 
       // Replace the widget to trigger disposal
@@ -134,7 +134,7 @@ void main() {
 
       // Verify controller was disposed
       expect(disposerCalled, isTrue);
-      expect(Zen.findOrNull<CounterController>(), isNull); // ✅ Fixed: Use findOrNull instead of isRegistered
+      expect(Zen.findOrNull<CounterController>(), isNull);
     });
 
     testWidgets('should maintain controller when widget rebuilds', (tester) async {
@@ -283,7 +283,7 @@ void main() {
       );
 
       // Verify controller exists
-      expect(Zen.findOrNull<CounterController>(), isNotNull); // ✅ Fixed: Use findOrNull instead of isRegistered
+      expect(Zen.findOrNull<CounterController>(), isNotNull);
 
       // Replace the widget to trigger disposal
       await tester.pumpWidget(
@@ -295,7 +295,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Controller should still exist because it's permanent
-      expect(Zen.findOrNull<CounterController>(), isNotNull); // ✅ Fixed: Use findOrNull instead of isRegistered
+      expect(Zen.findOrNull<CounterController>(), isNotNull);
 
       // Clean up after test
       Zen.delete<CounterController>(force: true);
@@ -428,7 +428,7 @@ void main() {
       // Verify all controllers are registered and can be found
       for (int i = 0; i < controllerCount; i++) {
         final tagName = 'counter_$i';
-        expect(Zen.findOrNull<CounterController>(tag: tagName), isNotNull); // ✅ Fixed: Use findOrNull instead of isRegistered
+        expect(Zen.findOrNull<CounterController>(tag: tagName), isNotNull);
       }
 
       // Modify a controller and verify it updates
@@ -443,7 +443,7 @@ void main() {
       // Verify controllers are no longer registered
       for (int i = 0; i < controllerCount; i++) {
         final tagName = 'counter_$i';
-        expect(Zen.findOrNull<CounterController>(tag: tagName), isNull); // ✅ Fixed: Use findOrNull instead of isRegistered
+        expect(Zen.findOrNull<CounterController>(tag: tagName), isNull);
       }
     });
 
@@ -503,7 +503,7 @@ void main() {
       );
 
       // Verify controller exists
-      expect(Zen.findOrNull<CounterController>(), isNotNull); // ✅ Fixed: Use findOrNull instead of isRegistered
+      expect(Zen.findOrNull<CounterController>(), isNotNull);
 
       // Remove the widget
       await tester.pumpWidget(const MaterialApp(home: SizedBox()));
@@ -511,7 +511,7 @@ void main() {
 
       // Verify controller was disposed
       expect(disposeCalled, isTrue);
-      expect(Zen.findOrNull<CounterController>(), isNull); // ✅ Fixed: Use findOrNull instead of isRegistered
+      expect(Zen.findOrNull<CounterController>(), isNull);
     });
 
     testWidgets('should create new controller when key changes', (tester) async {

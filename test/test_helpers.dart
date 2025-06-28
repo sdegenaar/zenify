@@ -1,6 +1,7 @@
 
 // test/test_helpers.dart
 import 'package:flutter_test/flutter_test.dart';
+import 'package:zenify/debug/zen_system_stats.dart';
 import 'package:zenify/zenify.dart';
 
 /// Helper class for testing with Zen
@@ -68,16 +69,207 @@ class ZenTestHelper {
     }
   }
 
-  /// Reset the entire DI system for a fresh test environment
+  /// COMPLETELY REWRITTEN - Reset the entire DI system for a fresh test environment
   static void resetDI() {
     try {
-      // Reset the entire Zen system
+      // Step 1: Force dispose ALL child scopes first (this is critical!)
+      _forceDisposeAllChildScopes();
+
+      // Step 2: Clear all dependencies from root scope
+      _clearRootScopeDependencies();
+
+      // Step 3: Reset the entire Zen system
       Zen.reset();
 
-      // Reinitialize
+      // Step 4: Reinitialize completely
       Zen.init();
+      ZenConfig.configureTest();
+
+      // Step 5: Verify clean state
+      _verifyCleanState();
+
     } catch (e) {
       ZenLogger.logError('Error resetting DI system', e);
+
+      // Emergency fallback: try multiple resets
+      _emergencyReset();
+    }
+  }
+
+  /// Force dispose all child scopes - THIS WAS MISSING!
+  static void _forceDisposeAllChildScopes() {
+    try {
+      final rootScope = Zen.rootScope;
+
+      // Get all child scopes and dispose them
+      final childScopes = List.from(rootScope.childScopes); // Copy list to avoid modification during iteration
+      for (final child in childScopes) {
+        try {
+          if (!child.isDisposed) {
+            child.dispose();
+          }
+        } catch (e) {
+          // Continue disposing other children even if one fails
+        }
+      }
+    } catch (e) {
+      // Ignore errors here, we'll verify clean state later
+    }
+  }
+
+  /// Clear all dependencies from root scope
+  static void _clearRootScopeDependencies() {
+    try {
+      // Method 1: Global deleteAll
+      Zen.deleteAll(force: true);
+    } catch (e) {
+      // Ignore
+    }
+
+    try {
+      // Method 2: Manual cleanup of all known test types
+      _manualTestTypeCleanup();
+    } catch (e) {
+      // Ignore
+    }
+  }
+
+  /// Verify that we actually have a clean state
+  static void _verifyCleanState() {
+    try {
+      // Check that we have only root scope
+      final allScopes = Zen.rootScope.childScopes;
+      if (allScopes.isNotEmpty) {
+        ZenLogger.logWarning('Warning: Found ${allScopes.length} child scopes after reset');
+      }
+
+      // Check that root scope has no TestService instances
+      final testServices = ZenSystemStats.findAllInstancesOfType<TestService>();
+      if (testServices.isNotEmpty) {
+        ZenLogger.logWarning('Warning: Found ${testServices.length} TestService instances after reset');
+
+        // Try one more aggressive cleanup
+        _emergencyCleanup();
+      }
+    } catch (e) {
+      ZenLogger.logError('Error verifying clean state', e);
+    }
+  }
+
+  /// Emergency cleanup when normal reset fails
+  static void _emergencyCleanup() {
+    try {
+      // Force clear all dependencies manually
+      final types = [TestService, TestController, DependentService];
+      for (final type in types) {
+        try {
+          // Try deleting untagged
+          if (type == TestService) Zen.delete<TestService>();
+          if (type == TestController) Zen.delete<TestController>();
+          if (type == DependentService) Zen.delete<DependentService>();
+        } catch (e) {
+          // Continue
+        }
+      }
+
+      // Clear tagged instances
+      final testTags = ['tag1', 'tag2', 'root-tag', 'child-tag', 'grandchild-tag', 'tagged', 'test'];
+      for (final tag in testTags) {
+        try {
+          Zen.delete<TestService>(tag: tag);
+          Zen.delete<TestController>(tag: tag);
+          Zen.delete<DependentService>(tag: tag);
+        } catch (e) {
+          // Continue
+        }
+      }
+
+    } catch (e) {
+      ZenLogger.logError('Emergency cleanup failed', e);
+    }
+  }
+
+  /// Emergency reset when everything else fails
+  static void _emergencyReset() {
+    for (int attempt = 0; attempt < 3; attempt++) {
+      try {
+        Zen.reset();
+        Zen.init();
+        ZenConfig.configureTest();
+
+        // Check if it worked
+        final testServices = ZenSystemStats.findAllInstancesOfType<TestService>();
+        if (testServices.isEmpty) {
+          return; // Success!
+        }
+      } catch (e) {
+        // Continue trying
+      }
+    }
+
+    ZenLogger.logError('All reset attempts failed - tests may have contaminated state');
+  }
+
+  /// Manual cleanup of all known test types and tags
+  static void _manualTestTypeCleanup() {
+    try {
+      // Delete untagged instances
+      Zen.delete<TestService>();
+      Zen.delete<TestController>();
+      Zen.delete<DependentService>();
+    } catch (e) {
+      // Ignore
+    }
+
+    // Delete tagged instances - cover all possible tags used in tests
+    final testTags = [
+      'tag1', 'tag2', 'root-tag', 'child-tag', 'grandchild-tag', 'tagged',
+      'test', 'service1', 'service2', 'controller1', 'root', 'child'
+    ];
+
+    for (final tag in testTags) {
+      try {
+        Zen.delete<TestService>(tag: tag);
+      } catch (e) {
+        // Ignore
+      }
+      try {
+        Zen.delete<TestController>(tag: tag);
+      } catch (e) {
+        // Ignore
+      }
+      try {
+        Zen.delete<DependentService>(tag: tag);
+      } catch (e) {
+        // Ignore
+      }
+    }
+  }
+
+  /// Enhanced reset with verification - ULTRA AGGRESSIVE VERSION
+  static void resetDIWithVerification() {
+    try {
+      // Do multiple passes of dependency cleanup only
+      for (int i = 0; i < 3; i++) {
+        _clearRootScopeDependencies();
+      }
+
+      // Now do the full reset
+      Zen.reset();
+      Zen.init();
+      ZenConfig.configureTest();
+
+    } catch (e) {
+      ZenLogger.logError('Error resetting DI system with verification', e);
+
+      // Fallback to simple reset
+      try {
+        Zen.reset();
+        Zen.init();
+        ZenConfig.configureTest();
+      } catch (e2) {
+        ZenLogger.logError('Fallback reset also failed', e2);
+      }
     }
   }
 
@@ -235,5 +427,45 @@ class TestModule extends ZenModule {
   void register(ZenScope scope) {
     final service = TestService('from module');
     scope.put<TestService>(service, permanent: false);
+  }
+}
+
+/// Debug test utilities
+class ZenDebugTestHelper {
+  /// Create a scope with known dependency structure for testing
+  static ZenScope createStructuredTestScope(String name) {
+    final scope = ZenTestHelper.createIsolatedTestScope(name);
+
+    // Add predictable dependencies
+    scope.put<TestService>(TestService('service1'));
+    scope.put<TestController>(TestController('controller1'));
+    scope.put<TestService>(TestService('service2'), tag: 'tagged');
+
+    return scope;
+  }
+
+  /// Verify debug map structure
+  static void verifyDebugMapStructure(Map<String, dynamic> debugMap) {
+    expect(debugMap, containsPair('scopeInfo', isA<Map<String, dynamic>>()));
+    expect(debugMap, containsPair('dependencies', isA<Map<String, dynamic>>()));
+    expect(debugMap, containsPair('registeredTypes', isA<List>()));
+    expect(debugMap, containsPair('children', isA<List>()));
+  }
+
+  /// Verify system stats structure
+  static void verifySystemStatsStructure(Map<String, dynamic> stats) {
+    expect(stats, containsPair('scopes', isA<Map<String, dynamic>>()));
+    expect(stats, containsPair('dependencies', isA<Map<String, dynamic>>()));
+    expect(stats, containsPair('performance', isA<Map<String, dynamic>>()));
+  }
+
+  /// Create a hierarchy for testing with known structure
+  static List<ZenScope> createTestHierarchy() {
+    final root = Zen.rootScope;
+    final child1 = root.createChild(name: 'child1');
+    final child2 = root.createChild(name: 'child2');
+    final grandChild = child1.createChild(name: 'grandchild');
+
+    return [root, child1, child2, grandChild];
   }
 }

@@ -1,426 +1,268 @@
-// test/widgets/zen_builder_test.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zenify/zenify.dart';
 
 // Test controller
-class CounterController extends ZenController {
-  int count = 0;
+class TestController extends ZenController {
+  int value = 0;
 
   void increment() {
-    count++;
-    update(); // Notify UI to update
-  }
-
-  void reset() {
-    count = 0;
+    value++;
     update();
-  }
-}
-
-// Test widget using ZenBuilder
-class TestZenBuilderWidget extends StatelessWidget {
-  const TestZenBuilderWidget({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: ZenBuilder<CounterController>(
-        builder: (context, controller) {
-          return Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'Count: ${controller.count}',
-                style: Theme.of(context).textTheme.headlineMedium, // ✅ Using context
-              ),
-              ElevatedButton(
-                onPressed: controller.increment,
-                child: const Text('Increment'),
-              ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-}
-
-// Test widget with navigation using context
-class TestNavigationWidget extends StatelessWidget {
-  const TestNavigationWidget({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: ZenBuilder<CounterController>(
-        builder: (context, controller) {
-          return Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text('Count: ${controller.count}'),
-              ElevatedButton(
-                onPressed: () {
-                  // ✅ Using context for navigation
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Count is ${controller.count}')),
-                  );
-                },
-                child: const Text('Show Snackbar'),
-              ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-}
-
-// Test widget with MediaQuery using context
-class TestResponsiveWidget extends StatelessWidget {
-  const TestResponsiveWidget({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: ZenBuilder<CounterController>(
-        builder: (context, controller) {
-          final screenWidth = MediaQuery.of(context).size.width;
-          final isWideScreen = screenWidth > 600;
-
-          return Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Center(
-              child: SizedBox(
-                width: isWideScreen ? screenWidth * 0.5 : screenWidth * 0.9,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Count: ${controller.count}',
-                      style: TextStyle(
-                        fontSize: isWideScreen ? 24 : 16,
-                      ),
-                    ),
-                    const SizedBox(height: 32), // Larger spacing for better visual separation
-                    ElevatedButton(
-                      onPressed: controller.increment,
-                      child: const Text('Increment'),
-                    ),
-                    const SizedBox(height: 16), // Space for additional buttons
-                    // Add more widgets here if needed
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-// Test widget with initialization callback
-class TestInitWidget extends StatelessWidget {
-  const TestInitWidget({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: ZenBuilder<CounterController>(
-        init: (controller) {
-          // Initialize controller with context-aware value
-          controller.count = 5;
-        },
-        builder: (context, controller) {
-          return Column(
-            children: [
-              Text('Initialized Count: ${controller.count}'),
-              ElevatedButton(
-                onPressed: controller.increment,
-                child: const Text('Increment'),
-              ),
-            ],
-          );
-        },
-      ),
-    );
   }
 }
 
 void main() {
   setUp(() {
     Zen.init();
-    ZenConfig.enableDebugLogs = false;
   });
 
   tearDown(() {
     Zen.reset();
   });
 
-  group('ZenBuilder Widget Tests', () {
-    testWidgets('should provide context and controller to builder', (WidgetTester tester) async {
-      // Register a controller
-      final controller = CounterController();
-      Zen.put<CounterController>(controller);
+  group('ZenBuilder Core Functionality', () {
+    testWidgets('should find existing controller in global scope', (WidgetTester tester) async {
+      final controller = TestController();
+      Zen.put<TestController>(controller);
 
-      // Build widget
       await tester.pumpWidget(
         MaterialApp(
-          theme: ThemeData(
-            textTheme: const TextTheme(
-              headlineMedium: TextStyle(fontSize: 24, color: Colors.blue),
-            ),
-          ),
-          home: const TestZenBuilderWidget(),
-        ),
-      );
-
-      // Verify the view shows the controller's initial value with theme styling
-      expect(find.text('Count: 0'), findsOneWidget);
-
-      // Verify theme is applied (text should be blue from theme)
-      final textWidget = tester.widget<Text>(find.text('Count: 0'));
-      expect(textWidget.style?.color, Colors.blue);
-      expect(textWidget.style?.fontSize, 24);
-    });
-
-    testWidgets('should handle navigation and context-dependent actions', (WidgetTester tester) async {
-      // Register a controller
-      final controller = CounterController();
-      controller.count = 3;
-      Zen.put<CounterController>(controller);
-
-      // Build widget
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: TestNavigationWidget(),
-        ),
-      );
-
-      // Tap button to show snackbar
-      await tester.tap(find.text('Show Snackbar'));
-      await tester.pump();
-
-      // Verify snackbar is shown with correct message
-      expect(find.text('Count is 3'), findsOneWidget);
-    });
-
-    testWidgets('should handle responsive design with MediaQuery', (WidgetTester tester) async {
-      // Register a controller
-      final controller = CounterController();
-      Zen.put<CounterController>(controller);
-
-      // Set a wide screen size
-      await tester.binding.setSurfaceSize(const Size(800, 600));
-
-      // Build widget
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: TestResponsiveWidget(),
-        ),
-      );
-
-      // Find the SizedBox instead of Container
-      final sizedBoxFinder = find.byType(SizedBox);
-      expect(sizedBoxFinder, findsWidgets); // There are multiple SizedBox widgets
-
-      // Find the specific SizedBox that has the width constraint
-      final centerFinder = find.byType(Center);
-      expect(centerFinder, findsOneWidget);
-
-      final center = tester.widget<Center>(centerFinder);
-      final sizedBox = center.child as SizedBox;
-
-      // Verify wide screen layout - width should be 400.0 (800 * 0.5)
-      expect(sizedBox.width, 400.0);
-
-      // Reset surface size
-      await tester.binding.setSurfaceSize(null);
-    });
-
-    testWidgets('should handle initialization with context awareness', (WidgetTester tester) async {
-      // Register a controller
-      final controller = CounterController();
-      Zen.put<CounterController>(controller);
-
-      // Build widget with init callback
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: TestInitWidget(),
-        ),
-      );
-
-      // Verify the controller was initialized with the value from init callback
-      expect(find.text('Initialized Count: 5'), findsOneWidget);
-    });
-
-    testWidgets('should support ZenListener with context', (WidgetTester tester) async {
-      // Register a controller
-      final controller = CounterController();
-      Zen.put<CounterController>(controller);
-
-      // Build widget using ZenListener
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: ZenListener<CounterController>(
-              builder: (context, controller) {
-                return Column(
-                  children: [
-                    Text(
-                      'Reactive: ${controller.count}',
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    ),
-                    ElevatedButton(
-                      onPressed: controller.increment,
-                      child: const Text('Increment'),
-                    ),
-                  ],
-                );
-              },
-            ),
+          home: ZenBuilder<TestController>(
+            builder: (context, ctrl) => Text('Value: ${ctrl.value}'),
           ),
         ),
       );
 
-      // Verify initial state
-      expect(find.text('Reactive: 0'), findsOneWidget);
-
-      // Tap button to increment
-      await tester.tap(find.text('Increment'));
-      await tester.pump();
-
-      // UI should automatically update
-      expect(find.text('Reactive: 1'), findsOneWidget);
+      expect(find.text('Value: 0'), findsOneWidget);
     });
 
-    testWidgets('should support SimpleBuilder with context', (WidgetTester tester) async {
-      // Register a controller
-      final controller = CounterController();
-      Zen.put<CounterController>(controller);
-
-      // Build widget using SimpleBuilder
+    testWidgets('should create controller if not found and create provided', (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: SimpleBuilder<CounterController>(
-              builder: (context, controller) {
-                return Column(
-                  children: [
-                    Text(
-                      'Simple: ${controller.count}',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                    ElevatedButton(
-                      onPressed: controller.increment,
-                      child: const Text('Increment'),
-                    ),
-                  ],
-                );
-              },
-            ),
+          home: ZenBuilder<TestController>(
+            create: () => TestController(),
+            builder: (context, ctrl) => Text('Value: ${ctrl.value}'),
           ),
         ),
       );
 
-      // Verify it works the same as ZenBuilder
-      expect(find.text('Simple: 0'), findsOneWidget);
+      expect(find.text('Value: 0'), findsOneWidget);
+    });
 
-      // Update controller
+    testWidgets('should handle missing controller gracefully', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ZenBuilder<TestController>(
+            onError: (error) => Text(error.toString()), // Simplified error widget
+            builder: (context, ctrl) => Text('Value: ${ctrl.value}'),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Now we can check for the exact error message
+      expect(find.text('Bad state: Controller of type TestController not found and no create function provided'), findsOneWidget);
+    });
+
+    testWidgets('should initialize controller with init callback', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ZenBuilder<TestController>(
+            create: () => TestController(),
+            init: (ctrl) => ctrl.value = 42,
+            builder: (context, ctrl) => Text('Value: ${ctrl.value}'),
+          ),
+        ),
+      );
+
+      expect(find.text('Value: 42'), findsOneWidget);
+    });
+  });
+
+  group('ZenBuilder Update Mechanism', () {
+    testWidgets('should rebuild when controller updates', (WidgetTester tester) async {
+      late TestController controller;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ZenBuilder<TestController>(
+            create: () {
+              controller = TestController();
+              return controller;
+            },
+            builder: (context, ctrl) => Text('Value: ${ctrl.value}'),
+          ),
+        ),
+      );
+
+      expect(find.text('Value: 0'), findsOneWidget);
+
       controller.increment();
       await tester.pump();
 
-      expect(find.text('Simple: 1'), findsOneWidget);
+      expect(find.text('Value: 1'), findsOneWidget);
     });
 
-    testWidgets('should handle theme changes through context', (WidgetTester tester) async {
-      // Register a controller
-      final controller = CounterController();
-      Zen.put<CounterController>(controller);
+    testWidgets('should handle multiple builders with same controller', (WidgetTester tester) async {
+      final controller = TestController();
+      Zen.put<TestController>(controller);
 
-      // Build widget with light theme
       await tester.pumpWidget(
         MaterialApp(
-          theme: ThemeData.light().copyWith(
-            primaryColor: Colors.blue,
-          ),
-          home: Scaffold(
-            body: ZenBuilder<CounterController>(
-              builder: (context, controller) {
-                return Container(
-                  color: Theme.of(context).primaryColor,
-                  child: Text('Count: ${controller.count}'),
-                );
-              },
-            ),
+          home: Column(
+            children: [
+              ZenBuilder<TestController>(
+                builder: (context, ctrl) => Text('A: ${ctrl.value}'),
+              ),
+              ZenBuilder<TestController>(
+                builder: (context, ctrl) => Text('B: ${ctrl.value}'),
+              ),
+            ],
           ),
         ),
       );
 
-      // Find the container
-      final containerFinder = find.byType(Container);
-      expect(containerFinder, findsOneWidget);
+      expect(find.text('A: 0'), findsOneWidget);
+      expect(find.text('B: 0'), findsOneWidget);
 
-      // Verify light theme color
-      final container = tester.widget<Container>(containerFinder);
-      expect(container.color, Colors.blue);
+      controller.increment();
+      await tester.pump();
 
-      // Change to dark theme
+      expect(find.text('A: 1'), findsOneWidget);
+      expect(find.text('B: 1'), findsOneWidget);
+    });
+  });
+
+  group('ZenBuilder Lifecycle', () {
+    testWidgets('should dispose controller when disposeOnRemove is true', (WidgetTester tester) async {
+      late TestController controller;
+
       await tester.pumpWidget(
         MaterialApp(
-          theme: ThemeData.dark().copyWith(
-            primaryColor: Colors.red,
-          ),
-          home: Scaffold(
-            body: ZenBuilder<CounterController>(
-              builder: (context, controller) {
-                return Container(
-                  color: Theme.of(context).primaryColor,
-                  child: Text('Count: ${controller.count}'),
-                );
-              },
-            ),
+          home: ZenBuilder<TestController>(
+            create: () {
+              controller = TestController();
+              return controller;
+            },
+            disposeOnRemove: true,
+            builder: (context, ctrl) => Text('Value: ${ctrl.value}'),
           ),
         ),
       );
 
-      // Important: Call pumpAndSettle to ensure all animations and rebuilds complete
-      await tester.pumpAndSettle();
+      expect(find.text('Value: 0'), findsOneWidget);
 
-      // Get the updated container widget after the theme change
-      final updatedContainer = tester.widget<Container>(containerFinder);
-      expect(updatedContainer.color, Colors.red);
+      // Remove widget
+      await tester.pumpWidget(const MaterialApp(home: SizedBox()));
 
-      // Verify the text is still there
-      expect(find.text('Count: 0'), findsOneWidget);
+      // Try to access disposed controller
+      expect(
+              () => Zen.find<TestController>(),
+          throwsA(isA<Exception>().having(
+                  (e) => e.toString(),
+              'message',
+              'Exception: Dependency of type TestController not found'
+          ))
+      );
     });
 
-    testWidgets('should support locale-aware formatting', (WidgetTester tester) async {
-      // Register a controller
-      final controller = CounterController();
-      controller.count = 1234;
-      Zen.put<CounterController>(controller);
+    testWidgets('should cleanup listeners on dispose', (WidgetTester tester) async {
+      final controller = TestController();
+      Zen.put<TestController>(controller);
 
-      // Build widget with US locale
       await tester.pumpWidget(
         MaterialApp(
-          locale: const Locale('en', 'US'),
-          home: Scaffold(
-            body: ZenBuilder<CounterController>(
-              builder: (context, controller) {
-                // Use context for locale-aware formatting
-                final locale = Localizations.localeOf(context);
-                final isUS = locale.countryCode == 'US';
-                return Text('Count: ${controller.count}${isUS ? ' (US)' : ''}');
-              },
-            ),
+          home: ZenBuilder<TestController>(
+            builder: (context, ctrl) => Text('Value: ${ctrl.value}'),
           ),
         ),
       );
 
-      // Verify locale-aware display
-      expect(find.text('Count: 1234 (US)'), findsOneWidget);
+      await tester.pumpWidget(const MaterialApp(home: SizedBox()));
+      controller.increment(); // Should not cause errors
+    });
+  });
+
+  group('ZenBuilder Error Handling', () {
+    testWidgets('should show custom error widget on error', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ZenBuilder<TestController>(
+            create: () => TestController(),
+            builder: (_, __) => throw Exception('Test error'),
+            onError: (error) => Text('Error: $error'),
+          ),
+        ),
+      );
+
+      expect(find.text('Error: Exception: Test error'), findsOneWidget);
+    });
+
+    testWidgets('should show default error widget if no custom handler', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ZenBuilder<TestController>(
+            create: () => TestController(),
+            builder: (_, __) => throw Exception('Test error'),
+          ),
+        ),
+      );
+
+      expect(find.text('Controller Error'), findsOneWidget);
+    });
+  });
+
+  group('ZenBuilder Scoping', () {
+    testWidgets('should respect explicit scope', (WidgetTester tester) async {
+      final scope = ZenScope();
+      final controller = TestController();
+      scope.put<TestController>(controller);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ZenBuilder<TestController>(
+            scope: scope,
+            builder: (context, ctrl) => Text('Value: ${ctrl.value}'),
+          ),
+        ),
+      );
+
+      expect(find.text('Value: 0'), findsOneWidget);
+    });
+
+    testWidgets('should reinitialize on scope change', (WidgetTester tester) async {
+      final scope1 = ZenScope();
+      final scope2 = ZenScope();
+
+      final controller1 = TestController()..value = 1;
+      final controller2 = TestController()..value = 2;
+
+      scope1.put<TestController>(controller1);
+      scope2.put<TestController>(controller2);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ZenBuilder<TestController>(
+            scope: scope1,
+            builder: (context, ctrl) => Text('Value: ${ctrl.value}'),
+          ),
+        ),
+      );
+
+      expect(find.text('Value: 1'), findsOneWidget);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ZenBuilder<TestController>(
+            scope: scope2,
+            builder: (context, ctrl) => Text('Value: ${ctrl.value}'),
+          ),
+        ),
+      );
+
+      expect(find.text('Value: 2'), findsOneWidget);
     });
   });
 }

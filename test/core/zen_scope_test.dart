@@ -238,7 +238,8 @@ void main() {
       expect(found?.value, 'global');
 
       // Should also be findable from any child scope (hierarchical lookup)
-      final childScope = Zen.createScope(name: 'Child');
+      // Create child scope with root scope as parent for hierarchical lookup
+      final childScope = Zen.createScope(name: 'Child', parent: Zen.rootScope);
       final foundFromChild = childScope.find<TestService>();
       expect(foundFromChild, isNotNull);
       expect(foundFromChild?.value, 'global');

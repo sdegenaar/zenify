@@ -36,7 +36,7 @@ class AppRoutes {
         
       case home:
         return MaterialPageRoute(
-          builder: (_) => ZenModulePage(
+          builder: (_) => ZenRoute(
             moduleBuilder: () => ProductModule(),
             page: const HomePage(),
             scopeName: 'HomeScope',
@@ -45,7 +45,7 @@ class AppRoutes {
         
       case login:
         return MaterialPageRoute(
-          builder: (_) => ZenModulePage(
+          builder: (_) => ZenRoute(
             moduleBuilder: () => AuthModule(),
             page: const LoginPage(),
             scopeName: 'LoginScope',
@@ -54,7 +54,7 @@ class AppRoutes {
         
       case register:
         return MaterialPageRoute(
-          builder: (_) => ZenModulePage(
+          builder: (_) => ZenRoute(
             moduleBuilder: () => AuthModule(),
             page: const RegisterPage(),
             scopeName: 'RegisterScope',
@@ -67,7 +67,7 @@ class AppRoutes {
         final productId = args?['productId'] as String? ?? '';
         
         return MaterialPageRoute(
-          builder: (_) => ZenModulePage(
+          builder: (_) => ZenRoute(
             moduleBuilder: () => ProductModule(),
             page: ProductDetailPage(productId: productId),
             scopeName: 'ProductDetailScope',
@@ -76,7 +76,7 @@ class AppRoutes {
         
       case cart:
         return MaterialPageRoute(
-          builder: (_) => ZenModulePage(
+          builder: (_) => ZenRoute(
             moduleBuilder: () => CartModule(),
             page: const CartPage(),
             scopeName: 'CartScope',

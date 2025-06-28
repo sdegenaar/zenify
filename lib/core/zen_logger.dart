@@ -13,7 +13,6 @@ enum LogLevel {
   String toString() => name;
 }
 
-
 /// Centralized logging system for ZenState
 class ZenLogger {
   ZenLogger._(); // Private constructor

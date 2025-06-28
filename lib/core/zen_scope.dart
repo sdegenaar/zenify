@@ -1,11 +1,12 @@
-
 // lib/core/zen_scope.dart
 import 'package:flutter/foundation.dart';
+import 'package:zenify/core/zen_scope_manager.dart' show ZenScopeManager;
 import '../controllers/zen_controller.dart';
 import 'zen_logger.dart';
 import 'zen_config.dart';
 
 /// Dependency scoping mechanism for hierarchical access to dependencies
+/// Clean core implementation - debugging utilities moved to debug package
 class ZenScope {
   // Parent scope for hierarchical lookup
   final ZenScope? parent;
@@ -55,7 +56,7 @@ class ZenScope {
   /// Check if scope is disposed
   bool get isDisposed => _disposed;
 
-  /// Get all child scopes
+  /// Get all child scopes (immutable view)
   List<ZenScope> get childScopes => List.unmodifiable(_childScopes);
 
   //
@@ -233,7 +234,6 @@ class ZenScope {
   bool exists<T>({String? tag}) {
     return find<T>(tag: tag) != null;
   }
-
 
   /// Find all instances of a given type in this scope and child scopes
   List<T> findAllOfType<T>() {
@@ -432,7 +432,18 @@ class ZenScope {
 
   /// Create a child scope from this scope
   ZenScope createChild({String? name}) {
-    return ZenScope(parent: this, name: name);
+    final childName = name ?? 'Child-${DateTime.now().microsecondsSinceEpoch}';
+
+    // Create child scope with proper parent relationship
+    final child = ZenScope(name: childName, parent: this);
+
+    // 🔥 ADD THIS LINE: Register the child with ZenScopeManager so it's tracked
+    ZenScopeManager.registerChildScope(child);
+
+    // Add to this scope's children list
+    //_childScopes.add(child);
+
+    return child;
   }
 
   /// Register a function that will be called when this scope is disposed
@@ -601,9 +612,8 @@ class ZenScope {
     }
   }
 
-
   //
-  // UTILITY METHODS
+  // UTILITY METHODS (Kept minimal for core functionality)
   //
 
   /// Get all dependencies in this scope (for debugging)
@@ -617,7 +627,6 @@ class ZenScope {
     dependencies.addAll(_taggedBindings.values);
     return dependencies;
   }
-
 
   /// Force complete reset of scope internal state (for rollback)
   void forceCompleteReset() {
@@ -639,7 +648,6 @@ class ZenScope {
       ZenLogger.logDebug('Force reset scope: ${name ?? id}');
     }
   }
-
 
   /// Get a tag for a specific instance if it exists
   String? getTagForInstance(dynamic instance) {

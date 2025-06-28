@@ -24,6 +24,12 @@ export 'workers/workers.dart';
 // Effects
 export 'effects/effects.dart';
 
+// Mixins
+export 'mixins/mixins.dart';
+
+// Utils
+export 'utils/utils.dart';
+
 // Testing utilities
 export 'testing/testing.dart';
 

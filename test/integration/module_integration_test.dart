@@ -1,6 +1,7 @@
 // test/integration/module_integration_test.dart
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zenify/zenify.dart';
+import 'package:flutter/material.dart';
 
 // Mock services for testing
 class NetworkService {
@@ -22,6 +23,7 @@ class AuthService {
   AuthService({required this.networkService});
 
   String? get token => _token;
+
   bool get isLoggedIn => _token != null;
 
   Future<bool> login(String username, String password) async {
@@ -54,11 +56,7 @@ class ProfileRepository {
     }
 
     // Return mock profile
-    return {
-      'id': '123',
-      'name': 'Test User',
-      'email': 'test@example.com'
-    };
+    return {'id': '123', 'name': 'Test User', 'email': 'test@example.com'};
   }
 }
 
@@ -173,6 +171,106 @@ class ProfileModule extends ZenModule {
     // Register profile controller
     final profileController = ProfileController(profileRepository: profileRepository);
     scope.put<ProfileController>(profileController);
+  }
+}
+
+// Mock classes that mirror your real modules
+class MockApiService {
+  final String name = 'MockApiService';
+}
+
+class MockCacheService {
+  final String name = 'MockCacheService';
+}
+
+class MockNavigationService {
+  final String name = 'MockNavigationService';
+}
+
+class MockDepartmentService {
+  final MockApiService apiService;
+  final MockCacheService cacheService;
+  bool disposed = false;
+
+  MockDepartmentService({
+    required this.apiService,
+    required this.cacheService,
+  });
+
+  void dispose() => disposed = true;
+}
+
+class MockTeamService {
+  final MockApiService apiService;
+  final MockCacheService cacheService;
+  final MockDepartmentService departmentService;
+  bool disposed = false;
+
+  MockTeamService({
+    required this.apiService,
+    required this.cacheService,
+    required this.departmentService,
+  });
+
+  void dispose() => disposed = true;
+}
+
+class MockDepartmentsModule extends ZenModule {
+  @override
+  String get name => 'MockDepartmentsModule';
+
+  @override
+  void register(ZenScope scope) {
+    // Use scope.find to enable hierarchical lookup (this is the key fix!)
+    final apiService = scope.find<MockApiService>();
+    final cacheService = scope.find<MockCacheService>();
+
+    if (apiService == null) {
+      throw Exception('MockApiService not found in scope hierarchy');
+    }
+    if (cacheService == null) {
+      throw Exception('MockCacheService not found in scope hierarchy');
+    }
+
+    // Register department-level services
+    scope.put<MockDepartmentService>(
+      MockDepartmentService(
+        apiService: apiService,
+        cacheService: cacheService,
+      ),
+    );
+  }
+}
+
+class MockDepartmentDetailModule extends ZenModule {
+  @override
+  String get name => 'MockDepartmentDetailModule';
+
+  @override
+  void register(ZenScope scope) {
+    // Use hierarchical lookup to find dependencies
+    final apiService = scope.find<MockApiService>();
+    final cacheService = scope.find<MockCacheService>();
+    final departmentService = scope.find<MockDepartmentService>();
+
+    if (apiService == null) {
+      throw Exception('MockApiService not found in scope hierarchy');
+    }
+    if (cacheService == null) {
+      throw Exception('MockCacheService not found in scope hierarchy');
+    }
+    if (departmentService == null) {
+      throw Exception('MockDepartmentService not found in scope hierarchy');
+    }
+
+    // Register detail-level services
+    scope.put<MockTeamService>(
+      MockTeamService(
+        apiService: apiService,
+        cacheService: cacheService,
+        departmentService: departmentService,
+      ),
+    );
   }
 }
 
@@ -650,6 +748,65 @@ void main() {
       grandchildScope.dispose();
       childScope.dispose();
       rootScope.dispose();
+    });
+
+    testWidgets('should inherit dependencies from parent scope via nested ZenRoute modules', (WidgetTester tester) async {
+      // Mock services that would be registered in your app
+      final apiService = MockApiService();
+      final cacheService = MockCacheService();
+      final navigationService = MockNavigationService();
+
+      // Register root services (like in your main app)
+      Zen.put<MockApiService>(apiService);
+      Zen.put<MockCacheService>(cacheService);
+      Zen.put<MockNavigationService>(navigationService);
+
+      ZenScope? departmentsScope;
+      ZenScope? departmentDetailScope;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ZenRoute(
+            moduleBuilder: () => MockDepartmentsModule(),
+            scopeName: 'DepartmentsScope',
+            useParentScope: true, // Should inherit root services
+            page: ZenRoute(
+              moduleBuilder: () => MockDepartmentDetailModule(),
+              scopeName: 'DepartmentDetailScope',
+              useParentScope: true, // Should inherit from DepartmentsScope
+              page: Builder(
+                builder: (context) {
+                  departmentDetailScope = context.zenScope;
+                  departmentsScope = departmentDetailScope?.parent;
+                  return const Text('Success');
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Verify scopes were created correctly
+      expect(departmentsScope, isNotNull);
+      expect(departmentDetailScope, isNotNull);
+      expect(departmentDetailScope!.parent, same(departmentsScope));
+
+      // KEY TEST: DepartmentDetailScope should find DepartmentService via hierarchy
+      final deptService = departmentDetailScope!.find<MockDepartmentService>();
+      expect(deptService, isNotNull, reason: 'DepartmentDetailScope should inherit DepartmentService from DepartmentsScope');
+
+      // Verify the service was created with dependencies from root scope
+      expect(deptService!.apiService, same(apiService));
+      expect(deptService.cacheService, same(cacheService));
+
+      // Verify child scope has its own services too
+      final teamService = departmentDetailScope!.find<MockTeamService>();
+      expect(teamService, isNotNull);
+      expect(teamService!.departmentService, same(deptService));
+
+      expect(find.text('Success'), findsOneWidget);
     });
   });
 }

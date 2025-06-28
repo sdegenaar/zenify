@@ -1,3 +1,23 @@
+## 0.4.0
+
+* Major Enhancement: Complete Module System and Route Management
+  * **BREAKING**: Rename ZenModulePage to ZenRoute for clarity and better naming
+  * Implement comprehensive hierarchical module system with ZenModule base class
+  * Add ZenRoute widget for seamless module-based dependency injection
+  * Implement stack-based scope tracking for reliable parent resolution
+  * Add automatic scope cleanup and lifecycle management
+  * Implement smart auto-dispose defaults based on scope hierarchy
+  * Add comprehensive error handling with layout-aware loading/error states
+  * Implement ZenScopeStackTracker for hierarchical scope inheritance
+  * Add ZenScopeManager for centralized scope lifecycle management
+  * Implement proper Zen.currentScope synchronization throughout navigation
+  * Add comprehensive logging and debug support for scope operations
+  * Implement robust parent scope resolution with multiple fallback strategies
+  * Add comprehensive example applications (ecommerce, todo, showcase)
+  * Restructure documentation with complete guides and improved examples
+  * Add ZenConsumer widget for efficient dependency access with automatic caching
+  * Implement production-ready module registration and cleanup patterns
+
 ## 0.3.0
 
 * Major Enhancement: Production-Ready Reactive System

@@ -16,9 +16,6 @@ export 'zen_lifecycle.dart';
 // Dependency analysis
 export 'zen_dependency_analyzer.dart';
 
-// Scope management
-export 'zen_scope_manager.dart';
-
 // Container implementation (only if you want to expose this)
 export 'internal/zen_container.dart';
 
