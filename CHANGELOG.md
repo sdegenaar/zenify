@@ -1,3 +1,23 @@
+## 0.4.1
+
+* Documentation and Publishing Preparation
+  * Polish README.md with improved formatting and comprehensive content
+  * Enhance installation instructions and quick start guide
+  * Add comprehensive feature highlights and comparison guidance
+  * Refine documentation structure with "Coming Soon" sections for planned content
+  * Update community links and support channels
+  * Prepare package metadata for pub.dev publishing
+* Code Quality and Performance Improvements
+  * Add `const` keyword for durations and widgets across files for consistency
+  * Apply `const` to widget declarations where applicable to reduce rebuilds
+  * Fix minor typos in documentation paths from `docs/` to `doc/`
+  * Improve code clarity and conformance with modern Dart guidelines
+* Package Configuration Updates
+  * Refine `pubspec.yaml` description for better pub.dev presentation
+  * Update Flutter SDK constraint for compatibility
+  * Adjust dependencies for optimal package setup
+
+
 ## 0.4.0
 
 * Major Enhancement: Complete Module System and Route Management
