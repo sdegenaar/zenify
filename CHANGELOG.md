@@ -1,3 +1,13 @@
+## 0.5.0
+
+* **🚀 Official pub.dev Release**
+  * Published Zenify to pub.dev as a stable pre-release package
+  * Updated installation instructions to use `zenify: ^0.5.0` from pub.dev
+  * Enhanced package description for better discoverability
+  * Added comprehensive pub.dev metadata (topics, platforms, documentation links)
+  * Prepared package for wider Flutter community adoption
+
+
 ## 0.4.1
 
 * Documentation and Publishing Preparation

@@ -1,7 +1,9 @@
 # Zenify
 
 [![pub package](https://img.shields.io/pub/v/zenify.svg)](https://pub.dev/packages/zenify)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![likes](https://img.shields.io/pub/likes/zenify?logo=dart)](https://pub.dev/packages/zenify/score)
+[![pub points](https://img.shields.io/pub/points/zenify?logo=dart)](https://pub.dev/packages/zenify/score)
+[![license: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A modern state management library for Flutter that brings true "zen" to your development experience. Clean, intuitive, and powerful.
 
@@ -56,11 +58,7 @@ We've also incorporated proven concepts from **Riverpod's** hierarchical scoping
 ### 1. Install
 ```yaml
 dependencies:
-  zenify:
-    git:
-      url: https://github.com/sdegenaar/zenify.git
-      ref: v0.4.2
-  # Will be available on pub.dev soon as: zenify: ^0.4.2
+  zenify: ^0.5.0
 ```
 
 ### 2. Initialize
