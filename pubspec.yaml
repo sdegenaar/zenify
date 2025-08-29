@@ -3,7 +3,7 @@ description: A modern state management library for Flutter with hierarchical dep
   automatic memory leak prevention, and production-ready reactive programming.
   Stop fighting with state management - bring true "zen" to your development experience.
 
-version: 0.5.0
+version: 0.5.1
 homepage: https://github.com/sdegenaar/zenify
 repository: https://github.com/sdegenaar/zenify
 issue_tracker: https://github.com/sdegenaar/zenify/issues

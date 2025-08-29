@@ -1,3 +1,10 @@
+## 0.5.1
+
+* **🐛 Bug Fixes and Compatibility Improvements**
+    * Fixed deprecated `RadioListTile` `groupValue` and `onChanged` parameters
+    * Migrated to `RadioGroup` widget for radio button group management (Flutter 3.32.0+ compatibility)
+    * Enhanced radio button implementation following Flutter's latest best practices
+
 ## 0.5.0
 
 * **🚀 Official pub.dev Release**

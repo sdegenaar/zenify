@@ -375,7 +375,7 @@ class _DebugDialogState extends State<DebugDialog> {
             Switch(
               value: _showAvailableDependencies,
               onChanged: (value) => setState(() => _showAvailableDependencies = value),
-              activeColor: Colors.blue.shade700,
+              activeThumbColor: Colors.blue.shade700,
             ),
           ],
         ),
