@@ -11,8 +11,8 @@ documentation: https://github.com/sdegenaar/zenify/tree/main/doc
 
 topics:
   - state-management
-  - hierarchical-dependency-injection
-  - reactive-programming
+  - hierarchical-di
+  - dependency-injection
   - flutter
   - memory-management
 
