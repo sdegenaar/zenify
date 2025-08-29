@@ -58,7 +58,7 @@ We've also incorporated proven concepts from **Riverpod's** hierarchical scoping
 ### 1. Install
 ```yaml
 dependencies:
-  zenify: ^0.5.0
+  zenify: ^0.5.1
 ```
 
 ### 2. Initialize
