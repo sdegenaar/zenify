@@ -1,3 +1,11 @@
+
+## 0.5.2
+
+* **📦 Package Metadata Improvements**
+    * Updated topics to use `hierarchical-dependency-injection` for better discoverability
+    * Improved SEO for dependency injection searches while highlighting hierarchical approach
+    * Enhanced pub.dev searchability and positioning
+
 ## 0.5.1
 
 * **🐛 Bug Fixes and Compatibility Improvements**
