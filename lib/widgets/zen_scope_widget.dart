@@ -52,16 +52,16 @@ class ZenScopeWidget extends StatefulWidget {
     this.moduleBuilder,
     this.scopeName,
   }) : assert(
-  (scope != null && moduleBuilder == null) ||
-      (scope == null && moduleBuilder != null),
-  'Either scope or moduleBuilder must be provided, but not both');
+            (scope != null && moduleBuilder == null) ||
+                (scope == null && moduleBuilder != null),
+            'Either scope or moduleBuilder must be provided, but not both');
 
   /// Finds the nearest [ZenScope] above the given context.
   ///
   /// Returns the scope or throws an exception if none is found.
   static ZenScope of(BuildContext context) {
     final _ZenScopeProvider? provider =
-    context.dependOnInheritedWidgetOfExactType<_ZenScopeProvider>();
+        context.dependOnInheritedWidgetOfExactType<_ZenScopeProvider>();
     if (provider == null) {
       throw Exception('No ZenScope found in the widget tree. '
           'Make sure to wrap your widget with a ZenScopeWidget.');
@@ -73,7 +73,9 @@ class ZenScopeWidget extends StatefulWidget {
   ///
   /// Returns the scope or null if none is found.
   static ZenScope? maybeOf(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<_ZenScopeProvider>()?.scope;
+    return context
+        .dependOnInheritedWidgetOfExactType<_ZenScopeProvider>()
+        ?.scope;
   }
 
   @override
@@ -159,7 +161,8 @@ class _ZenScopeWidgetState extends State<ZenScopeWidget> {
           ZenLogger.logInfo('Module ${module.name} fully initialized');
         }
       } catch (e, stack) {
-        ZenLogger.logError('Module initialization failed for ${module.name}', e, stack);
+        ZenLogger.logError(
+            'Module initialization failed for ${module.name}', e, stack);
       }
     })();
   }

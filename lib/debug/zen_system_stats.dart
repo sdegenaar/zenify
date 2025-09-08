@@ -1,4 +1,3 @@
-
 // lib/debug/zen_system_stats.dart
 import 'package:zenify/core/core.dart';
 import 'package:zenify/debug/zen_hierarchy_debug.dart';
@@ -6,7 +5,6 @@ import '../utils/zen_scope_inspector.dart';
 
 /// System-wide statistics and analysis utilities
 class ZenSystemStats {
-
   /// Get detailed statistics about the entire Zen system
   /// Useful for monitoring and performance analysis
   static Map<String, dynamic> getSystemStats() {
@@ -111,7 +109,8 @@ class ZenSystemStats {
     buffer.writeln();
 
     buffer.writeln('PERFORMANCE:');
-    buffer.writeln('  Avg Dependencies/Scope: ${stats['performance']['averageDependenciesPerScope']}');
+    buffer.writeln(
+        '  Avg Dependencies/Scope: ${stats['performance']['averageDependenciesPerScope']}');
     buffer.writeln();
 
     buffer.writeln('=== HIERARCHY ===');

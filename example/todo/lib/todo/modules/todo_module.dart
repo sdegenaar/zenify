@@ -20,7 +20,7 @@ class TodoModule extends ZenModule {
     if (ZenConfig.enableDebugLogs) {
       ZenLogger.logInfo('TodoModule initialized');
     }
-    
+
     // Pre-load todos when the module initializes
     final todoService = scope.find<TodoService>();
     await todoService?.loadTodos();

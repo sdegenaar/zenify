@@ -116,10 +116,12 @@ extension RxListTransformations<T> on Rx<List<T>> {
   RxComputed<bool> get rxIsEmpty => computed(() => value.isEmpty);
 
   /// Get first element (or null)
-  RxComputed<T?> get rxFirst => computed(() => value.isNotEmpty ? value.first : null);
+  RxComputed<T?> get rxFirst =>
+      computed(() => value.isNotEmpty ? value.first : null);
 
   /// Get last element (or null)
-  RxComputed<T?> get rxLast => computed(() => value.isNotEmpty ? value.last : null);
+  RxComputed<T?> get rxLast =>
+      computed(() => value.isNotEmpty ? value.last : null);
 
   /// Filter list reactively
   RxComputed<List<T>> whereList(bool Function(T) predicate) {
@@ -132,7 +134,8 @@ extension RxListTransformations<T> on Rx<List<T>> {
   }
 
   /// Sort list reactively
-  RxComputed<List<T>> sortedBy<R extends Comparable>(R Function(T) keySelector) {
+  RxComputed<List<T>> sortedBy<R extends Comparable>(
+      R Function(T) keySelector) {
     return computed(() {
       final list = List<T>.from(value);
       list.sort((a, b) => keySelector(a).compareTo(keySelector(b)));

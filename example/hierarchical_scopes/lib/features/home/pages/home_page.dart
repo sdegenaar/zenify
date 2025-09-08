@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:zenify/zenify.dart';
 
@@ -11,7 +10,6 @@ class HomePage extends ZenView<HomeController> {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: _buildAppBar(context, controller),
       body: _buildBody(controller),
@@ -19,7 +17,8 @@ class HomePage extends ZenView<HomeController> {
     );
   }
 
-  PreferredSizeWidget _buildAppBar(BuildContext context, HomeController controller) {
+  PreferredSizeWidget _buildAppBar(
+      BuildContext context, HomeController controller) {
     return AppBar(
       title: const Text('Company Management'),
       backgroundColor: Colors.blue.shade700,
@@ -27,21 +26,21 @@ class HomePage extends ZenView<HomeController> {
       elevation: 2,
       actions: [
         Obx(() => IconButton(
-          icon: controller.isRefreshing.value
-              ? const SizedBox(
-            width: 20,
-            height: 20,
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-            ),
-          )
-              : const Icon(Icons.refresh),
-          onPressed: controller.isRefreshing.value
-              ? null
-              : () => controller.refreshData(),
-          tooltip: 'Refresh Data',
-        )),
+              icon: controller.isRefreshing.value
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : const Icon(Icons.refresh),
+              onPressed: controller.isRefreshing.value
+                  ? null
+                  : () => controller.refreshData(),
+              tooltip: 'Refresh Data',
+            )),
         // DEBUG BUTTON - Add this to AppBar
         IconButton(
           icon: const Icon(Icons.developer_mode),
@@ -117,7 +116,8 @@ class HomePage extends ZenView<HomeController> {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Colors.purple.shade800, // Darker for better contrast
+                          color: Colors
+                              .purple.shade800, // Darker for better contrast
                         ),
                       ),
                     ],
@@ -125,7 +125,7 @@ class HomePage extends ZenView<HomeController> {
                   const SizedBox(height: 8),
                   Text(
                     'Tap the debug button in the app bar (top-right) to open the global debug panel. '
-                        'It shows scope hierarchy, navigation state, and performance metrics across all pages.',
+                    'It shows scope hierarchy, navigation state, and performance metrics across all pages.',
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.purple.shade700, // Better contrast
@@ -138,54 +138,52 @@ class HomePage extends ZenView<HomeController> {
                     runSpacing: 8,
                     children: [
                       Chip(
-                        avatar: Icon(Icons.account_tree, size: 16, color: Colors.white),
-                        label: const Text(
-                            'Scope Info',
+                        avatar: Icon(Icons.account_tree,
+                            size: 16, color: Colors.white),
+                        label: const Text('Scope Info',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
-                              color: Colors.white, // White text for better contrast
-                            )
-                        ),
-                        backgroundColor: Colors.purple.shade600, // Solid background
+                              color: Colors
+                                  .white, // White text for better contrast
+                            )),
+                        backgroundColor:
+                            Colors.purple.shade600, // Solid background
                         elevation: 2, // Add shadow for depth
                       ),
                       Chip(
-                        avatar: Icon(Icons.navigation, size: 16, color: Colors.white),
-                        label: const Text(
-                            'Navigation',
+                        avatar: Icon(Icons.navigation,
+                            size: 16, color: Colors.white),
+                        label: const Text('Navigation',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
                               color: Colors.white,
-                            )
-                        ),
+                            )),
                         backgroundColor: Colors.purple.shade600,
                         elevation: 2,
                       ),
                       Chip(
-                        avatar: Icon(Icons.speed, size: 16, color: Colors.white),
-                        label: const Text(
-                            'Performance',
+                        avatar:
+                            Icon(Icons.speed, size: 16, color: Colors.white),
+                        label: const Text('Performance',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
                               color: Colors.white,
-                            )
-                        ),
+                            )),
                         backgroundColor: Colors.purple.shade600,
                         elevation: 2,
                       ),
                       Chip(
-                        avatar: Icon(Icons.schema, size: 16, color: Colors.white),
-                        label: const Text(
-                            'Hierarchy',
+                        avatar:
+                            Icon(Icons.schema, size: 16, color: Colors.white),
+                        label: const Text('Hierarchy',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
                               color: Colors.white,
-                            )
-                        ),
+                            )),
                         backgroundColor: Colors.purple.shade600,
                         elevation: 2,
                       ),
@@ -215,16 +213,19 @@ class HomePage extends ZenView<HomeController> {
                   ),
                   const SizedBox(height: 8),
                   Obx(() {
-                    final breadcrumbs = controller.navigationService.breadcrumbs;
+                    final breadcrumbs =
+                        controller.navigationService.breadcrumbs;
 
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Current path: ${controller.navigationService.currentPath.value}'),
+                        Text(
+                            'Current path: ${controller.navigationService.currentPath.value}'),
                         const SizedBox(height: 8),
                         Text('Navigation depth: ${breadcrumbs.length}'),
                         const SizedBox(height: 8),
-                        Text('Total navigations: ${controller.navigationService.navigationCount.value}'),
+                        Text(
+                            'Total navigations: ${controller.navigationService.navigationCount.value}'),
                         const SizedBox(height: 16),
                         const Text('Breadcrumbs:'),
                         const SizedBox(height: 4),
@@ -234,15 +235,17 @@ class HomePage extends ZenView<HomeController> {
                           Column(
                             children: breadcrumbs
                                 .map((item) => Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 4),
-                              child: Row(
-                                children: [
-                                  const Icon(Icons.arrow_right, size: 16),
-                                  const SizedBox(width: 4),
-                                  Text('${item.title} (${item.route})'),
-                                ],
-                              ),
-                            ))
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 4),
+                                      child: Row(
+                                        children: [
+                                          const Icon(Icons.arrow_right,
+                                              size: 16),
+                                          const SizedBox(width: 4),
+                                          Text('${item.title} (${item.route})'),
+                                        ],
+                                      ),
+                                    ))
                                 .toList(),
                           ),
                       ],

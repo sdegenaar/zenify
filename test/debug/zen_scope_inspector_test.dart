@@ -73,7 +73,8 @@ void main() {
       final initialChildCount = testScope.childScopes.length;
 
       // Create a child scope to test child count
-      final childScope = testScope.createChild(name: 'test-child-${DateTime.now().millisecondsSinceEpoch}');
+      final childScope = testScope.createChild(
+          name: 'test-child-${DateTime.now().millisecondsSinceEpoch}');
 
       try {
         // Act
@@ -82,7 +83,8 @@ void main() {
         // Assert - Check that we added exactly 1 child
         expect(debugMap['scopeInfo']['name'], contains('inspector-test'));
         expect(debugMap['scopeInfo']['disposed'], isFalse);
-        expect(debugMap['scopeInfo']['childCount'], equals(initialChildCount + 1));
+        expect(
+            debugMap['scopeInfo']['childCount'], equals(initialChildCount + 1));
         expect(debugMap['dependencies']['totalDependencies'], equals(1));
         expect(debugMap['children'], hasLength(initialChildCount + 1));
       } finally {
@@ -150,7 +152,8 @@ void main() {
       // Arrange
       testScope.put<TestService>(TestService('service1'), tag: 'tag1');
       testScope.put<TestService>(TestService('service2'), tag: 'tag2');
-      testScope.put<TestController>(TestController('controller1'), tag: 'controller-tag');
+      testScope.put<TestController>(TestController('controller1'),
+          tag: 'controller-tag');
 
       // Act
       final breakdown = ZenScopeInspector.getDependencyBreakdown(testScope);
@@ -161,7 +164,6 @@ void main() {
       expect(breakdown['summary']['totalServices'], equals(2));
       expect(breakdown['summary']['totalControllers'], equals(1));
     });
-
 
     test('should inspect disposed scope gracefully', () {
       // Arrange

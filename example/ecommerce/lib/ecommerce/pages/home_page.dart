@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:zenify/zenify.dart';
 import '../../shared/models/product_model.dart';
@@ -112,7 +111,8 @@ class HomePage extends ZenView<HomeController> {
             return Padding(
               padding: const EdgeInsets.only(right: 8),
               child: Obx(() {
-                final isSelected = category == controller.selectedCategory.value;
+                final isSelected =
+                    category == controller.selectedCategory.value;
 
                 return ChoiceChip(
                   label: Text(category),
@@ -221,7 +221,8 @@ class HomePage extends ZenView<HomeController> {
   }
 
   void _showSearchDialog(BuildContext context) {
-    final searchController = TextEditingController(text: controller.searchQuery.value);
+    final searchController =
+        TextEditingController(text: controller.searchQuery.value);
 
     showDialog(
       context: context,

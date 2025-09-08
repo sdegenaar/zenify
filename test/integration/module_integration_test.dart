@@ -7,7 +7,8 @@ import 'package:flutter/material.dart';
 class NetworkService {
   bool initialized = false;
 
-  Future<Map<String, dynamic>> post(String endpoint, Map<String, dynamic> data) async {
+  Future<Map<String, dynamic>> post(
+      String endpoint, Map<String, dynamic> data) async {
     return {'success': true, 'token': 'mock-token'};
   }
 
@@ -169,7 +170,8 @@ class ProfileModule extends ZenModule {
     scope.put<ProfileRepository>(profileRepository);
 
     // Register profile controller
-    final profileController = ProfileController(profileRepository: profileRepository);
+    final profileController =
+        ProfileController(profileRepository: profileRepository);
     scope.put<ProfileController>(profileController);
   }
 }
@@ -388,7 +390,8 @@ void main() {
       expect(profileController.isInitialized, isTrue);
 
       // Test 7: Verify hierarchical scope lookup works
-      final childScope = Zen.createScope(name: 'child-scope', parent: testScope);
+      final childScope =
+          Zen.createScope(name: 'child-scope', parent: testScope);
 
       // Controllers should be found from parent scope
       expect(childScope.find<AuthController>(), same(authController));
@@ -452,12 +455,14 @@ void main() {
 
       // Should have the new service, not the old one
       expect(testScope.find<NetworkService>(tag: 'api'), same(networkService2));
-      expect(testScope.find<NetworkService>(tag: 'api'), isNot(same(networkService1)));
+      expect(testScope.find<NetworkService>(tag: 'api'),
+          isNot(same(networkService1)));
 
       testScope.dispose();
     });
 
-    test('should integrate modules with the dependency injection system', () async {
+    test('should integrate modules with the dependency injection system',
+        () async {
       // Create a test scope
       final testScope = Zen.createScope(name: 'integration-test');
 
@@ -489,7 +494,8 @@ void main() {
       final testScope = Zen.createScope(name: 'scoped-module-test');
 
       // Create a custom scope as a child of the test scope
-      final customScope = Zen.createScope(name: 'CustomScope', parent: testScope);
+      final customScope =
+          Zen.createScope(name: 'CustomScope', parent: testScope);
 
       // Register the network module in the custom scope
       final networkModule = NetworkModule();
@@ -509,7 +515,8 @@ void main() {
       testScope.dispose();
     });
 
-    test('should support module re-registration with different configurations', () {
+    test('should support module re-registration with different configurations',
+        () {
       // Create a test scope
       final testScope = Zen.createScope(name: 're-registration-test');
 
@@ -658,7 +665,8 @@ void main() {
       final testScope = Zen.createScope(name: 'cleanup-test');
 
       // Create a custom scope
-      final customScope = Zen.createScope(name: 'CustomScope', parent: testScope);
+      final customScope =
+          Zen.createScope(name: 'CustomScope', parent: testScope);
 
       // Register auth and network modules in the custom scope
       final networkModule = NetworkModule();
@@ -711,7 +719,8 @@ void main() {
       // Create scope hierarchy
       final rootScope = Zen.createScope(name: 'RootScope');
       final childScope = Zen.createScope(name: 'ChildScope', parent: rootScope);
-      final grandchildScope = Zen.createScope(name: 'GrandchildScope', parent: childScope);
+      final grandchildScope =
+          Zen.createScope(name: 'GrandchildScope', parent: childScope);
 
       // Register network module in root
       final networkModule = NetworkModule();
@@ -732,7 +741,8 @@ void main() {
 
       expect(networkFromRoot, isNotNull);
       expect(networkFromChild, same(networkFromRoot)); // Inherited from parent
-      expect(networkFromGrandchild, same(networkFromRoot)); // Inherited from grandparent
+      expect(networkFromGrandchild,
+          same(networkFromRoot)); // Inherited from grandparent
 
       // Auth service should be accessible from child and grandchild
       expect(rootScope.findInThisScope<AuthService>(), isNull);
@@ -750,7 +760,9 @@ void main() {
       rootScope.dispose();
     });
 
-    testWidgets('should inherit dependencies from parent scope via nested ZenRoute modules', (WidgetTester tester) async {
+    testWidgets(
+        'should inherit dependencies from parent scope via nested ZenRoute modules',
+        (WidgetTester tester) async {
       // Mock services that would be registered in your app
       final apiService = MockApiService();
       final cacheService = MockCacheService();
@@ -795,7 +807,9 @@ void main() {
 
       // KEY TEST: DepartmentDetailScope should find DepartmentService via hierarchy
       final deptService = departmentDetailScope!.find<MockDepartmentService>();
-      expect(deptService, isNotNull, reason: 'DepartmentDetailScope should inherit DepartmentService from DepartmentsScope');
+      expect(deptService, isNotNull,
+          reason:
+              'DepartmentDetailScope should inherit DepartmentService from DepartmentsScope');
 
       // Verify the service was created with dependencies from root scope
       expect(deptService!.apiService, same(apiService));

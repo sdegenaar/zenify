@@ -8,7 +8,7 @@ class TodoItem extends StatelessWidget {
   final VoidCallback onToggle;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
-  
+
   const TodoItem({
     super.key,
     required this.todo,
@@ -31,7 +31,8 @@ class TodoItem extends StatelessWidget {
             style: TextStyle(
               decoration: todo.isCompleted ? TextDecoration.lineThrough : null,
               color: todo.isCompleted ? Colors.grey : null,
-              fontWeight: todo.isCompleted ? FontWeight.normal : FontWeight.bold,
+              fontWeight:
+                  todo.isCompleted ? FontWeight.normal : FontWeight.bold,
             ),
           ),
           subtitle: _buildSubtitle(context),
@@ -44,7 +45,9 @@ class TodoItem extends StatelessWidget {
                   color: todo.isCompleted ? Colors.green : Colors.grey,
                 ),
                 onPressed: onToggle,
-                tooltip: todo.isCompleted ? 'Mark as incomplete' : 'Mark as complete',
+                tooltip: todo.isCompleted
+                    ? 'Mark as incomplete'
+                    : 'Mark as complete',
               ),
               IconButton(
                 icon: const Icon(Icons.edit),
@@ -63,11 +66,11 @@ class TodoItem extends StatelessWidget {
       ),
     );
   }
-  
+
   Widget _buildPriorityIndicator() {
     Color color;
     IconData icon;
-    
+
     switch (todo.priority) {
       case 1:
         color = Colors.green;
@@ -85,20 +88,21 @@ class TodoItem extends StatelessWidget {
         color = Colors.grey;
         icon = Icons.circle;
     }
-    
+
     return CircleAvatar(
       backgroundColor: color.withValues(alpha: 0.2),
       child: Icon(icon, color: color),
     );
   }
-  
+
   Widget _buildSubtitle(BuildContext context) {
     final List<Widget> subtitleItems = [];
-    
+
     // Add due date if available
     if (todo.dueDate != null) {
-      final bool isOverdue = todo.dueDate!.isBefore(DateTime.now()) && !todo.isCompleted;
-      
+      final bool isOverdue =
+          todo.dueDate!.isBefore(DateTime.now()) && !todo.isCompleted;
+
       subtitleItems.add(
         Row(
           mainAxisSize: MainAxisSize.min,
@@ -120,13 +124,13 @@ class TodoItem extends StatelessWidget {
         ),
       );
     }
-    
+
     // Add notes indicator if available
     if (todo.notes != null && todo.notes!.isNotEmpty) {
       if (subtitleItems.isNotEmpty) {
         subtitleItems.add(const SizedBox(width: 12));
       }
-      
+
       subtitleItems.add(
         Row(
           mainAxisSize: MainAxisSize.min,
@@ -138,7 +142,7 @@ class TodoItem extends StatelessWidget {
         ),
       );
     }
-    
+
     return subtitleItems.isEmpty
         ? const Text('No additional details')
         : Wrap(spacing: 8, children: subtitleItems);

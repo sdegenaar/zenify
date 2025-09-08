@@ -1,4 +1,3 @@
-
 import 'package:zenify/zenify.dart';
 
 class ShowcaseController extends ZenController {
@@ -27,7 +26,8 @@ class ShowcaseController extends ZenController {
       icon: 'reactive',
       route: '/reactive',
       color: 0xFF2196F3, // Blue
-      description: 'Learn about reactive programming with Obx, Observable values, and computed properties.',
+      description:
+          'Learn about reactive programming with Obx, Observable values, and computed properties.',
     ),
     DemoPageInfo(
       title: 'Effects',
@@ -35,7 +35,8 @@ class ShowcaseController extends ZenController {
       icon: 'effects',
       route: '/effects',
       color: 0xFF9C27B0, // Purple
-      description: 'Manage async operations, loading states, and error handling with ZenEffect.',
+      description:
+          'Manage async operations, loading states, and error handling with ZenEffect.',
     ),
     DemoPageInfo(
       title: 'Workers',
@@ -43,7 +44,8 @@ class ShowcaseController extends ZenController {
       icon: 'workers',
       route: '/workers',
       color: 0xFF009688, // Teal
-      description: 'Handle reactive events with ever, debounce, throttle, and condition workers.',
+      description:
+          'Handle reactive events with ever, debounce, throttle, and condition workers.',
     ),
     DemoPageInfo(
       title: 'Obx Reactivity',
@@ -51,7 +53,8 @@ class ShowcaseController extends ZenController {
       icon: 'obx',
       route: '/obx',
       color: 0xFFFF9800, // Orange
-      description: 'Optimize performance with granular reactive UI updates using Obx.',
+      description:
+          'Optimize performance with granular reactive UI updates using Obx.',
     ),
     DemoPageInfo(
       title: 'ZenBuilder',
@@ -59,7 +62,8 @@ class ShowcaseController extends ZenController {
       icon: 'builder',
       route: '/builder',
       color: 0xFF4CAF50, // Green
-      description: 'Integrate controllers seamlessly with automatic lifecycle management.',
+      description:
+          'Integrate controllers seamlessly with automatic lifecycle management.',
     ),
     DemoPageInfo(
       title: 'Dependency Injection',
@@ -67,7 +71,8 @@ class ShowcaseController extends ZenController {
       icon: 'di',
       route: '/di',
       color: 0xFFF44336, // Red
-      description: 'Manage dependencies with scoped injection and service modules.',
+      description:
+          'Manage dependencies with scoped injection and service modules.',
     ),
   ];
 
@@ -143,7 +148,8 @@ class ShowcaseController extends ZenController {
     _trackInteraction();
 
     if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('Performance overlay toggled: ${showPerformanceOverlay.value}');
+      ZenLogger.logDebug(
+          'Performance overlay toggled: ${showPerformanceOverlay.value}');
     }
   }
 
@@ -183,8 +189,8 @@ class ShowcaseController extends ZenController {
 
   String get mostUsedFeature {
     if (featureUsageStats.isEmpty) return 'None';
-    final maxEntry = featureUsageStats.entries
-        .reduce((a, b) => a.value > b.value ? a : b);
+    final maxEntry =
+        featureUsageStats.entries.reduce((a, b) => a.value > b.value ? a : b);
     return maxEntry.key;
   }
 
@@ -265,10 +271,10 @@ class DemoPageInfo {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is DemoPageInfo &&
-              runtimeType == other.runtimeType &&
-              title == other.title &&
-              route == other.route;
+      other is DemoPageInfo &&
+          runtimeType == other.runtimeType &&
+          title == other.title &&
+          route == other.route;
 
   @override
   int get hashCode => title.hashCode ^ route.hashCode;

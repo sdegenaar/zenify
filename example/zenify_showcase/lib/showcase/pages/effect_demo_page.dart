@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:zenify/zenify.dart';
 import '../controllers/effect_demo_controller.dart';
@@ -8,7 +7,8 @@ class EffectDemoPage extends ZenView<EffectDemoController> {
   const EffectDemoPage({super.key});
 
   @override
-  EffectDemoController Function()? get createController => () => EffectDemoController();
+  EffectDemoController Function()? get createController =>
+      () => EffectDemoController();
 
   @override
   Widget build(BuildContext context) {
@@ -115,14 +115,16 @@ class EffectDemoPage extends ZenView<EffectDemoController> {
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
                                 color: Colors.green.shade50,
-                                border: Border.all(color: Colors.green.shade200),
+                                border:
+                                    Border.all(color: Colors.green.shade200),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Column(
                                 children: [
                                   Row(
                                     children: [
-                                      Icon(Icons.check_circle, color: Colors.green.shade700),
+                                      Icon(Icons.check_circle,
+                                          color: Colors.green.shade700),
                                       const SizedBox(width: 8),
                                       Text(
                                         'Data Loaded Successfully',
@@ -135,16 +137,18 @@ class EffectDemoPage extends ZenView<EffectDemoController> {
                                   ),
                                   const SizedBox(height: 8),
                                   ...data.map((item) => Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 2),
-                                    child: Row(
-                                      children: [
-                                        Icon(Icons.fiber_manual_record,
-                                            size: 8, color: Colors.green.shade600),
-                                        const SizedBox(width: 8),
-                                        Text(item),
-                                      ],
-                                    ),
-                                  )),
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 2),
+                                        child: Row(
+                                          children: [
+                                            Icon(Icons.fiber_manual_record,
+                                                size: 8,
+                                                color: Colors.green.shade600),
+                                            const SizedBox(width: 8),
+                                            Text(item),
+                                          ],
+                                        ),
+                                      )),
                                 ],
                               ),
                             ),
@@ -197,10 +201,14 @@ class EffectDemoPage extends ZenView<EffectDemoController> {
                         margin: const EdgeInsets.only(bottom: 12),
                         child: ZenEffectBuilder<String>(
                           effect: controller.effect1,
-                          onInitial: () => _buildMiniEffectState('Effect 1', 'Ready', Colors.blue),
-                          onLoading: () => _buildMiniEffectState('Effect 1', 'Running...', Colors.orange),
-                          onSuccess: (data) => _buildMiniEffectState('Effect 1', 'Success: $data', Colors.green),
-                          onError: (error) => _buildMiniEffectState('Effect 1', 'Error', Colors.red),
+                          onInitial: () => _buildMiniEffectState(
+                              'Effect 1', 'Ready', Colors.blue),
+                          onLoading: () => _buildMiniEffectState(
+                              'Effect 1', 'Running...', Colors.orange),
+                          onSuccess: (data) => _buildMiniEffectState(
+                              'Effect 1', 'Success: $data', Colors.green),
+                          onError: (error) => _buildMiniEffectState(
+                              'Effect 1', 'Error', Colors.red),
                         ),
                       ),
 
@@ -209,10 +217,14 @@ class EffectDemoPage extends ZenView<EffectDemoController> {
                         margin: const EdgeInsets.only(bottom: 12),
                         child: ZenEffectBuilder<String>(
                           effect: controller.effect2,
-                          onInitial: () => _buildMiniEffectState('Effect 2', 'Ready', Colors.blue),
-                          onLoading: () => _buildMiniEffectState('Effect 2', 'Running...', Colors.orange),
-                          onSuccess: (data) => _buildMiniEffectState('Effect 2', 'Success: $data', Colors.green),
-                          onError: (error) => _buildMiniEffectState('Effect 2', 'Error', Colors.red),
+                          onInitial: () => _buildMiniEffectState(
+                              'Effect 2', 'Ready', Colors.blue),
+                          onLoading: () => _buildMiniEffectState(
+                              'Effect 2', 'Running...', Colors.orange),
+                          onSuccess: (data) => _buildMiniEffectState(
+                              'Effect 2', 'Success: $data', Colors.green),
+                          onError: (error) => _buildMiniEffectState(
+                              'Effect 2', 'Error', Colors.red),
                         ),
                       ),
 
@@ -221,10 +233,14 @@ class EffectDemoPage extends ZenView<EffectDemoController> {
                         margin: const EdgeInsets.only(bottom: 16),
                         child: ZenEffectBuilder<String>(
                           effect: controller.effect3,
-                          onInitial: () => _buildMiniEffectState('Effect 3', 'Ready', Colors.blue),
-                          onLoading: () => _buildMiniEffectState('Effect 3', 'Running...', Colors.orange),
-                          onSuccess: (data) => _buildMiniEffectState('Effect 3', 'Success: $data', Colors.green),
-                          onError: (error) => _buildMiniEffectState('Effect 3', 'Error', Colors.red),
+                          onInitial: () => _buildMiniEffectState(
+                              'Effect 3', 'Ready', Colors.blue),
+                          onLoading: () => _buildMiniEffectState(
+                              'Effect 3', 'Running...', Colors.orange),
+                          onSuccess: (data) => _buildMiniEffectState(
+                              'Effect 3', 'Success: $data', Colors.green),
+                          onError: (error) => _buildMiniEffectState(
+                              'Effect 3', 'Error', Colors.red),
                         ),
                       ),
 
@@ -272,7 +288,8 @@ class EffectDemoPage extends ZenView<EffectDemoController> {
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     children: [
-                      _buildStateMonitor('Basic Effect', controller.basicEffect),
+                      _buildStateMonitor(
+                          'Basic Effect', controller.basicEffect),
                       const Divider(),
                       _buildStateMonitor('Data Effect', controller.dataEffect),
                       const Divider(),
@@ -289,12 +306,12 @@ class EffectDemoPage extends ZenView<EffectDemoController> {
   }
 
   Widget _buildEffectState(
-      String title,
-      String message,
-      Color color,
-      IconData icon, {
-        bool showProgress = false,
-      }) {
+    String title,
+    String message,
+    Color color,
+    IconData icon, {
+    bool showProgress = false,
+  }) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -342,12 +359,12 @@ class EffectDemoPage extends ZenView<EffectDemoController> {
   }
 
   Widget _buildDataState(
-      String title,
-      String message,
-      Color color,
-      IconData icon, {
-        bool showProgress = false,
-      }) {
+    String title,
+    String message,
+    Color color,
+    IconData icon, {
+    bool showProgress = false,
+  }) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -423,8 +440,6 @@ class EffectDemoPage extends ZenView<EffectDemoController> {
     );
   }
 
-
-
   Widget _buildStateMonitor(String name, ZenEffect effect) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -438,11 +453,14 @@ class EffectDemoPage extends ZenView<EffectDemoController> {
             ),
           ),
           const SizedBox(width: 8),
-          Obx(() => _buildStateIndicator('Loading', effect.isLoading.value, Colors.orange)),
+          Obx(() => _buildStateIndicator(
+              'Loading', effect.isLoading.value, Colors.orange)),
           const SizedBox(width: 8),
-          Obx(() => _buildStateIndicator('Success', effect.dataWasSet.value, Colors.green)),
+          Obx(() => _buildStateIndicator(
+              'Success', effect.dataWasSet.value, Colors.green)),
           const SizedBox(width: 8),
-          Obx(() => _buildStateIndicator('Error', effect.error.value != null, Colors.red)),
+          Obx(() => _buildStateIndicator(
+              'Error', effect.error.value != null, Colors.red)),
         ],
       ),
     );

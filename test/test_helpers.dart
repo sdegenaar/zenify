@@ -1,4 +1,3 @@
-
 // test/test_helpers.dart
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zenify/debug/zen_system_stats.dart';
@@ -22,7 +21,8 @@ class ZenTestHelper {
     ZenConfig.configureTest();
 
     // Create a unique test scope that won't conflict with other tests
-    final scopeName = 'TestScope-$testName-${DateTime.now().microsecondsSinceEpoch}';
+    final scopeName =
+        'TestScope-$testName-${DateTime.now().microsecondsSinceEpoch}';
 
     // Create scope with root as parent to ensure isolation
     final testScope = Zen.createScope(name: scopeName);
@@ -32,9 +32,9 @@ class ZenTestHelper {
 
   /// Register dependencies in a given scope or root scope
   static void registerDependencies(
-      Map<Type, Function> dependencies, {
-        ZenScope? scope,
-      }) {
+    Map<Type, Function> dependencies, {
+    ZenScope? scope,
+  }) {
     final targetScope = scope ?? Zen.rootScope;
 
     // Register each dependency
@@ -87,7 +87,6 @@ class ZenTestHelper {
 
       // Step 5: Verify clean state
       _verifyCleanState();
-
     } catch (e) {
       ZenLogger.logError('Error resetting DI system', e);
 
@@ -102,7 +101,8 @@ class ZenTestHelper {
       final rootScope = Zen.rootScope;
 
       // Get all child scopes and dispose them
-      final childScopes = List.from(rootScope.childScopes); // Copy list to avoid modification during iteration
+      final childScopes = List.from(rootScope
+          .childScopes); // Copy list to avoid modification during iteration
       for (final child in childScopes) {
         try {
           if (!child.isDisposed) {
@@ -140,13 +140,15 @@ class ZenTestHelper {
       // Check that we have only root scope
       final allScopes = Zen.rootScope.childScopes;
       if (allScopes.isNotEmpty) {
-        ZenLogger.logWarning('Warning: Found ${allScopes.length} child scopes after reset');
+        ZenLogger.logWarning(
+            'Warning: Found ${allScopes.length} child scopes after reset');
       }
 
       // Check that root scope has no TestService instances
       final testServices = ZenSystemStats.findAllInstancesOfType<TestService>();
       if (testServices.isNotEmpty) {
-        ZenLogger.logWarning('Warning: Found ${testServices.length} TestService instances after reset');
+        ZenLogger.logWarning(
+            'Warning: Found ${testServices.length} TestService instances after reset');
 
         // Try one more aggressive cleanup
         _emergencyCleanup();
@@ -173,7 +175,15 @@ class ZenTestHelper {
       }
 
       // Clear tagged instances
-      final testTags = ['tag1', 'tag2', 'root-tag', 'child-tag', 'grandchild-tag', 'tagged', 'test'];
+      final testTags = [
+        'tag1',
+        'tag2',
+        'root-tag',
+        'child-tag',
+        'grandchild-tag',
+        'tagged',
+        'test'
+      ];
       for (final tag in testTags) {
         try {
           Zen.delete<TestService>(tag: tag);
@@ -183,7 +193,6 @@ class ZenTestHelper {
           // Continue
         }
       }
-
     } catch (e) {
       ZenLogger.logError('Emergency cleanup failed', e);
     }
@@ -198,7 +207,8 @@ class ZenTestHelper {
         ZenConfig.configureTest();
 
         // Check if it worked
-        final testServices = ZenSystemStats.findAllInstancesOfType<TestService>();
+        final testServices =
+            ZenSystemStats.findAllInstancesOfType<TestService>();
         if (testServices.isEmpty) {
           return; // Success!
         }
@@ -207,7 +217,8 @@ class ZenTestHelper {
       }
     }
 
-    ZenLogger.logError('All reset attempts failed - tests may have contaminated state');
+    ZenLogger.logError(
+        'All reset attempts failed - tests may have contaminated state');
   }
 
   /// Manual cleanup of all known test types and tags
@@ -223,8 +234,18 @@ class ZenTestHelper {
 
     // Delete tagged instances - cover all possible tags used in tests
     final testTags = [
-      'tag1', 'tag2', 'root-tag', 'child-tag', 'grandchild-tag', 'tagged',
-      'test', 'service1', 'service2', 'controller1', 'root', 'child'
+      'tag1',
+      'tag2',
+      'root-tag',
+      'child-tag',
+      'grandchild-tag',
+      'tagged',
+      'test',
+      'service1',
+      'service2',
+      'controller1',
+      'root',
+      'child'
     ];
 
     for (final tag in testTags) {
@@ -258,7 +279,6 @@ class ZenTestHelper {
       Zen.reset();
       Zen.init();
       ZenConfig.configureTest();
-
     } catch (e) {
       ZenLogger.logError('Error resetting DI system with verification', e);
 
@@ -275,9 +295,9 @@ class ZenTestHelper {
 
   /// Create a test scope with predefined dependencies
   static ZenScope createScopeWithDependencies(
-      String scopeName,
-      Map<Type, Function> dependencies,
-      ) {
+    String scopeName,
+    Map<Type, Function> dependencies,
+  ) {
     final scope = createIsolatedTestScope(scopeName);
     registerDependencies(dependencies, scope: scope);
     return scope;
@@ -285,23 +305,29 @@ class ZenTestHelper {
 
   /// Dispose a scope and verify it's properly cleaned up
   static void disposeAndVerifyScope(ZenScope scope) {
-    expect(scope.isDisposed, isFalse, reason: 'Scope should not be disposed before calling dispose');
+    expect(scope.isDisposed, isFalse,
+        reason: 'Scope should not be disposed before calling dispose');
 
     scope.dispose();
 
-    expect(scope.isDisposed, isTrue, reason: 'Scope should be disposed after calling dispose');
+    expect(scope.isDisposed, isTrue,
+        reason: 'Scope should be disposed after calling dispose');
   }
 
   /// Verify that a dependency exists in a scope
   static void verifyDependencyExists<T>(ZenScope scope, {String? tag}) {
     final dependency = scope.find<T>(tag: tag);
-    expect(dependency, isNotNull, reason: 'Dependency $T${tag != null ? ' with tag $tag' : ''} should exist');
+    expect(dependency, isNotNull,
+        reason:
+            'Dependency $T${tag != null ? ' with tag $tag' : ''} should exist');
   }
 
   /// Verify that a dependency does not exist in a scope
   static void verifyDependencyNotExists<T>(ZenScope scope, {String? tag}) {
     final dependency = scope.find<T>(tag: tag);
-    expect(dependency, isNull, reason: 'Dependency $T${tag != null ? ' with tag $tag' : ''} should not exist');
+    expect(dependency, isNull,
+        reason:
+            'Dependency $T${tag != null ? ' with tag $tag' : ''} should not exist');
   }
 
   /// Create multiple test scopes for hierarchy testing
@@ -330,9 +356,11 @@ class ZenTestHelper {
   }
 
   /// Helper to verify controller lifecycle
-  static Future<void> verifyControllerLifecycle(ZenController controller) async {
+  static Future<void> verifyControllerLifecycle(
+      ZenController controller) async {
     // Should be initialized immediately - use the correct getter
-    expect(controller.isInitialized, isTrue, reason: 'Controller should be initialized');
+    expect(controller.isInitialized, isTrue,
+        reason: 'Controller should be initialized');
 
     // Wait for onReady
     await waitForAsyncOperations();
@@ -387,27 +415,27 @@ class TestService {
 
 class TestController extends ZenController {
   final String value;
-  bool initialized = false;  // Custom property for test tracking
-  bool readyCalled = false;  // Custom property for test tracking
-  bool disposeMethodCalled = false;  // Custom property for test tracking
+  bool initialized = false; // Custom property for test tracking
+  bool readyCalled = false; // Custom property for test tracking
+  bool disposeMethodCalled = false; // Custom property for test tracking
 
   TestController(this.value);
 
   @override
   void onInit() {
     super.onInit();
-    initialized = true;  // Set our custom tracking property
+    initialized = true; // Set our custom tracking property
   }
 
   @override
   void onReady() {
     super.onReady();
-    readyCalled = true;  // Set our custom tracking property
+    readyCalled = true; // Set our custom tracking property
   }
 
   @override
   void onDispose() {
-    disposeMethodCalled = true;  // Set our custom tracking property
+    disposeMethodCalled = true; // Set our custom tracking property
     super.onDispose();
   }
 }

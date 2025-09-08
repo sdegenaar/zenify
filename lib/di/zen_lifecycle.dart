@@ -1,4 +1,3 @@
-
 // lib/di/zen_lifecycle.dart
 import 'package:flutter/widgets.dart';
 import '../controllers/zen_controller.dart';
@@ -31,9 +30,7 @@ class ZenLifecycleManager {
       });
     } catch (e, stack) {
       ZenLogger.logError(
-          'Error initializing controller ${controller.runtimeType}',
-          e, stack
-      );
+          'Error initializing controller ${controller.runtimeType}', e, stack);
     }
   }
 
@@ -124,9 +121,7 @@ class _ZenAppLifecycleObserver extends WidgetsBindingObserver {
   }
 
   void _notifyControllers(
-      List<ZenController> controllers,
-      Function(ZenController) callback
-      ) {
+      List<ZenController> controllers, Function(ZenController) callback) {
     for (final controller in controllers) {
       if (!controller.isDisposed) {
         try {
@@ -134,8 +129,8 @@ class _ZenAppLifecycleObserver extends WidgetsBindingObserver {
         } catch (e, stack) {
           ZenLogger.logError(
               'Error in lifecycle method for controller ${controller.runtimeType}',
-              e, stack
-          );
+              e,
+              stack);
         }
       }
     }

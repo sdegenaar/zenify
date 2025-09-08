@@ -105,29 +105,31 @@ class DepartmentDetailPage extends ZenView<DepartmentDetailController> {
 
             return errorMessage.isNotEmpty
                 ? Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(12),
-              color: Colors.red.shade100,
-              child: Row(
-                children: [
-                  Icon(Icons.error_outline, color: Colors.red.shade700, size: 20),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      errorMessage,
-                      style: TextStyle(
-                        color: Colors.red.shade700,
-                        fontWeight: FontWeight.w500,
-                      ),
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    color: Colors.red.shade100,
+                    child: Row(
+                      children: [
+                        Icon(Icons.error_outline,
+                            color: Colors.red.shade700, size: 20),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            errorMessage,
+                            style: TextStyle(
+                              color: Colors.red.shade700,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.close,
+                              color: Colors.red.shade700, size: 18),
+                          onPressed: controller.clearError,
+                        ),
+                      ],
                     ),
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.close, color: Colors.red.shade700, size: 18),
-                    onPressed: controller.clearError,
-                  ),
-                ],
-              ),
-            )
+                  )
                 : const SizedBox.shrink();
           },
         ),
@@ -159,7 +161,8 @@ class DepartmentDetailPage extends ZenView<DepartmentDetailController> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildDepartmentHeader(department, controller.employeesCount, controller.teamsCount),
+                      _buildDepartmentHeader(department,
+                          controller.employeesCount, controller.teamsCount),
                       const SizedBox(height: 24),
                       _buildTeamsSection(teams, controller),
                       const SizedBox(height: 24),
@@ -197,7 +200,8 @@ class DepartmentDetailPage extends ZenView<DepartmentDetailController> {
               const SizedBox(width: 8),
               _buildEffectIndicator('Dept', controller.loadDepartmentEffect),
               const SizedBox(width: 8),
-              _buildEffectIndicator('Employees', controller.loadEmployeesEffect),
+              _buildEffectIndicator(
+                  'Employees', controller.loadEmployeesEffect),
               const SizedBox(width: 8),
               _buildEffectIndicator('Teams', controller.loadTeamsEffect),
               const SizedBox(width: 8),
@@ -247,7 +251,8 @@ class DepartmentDetailPage extends ZenView<DepartmentDetailController> {
     });
   }
 
-  Widget _buildDepartmentHeader(Department? department, int employeeCount, int teamCount) {
+  Widget _buildDepartmentHeader(
+      Department? department, int employeeCount, int teamCount) {
     return Card(
       elevation: 2,
       child: Padding(
@@ -295,7 +300,8 @@ class DepartmentDetailPage extends ZenView<DepartmentDetailController> {
     );
   }
 
-  Widget _buildTeamsSection(List<Team> teams, DepartmentDetailController controller) {
+  Widget _buildTeamsSection(
+      List<Team> teams, DepartmentDetailController controller) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -318,8 +324,10 @@ class DepartmentDetailPage extends ZenView<DepartmentDetailController> {
                 height: 16,
                 child: CircularProgressIndicator(strokeWidth: 2),
               ),
-              onSuccess: (teams) => Icon(Icons.check_circle, size: 16, color: Colors.green.shade600),
-              onError: (error) => Icon(Icons.error, size: 16, color: Colors.red.shade600),
+              onSuccess: (teams) => Icon(Icons.check_circle,
+                  size: 16, color: Colors.green.shade600),
+              onError: (error) =>
+                  Icon(Icons.error, size: 16, color: Colors.red.shade600),
             ),
           ],
         ),
@@ -361,7 +369,7 @@ class DepartmentDetailPage extends ZenView<DepartmentDetailController> {
                   //   onSuccess: (_) => const Icon(Icons.arrow_forward_ios, size: 16),
                   //   onError: (_) => Icon(Icons.error, size: 16, color: Colors.red.shade600),
                   // ),
-                 // onTap: () => controller.navigateToTeamDetail(team.id),
+                  // onTap: () => controller.navigateToTeamDetail(team.id),
                 ),
               );
             },
@@ -394,8 +402,10 @@ class DepartmentDetailPage extends ZenView<DepartmentDetailController> {
                 height: 16,
                 child: CircularProgressIndicator(strokeWidth: 2),
               ),
-              onSuccess: (employees) => Icon(Icons.check_circle, size: 16, color: Colors.green.shade600),
-              onError: (error) => Icon(Icons.error, size: 16, color: Colors.red.shade600),
+              onSuccess: (employees) => Icon(Icons.check_circle,
+                  size: 16, color: Colors.green.shade600),
+              onError: (error) =>
+                  Icon(Icons.error, size: 16, color: Colors.red.shade600),
             ),
           ],
         ),
@@ -428,16 +438,20 @@ class DepartmentDetailPage extends ZenView<DepartmentDetailController> {
                   ),
                   trailing: ZenEffectBuilder<void>(
                     effect: controller.navigationEffect,
-                    onInitial: () => const Icon(Icons.arrow_forward_ios, size: 16),
+                    onInitial: () =>
+                        const Icon(Icons.arrow_forward_ios, size: 16),
                     onLoading: () => const SizedBox(
                       width: 16,
                       height: 16,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     ),
-                    onSuccess: (_) => const Icon(Icons.arrow_forward_ios, size: 16),
-                    onError: (_) => Icon(Icons.error, size: 16, color: Colors.red.shade600),
+                    onSuccess: (_) =>
+                        const Icon(Icons.arrow_forward_ios, size: 16),
+                    onError: (_) =>
+                        Icon(Icons.error, size: 16, color: Colors.red.shade600),
                   ),
-                  onTap: () => controller.navigateToEmployeeProfile(employee.id),
+                  onTap: () =>
+                      controller.navigateToEmployeeProfile(employee.id),
                 ),
               );
             },

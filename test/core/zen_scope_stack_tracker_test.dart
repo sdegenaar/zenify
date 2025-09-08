@@ -1,4 +1,3 @@
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zenify/zenify.dart';
 
@@ -40,7 +39,8 @@ void main() {
         ZenScopeStackTracker.pushScope('scope2');
         ZenScopeStackTracker.pushScope('scope3');
 
-        expect(ZenScopeStackTracker.getCurrentStack(), equals(['scope1', 'scope2', 'scope3']));
+        expect(ZenScopeStackTracker.getCurrentStack(),
+            equals(['scope1', 'scope2', 'scope3']));
         expect(ZenScopeStackTracker.getCurrentScope(), equals('scope3'));
       });
 
@@ -120,8 +120,14 @@ void main() {
         final creationTime = ZenScopeStackTracker.getCreationTime('scope1');
 
         expect(creationTime, isNotNull);
-        expect(creationTime!.isAfter(beforePush.subtract(const Duration(milliseconds: 1))), isTrue);
-        expect(creationTime.isBefore(afterPush.add(const Duration(milliseconds: 1))), isTrue);
+        expect(
+            creationTime!
+                .isAfter(beforePush.subtract(const Duration(milliseconds: 1))),
+            isTrue);
+        expect(
+            creationTime
+                .isBefore(afterPush.add(const Duration(milliseconds: 1))),
+            isTrue);
       });
 
       test('should remove creation time when scope is popped', () {
@@ -149,7 +155,8 @@ void main() {
         ZenScopeStackTracker.pushScope('scope2');
         ZenScopeStackTracker.pushScope('scope1'); // Duplicate
 
-        expect(ZenScopeStackTracker.getCurrentStack(), equals(['scope2', 'scope1']));
+        expect(ZenScopeStackTracker.getCurrentStack(),
+            equals(['scope2', 'scope1']));
         expect(ZenScopeStackTracker.getCurrentScope(), equals('scope1'));
       });
 
@@ -185,7 +192,8 @@ void main() {
         ZenScopeStackTracker.pushScope('parent');
         ZenScopeStackTracker.pushScope('child');
 
-        final resolvedParent = ZenScopeStackTracker.getParentScopeInstance('child');
+        final resolvedParent =
+            ZenScopeStackTracker.getParentScopeInstance('child');
 
         expect(resolvedParent, equals(parentScope));
         expect(resolvedParent, isNot(equals(childScope)));
@@ -201,16 +209,19 @@ void main() {
 
         parentScope.dispose(); // Dispose the parent
 
-        final resolvedParent = ZenScopeStackTracker.getParentScopeInstance('child');
+        final resolvedParent =
+            ZenScopeStackTracker.getParentScopeInstance('child');
 
         expect(resolvedParent, isNull);
       });
 
-      test('should return null when parent scope does not exist in manager', () {
+      test('should return null when parent scope does not exist in manager',
+          () {
         ZenScopeStackTracker.pushScope('nonexistent');
         ZenScopeStackTracker.pushScope('child');
 
-        final resolvedParent = ZenScopeStackTracker.getParentScopeInstance('child');
+        final resolvedParent =
+            ZenScopeStackTracker.getParentScopeInstance('child');
 
         expect(resolvedParent, isNull);
       });
@@ -277,23 +288,28 @@ void main() {
 
         // Navigate to feature
         ZenScopeStackTracker.pushScope('DepartmentsScope');
-        expect(ZenScopeStackTracker.getParentScope('DepartmentsScope'), equals('AppScope'));
+        expect(ZenScopeStackTracker.getParentScope('DepartmentsScope'),
+            equals('AppScope'));
 
         // Navigate to detail
         ZenScopeStackTracker.pushScope('DepartmentDetailScope');
-        expect(ZenScopeStackTracker.getParentScope('DepartmentDetailScope'), equals('DepartmentsScope'));
+        expect(ZenScopeStackTracker.getParentScope('DepartmentDetailScope'),
+            equals('DepartmentsScope'));
 
         // Navigate to nested detail
         ZenScopeStackTracker.pushScope('EmployeeDetailScope');
-        expect(ZenScopeStackTracker.getParentScope('EmployeeDetailScope'), equals('DepartmentDetailScope'));
+        expect(ZenScopeStackTracker.getParentScope('EmployeeDetailScope'),
+            equals('DepartmentDetailScope'));
 
         // Navigate back (pop detail)
         ZenScopeStackTracker.popScope('EmployeeDetailScope');
-        expect(ZenScopeStackTracker.getCurrentScope(), equals('DepartmentDetailScope'));
+        expect(ZenScopeStackTracker.getCurrentScope(),
+            equals('DepartmentDetailScope'));
 
         // Navigate back to list
         ZenScopeStackTracker.popScope('DepartmentDetailScope');
-        expect(ZenScopeStackTracker.getCurrentScope(), equals('DepartmentsScope'));
+        expect(
+            ZenScopeStackTracker.getCurrentScope(), equals('DepartmentsScope'));
       });
 
       test('should handle modal/dialog scenarios', () {
@@ -303,11 +319,13 @@ void main() {
 
         // Show modal
         ZenScopeStackTracker.pushScope('ModalScope');
-        expect(ZenScopeStackTracker.getParentScope('ModalScope'), equals('PageScope'));
+        expect(ZenScopeStackTracker.getParentScope('ModalScope'),
+            equals('PageScope'));
 
         // Show dialog from modal
         ZenScopeStackTracker.pushScope('DialogScope');
-        expect(ZenScopeStackTracker.getParentScope('DialogScope'), equals('ModalScope'));
+        expect(ZenScopeStackTracker.getParentScope('DialogScope'),
+            equals('ModalScope'));
 
         // Close dialog
         ZenScopeStackTracker.popScope('DialogScope');
@@ -326,8 +344,10 @@ void main() {
         ZenScopeStackTracker.pushScope('ChildScope');
 
         // Should not create duplicate, just move to top
-        expect(ZenScopeStackTracker.getCurrentStack(), equals(['PageScope', 'ChildScope']));
-        expect(ZenScopeStackTracker.getParentScope('ChildScope'), equals('PageScope'));
+        expect(ZenScopeStackTracker.getCurrentStack(),
+            equals(['PageScope', 'ChildScope']));
+        expect(ZenScopeStackTracker.getParentScope('ChildScope'),
+            equals('PageScope'));
       });
     });
   });

@@ -31,7 +31,8 @@ class HierarchyInfoCard extends StatelessWidget {
             const SizedBox(height: 16),
             Obx(() {
               final stats = controller.hierarchyStats.value;
-              final lastUpdated = stats['lastUpdated'] as String? ?? 'Not available';
+              final lastUpdated =
+                  stats['lastUpdated'] as String? ?? 'Not available';
               final depth = stats['depth'] as int? ?? 0;
               final serviceCount = stats['serviceCount'] as int? ?? 0;
               final services = stats['services'] as List<dynamic>? ?? [];

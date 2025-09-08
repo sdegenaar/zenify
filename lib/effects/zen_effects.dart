@@ -1,4 +1,3 @@
-
 // lib/effects/zen_effects.dart
 import '../reactive/core/rx_value.dart';
 import '../controllers/zen_controller.dart';
@@ -134,12 +133,12 @@ class ZenEffect<T> {
 extension ZenEffectWatch<T> on ZenEffect<T> {
   /// Unified watch method for all effect aspects using ZenWorkers directly
   void Function() watch(
-      ZenController controller, {
-        void Function(T?)? onData,
-        void Function(bool)? onLoading,
-        void Function(Object?)? onError,
-        String? name,
-      }) {
+    ZenController controller, {
+    void Function(T?)? onData,
+    void Function(bool)? onLoading,
+    void Function(Object?)? onError,
+    String? name,
+  }) {
     if (isDisposed) {
       return () {}; // Return no-op disposer for disposed effects
     }
@@ -170,15 +169,21 @@ extension ZenEffectWatch<T> on ZenEffect<T> {
   }
 
   /// Convenience method for watching only data changes
-  void Function() watchData(ZenController controller, void Function(T?) callback, {String? name}) =>
+  void Function() watchData(
+          ZenController controller, void Function(T?) callback,
+          {String? name}) =>
       watch(controller, onData: callback, name: name);
 
   /// Convenience method for watching only loading state
-  void Function() watchLoading(ZenController controller, void Function(bool) callback, {String? name}) =>
+  void Function() watchLoading(
+          ZenController controller, void Function(bool) callback,
+          {String? name}) =>
       watch(controller, onLoading: callback, name: name);
 
   /// Convenience method for watching only error state
-  void Function() watchError(ZenController controller, void Function(Object?) callback, {String? name}) =>
+  void Function() watchError(
+          ZenController controller, void Function(Object?) callback,
+          {String? name}) =>
       watch(controller, onError: callback, name: name);
 }
 

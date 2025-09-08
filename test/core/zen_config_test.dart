@@ -180,13 +180,16 @@ void main() {
       expect(ZenConfig.enablePerformanceMetrics, false); // Default (alias)
       expect(ZenConfig.enableMetrics, true); // Changed
       expect(ZenConfig.enableAutoDispose, true); // Default
-      expect(ZenConfig.controllerCacheExpiry, const Duration(minutes: 30)); // Default
+      expect(ZenConfig.controllerCacheExpiry,
+          const Duration(minutes: 30)); // Default
       expect(ZenConfig.enableNavigationLogging, true); // Changed
       expect(ZenConfig.enableRouteLogging, false); // Default
       expect(ZenConfig.useRxTracking, true); // Default
     });
 
-    test('enablePerformanceMetrics setter should update enablePerformanceTracking', () {
+    test(
+        'enablePerformanceMetrics setter should update enablePerformanceTracking',
+        () {
       // Set via the setter
       ZenConfig.enablePerformanceMetrics = true;
       expect(ZenConfig.enablePerformanceTracking, true);
@@ -195,7 +198,8 @@ void main() {
       expect(ZenConfig.enablePerformanceTracking, false);
     });
 
-    test('should apply environment configuration with different environments', () {
+    test('should apply environment configuration with different environments',
+        () {
       // Test with 'dev' environment
       ZenConfig.applyEnvironment('dev');
       expect(ZenConfig.enableDebugLogs, true);

@@ -217,7 +217,8 @@ void main() {
     testWidgets('should handle scope hierarchy', (tester) async {
       // Arrange
       final parentScope = Zen.createScope(name: 'ParentScope');
-      final childScope = Zen.createScope(name: 'ChildScope', parent: parentScope);
+      final childScope =
+          Zen.createScope(name: 'ChildScope', parent: parentScope);
 
       final service = TestService('hierarchical-service');
       parentScope.put<TestService>(service);
@@ -296,7 +297,8 @@ void main() {
       expect(find.text('stable-service'), findsOneWidget);
     });
 
-    testWidgets('should handle graceful degradation with builder errors', (tester) async {
+    testWidgets('should handle graceful degradation with builder errors',
+        (tester) async {
       // Arrange
       final service = TestService('error-service');
       Zen.put<TestService>(service);
@@ -444,7 +446,8 @@ void main() {
       ZenConfig.enableDebugLogs = false;
     });
 
-    testWidgets('should handle Zen.findOrNull throwing exception', (tester) async {
+    testWidgets('should handle Zen.findOrNull throwing exception',
+        (tester) async {
       // This test verifies that if Zen.findOrNull somehow throws,
       // ZenConsumer handles it gracefully
 

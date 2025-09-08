@@ -13,7 +13,7 @@ class CartModule extends ZenModule {
     // Find services from the parent scope
     final cartService = Zen.find<CartService>();
     final productService = Zen.find<ProductService>();
-    
+
     // Register controllers for this module
     scope.putLazy<CartController>(
       () => CartController(
@@ -29,7 +29,7 @@ class CartModule extends ZenModule {
       ZenLogger.logInfo('CartModule initialized');
     }
   }
-  
+
   @override
   Future<void> onDispose(ZenScope scope) async {
     if (ZenConfig.enableDebugLogs) {

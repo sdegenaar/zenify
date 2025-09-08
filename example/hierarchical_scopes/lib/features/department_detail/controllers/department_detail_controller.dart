@@ -28,8 +28,10 @@ class DepartmentDetailController extends ZenController {
   late final RxString _lastError;
 
   // ZenEffects for tracking operations - using createEffect pattern like departments controller
-  late final loadDepartmentEffect = createEffect<Department>(name: 'loadDepartment');
-  late final loadEmployeesEffect = createEffect<List<Employee>>(name: 'loadEmployees');
+  late final loadDepartmentEffect =
+      createEffect<Department>(name: 'loadDepartment');
+  late final loadEmployeesEffect =
+      createEffect<List<Employee>>(name: 'loadEmployees');
   late final loadTeamsEffect = createEffect<List<Team>>(name: 'loadTeams');
   late final refreshEffect = createEffect<bool>(name: 'refresh');
   late final navigationEffect = createEffect<void>(name: 'navigation');
@@ -72,7 +74,8 @@ class DepartmentDetailController extends ZenController {
     // Load department details
     _loadDepartmentDetails();
 
-    ZenLogger.logInfo('🏢 DepartmentDetailController initialized with ZenEffects');
+    ZenLogger.logInfo(
+        '🏢 DepartmentDetailController initialized with ZenEffects');
   }
 
   /// Initialize effect watchers to respond to effect state changes
@@ -83,7 +86,8 @@ class DepartmentDetailController extends ZenController {
       onData: (department) {
         if (department != null) {
           _department.value = department;
-          ZenLogger.logInfo('🏢 Load department effect completed: ${department.name}');
+          ZenLogger.logInfo(
+              '🏢 Load department effect completed: ${department.name}');
         }
       },
       onError: (error) {
@@ -100,7 +104,8 @@ class DepartmentDetailController extends ZenController {
       onData: (employees) {
         if (employees != null) {
           _employees.value = employees;
-          ZenLogger.logInfo('👥 Load employees effect completed: ${employees.length} employees');
+          ZenLogger.logInfo(
+              '👥 Load employees effect completed: ${employees.length} employees');
         }
       },
       onError: (error) {
@@ -117,7 +122,8 @@ class DepartmentDetailController extends ZenController {
       onData: (teams) {
         if (teams != null) {
           _teams.value = teams;
-          ZenLogger.logInfo('🔥 Load teams effect completed: ${teams.length} teams');
+          ZenLogger.logInfo(
+              '🔥 Load teams effect completed: ${teams.length} teams');
         }
       },
       onError: (error) {
@@ -172,7 +178,8 @@ class DepartmentDetailController extends ZenController {
 
         // Load department with effect tracking
         await loadDepartmentEffect.run(() async {
-          final department = await _departmentService.getDepartment(departmentId);
+          final department =
+              await _departmentService.getDepartment(departmentId);
           return department;
         });
 
@@ -187,7 +194,6 @@ class DepartmentDetailController extends ZenController {
           final teams = await _teamService.loadTeams(departmentId);
           return teams;
         });
-
       } catch (e) {
         _lastError.value = 'Error loading department details: $e';
         ZenLogger.logError('Error loading department details', e);
@@ -235,7 +241,8 @@ class DepartmentDetailController extends ZenController {
   void navigateToTeamDetail(String teamId) {
     navigationEffect.run(() async {
       _teamService.selectTeam(teamId);
-      _navigationService.navigateTo('/team/$teamId', arguments: {'teamId': teamId});
+      _navigationService
+          .navigateTo('/team/$teamId', arguments: {'teamId': teamId});
     });
   }
 

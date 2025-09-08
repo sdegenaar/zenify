@@ -12,7 +12,9 @@ class TestController extends ZenController {
   late final testEffect = createEffect<String>(name: 'testEffect');
 
   Future<void> runEffect(String value, {bool shouldFail = false}) async {
-    if (testEffect.data.value == value) return; // Prevent re-trigger with duplicate data
+    if (testEffect.data.value == value) {
+      return; // Prevent re-trigger with duplicate data
+    }
 
     await testEffect.run(() async {
       if (shouldFail) {
@@ -84,7 +86,7 @@ void main() {
 
         final handle = controller.debounce(
           controller.text,
-              (value) => calls.add(value),
+          (value) => calls.add(value),
           const Duration(milliseconds: 50),
         );
 
@@ -107,7 +109,7 @@ void main() {
 
         final handle = controller.throttle(
           controller.count,
-              (value) => calls.add(value),
+          (value) => calls.add(value),
           const Duration(milliseconds: 50),
         );
 
@@ -127,7 +129,7 @@ void main() {
 
         final handle = controller.interval(
           controller.items,
-              (value) => calls.add(List.from(value)),
+          (value) => calls.add(List.from(value)),
           const Duration(milliseconds: 50),
         );
 
@@ -136,7 +138,9 @@ void main() {
 
         await Future.delayed(const Duration(milliseconds: 100));
 
-        expect(calls, [['a', 'b']]);
+        expect(calls, [
+          ['a', 'b']
+        ]);
         handle.dispose();
       });
 
@@ -145,8 +149,8 @@ void main() {
 
         final handle = controller.condition(
           controller.count,
-              (value) => value.isEven,
-              (value) => calls.add(value),
+          (value) => value.isEven,
+          (value) => calls.add(value),
         );
 
         controller.count.value = 1; // Odd, skip
@@ -208,7 +212,7 @@ void main() {
 
         final handle = controller.debounce(
           controller.text,
-              (value) => calls.add(value),
+          (value) => calls.add(value),
           const Duration(milliseconds: 50),
         );
 
@@ -237,7 +241,7 @@ void main() {
 
         final handle = controller.throttle(
           controller.count,
-              (value) => calls.add(value),
+          (value) => calls.add(value),
           const Duration(milliseconds: 50),
         );
 
@@ -269,7 +273,7 @@ void main() {
 
         final handle = controller.interval(
           controller.items,
-              (value) => calls.add(List.from(value)),
+          (value) => calls.add(List.from(value)),
           const Duration(milliseconds: 30),
         );
 
@@ -301,8 +305,8 @@ void main() {
 
         final handle = controller.condition(
           controller.count,
-              (value) => value.isEven,
-              (value) => calls.add(value),
+          (value) => value.isEven,
+          (value) => calls.add(value),
         );
 
         // Should execute (even number)
@@ -480,7 +484,8 @@ void main() {
       test('controller provides accurate worker statistics', () async {
         // Create various workers
         final worker1 = controller.ever(controller.count, (_) {});
-        final worker2 = controller.debounce(controller.text, (_) {}, const Duration(milliseconds: 50));
+        final worker2 = controller.debounce(
+            controller.text, (_) {}, const Duration(milliseconds: 50));
 
         // Create a worker group
         final group = controller.createWorkerGroup();
@@ -499,7 +504,8 @@ void main() {
 
         stats = controller.getWorkerStats();
         expect(stats['individual_active'], 0); // No individual workers active
-        expect(stats['individual_paused'], 2); // Both worker1 and worker2 paused
+        expect(
+            stats['individual_paused'], 2); // Both worker1 and worker2 paused
         expect(stats['group_active'], 0);
         expect(stats['group_paused'], 1);
         expect(stats['total_active'], 0);
@@ -606,7 +612,8 @@ void main() {
     group('Error Handling', () {
       test('validates duration requirements', () {
         expect(
-              () => controller.debounce(controller.count, (_) {}, const Duration(milliseconds: -1)),
+          () => controller.debounce(
+              controller.count, (_) {}, const Duration(milliseconds: -1)),
           throwsA(isA<ArgumentError>()),
         );
       });
@@ -646,13 +653,15 @@ void main() {
           calls.add(data);
         });
 
-        expect(calls, []); // Changed from [null] - ever workers don't fire immediately
+        expect(calls,
+            []); // Changed from [null] - ever workers don't fire immediately
 
         await controller.runEffect('test');
         expect(calls, ['test']); // Changed from [null, 'test']
 
         await controller.runEffect('updated');
-        expect(calls, ['test', 'updated']); // Changed from [null, 'test', 'updated']
+        expect(calls,
+            ['test', 'updated']); // Changed from [null, 'test', 'updated']
 
         handle.dispose();
       });
@@ -660,11 +669,13 @@ void main() {
       test('can watch effect loading state', () async {
         final calls = <bool>[];
 
-        final handle = controller.ever(controller.testEffect.isLoading, (loading) {
+        final handle =
+            controller.ever(controller.testEffect.isLoading, (loading) {
           calls.add(loading);
         });
 
-        expect(calls, []); // Changed from [false] - ever workers don't fire immediately
+        expect(calls,
+            []); // Changed from [false] - ever workers don't fire immediately
 
         final future = controller.runEffect('test');
         expect(calls, [true]); // Changed from [false, true]
@@ -678,7 +689,8 @@ void main() {
       test('effect workers can be paused and resumed', () async {
         final calls = <bool>[];
 
-        final handle = controller.ever(controller.testEffect.isLoading, (loading) {
+        final handle =
+            controller.ever(controller.testEffect.isLoading, (loading) {
           calls.add(loading);
         });
 

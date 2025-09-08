@@ -74,7 +74,8 @@ class TestScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Get controller from the specified scope or root scope
-    final controller = scope?.find<LifecycleController>() ?? Zen.findOrNull<LifecycleController>();
+    final controller = scope?.find<LifecycleController>() ??
+        Zen.findOrNull<LifecycleController>();
 
     // Handle case where controller is not found
     if (controller == null) {
@@ -164,208 +165,211 @@ void main() {
     });
 
     testWidgets('should properly initialize controllers with widgets',
-            (WidgetTester tester) async {
-          // Register screenController in the test scope
-          testScope.put<LifecycleController>(screenController);
+        (WidgetTester tester) async {
+      // Register screenController in the test scope
+      testScope.put<LifecycleController>(screenController);
 
-          // Build our app with testScope
-          await tester.pumpWidget(
-            MaterialApp(
-              home: TestScreen(name: 'Home', scope: testScope),
-            ),
-          );
+      // Build our app with testScope
+      await tester.pumpWidget(
+        MaterialApp(
+          home: TestScreen(name: 'Home', scope: testScope),
+        ),
+      );
 
-          // Let the dust settle (frames for onReady callbacks)
-          await tester.pumpAndSettle();
+      // Let the dust settle (frames for onReady callbacks)
+      await tester.pumpAndSettle();
 
-          // Check that controllers were initialized properly
-          expect(rootController.hasEvent('onInit'), isTrue);
-          expect(rootController.hasEvent('onReady'), isTrue);
-          expect(screenController.hasEvent('onInit'), isTrue);
-          expect(screenController.hasEvent('onReady'), isTrue);
+      // Check that controllers were initialized properly
+      expect(rootController.hasEvent('onInit'), isTrue);
+      expect(rootController.hasEvent('onReady'), isTrue);
+      expect(screenController.hasEvent('onInit'), isTrue);
+      expect(screenController.hasEvent('onReady'), isTrue);
 
-          // Verify counter starts at 0
-          expect(find.text('Counter: 0'), findsOneWidget);
+      // Verify counter starts at 0
+      expect(find.text('Counter: 0'), findsOneWidget);
 
-          // Tap the increment button
-          await tester.tap(find.text('Increment'));
-          await tester.pump();
+      // Tap the increment button
+      await tester.tap(find.text('Increment'));
+      await tester.pump();
 
-          // Verify counter incremented
-          expect(find.text('Counter: 1'), findsOneWidget);
-        });
+      // Verify counter incremented
+      expect(find.text('Counter: 1'), findsOneWidget);
+    });
 
     testWidgets('should maintain controller state during navigation',
-            (WidgetTester tester) async {
-          // Create fresh controller for this test to avoid state leakage
-          final navTestController = LifecycleController();
+        (WidgetTester tester) async {
+      // Create fresh controller for this test to avoid state leakage
+      final navTestController = LifecycleController();
 
-          // Register the controller in the test scope
-          testScope.put<LifecycleController>(navTestController);
+      // Register the controller in the test scope
+      testScope.put<LifecycleController>(navTestController);
 
-          // Build app with navigation
-          await tester.pumpWidget(
-            MaterialApp(
-              initialRoute: '/',
-              routes: {
-                '/': (context) => TestScreen(name: 'Home', scope: testScope),
-                '/next': (context) {
-                  // Use same scope for next screen
-                  final prevScreenName = ModalRoute.of(context)!.settings.arguments as String;
-                  return TestScreen(name: 'Next from $prevScreenName', scope: testScope);
-                },
-              },
-            ),
-          );
+      // Build app with navigation
+      await tester.pumpWidget(
+        MaterialApp(
+          initialRoute: '/',
+          routes: {
+            '/': (context) => TestScreen(name: 'Home', scope: testScope),
+            '/next': (context) {
+              // Use same scope for next screen
+              final prevScreenName =
+                  ModalRoute.of(context)!.settings.arguments as String;
+              return TestScreen(
+                  name: 'Next from $prevScreenName', scope: testScope);
+            },
+          },
+        ),
+      );
 
-          await tester.pumpAndSettle();
+      await tester.pumpAndSettle();
 
-          // Find the increment button by type rather than text
-          final incrementButton = find.byType(ElevatedButton).first;
+      // Find the increment button by type rather than text
+      final incrementButton = find.byType(ElevatedButton).first;
 
-          // Tap the increment button
-          await tester.tap(incrementButton);
-          await tester.pump();
+      // Tap the increment button
+      await tester.tap(incrementButton);
+      await tester.pump();
 
-          expect(find.text('Counter: 1'), findsOneWidget);
+      expect(find.text('Counter: 1'), findsOneWidget);
 
-          // Navigate to next screen
-          await tester.tap(find.text('Navigate to Next Screen'));
-          await tester.pumpAndSettle();
+      // Navigate to next screen
+      await tester.tap(find.text('Navigate to Next Screen'));
+      await tester.pumpAndSettle();
 
-          // Verify we're on the next screen but counter state is preserved
-          expect(find.text('Screen Next from Home'), findsOneWidget);
-          expect(find.text('Counter: 1'), findsOneWidget);
+      // Verify we're on the next screen but counter state is preserved
+      expect(find.text('Screen Next from Home'), findsOneWidget);
+      expect(find.text('Counter: 1'), findsOneWidget);
 
-          // Increment on second screen
-          final incrementButtonOnNextScreen = find.byType(ElevatedButton).first;
-          await tester.tap(incrementButtonOnNextScreen);
-          await tester.pump();
+      // Increment on second screen
+      final incrementButtonOnNextScreen = find.byType(ElevatedButton).first;
+      await tester.tap(incrementButtonOnNextScreen);
+      await tester.pump();
 
-          expect(find.text('Counter: 2'), findsOneWidget);
+      expect(find.text('Counter: 2'), findsOneWidget);
 
-          // Navigate back
-          await tester.pageBack();
-          await tester.pumpAndSettle();
+      // Navigate back
+      await tester.pageBack();
+      await tester.pumpAndSettle();
 
-          // Verify we're back on first screen with updated counter
-          expect(find.text('Screen Home'), findsOneWidget);
-          expect(find.text('Counter: 2'), findsOneWidget);
+      // Verify we're back on first screen with updated counter
+      expect(find.text('Screen Home'), findsOneWidget);
+      expect(find.text('Counter: 2'), findsOneWidget);
 
-          // Controller should not have been re-initialized
-          expect(navTestController.eventCount('onInit'), 1);
-          expect(navTestController.eventCount('onReady'), 1);
-        });
+      // Controller should not have been re-initialized
+      expect(navTestController.eventCount('onInit'), 1);
+      expect(navTestController.eventCount('onReady'), 1);
+    });
 
     testWidgets('should dispose controllers when widgets are removed',
-            (WidgetTester tester) async {
-          // Create a fresh controller specifically for this test
-          final disposableController = LifecycleController();
+        (WidgetTester tester) async {
+      // Create a fresh controller specifically for this test
+      final disposableController = LifecycleController();
 
-          // Flag to control widget presence
-          bool showWidget = true;
+      // Flag to control widget presence
+      bool showWidget = true;
 
-          // Build our app with a stateful wrapper to control child presence
-          await tester.pumpWidget(
-            MaterialApp(
-              home: StatefulBuilder(
-                builder: (context, setState) {
-                  return Scaffold(
-                    appBar: AppBar(title: const Text('Lifecycle Test')),
-                    body: Column(
-                      children: [
-                        ElevatedButton(
-                          onPressed: () {
-                            setState(() {
-                              showWidget = !showWidget;
-                            });
-                          },
-                          child: const Text('Toggle Widget'),
-                        ),
-                        if (showWidget)
-                          Expanded(
-                            child: ZenScopeWidget(
-                              moduleBuilder: () => DisposableModule(disposableController),
-                              child: const Center(child: Text('Scoped Widget')),
-                            ),
-                          ),
-                      ],
+      // Build our app with a stateful wrapper to control child presence
+      await tester.pumpWidget(
+        MaterialApp(
+          home: StatefulBuilder(
+            builder: (context, setState) {
+              return Scaffold(
+                appBar: AppBar(title: const Text('Lifecycle Test')),
+                body: Column(
+                  children: [
+                    ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          showWidget = !showWidget;
+                        });
+                      },
+                      child: const Text('Toggle Widget'),
                     ),
-                  );
-                },
-              ),
-            ),
-          );
+                    if (showWidget)
+                      Expanded(
+                        child: ZenScopeWidget(
+                          moduleBuilder: () =>
+                              DisposableModule(disposableController),
+                          child: const Center(child: Text('Scoped Widget')),
+                        ),
+                      ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      );
 
-          // Wait for everything to settle
-          await tester.pumpAndSettle();
+      // Wait for everything to settle
+      await tester.pumpAndSettle();
 
-          // Controller should be initialized but not disposed
-          expect(disposableController.hasEvent('onInit'), isTrue);
-          expect(disposableController.hasEvent('onReady'), isTrue);
-          expect(disposableController.hasEvent('onDispose'), isFalse);
-          expect(disposableController.isDisposed, isFalse);
+      // Controller should be initialized but not disposed
+      expect(disposableController.hasEvent('onInit'), isTrue);
+      expect(disposableController.hasEvent('onReady'), isTrue);
+      expect(disposableController.hasEvent('onDispose'), isFalse);
+      expect(disposableController.isDisposed, isFalse);
 
-          // Toggle widget off to remove the scope
-          await tester.tap(find.text('Toggle Widget'));
-          await tester.pumpAndSettle();
+      // Toggle widget off to remove the scope
+      await tester.tap(find.text('Toggle Widget'));
+      await tester.pumpAndSettle();
 
-          // When using the moduleBuilder approach, the widget should dispose the scope
-          expect(disposableController.hasEvent('onDispose'), isTrue);
-          expect(disposableController.isDisposed, isTrue);
-        });
+      // When using the moduleBuilder approach, the widget should dispose the scope
+      expect(disposableController.hasEvent('onDispose'), isTrue);
+      expect(disposableController.isDisposed, isTrue);
+    });
 
     testWidgets('should handle app lifecycle events properly',
-            (WidgetTester tester) async {
-          // Create a controller that observes app lifecycle
-          final lifecycleController = LifecycleController();
+        (WidgetTester tester) async {
+      // Create a controller that observes app lifecycle
+      final lifecycleController = LifecycleController();
 
-          // Register in test scope
-          testScope.put<LifecycleController>(lifecycleController);
+      // Register in test scope
+      testScope.put<LifecycleController>(lifecycleController);
 
-          // Build widget
-          await tester.pumpWidget(
-            MaterialApp(
-              home: TestScreen(name: 'Lifecycle', scope: testScope),
-            ),
-          );
+      // Build widget
+      await tester.pumpWidget(
+        MaterialApp(
+          home: TestScreen(name: 'Lifecycle', scope: testScope),
+        ),
+      );
 
-          await tester.pumpAndSettle();
+      await tester.pumpAndSettle();
 
-          // Controller should start observing lifecycle when initialized
-          lifecycleController.startObservingAppLifecycle();
+      // Controller should start observing lifecycle when initialized
+      lifecycleController.startObservingAppLifecycle();
 
-          // Simulate app lifecycle events
-          final binding = tester.binding;
+      // Simulate app lifecycle events
+      final binding = tester.binding;
 
-          // Test pause event
-          binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
-          await tester.pump();
-          expect(lifecycleController.hasEvent('onPause'), isTrue);
+      // Test pause event
+      binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      await tester.pump();
+      expect(lifecycleController.hasEvent('onPause'), isTrue);
 
-          // Test resume event
-          binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
-          await tester.pump();
-          expect(lifecycleController.hasEvent('onResume'), isTrue);
+      // Test resume event
+      binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pump();
+      expect(lifecycleController.hasEvent('onResume'), isTrue);
 
-          // Test inactive event
-          binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
-          await tester.pump();
-          expect(lifecycleController.hasEvent('onInactive'), isTrue);
+      // Test inactive event
+      binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      await tester.pump();
+      expect(lifecycleController.hasEvent('onInactive'), isTrue);
 
-          // Test detached event
-          binding.handleAppLifecycleStateChanged(AppLifecycleState.detached);
-          await tester.pump();
-          expect(lifecycleController.hasEvent('onDetached'), isTrue);
+      // Test detached event
+      binding.handleAppLifecycleStateChanged(AppLifecycleState.detached);
+      await tester.pump();
+      expect(lifecycleController.hasEvent('onDetached'), isTrue);
 
-          // Test hidden event
-          binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
-          await tester.pump();
-          expect(lifecycleController.hasEvent('onHidden'), isTrue);
+      // Test hidden event
+      binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+      await tester.pump();
+      expect(lifecycleController.hasEvent('onHidden'), isTrue);
 
-          // Stop observing to clean up
-          lifecycleController.stopObservingAppLifecycle();
-        });
+      // Stop observing to clean up
+      lifecycleController.stopObservingAppLifecycle();
+    });
 
     test('should track controller lifecycle events correctly', () async {
       final controller = LifecycleController();

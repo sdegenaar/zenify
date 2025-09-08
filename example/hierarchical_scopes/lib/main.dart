@@ -41,7 +41,6 @@ Future<void> main() async {
   runApp(const CompanyApp());
 }
 
-
 /// Main application widget
 class CompanyApp extends StatelessWidget {
   const CompanyApp({super.key});

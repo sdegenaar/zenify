@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:zenify/debug/zen_system_stats.dart';
 import 'package:zenify/zenify.dart';
@@ -22,7 +21,8 @@ class _DebugDialogState extends State<DebugDialog> {
       final stackInfo = ZenScopeStackTracker.getDebugInfo();
       data['scopeStack'] = stackInfo['stack'];
       data['stackSize'] = stackInfo['stackSize'];
-      data['stackCurrentScope'] = stackInfo['currentScope']; // This is the REAL current scope
+      data['stackCurrentScope'] =
+          stackInfo['currentScope']; // This is the REAL current scope
 
       // Get what Zen.currentScope thinks (might be wrong)
       final zenCurrentScope = Zen.currentScope;
@@ -40,16 +40,20 @@ class _DebugDialogState extends State<DebugDialog> {
       }
 
       if (actualCurrentScope != null) {
-        final actualScopeInfo = ZenScopeInspector.toDebugMap(actualCurrentScope);
+        final actualScopeInfo =
+            ZenScopeInspector.toDebugMap(actualCurrentScope);
         final scopeInfo = actualScopeInfo['scopeInfo'] as Map<String, dynamic>?;
-        final dependencies = actualScopeInfo['dependencies'] as Map<String, dynamic>?;
+        final dependencies =
+            actualScopeInfo['dependencies'] as Map<String, dynamic>?;
 
         data['actualCurrentScopeId'] = scopeInfo?['id'] ?? 'Unknown';
         data['actualCurrentScopeDisposed'] = scopeInfo?['disposed'] ?? false;
-        data['actualCurrentScopeDependencies'] = dependencies?['totalDependencies'] ?? 0;
+        data['actualCurrentScopeDependencies'] =
+            dependencies?['totalDependencies'] ?? 0;
 
         // Get dependency breakdown for actual current scope
-        final breakdown = ZenScopeInspector.getDependencyBreakdown(actualCurrentScope);
+        final breakdown =
+            ZenScopeInspector.getDependencyBreakdown(actualCurrentScope);
         data['actualCurrentScopeBreakdown'] = breakdown;
       } else {
         data['actualCurrentScopeId'] = 'Not Found';
@@ -77,7 +81,8 @@ class _DebugDialogState extends State<DebugDialog> {
       data['allScopesInfo'] = allScopes.map((scope) {
         final scopeDebugInfo = ZenScopeInspector.toDebugMap(scope);
         final scopeData = scopeDebugInfo['scopeInfo'] as Map<String, dynamic>;
-        final dependencies = scopeDebugInfo['dependencies'] as Map<String, dynamic>;
+        final dependencies =
+            scopeDebugInfo['dependencies'] as Map<String, dynamic>;
 
         return {
           'name': scopeData['name'],
@@ -106,7 +111,6 @@ class _DebugDialogState extends State<DebugDialog> {
 
       // Add timestamp (just for reference, not for auto-refresh)
       data['timestamp'] = DateTime.now().toString();
-
     } catch (e, stackTrace) {
       data['error'] = 'Failed to collect debug data: $e';
       data['stackTrace'] = stackTrace.toString();
@@ -194,7 +198,8 @@ class _DebugDialogState extends State<DebugDialog> {
                                   const SizedBox(height: 4),
                                   Text(
                                     'Zen.currentScope ≠ Stack Current Scope',
-                                    style: TextStyle(color: Colors.orange.shade700),
+                                    style: TextStyle(
+                                        color: Colors.orange.shade700),
                                   ),
                                 ],
                               ),
@@ -205,13 +210,30 @@ class _DebugDialogState extends State<DebugDialog> {
 
                     // Current Scope Status
                     _buildSection('Current Scope Status', [
-                      _buildDataRow('ACTUAL Current (from Stack)', debugData['actualCurrentScopeName']?.toString() ?? 'None'),
-                      _buildDataRow('Zen.currentScope Says', debugData['zenCurrentScopeName']?.toString() ?? 'Unknown'),
+                      _buildDataRow(
+                          'ACTUAL Current (from Stack)',
+                          debugData['actualCurrentScopeName']?.toString() ??
+                              'None'),
+                      _buildDataRow(
+                          'Zen.currentScope Says',
+                          debugData['zenCurrentScopeName']?.toString() ??
+                              'Unknown'),
                       const Divider(),
-                      _buildDataRow('Actual Scope ID', debugData['actualCurrentScopeId']?.toString() ?? 'Unknown'),
-                      _buildDataRow('Actual Is Disposed', debugData['actualCurrentScopeDisposed']?.toString() ?? 'Unknown'),
-                      _buildDataRow('Actual Dependencies', debugData['actualCurrentScopeDependencies']?.toString() ?? '0'),
-                      _buildDataRow('Current Route', debugData['currentRoute']?.toString() ?? 'Unknown'),
+                      _buildDataRow(
+                          'Actual Scope ID',
+                          debugData['actualCurrentScopeId']?.toString() ??
+                              'Unknown'),
+                      _buildDataRow(
+                          'Actual Is Disposed',
+                          debugData['actualCurrentScopeDisposed']?.toString() ??
+                              'Unknown'),
+                      _buildDataRow(
+                          'Actual Dependencies',
+                          debugData['actualCurrentScopeDependencies']
+                                  ?.toString() ??
+                              '0'),
+                      _buildDataRow('Current Route',
+                          debugData['currentRoute']?.toString() ?? 'Unknown'),
                     ]),
 
                     const SizedBox(height: 16),
@@ -224,20 +246,28 @@ class _DebugDialogState extends State<DebugDialog> {
 
                     // System Statistics
                     _buildSection('System Statistics', [
-                      _buildDataRow('Total Scopes', debugData['totalScopes']?.toString() ?? '0'),
-                      _buildDataRow('Active Scopes', debugData['activeScopes']?.toString() ?? '0'),
-                      _buildDataRow('Disposed Scopes', debugData['disposedScopes']?.toString() ?? '0'),
-                      _buildDataRow('Total Dependencies', debugData['totalDependencies']?.toString() ?? '0'),
-                      _buildDataRow('Controllers', debugData['totalControllers']?.toString() ?? '0'),
-                      _buildDataRow('Services', debugData['totalServices']?.toString() ?? '0'),
-                      _buildDataRow('Navigation Count', debugData['navigationCount']?.toString() ?? '0'),
+                      _buildDataRow('Total Scopes',
+                          debugData['totalScopes']?.toString() ?? '0'),
+                      _buildDataRow('Active Scopes',
+                          debugData['activeScopes']?.toString() ?? '0'),
+                      _buildDataRow('Disposed Scopes',
+                          debugData['disposedScopes']?.toString() ?? '0'),
+                      _buildDataRow('Total Dependencies',
+                          debugData['totalDependencies']?.toString() ?? '0'),
+                      _buildDataRow('Controllers',
+                          debugData['totalControllers']?.toString() ?? '0'),
+                      _buildDataRow('Services',
+                          debugData['totalServices']?.toString() ?? '0'),
+                      _buildDataRow('Navigation Count',
+                          debugData['navigationCount']?.toString() ?? '0'),
                     ]),
 
                     const SizedBox(height: 16),
 
                     // Scope Stack
                     _buildSection('Scope Stack (Navigation Order)', [
-                      _buildDataRow('Stack Size', debugData['stackSize']?.toString() ?? '0'),
+                      _buildDataRow('Stack Size',
+                          debugData['stackSize']?.toString() ?? '0'),
                       if (debugData['scopeStack'] != null) ...[
                         const SizedBox(height: 8),
                         const Text(
@@ -245,10 +275,16 @@ class _DebugDialogState extends State<DebugDialog> {
                           style: TextStyle(fontWeight: FontWeight.w500),
                         ),
                         const SizedBox(height: 4),
-                        ...((debugData['scopeStack'] as List<dynamic>?) ?? []).asMap().entries.map((entry) {
+                        ...((debugData['scopeStack'] as List<dynamic>?) ?? [])
+                            .asMap()
+                            .entries
+                            .map((entry) {
                           final index = entry.key;
                           final scopeName = entry.value.toString();
-                          final isTop = index == ((debugData['scopeStack'] as List?)?.length ?? 0) - 1;
+                          final isTop = index ==
+                              ((debugData['scopeStack'] as List?)?.length ??
+                                      0) -
+                                  1;
 
                           return Padding(
                             padding: const EdgeInsets.only(left: 16, bottom: 2),
@@ -260,21 +296,28 @@ class _DebugDialogState extends State<DebugDialog> {
                                   child: Text(
                                     scopeName,
                                     style: TextStyle(
-                                      fontWeight: isTop ? FontWeight.bold : FontWeight.normal,
-                                      color: isTop ? Colors.green.shade700 : Colors.black,
+                                      fontWeight: isTop
+                                          ? FontWeight.bold
+                                          : FontWeight.normal,
+                                      color: isTop
+                                          ? Colors.green.shade700
+                                          : Colors.black,
                                     ),
                                   ),
                                 ),
                                 if (isTop)
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 6, vertical: 2),
                                     decoration: BoxDecoration(
                                       color: Colors.green.shade100,
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: const Text(
                                       'CURRENT',
-                                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+                                      style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold),
                                     ),
                                   ),
                               ],
@@ -287,35 +330,49 @@ class _DebugDialogState extends State<DebugDialog> {
                     const SizedBox(height: 16),
 
                     // All Scopes
-                    _buildSection('All Scopes',
-                        (debugData['allScopesInfo'] as List<dynamic>? ?? []).map((scopeInfo) {
-                          final name = scopeInfo['name']?.toString() ?? 'Unknown';
+                    _buildSection(
+                        'All Scopes',
+                        (debugData['allScopesInfo'] as List<dynamic>? ?? [])
+                            .map((scopeInfo) {
+                          final name =
+                              scopeInfo['name']?.toString() ?? 'Unknown';
                           final id = scopeInfo['id']?.toString() ?? 'Unknown';
                           final disposed = scopeInfo['disposed'] == true;
-                          final depCount = scopeInfo['dependencyCount']?.toString() ?? '0';
-                          final isZenCurrent = scopeInfo['isZenCurrentScope'] == true;
-                          final isActualCurrent = scopeInfo['isActualCurrentScope'] == true;
+                          final depCount =
+                              scopeInfo['dependencyCount']?.toString() ?? '0';
+                          final isZenCurrent =
+                              scopeInfo['isZenCurrentScope'] == true;
+                          final isActualCurrent =
+                              scopeInfo['isActualCurrentScope'] == true;
 
-                          return _buildScopeRow(name, id, disposed, depCount, isZenCurrent, isActualCurrent);
-                        }).toList()
-                    ),
+                          return _buildScopeRow(name, id, disposed, depCount,
+                              isZenCurrent, isActualCurrent);
+                        }).toList()),
 
                     const SizedBox(height: 16),
 
                     // Errors (if any)
-                    if (debugData['error'] != null || debugData['navigationError'] != null)
+                    if (debugData['error'] != null ||
+                        debugData['navigationError'] != null)
                       _buildSection('Errors', [
                         if (debugData['error'] != null)
-                          _buildErrorRow('General Error', debugData['error'].toString()),
+                          _buildErrorRow(
+                              'General Error', debugData['error'].toString()),
                         if (debugData['navigationError'] != null)
-                          _buildErrorRow('Navigation Error', debugData['navigationError'].toString()),
+                          _buildErrorRow('Navigation Error',
+                              debugData['navigationError'].toString()),
                       ]),
 
                     const SizedBox(height: 16),
 
                     // Debug Info
                     _buildSection('Debug Info', [
-                      _buildDataRow('Captured At', debugData['timestamp']?.toString().substring(11, 19) ?? 'Unknown'),
+                      _buildDataRow(
+                          'Captured At',
+                          debugData['timestamp']
+                                  ?.toString()
+                                  .substring(11, 19) ??
+                              'Unknown'),
                       _buildDataRow('Refresh', 'Manual (click refresh button)'),
                     ]),
                   ],
@@ -329,7 +386,8 @@ class _DebugDialogState extends State<DebugDialog> {
   }
 
   Widget _buildCurrentScopeDependencies(Map<String, dynamic> debugData) {
-    final breakdown = debugData['actualCurrentScopeBreakdown'] as Map<String, dynamic>?;
+    final breakdown =
+        debugData['actualCurrentScopeBreakdown'] as Map<String, dynamic>?;
     if (breakdown == null) return const SizedBox.shrink();
 
     final controllers = breakdown['controllers'] as List<dynamic>? ?? [];
@@ -354,7 +412,9 @@ class _DebugDialogState extends State<DebugDialog> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    _showAvailableDependencies ? 'Available Dependencies' : 'Local Dependencies',
+                    _showAvailableDependencies
+                        ? 'Available Dependencies'
+                        : 'Local Dependencies',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.blue.shade700,
@@ -374,7 +434,8 @@ class _DebugDialogState extends State<DebugDialog> {
             ),
             Switch(
               value: _showAvailableDependencies,
-              onChanged: (value) => setState(() => _showAvailableDependencies = value),
+              onChanged: (value) =>
+                  setState(() => _showAvailableDependencies = value),
               activeThumbColor: Colors.blue.shade700,
             ),
           ],
@@ -389,7 +450,8 @@ class _DebugDialogState extends State<DebugDialog> {
     ]);
   }
 
-  List<Widget> _buildLocalDependencies(List<dynamic> controllers, List<dynamic> services, List<dynamic> others) {
+  List<Widget> _buildLocalDependencies(
+      List<dynamic> controllers, List<dynamic> services, List<dynamic> others) {
     final widgets = <Widget>[];
 
     if (controllers.isEmpty && services.isEmpty && others.isEmpty) {
@@ -403,7 +465,8 @@ class _DebugDialogState extends State<DebugDialog> {
           ),
           child: Row(
             children: [
-              Icon(Icons.warning_amber, color: Colors.orange.shade700, size: 16),
+              Icon(Icons.warning_amber,
+                  color: Colors.orange.shade700, size: 16),
               const SizedBox(width: 8),
               const Expanded(
                 child: Text(
@@ -420,54 +483,59 @@ class _DebugDialogState extends State<DebugDialog> {
 
     if (controllers.isNotEmpty) {
       widgets.addAll([
-        const Text('Controllers:', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)),
+        const Text('Controllers:',
+            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)),
         const SizedBox(height: 4),
         ...controllers.map((controller) => Padding(
-          padding: const EdgeInsets.only(left: 16, bottom: 2),
-          child: Row(
-            children: [
-              Icon(Icons.settings, size: 12, color: Colors.blue.shade600),
-              const SizedBox(width: 6),
-              Text('$controller', style: const TextStyle(fontSize: 12)),
-            ],
-          ),
-        )),
+              padding: const EdgeInsets.only(left: 16, bottom: 2),
+              child: Row(
+                children: [
+                  Icon(Icons.settings, size: 12, color: Colors.blue.shade600),
+                  const SizedBox(width: 6),
+                  Text('$controller', style: const TextStyle(fontSize: 12)),
+                ],
+              ),
+            )),
         const SizedBox(height: 8),
       ]);
     }
 
     if (services.isNotEmpty) {
       widgets.addAll([
-        const Text('Services:', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green)),
+        const Text('Services:',
+            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green)),
         const SizedBox(height: 4),
         ...services.map((service) => Padding(
-          padding: const EdgeInsets.only(left: 16, bottom: 2),
-          child: Row(
-            children: [
-              Icon(Icons.build, size: 12, color: Colors.green.shade600),
-              const SizedBox(width: 6),
-              Text('$service', style: const TextStyle(fontSize: 12)),
-            ],
-          ),
-        )),
+              padding: const EdgeInsets.only(left: 16, bottom: 2),
+              child: Row(
+                children: [
+                  Icon(Icons.build, size: 12, color: Colors.green.shade600),
+                  const SizedBox(width: 6),
+                  Text('$service', style: const TextStyle(fontSize: 12)),
+                ],
+              ),
+            )),
         const SizedBox(height: 8),
       ]);
     }
 
     if (others.isNotEmpty) {
       widgets.addAll([
-        const Text('Others:', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.orange)),
+        const Text('Others:',
+            style:
+                TextStyle(fontWeight: FontWeight.bold, color: Colors.orange)),
         const SizedBox(height: 4),
         ...others.map((other) => Padding(
-          padding: const EdgeInsets.only(left: 16, bottom: 2),
-          child: Row(
-            children: [
-              Icon(Icons.extension, size: 12, color: Colors.orange.shade600),
-              const SizedBox(width: 6),
-              Text('$other', style: const TextStyle(fontSize: 12)),
-            ],
-          ),
-        )),
+              padding: const EdgeInsets.only(left: 16, bottom: 2),
+              child: Row(
+                children: [
+                  Icon(Icons.extension,
+                      size: 12, color: Colors.orange.shade600),
+                  const SizedBox(width: 6),
+                  Text('$other', style: const TextStyle(fontSize: 12)),
+                ],
+              ),
+            )),
       ]);
     }
 
@@ -481,15 +549,20 @@ class _DebugDialogState extends State<DebugDialog> {
     final widgets = <Widget>[];
 
     // Group by type
-    final controllers = availableDeps.where((dep) => dep['type'] == 'controller').toList();
-    final services = availableDeps.where((dep) => dep['type'] == 'service').toList();
-    final others = availableDeps.where((dep) => dep['type'] == 'other').toList();
+    final controllers =
+        availableDeps.where((dep) => dep['type'] == 'controller').toList();
+    final services =
+        availableDeps.where((dep) => dep['type'] == 'service').toList();
+    final others =
+        availableDeps.where((dep) => dep['type'] == 'other').toList();
 
     if (controllers.isNotEmpty) {
       widgets.addAll([
         Row(
           children: [
-            const Text('Controllers:', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)),
+            const Text('Controllers:',
+                style:
+                    TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)),
             const SizedBox(width: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -518,7 +591,9 @@ class _DebugDialogState extends State<DebugDialog> {
       widgets.addAll([
         Row(
           children: [
-            const Text('Services:', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green)),
+            const Text('Services:',
+                style: TextStyle(
+                    fontWeight: FontWeight.bold, color: Colors.green)),
             const SizedBox(width: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -547,7 +622,9 @@ class _DebugDialogState extends State<DebugDialog> {
       widgets.addAll([
         Row(
           children: [
-            const Text('Others:', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.orange)),
+            const Text('Others:',
+                style: TextStyle(
+                    fontWeight: FontWeight.bold, color: Colors.orange)),
             const SizedBox(width: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -632,11 +709,13 @@ class _DebugDialogState extends State<DebugDialog> {
     );
   }
 
-  List<Map<String, dynamic>> _getAvailableDependencies(Map<String, dynamic> debugData) {
+  List<Map<String, dynamic>> _getAvailableDependencies(
+      Map<String, dynamic> debugData) {
     final availableDeps = <Map<String, dynamic>>[];
 
     // Get current scope name and all scopes info
-    final actualCurrentScopeName = debugData['actualCurrentScopeName'] as String?;
+    final actualCurrentScopeName =
+        debugData['actualCurrentScopeName'] as String?;
     final allScopesInfo = debugData['allScopesInfo'] as List<dynamic>? ?? [];
     final scopeStack = debugData['scopeStack'] as List<dynamic>? ?? [];
 
@@ -805,7 +884,8 @@ class _DebugDialogState extends State<DebugDialog> {
     );
   }
 
-  Widget _buildScopeRow(String name, String id, bool disposed, String depCount, bool isZenCurrent, bool isActualCurrent) {
+  Widget _buildScopeRow(String name, String id, bool disposed, String depCount,
+      bool isZenCurrent, bool isActualCurrent) {
     Color borderColor;
     Color backgroundColor;
     Color textColor;
@@ -848,10 +928,10 @@ class _DebugDialogState extends State<DebugDialog> {
               disposed
                   ? Icons.delete_outline
                   : isActualCurrent
-                  ? Icons.radio_button_checked
-                  : isZenCurrent
-                  ? Icons.warning
-                  : Icons.radio_button_unchecked,
+                      ? Icons.radio_button_checked
+                      : isZenCurrent
+                          ? Icons.warning
+                          : Icons.radio_button_unchecked,
               size: 16,
               color: textColor,
             ),
@@ -863,7 +943,8 @@ class _DebugDialogState extends State<DebugDialog> {
                   Text(
                     name,
                     style: TextStyle(
-                      fontWeight: isActualCurrent ? FontWeight.bold : FontWeight.w500,
+                      fontWeight:
+                          isActualCurrent ? FontWeight.bold : FontWeight.w500,
                       color: textColor,
                     ),
                   ),
@@ -885,8 +966,8 @@ class _DebugDialogState extends State<DebugDialog> {
                   color: disposed
                       ? Colors.red.shade200
                       : isActualCurrent
-                      ? Colors.green.shade200
-                      : Colors.orange.shade200,
+                          ? Colors.green.shade200
+                          : Colors.orange.shade200,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(

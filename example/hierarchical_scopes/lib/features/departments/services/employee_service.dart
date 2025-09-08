@@ -24,7 +24,7 @@ class EmployeeService {
   // Computed values
   Employee? get selectedEmployee {
     if (_selectedEmployeeId.value == null) return null;
-    
+
     for (final employeeList in _employees.values) {
       final employee = employeeList.firstWhere(
         (emp) => emp.id == _selectedEmployeeId.value,
@@ -34,7 +34,7 @@ class EmployeeService {
         return employee;
       }
     }
-    
+
     return null;
   }
 
@@ -57,24 +57,28 @@ class EmployeeService {
       if (cachedData != null) {
         final employees = _parseEmployeesResponse(cachedData);
         _employees[departmentId] = employees;
-        ZenLogger.logInfo('Loaded ${employees.length} employees for department $departmentId from cache');
+        ZenLogger.logInfo(
+            'Loaded ${employees.length} employees for department $departmentId from cache');
         return employees;
       }
 
       // Fetch from API
-      final response = await _apiService.get('employees', params: {'departmentId': departmentId});
+      final response = await _apiService
+          .get('employees', params: {'departmentId': departmentId});
       final employees = _parseEmployeesResponse(response);
-      
+
       // Update state
       _employees[departmentId] = employees;
-      
+
       // Cache the result
       _cacheService.set(cacheKey, response, ttl: const Duration(minutes: 5));
-      
-      ZenLogger.logInfo('Loaded ${employees.length} employees for department $departmentId from API');
+
+      ZenLogger.logInfo(
+          'Loaded ${employees.length} employees for department $departmentId from API');
       return employees;
     } catch (e) {
-      ZenLogger.logError('Failed to load employees for department $departmentId', e);
+      ZenLogger.logError(
+          'Failed to load employees for department $departmentId', e);
       rethrow;
     } finally {
       _isLoading.value = false;
@@ -98,10 +102,10 @@ class EmployeeService {
       // Fetch from API
       final response = await _apiService.get('employee/$id');
       final employee = Employee.fromJson(response['data']);
-      
+
       // Cache the result
       _cacheService.set(cacheKey, response, ttl: const Duration(minutes: 5));
-      
+
       ZenLogger.logInfo('Loaded employee $id from API');
       return employee;
     } catch (e) {
@@ -121,7 +125,9 @@ class EmployeeService {
   /// Parse employees response
   List<Employee> _parseEmployeesResponse(Map<String, dynamic> response) {
     final List<dynamic> data = response['data'] as List<dynamic>;
-    return data.map((item) => Employee.fromJson(item as Map<String, dynamic>)).toList();
+    return data
+        .map((item) => Employee.fromJson(item as Map<String, dynamic>))
+        .toList();
   }
 
   void dispose() {

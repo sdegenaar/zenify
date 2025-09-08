@@ -284,7 +284,8 @@ class ZenRef {
   }
 
   /// Create a controller reference
-  static ControllerRef<T> controller<T extends ZenController>({String? tag, ZenScope? scope}) {
+  static ControllerRef<T> controller<T extends ZenController>(
+      {String? tag, ZenScope? scope}) {
     return ControllerRef<T>(tag: tag, scope: scope);
   }
 }

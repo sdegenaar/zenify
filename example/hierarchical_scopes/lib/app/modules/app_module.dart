@@ -19,7 +19,8 @@ class AppModule extends ZenModule {
     scope.put<CacheService>(CacheService(), permanent: true);
     scope.put<NavigationService>(NavigationService(), permanent: true);
 
-    ZenLogger.logInfo('✅ App-level services registered: ApiService, CacheService, NavigationService');
+    ZenLogger.logInfo(
+        '✅ App-level services registered: ApiService, CacheService, NavigationService');
   }
 
   @override
@@ -39,7 +40,8 @@ class AppModule extends ZenModule {
     await _preWarmCache(cacheService, apiService);
 
     ZenLogger.logInfo('✅ App Module initialized successfully');
-    ZenLogger.logInfo('📊 Available services: ${ZenScopeInspector.getAllInstances(scope).keys.length}');
+    ZenLogger.logInfo(
+        '📊 Available services: ${ZenScopeInspector.getAllInstances(scope).keys.length}');
   }
 
   /// Pre-warm cache with commonly accessed data
@@ -55,7 +57,8 @@ class AppModule extends ZenModule {
       final departments = await api.get('departments');
       cache.set('departments', departments, ttl: const Duration(minutes: 5));
 
-      ZenLogger.logInfo('✅ Cache pre-warmed with app metadata and departments data');
+      ZenLogger.logInfo(
+          '✅ Cache pre-warmed with app metadata and departments data');
     } catch (e) {
       ZenLogger.logError('Failed to pre-warm cache', e);
     }

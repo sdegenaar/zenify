@@ -283,7 +283,8 @@ void main() {
   });
 
   group('ZenModulePage Basic Functionality', () {
-    testWidgets('should create and provide scope to child widget', (tester) async {
+    testWidgets('should create and provide scope to child widget',
+        (tester) async {
       final module = BasicTestModule();
       ZenScope? capturedScope;
 
@@ -354,7 +355,9 @@ void main() {
   });
 
   group('ZenModulePage Explicit Parent Scope (parentScope)', () {
-    testWidgets('should create parent-child relationship with explicit parentScope', (tester) async {
+    testWidgets(
+        'should create parent-child relationship with explicit parentScope',
+        (tester) async {
       // Create parent scope explicitly
       final parentModule = ParentTestModule();
       final parentScope = ZenScopeManager.getOrCreateScope(
@@ -363,7 +366,8 @@ void main() {
       );
 
       parentModule.register(parentScope);
-      await parentModule.onInit(parentScope); // Pass parentScope, not parentModule
+      await parentModule
+          .onInit(parentScope); // Pass parentScope, not parentModule
 
       // Create child that explicitly references parent scope
       final childModule = ChildTestModule();
@@ -400,7 +404,8 @@ void main() {
       expect(childService!.parentService, same(parentService));
     });
 
-    testWidgets('should handle null parentScope (isolated scope)', (tester) async {
+    testWidgets('should handle null parentScope (isolated scope)',
+        (tester) async {
       final module = ChildTestModule();
       ZenScope? capturedScope;
 
@@ -427,7 +432,8 @@ void main() {
       expect(parentService, isNull);
     });
 
-    testWidgets('should use root scope as parent when specified', (tester) async {
+    testWidgets('should use root scope as parent when specified',
+        (tester) async {
       final module = BasicTestModule();
       ZenScope? capturedScope;
 
@@ -460,7 +466,8 @@ void main() {
   });
 
   group('ZenModulePage Widget Tree Inheritance (useParentScope)', () {
-    testWidgets('should create proper scope inheritance without useParentScope', (tester) async {
+    testWidgets('should create proper scope inheritance without useParentScope',
+        (tester) async {
       ZenScope? outerScope;
       ZenScope? innerScope;
 
@@ -500,7 +507,8 @@ void main() {
       expect(parentService, isNotNull);
     });
 
-    testWidgets('should share scope when useParentScope is true', (tester) async {
+    testWidgets('should share scope when useParentScope is true',
+        (tester) async {
       ZenScope? capturedScope;
 
       await tester.pumpWidget(
@@ -536,7 +544,8 @@ void main() {
       expect(childService, isNotNull);
     });
 
-    testWidgets('should handle missing parent scope in widget tree gracefully', (tester) async {
+    testWidgets('should handle missing parent scope in widget tree gracefully',
+        (tester) async {
       final module = ChildTestModule();
       ZenScope? capturedScope;
 
@@ -559,7 +568,8 @@ void main() {
       expect(capturedScope!.parent, same(Zen.rootScope)); // Falls back to root
     });
 
-    testWidgets('should prefer explicit parentScope over useParentScope', (tester) async {
+    testWidgets('should prefer explicit parentScope over useParentScope',
+        (tester) async {
       ZenConfig.enableDebugLogs = true;
 
       // Create explicit parent scope
@@ -664,13 +674,15 @@ void main() {
       expect(scopeToCheck!.isDisposed, isFalse);
 
       // Verify it's tracked as explicitly persistent
-      expect(ZenScopeManager.isExplicitlyPersistent('ExplicitPersistentScope'), isTrue);
+      expect(ZenScopeManager.isExplicitlyPersistent('ExplicitPersistentScope'),
+          isTrue);
 
       // Clean up for next test
       ZenScopeManager.forceDispose('ExplicitPersistentScope');
     });
 
-    testWidgets('should auto-configure autoDispose based on hierarchy', (tester) async {
+    testWidgets('should auto-configure autoDispose based on hierarchy',
+        (tester) async {
       final parentScope = ZenScopeManager.getOrCreateScope(
         name: 'HierarchyParent',
         autoDispose: false,
@@ -712,7 +724,8 @@ void main() {
   });
 
   group('ZenModulePage Error Handling', () {
-    testWidgets('should show error page when module registration fails', (tester) async {
+    testWidgets('should show error page when module registration fails',
+        (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: ZenRoute(
@@ -771,7 +784,8 @@ void main() {
   });
 
   group('ZenModulePage Lifecycle', () {
-    testWidgets('should properly initialize and dispose modules', (tester) async {
+    testWidgets('should properly initialize and dispose modules',
+        (tester) async {
       final module = BasicTestModule();
 
       await tester.pumpWidget(
@@ -800,14 +814,16 @@ void main() {
   });
 
   group('ZenModulePage Priority Logic', () {
-    testWidgets('should demonstrate all three approaches work correctly', (tester) async {
+    testWidgets('should demonstrate all three approaches work correctly',
+        (tester) async {
       // Test 1: Isolated scope (no parent specified)
       ZenScope? isolatedScope;
       await tester.pumpWidget(
         MaterialApp(
           home: ZenRoute(
             moduleBuilder: () => BasicTestModule(),
-            page: ScopeAwarePage(onScopeReceived: (scope) => isolatedScope = scope),
+            page: ScopeAwarePage(
+                onScopeReceived: (scope) => isolatedScope = scope),
             scopeName: 'IsolatedTest',
           ),
         ),
@@ -837,7 +853,8 @@ void main() {
         MaterialApp(
           home: ZenRoute(
             moduleBuilder: () => BasicTestModule(),
-            page: ScopeAwarePage(onScopeReceived: (scope) => explicitChild = scope),
+            page: ScopeAwarePage(
+                onScopeReceived: (scope) => explicitChild = scope),
             scopeName: 'ExplicitChild',
             parentScope: explicitParent,
           ),
@@ -854,7 +871,9 @@ void main() {
   });
 
   group('ZenModulePage Hierarchical Cleanup Chain', () {
-    testWidgets('should cascade cleanup through multiple levels when auto-dispose children are removed', (tester) async {
+    testWidgets(
+        'should cascade cleanup through multiple levels when auto-dispose children are removed',
+        (tester) async {
       // Step 1: Create a simple hierarchy using explicit scope creation
       final grandparentScope = ZenScopeManager.getOrCreateScope(
         name: 'GrandparentScope',
@@ -971,7 +990,8 @@ void main() {
 
       // The key test: Check cascade cleanup behavior
       // Since GrandparentScope was explicitly persistent, it should remain
-      expect(grandparentExists, isTrue, reason: 'Explicitly persistent GrandparentScope should remain');
+      expect(grandparentExists, isTrue,
+          reason: 'Explicitly persistent GrandparentScope should remain');
 
       // For this test, we mainly want to verify the cleanup cascades correctly
       // The exact behavior of ParentScope and ChildScope depends on the cleanup logic implementation
@@ -982,7 +1002,9 @@ void main() {
       ZenScopeManager.forceDispose('GrandparentScope');
     });
 
-    testWidgets('should properly track auto-dispose vs persistent scope relationships', (tester) async {
+    testWidgets(
+        'should properly track auto-dispose vs persistent scope relationships',
+        (tester) async {
       ZenScope? persistentParent;
       ZenScope? autoDisposeChild;
 
@@ -1036,7 +1058,7 @@ void main() {
 
       // Verify relationship
       expect(autoDisposeChild!.parent, same(persistentParent));
-      
+
       // Continue with rest of test...
     });
   });

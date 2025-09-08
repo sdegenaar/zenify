@@ -42,7 +42,8 @@ class ZenTestContainer {
   ZenTestContainer({String? name})
       : _scope = Zen.createScope(name: name ?? 'TestScope') {
     if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('ZenTestContainer created with scope: ${_scope.name} (${_scope.id})');
+      ZenLogger.logDebug(
+          'ZenTestContainer created with scope: ${_scope.name} (${_scope.id})');
     }
   }
 
@@ -104,7 +105,8 @@ class ZenTestContainer {
   T get<T>({String? tag}) {
     final result = find<T>(tag: tag);
     if (result == null) {
-      throw Exception('Dependency of type $T${tag != null ? ' with tag $tag' : ''} not found in test container');
+      throw Exception(
+          'Dependency of type $T${tag != null ? ' with tag $tag' : ''} not found in test container');
     }
     return result;
   }
@@ -131,7 +133,8 @@ class ZenTestContainer {
       } catch (e) {
         // Continue clearing even if some fail
         if (ZenConfig.enableDebugLogs) {
-          ZenLogger.logDebug('Failed to dispose dependency ${dependency.runtimeType}: $e');
+          ZenLogger.logDebug(
+              'Failed to dispose dependency ${dependency.runtimeType}: $e');
         }
       }
     }
@@ -212,10 +215,10 @@ class ZenTestUtils {
 
   /// Run a test with a clean Zen environment
   static Future<T> runInTestEnvironment<T>(
-      Future<T> Function(ZenTestContainer container) test, {
-        String? name,
-        void Function(ZenTestContainer container)? setup,
-      }) async {
+    Future<T> Function(ZenTestContainer container) test, {
+    String? name,
+    void Function(ZenTestContainer container)? setup,
+  }) async {
     final container = createTestEnvironment(name: name, setup: setup);
 
     try {
@@ -238,20 +241,20 @@ class ZenTestUtils {
 
   /// Create a mock controller for testing
   static T createMockController<T extends ZenController>(
-      T Function() factory,
-      ZenTestContainer container, {
-        String? tag,
-      }) {
+    T Function() factory,
+    ZenTestContainer container, {
+    String? tag,
+  }) {
     final controller = container.register<T>(factory, tag: tag);
     return controller;
   }
 
   /// Verify that a reactive value changes as expected
   static Future<bool> verifyReactiveChanges<T>(
-      Rx<T> reactive,
-      List<T> expectedChanges,
-      Future<void> Function() action,
-      ) async {
+    Rx<T> reactive,
+    List<T> expectedChanges,
+    Future<void> Function() action,
+  ) async {
     final tester = RxTester(reactive);
 
     try {

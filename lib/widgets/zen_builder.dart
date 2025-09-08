@@ -7,7 +7,7 @@ import '../di/zen_di.dart';
 /// A widget that automatically rebuilds when a [ZenController] calls update().
 ///
 /// This widget is specifically designed to work with controllers that extend [ZenController].
-/// For regular services, use [context.service<T>()] instead.
+/// For regular services, use [`context.service<T>()`] instead.
 ///
 /// Example:
 /// ```dart
@@ -38,7 +38,7 @@ class ZenBuilder<T extends ZenController> extends StatefulWidget {
     this.onError,
     super.key,
   }) : assert(disposeOnRemove == false || create != null,
-  'disposeOnRemove requires create function');
+            'disposeOnRemove requires create function');
 
   final Widget Function(BuildContext context, T controller) builder;
   final String? tag;

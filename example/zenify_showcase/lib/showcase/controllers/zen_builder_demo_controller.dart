@@ -104,7 +104,8 @@ class ZenBuilderDemoController extends ZenController {
       update(); // Manual UI update trigger
 
       if (ZenConfig.enableDebugLogs) {
-        ZenLogger.logDebug('Item removed: $item, remaining items: ${_items.length}');
+        ZenLogger.logDebug(
+            'Item removed: $item, remaining items: ${_items.length}');
       }
     }
   }

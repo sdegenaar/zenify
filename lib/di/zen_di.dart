@@ -16,7 +16,8 @@ class Zen {
   Zen._(); // Private constructor
 
   // Lifecycle management
-  static final ZenLifecycleManager _lifecycleManager = ZenLifecycleManager.instance;
+  static final ZenLifecycleManager _lifecycleManager =
+      ZenLifecycleManager.instance;
 
   // Track the actual current scope (not just root)
   static ZenScope? _currentScope;
@@ -36,7 +37,8 @@ class Zen {
   //
 
   /// Get the current active scope (for debugging and introspection)
-  static ZenScope get currentScope => _currentScope ?? ZenScopeManager.rootScope;
+  static ZenScope get currentScope =>
+      _currentScope ?? ZenScopeManager.rootScope;
 
   /// Set the current scope (used internally by ZenRoute)
   static void setCurrentScope(ZenScope scope) {
@@ -58,23 +60,28 @@ class Zen {
   static List<ZenScope> get allScopes => ZenScopeManager.getAllScopes();
 
   /// Get comprehensive debugging information about the entire scope hierarchy
-  static Map<String, dynamic> getHierarchyInfo() => ZenHierarchyDebug.getCompleteHierarchyInfo();
+  static Map<String, dynamic> getHierarchyInfo() =>
+      ZenHierarchyDebug.getCompleteHierarchyInfo();
 
   /// Get detailed statistics about the entire Zen system
-  static Map<String, dynamic> getSystemStats() => ZenSystemStats.getSystemStats();
+  static Map<String, dynamic> getSystemStats() =>
+      ZenSystemStats.getSystemStats();
 
   /// Find all instances of a specific type across all scopes
-  static List<T> findAllInstancesOfType<T>() => ZenSystemStats.findAllInstancesOfType<T>();
+  static List<T> findAllInstancesOfType<T>() =>
+      ZenSystemStats.findAllInstancesOfType<T>();
 
   /// Find which scope contains a specific instance
-  static ZenScope? findScopeContaining(dynamic instance) => ZenSystemStats.findScopeContaining(instance);
+  static ZenScope? findScopeContaining(dynamic instance) =>
+      ZenSystemStats.findScopeContaining(instance);
 
   //
   // MODULE MANAGEMENT (Clean Atomic API)
   //
 
   /// Register and load modules atomically with auto-dependency resolution
-  static Future<void> registerModules(List<ZenModule> modules, {ZenScope? scope}) async {
+  static Future<void> registerModules(List<ZenModule> modules,
+      {ZenScope? scope}) async {
     final targetScope = scope ?? rootScope;
     await ZenModuleRegistry.registerModules(modules, targetScope);
   }
@@ -135,7 +142,8 @@ class Zen {
   }
 
   /// Register a lazy factory in root scope
-  static void putLazy<T>(T Function() factory, {String? tag, bool? isPermanent}) {
+  static void putLazy<T>(T Function() factory,
+      {String? tag, bool? isPermanent}) {
     final permanent = isPermanent ?? false;
     rootScope.putLazy<T>(factory, tag: tag, isPermanent: permanent);
   }
@@ -149,7 +157,8 @@ class Zen {
   static T find<T>({String? tag}) {
     final result = rootScope.find<T>(tag: tag);
     if (result == null) {
-      throw Exception('Dependency of type $T${tag != null ? ' with tag $tag' : ''} not found');
+      throw Exception(
+          'Dependency of type $T${tag != null ? ' with tag $tag' : ''} not found');
     }
     return result;
   }

@@ -33,19 +33,19 @@ class RegisterController extends ZenController {
     // Set up workers to validate form fields
     ZenWorkers.debounce(
       name,
-          (_) => validateName(),
+      (_) => validateName(),
       const Duration(milliseconds: 500),
     );
 
     ZenWorkers.debounce(
       email,
-          (_) => validateEmail(),
+      (_) => validateEmail(),
       const Duration(milliseconds: 500),
     );
 
     ZenWorkers.debounce(
       password,
-          (_) {
+      (_) {
         validatePassword();
         validateConfirmPassword();
       },
@@ -54,7 +54,7 @@ class RegisterController extends ZenController {
 
     ZenWorkers.debounce(
       confirmPassword,
-          (_) => validateConfirmPassword(),
+      (_) => validateConfirmPassword(),
       const Duration(milliseconds: 500),
     );
 

@@ -11,7 +11,8 @@ class ZenMetrics {
   static int activeControllers = 0;
   static int totalControllersCreated = 0;
   static int totalControllersDisposed = 0;
-  static Map<String, int> controllerCreationCount = {}; // Changed Type to String
+  static Map<String, int> controllerCreationCount =
+      {}; // Changed Type to String
 
   /// Reactive state metrics
   static int totalRxValues = 0;
@@ -78,7 +79,8 @@ class ZenMetrics {
 
     totalEffectRuns++;
     totalEffectSuccesses++;
-    effectSuccessCounts[effectName] = (effectSuccessCounts[effectName] ?? 0) + 1;
+    effectSuccessCounts[effectName] =
+        (effectSuccessCounts[effectName] ?? 0) + 1;
   }
 
   /// Record a failed effect execution
@@ -87,7 +89,8 @@ class ZenMetrics {
 
     totalEffectRuns++;
     totalEffectFailures++;
-    effectFailureCounts[effectName] = (effectFailureCounts[effectName] ?? 0) + 1;
+    effectFailureCounts[effectName] =
+        (effectFailureCounts[effectName] ?? 0) + 1;
   }
 
   /// Increment a named counter to track occurrences of an event
@@ -127,22 +130,21 @@ class ZenMetrics {
 
     // If the list gets too long, keep only the most recent entries
     if (_operationTimes[operation]!.length > 100) {
-      _operationTimes[operation] = _operationTimes[operation]!.sublist(
-          _operationTimes[operation]!.length - 100
-      );
+      _operationTimes[operation] = _operationTimes[operation]!
+          .sublist(_operationTimes[operation]!.length - 100);
     }
   }
 
   /// Get average duration for an operation
   static Duration? getAverageDuration(String operation) {
-    if (!_operationTimes.containsKey(operation) || _operationTimes[operation]!.isEmpty) {
+    if (!_operationTimes.containsKey(operation) ||
+        _operationTimes[operation]!.isEmpty) {
       return null;
     }
 
     final durations = _operationTimes[operation]!;
     final totalMicroseconds = durations.fold<int>(
-        0, (sum, duration) => sum + duration.inMicroseconds
-    );
+        0, (sum, duration) => sum + duration.inMicroseconds);
 
     return Duration(microseconds: totalMicroseconds ~/ durations.length);
   }

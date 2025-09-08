@@ -22,7 +22,8 @@ void main() {
   });
 
   group('ZenBuilder Core Functionality', () {
-    testWidgets('should find existing controller in global scope', (WidgetTester tester) async {
+    testWidgets('should find existing controller in global scope',
+        (WidgetTester tester) async {
       final controller = TestController();
       Zen.put<TestController>(controller);
 
@@ -37,7 +38,8 @@ void main() {
       expect(find.text('Value: 0'), findsOneWidget);
     });
 
-    testWidgets('should create controller if not found and create provided', (WidgetTester tester) async {
+    testWidgets('should create controller if not found and create provided',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: ZenBuilder<TestController>(
@@ -50,11 +52,13 @@ void main() {
       expect(find.text('Value: 0'), findsOneWidget);
     });
 
-    testWidgets('should handle missing controller gracefully', (WidgetTester tester) async {
+    testWidgets('should handle missing controller gracefully',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: ZenBuilder<TestController>(
-            onError: (error) => Text(error.toString()), // Simplified error widget
+            onError: (error) =>
+                Text(error.toString()), // Simplified error widget
             builder: (context, ctrl) => Text('Value: ${ctrl.value}'),
           ),
         ),
@@ -63,10 +67,14 @@ void main() {
       await tester.pumpAndSettle();
 
       // Now we can check for the exact error message
-      expect(find.text('Bad state: Controller of type TestController not found and no create function provided'), findsOneWidget);
+      expect(
+          find.text(
+              'Bad state: Controller of type TestController not found and no create function provided'),
+          findsOneWidget);
     });
 
-    testWidgets('should initialize controller with init callback', (WidgetTester tester) async {
+    testWidgets('should initialize controller with init callback',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: ZenBuilder<TestController>(
@@ -82,7 +90,8 @@ void main() {
   });
 
   group('ZenBuilder Update Mechanism', () {
-    testWidgets('should rebuild when controller updates', (WidgetTester tester) async {
+    testWidgets('should rebuild when controller updates',
+        (WidgetTester tester) async {
       late TestController controller;
 
       await tester.pumpWidget(
@@ -105,7 +114,8 @@ void main() {
       expect(find.text('Value: 1'), findsOneWidget);
     });
 
-    testWidgets('should handle multiple builders with same controller', (WidgetTester tester) async {
+    testWidgets('should handle multiple builders with same controller',
+        (WidgetTester tester) async {
       final controller = TestController();
       Zen.put<TestController>(controller);
 
@@ -136,7 +146,8 @@ void main() {
   });
 
   group('ZenBuilder Lifecycle', () {
-    testWidgets('should dispose controller when disposeOnRemove is true', (WidgetTester tester) async {
+    testWidgets('should dispose controller when disposeOnRemove is true',
+        (WidgetTester tester) async {
       late TestController controller;
 
       await tester.pumpWidget(
@@ -159,16 +170,13 @@ void main() {
 
       // Try to access disposed controller
       expect(
-              () => Zen.find<TestController>(),
-          throwsA(isA<Exception>().having(
-                  (e) => e.toString(),
-              'message',
-              'Exception: Dependency of type TestController not found'
-          ))
-      );
+          () => Zen.find<TestController>(),
+          throwsA(isA<Exception>().having((e) => e.toString(), 'message',
+              'Exception: Dependency of type TestController not found')));
     });
 
-    testWidgets('should cleanup listeners on dispose', (WidgetTester tester) async {
+    testWidgets('should cleanup listeners on dispose',
+        (WidgetTester tester) async {
       final controller = TestController();
       Zen.put<TestController>(controller);
 
@@ -186,7 +194,8 @@ void main() {
   });
 
   group('ZenBuilder Error Handling', () {
-    testWidgets('should show custom error widget on error', (WidgetTester tester) async {
+    testWidgets('should show custom error widget on error',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: ZenBuilder<TestController>(
@@ -200,7 +209,8 @@ void main() {
       expect(find.text('Error: Exception: Test error'), findsOneWidget);
     });
 
-    testWidgets('should show default error widget if no custom handler', (WidgetTester tester) async {
+    testWidgets('should show default error widget if no custom handler',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: ZenBuilder<TestController>(
@@ -232,7 +242,8 @@ void main() {
       expect(find.text('Value: 0'), findsOneWidget);
     });
 
-    testWidgets('should reinitialize on scope change', (WidgetTester tester) async {
+    testWidgets('should reinitialize on scope change',
+        (WidgetTester tester) async {
       final scope1 = ZenScope();
       final scope2 = ZenScope();
 

@@ -149,7 +149,8 @@ void main() {
     test('should register factory dependencies', () {
       var counter = 0;
       // Register factory that creates new instances
-      testScope.putFactory<TestService>(() => TestService('factory-${++counter}'));
+      testScope
+          .putFactory<TestService>(() => TestService('factory-${++counter}'));
 
       // Should create new instances each time
       final found1 = testScope.find<TestService>();
@@ -218,7 +219,8 @@ void main() {
       // Delete temporary (should succeed)
       final deletedTemporary = testScope.delete<TestService>(tag: 'temp');
       expect(deletedTemporary, isTrue);
-      expect(testScope.find<TestService>(tag: 'temp'), isNull); // Should be gone
+      expect(
+          testScope.find<TestService>(tag: 'temp'), isNull); // Should be gone
 
       // Force delete permanent (should succeed)
       final forceDeleted = testScope.delete<TestService>(force: true);
@@ -319,7 +321,8 @@ void main() {
       // Delete and verify doesn't exist
       testScope.delete<TestService>();
       expect(testScope.exists<TestService>(), isFalse);
-      expect(testScope.exists<TestService>(tag: 'test'), isTrue); // Tagged one still exists
+      expect(testScope.exists<TestService>(tag: 'test'),
+          isTrue); // Tagged one still exists
 
       testScope.delete<TestService>(tag: 'test');
       expect(testScope.exists<TestService>(tag: 'test'), isFalse);
@@ -370,7 +373,8 @@ void main() {
 
       // Check if permanent
       expect(testScope.isPermanent(type: TestService, tag: 'tagged'), isTrue);
-      expect(testScope.isPermanent(type: TestService), isFalse); // Untagged defaults to false
+      expect(testScope.isPermanent(type: TestService),
+          isFalse); // Untagged defaults to false
 
       // Check if contains instance
       expect(testScope.containsInstance(service), isTrue);

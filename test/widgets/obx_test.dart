@@ -39,7 +39,8 @@ void main() {
   });
 
   group('Obx Widget Tests', () {
-    testWidgets('should rebuild when Rx values change', (WidgetTester tester) async {
+    testWidgets('should rebuild when Rx values change',
+        (WidgetTester tester) async {
       // Create controller
       final controller = ReactiveController();
       Zen.put(controller);
@@ -113,7 +114,8 @@ void main() {
       expect(find.text('Items: 1'), findsOneWidget);
     });
 
-    testWidgets('should only rebuild specific Obx widgets', (WidgetTester tester) async {
+    testWidgets('should only rebuild specific Obx widgets',
+        (WidgetTester tester) async {
       // Create controller
       final controller = ReactiveController();
       Zen.put(controller);
@@ -130,11 +132,13 @@ void main() {
               children: [
                 Obx(() {
                   counterRebuildCount++;
-                  return Text('Counter: ${controller.counter.value} (Rebuilds: $counterRebuildCount)');
+                  return Text(
+                      'Counter: ${controller.counter.value} (Rebuilds: $counterRebuildCount)');
                 }),
                 Obx(() {
                   nameRebuildCount++;
-                  return Text('Name: ${controller.name.value} (Rebuilds: $nameRebuildCount)');
+                  return Text(
+                      'Name: ${controller.name.value} (Rebuilds: $nameRebuildCount)');
                 }),
                 ElevatedButton(
                   onPressed: controller.incrementCounter,
@@ -171,7 +175,8 @@ void main() {
       expect(nameRebuildCount, 2);
     });
 
-    testWidgets('should handle complex expressions', (WidgetTester tester) async {
+    testWidgets('should handle complex expressions',
+        (WidgetTester tester) async {
       // Create controller
       final controller = ReactiveController();
       Zen.put(controller);
@@ -184,8 +189,8 @@ void main() {
               children: [
                 // Complex expression combining multiple observables
                 Obx(() => Text(
-                  'Status: ${controller.isActive.value ? "Active" : "Inactive"} user ${controller.name.value} has ${controller.counter.value} points',
-                )),
+                      'Status: ${controller.isActive.value ? "Active" : "Inactive"} user ${controller.name.value} has ${controller.counter.value} points',
+                    )),
                 ElevatedButton(
                   onPressed: () {
                     controller.incrementCounter();
@@ -201,17 +206,20 @@ void main() {
       );
 
       // Initial state
-      expect(find.text('Status: Inactive user John has 0 points'), findsOneWidget);
+      expect(
+          find.text('Status: Inactive user John has 0 points'), findsOneWidget);
 
       // Tap update all button
       await tester.tap(find.text('Update All'));
       await tester.pump();
 
       // Should update with all changes
-      expect(find.text('Status: Active user Jane has 1 points'), findsOneWidget);
+      expect(
+          find.text('Status: Active user Jane has 1 points'), findsOneWidget);
     });
 
-    testWidgets('should handle conditionally shown widgets', (WidgetTester tester) async {
+    testWidgets('should handle conditionally shown widgets',
+        (WidgetTester tester) async {
       // Create controller
       final controller = ReactiveController();
       Zen.put(controller);
@@ -224,8 +232,7 @@ void main() {
               children: [
                 Obx(() => controller.isActive.value
                     ? Text('Welcome ${controller.name.value}')
-                    : const Text('Please activate your account')
-                ),
+                    : const Text('Please activate your account')),
                 ElevatedButton(
                   onPressed: controller.toggleActive,
                   child: const Text('Toggle Active'),
@@ -249,7 +256,8 @@ void main() {
       expect(find.text('Welcome John'), findsOneWidget);
     });
 
-    testWidgets('should work with nested Obx widgets', (WidgetTester tester) async {
+    testWidgets('should work with nested Obx widgets',
+        (WidgetTester tester) async {
       // Create controller
       final controller = ReactiveController();
       Zen.put(controller);
@@ -309,7 +317,8 @@ void main() {
       expect(innerRebuildCount, 3); // Incremented
     });
 
-    testWidgets('should handle list operations correctly', (WidgetTester tester) async {
+    testWidgets('should handle list operations correctly',
+        (WidgetTester tester) async {
       // Create controller
       final controller = ReactiveController();
       Zen.put(controller);
@@ -322,7 +331,8 @@ void main() {
               children: [
                 Obx(() => Text('Items: ${controller.items.value.join(", ")}')),
                 ElevatedButton(
-                  onPressed: () => controller.addItem('Item ${controller.items.value.length + 1}'),
+                  onPressed: () => controller
+                      .addItem('Item ${controller.items.value.length + 1}'),
                   child: const Text('Add Item'),
                 ),
                 ElevatedButton(
@@ -365,7 +375,8 @@ void main() {
       expect(find.text('Items: Item 1'), findsOneWidget);
     });
 
-    testWidgets('should work with operator syntax on rx', (WidgetTester tester) async {
+    testWidgets('should work with operator syntax on rx',
+        (WidgetTester tester) async {
       // Create controller
       final controller = ReactiveController();
       Zen.put(controller);
@@ -410,7 +421,8 @@ void main() {
       expect(find.text('Counter: 2'), findsOneWidget);
     });
 
-    testWidgets('should handle rx methods like toggle() for boolean', (WidgetTester tester) async {
+    testWidgets('should handle rx methods like toggle() for boolean',
+        (WidgetTester tester) async {
       // Create controller
       final controller = ReactiveController();
       Zen.put(controller);
@@ -446,7 +458,8 @@ void main() {
       expect(find.text('Active: false'), findsOneWidget);
     });
 
-    testWidgets('should handle disposal correctly', (WidgetTester tester) async {
+    testWidgets('should handle disposal correctly',
+        (WidgetTester tester) async {
       // Create a controller
       final controller = ReactiveController();
       Zen.put(controller);
@@ -480,7 +493,8 @@ void main() {
       expect(controller.isDisposed, isTrue);
     });
 
-    testWidgets('should maintain referential equality for Rx objects', (WidgetTester tester) async {
+    testWidgets('should maintain referential equality for Rx objects',
+        (WidgetTester tester) async {
       // Create controller
       final controller = ReactiveController();
       Zen.put(controller);
@@ -513,7 +527,8 @@ void main() {
       expect(identical(initialCounter, controller.counter), isTrue);
     });
 
-    testWidgets('should work with multiple independent Obx widgets', (WidgetTester tester) async {
+    testWidgets('should work with multiple independent Obx widgets',
+        (WidgetTester tester) async {
       // Create multiple controllers
       final controller1 = ReactiveController();
       final controller2 = ReactiveController();

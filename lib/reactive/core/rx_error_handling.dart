@@ -1,4 +1,3 @@
-
 // lib/reactive/core/rx_error_handling.dart
 import 'dart:async';
 import 'package:flutter/foundation.dart';
@@ -12,17 +11,17 @@ class RxException implements Exception {
   final DateTime? timestamp; // ← Make nullable
 
   const RxException(
-      this.message, {
-        this.originalError,
-        this.stackTrace,
-        this.timestamp, // ← Remove initializer
-      });
+    this.message, {
+    this.originalError,
+    this.stackTrace,
+    this.timestamp, // ← Remove initializer
+  });
 
   factory RxException.withTimestamp(
-      String message, {
-        Object? originalError,
-        StackTrace? stackTrace,
-      }) {
+    String message, {
+    Object? originalError,
+    StackTrace? stackTrace,
+  }) {
     return RxException(
       message,
       originalError: originalError,
@@ -56,15 +55,15 @@ sealed class RxResult<T> {
 
   /// Get the value if successful, or null if failed
   T? get valueOrNull => switch (this) {
-    RxSuccess<T> success => success.value,
-    RxFailure<T> _ => null,
-  };
+        RxSuccess<T> success => success.value,
+        RxFailure<T> _ => null,
+      };
 
   /// Get the error if failed, or null if successful
   RxException? get errorOrNull => switch (this) {
-    RxSuccess<T> _ => null,
-    RxFailure<T> failure => failure.error,
-  };
+        RxSuccess<T> _ => null,
+        RxFailure<T> failure => failure.error,
+      };
 
   /// Transform the value if successful, or return the failure
   RxResult<R> map<R>(R Function(T value) transform) {
@@ -84,9 +83,9 @@ sealed class RxResult<T> {
 
   /// Get value or throw exception
   T get value => switch (this) {
-    RxSuccess<T> success => success.value,
-    RxFailure<T> failure => throw failure.error,
-  };
+        RxSuccess<T> success => success.value,
+        RxFailure<T> failure => throw failure.error,
+      };
 
   /// Get value or return fallback
   T valueOr(T fallback) => valueOrNull ?? fallback;
@@ -117,7 +116,8 @@ sealed class RxResult<T> {
     try {
       return RxResult.success(operation());
     } catch (e, stack) {
-      final message = context != null ? 'Failed to $context' : 'Operation failed';
+      final message =
+          context != null ? 'Failed to $context' : 'Operation failed';
       return RxResult.failure(RxException.withTimestamp(
         message,
         originalError: e,
@@ -128,14 +128,15 @@ sealed class RxResult<T> {
 
   /// Try to execute an async function and wrap result
   static Future<RxResult<T>> tryExecuteAsync<T>(
-      Future<T> Function() operation, [
-        String? context,
-      ]) async {
+    Future<T> Function() operation, [
+    String? context,
+  ]) async {
     try {
       final result = await operation();
       return RxResult.success(result);
     } catch (e, stack) {
-      final message = context != null ? 'Failed to $context' : 'Async operation failed';
+      final message =
+          context != null ? 'Failed to $context' : 'Async operation failed';
       return RxResult.failure(RxException.withTimestamp(
         message,
         originalError: e,
@@ -157,7 +158,9 @@ final class RxSuccess<T> extends RxResult<T> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is RxSuccess<T> && runtimeType == other.runtimeType && value == other.value;
+      other is RxSuccess<T> &&
+          runtimeType == other.runtimeType &&
+          value == other.value;
 
   @override
   int get hashCode => value.hashCode;
@@ -174,7 +177,9 @@ final class RxFailure<T> extends RxResult<T> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is RxFailure<T> && runtimeType == other.runtimeType && error == other.error;
+      other is RxFailure<T> &&
+          runtimeType == other.runtimeType &&
+          error == other.error;
 
   @override
   int get hashCode => error.hashCode;
@@ -269,10 +274,10 @@ extension RxErrorHandling<T> on Rx<T> {
 
   /// Set value with validation
   RxResult<void> setWithValidation(
-      T newValue,
-      bool Function(T value) validator, {
-        String? validationMessage,
-      }) {
+    T newValue,
+    bool Function(T value) validator, {
+    String? validationMessage,
+  }) {
     return RxResult.tryExecute(() {
       if (!validator(newValue)) {
         throw RxException(
@@ -294,11 +299,11 @@ extension RxErrorHandling<T> on Rx<T> {
 
   /// Update value with retry logic
   Future<RxResult<void>> updateWithRetry(
-      T Function(T current) updater, {
-        int? maxRetries,
-        Duration? retryDelay,
-        String? context,
-      }) async {
+    T Function(T current) updater, {
+    int? maxRetries,
+    Duration? retryDelay,
+    String? context,
+  }) async {
     final retries = maxRetries ?? _globalErrorConfig.maxRetries;
     final delay = retryDelay ?? _globalErrorConfig.retryDelay;
 
@@ -320,9 +325,9 @@ extension RxErrorHandling<T> on Rx<T> {
 
   /// Listen with error handling
   void listenSafe(
-      void Function(T value) listener, {
-        void Function(RxException error)? onError,
-      }) {
+    void Function(T value) listener, {
+    void Function(RxException error)? onError,
+  }) {
     addListener(() {
       try {
         listener(value);
@@ -343,20 +348,20 @@ extension RxErrorHandling<T> on Rx<T> {
 
   /// Transform value with error handling
   RxResult<R> transformSafe<R>(
-      R Function(T value) transformer, {
-        String? context,
-      }) {
+    R Function(T value) transformer, {
+    String? context,
+  }) {
     return RxResult.tryExecute(
-          () => transformer(value),
+      () => transformer(value),
       context ?? 'transform value',
     );
   }
 
   /// Chain operations with error handling
   RxResult<R> chainSafe<R>(
-      RxResult<R> Function(T value) operation, {
-        String? context,
-      }) {
+    RxResult<R> Function(T value) operation, {
+    String? context,
+  }) {
     try {
       return operation(value);
     } catch (e, stack) {
@@ -408,7 +413,9 @@ extension RxNullableErrorHandling<T> on Rx<T?> {
     final val = value;
     if (val == null) {
       final error = RxException.withTimestamp(
-        context != null ? 'Required value is null: $context' : 'Required value is null',
+        context != null
+            ? 'Required value is null: $context'
+            : 'Required value is null',
       );
       _logError(error);
       throw error;
@@ -419,7 +426,7 @@ extension RxNullableErrorHandling<T> on Rx<T?> {
   /// Get non-null value or return result
   RxResult<T> tryRequireValue([String? context]) {
     return RxResult.tryExecute(
-          () => requireValue(context),
+      () => requireValue(context),
       context ?? 'require non-null value',
     );
   }
@@ -438,9 +445,9 @@ extension RxNullableErrorHandling<T> on Rx<T?> {
 extension RxAsyncErrorHandling<T> on Rx<T> {
   /// Set value from async operation with error handling
   Future<RxResult<void>> setFromAsync(
-      Future<T> Function() operation, {
-        String? context,
-      }) async {
+    Future<T> Function() operation, {
+    String? context,
+  }) async {
     final result = await RxResult.tryExecuteAsync(operation, context);
     return result.map((newValue) {
       value = newValue;
@@ -449,13 +456,13 @@ extension RxAsyncErrorHandling<T> on Rx<T> {
 
   /// Update value from async operation
   Future<RxResult<void>> updateFromAsync(
-      Future<T> Function(T current) operation, {
-        String? context,
-      }) async {
+    Future<T> Function(T current) operation, {
+    String? context,
+  }) async {
     try {
       final currentValue = value;
       final result = await RxResult.tryExecuteAsync(
-            () => operation(currentValue),
+        () => operation(currentValue),
         context,
       );
       return result.map((newValue) {
@@ -474,7 +481,8 @@ extension RxAsyncErrorHandling<T> on Rx<T> {
 /// Utility functions for error handling
 class RxErrorUtils {
   /// Wrap multiple reactive operations in a try-catch
-  static RxResult<List<T>> tryMultiple<T>(List<RxResult<T> Function()> operations) {
+  static RxResult<List<T>> tryMultiple<T>(
+      List<RxResult<T> Function()> operations) {
     final results = <T>[];
     for (int i = 0; i < operations.length; i++) {
       final result = operations[i]();
@@ -491,16 +499,18 @@ class RxErrorUtils {
 
   /// Execute operation with timeout
   static Future<RxResult<T>> withTimeout<T>(
-      Future<T> Function() operation,
-      Duration timeout, {
-        String? context,
-      }) async {
+    Future<T> Function() operation,
+    Duration timeout, {
+    String? context,
+  }) async {
     try {
       final result = await operation().timeout(timeout);
       return RxResult.success(result);
     } on TimeoutException {
       return RxResult.failure(RxException.withTimestamp(
-        context != null ? 'Operation timed out: $context' : 'Operation timed out',
+        context != null
+            ? 'Operation timed out: $context'
+            : 'Operation timed out',
       ));
     } catch (e, stack) {
       return RxResult.failure(RxException.withTimestamp(
@@ -585,10 +595,10 @@ class RxCircuitBreaker {
 
   /// Get current state
   Map<String, dynamic> get state => {
-    'isOpen': _isOpen,
-    'failureCount': _failureCount,
-    'lastFailureTime': _lastFailureTime?.toIso8601String(),
-  };
+        'isOpen': _isOpen,
+        'failureCount': _failureCount,
+        'lastFailureTime': _lastFailureTime?.toIso8601String(),
+      };
 }
 
 /// Internal error logging

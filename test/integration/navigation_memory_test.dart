@@ -13,13 +13,16 @@ void main() {
       ZenTestHelper.resetDI();
     });
 
-    testWidgets('should create separate controller instances with disposeOnRemove', (tester) async {
+    testWidgets(
+        'should create separate controller instances with disposeOnRemove',
+        (tester) async {
       final controllerInstances = <TestController>[];
 
       Widget buildZenBuilder() {
         return ZenBuilder<TestController>(
           create: () {
-            final controller = TestController('test_${controllerInstances.length + 1}');
+            final controller =
+                TestController('test_${controllerInstances.length + 1}');
             controllerInstances.add(controller);
             return controller;
           },
@@ -56,7 +59,8 @@ void main() {
       expect(controllerInstances[0].isDisposed, true);
     });
 
-    testWidgets('should share controllers when disposeOnRemove is false', (tester) async {
+    testWidgets('should share controllers when disposeOnRemove is false',
+        (tester) async {
       final controller = TestController('shared');
       Zen.put<TestController>(controller);
 
@@ -78,7 +82,8 @@ void main() {
       expect(controller.isDisposed, false);
     });
 
-    testWidgets('should dispose local controllers on widget disposal', (tester) async {
+    testWidgets('should dispose local controllers on widget disposal',
+        (tester) async {
       late TestController controller;
 
       await tester.pumpWidget(MaterialApp(

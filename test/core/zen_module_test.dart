@@ -425,7 +425,14 @@ void main() {
       await Zen.registerModules([ModuleA()]);
 
       // All modules should be loaded
-      for (final name in ['ModuleA', 'ModuleB', 'ModuleC', 'ModuleD', 'ModuleE', 'ModuleF']) {
+      for (final name in [
+        'ModuleA',
+        'ModuleB',
+        'ModuleC',
+        'ModuleD',
+        'ModuleE',
+        'ModuleF'
+      ]) {
         expect(Zen.hasModule(name), isTrue);
       }
 
@@ -448,9 +455,9 @@ void main() {
   group('Error Handling', () {
     test('should detect circular dependencies', () async {
       expect(
-            () => Zen.registerModules([CircularA()]),
+        () => Zen.registerModules([CircularA()]),
         throwsA(isA<StateError>().having(
-              (e) => e.message,
+          (e) => e.message,
           'message',
           contains('Circular dependency'),
         )),
@@ -462,9 +469,9 @@ void main() {
 
     test('should handle registration failure', () async {
       expect(
-            () => Zen.registerModules([FailingModule()]),
+        () => Zen.registerModules([FailingModule()]),
         throwsA(isA<Exception>().having(
-              (e) => e.toString(),
+          (e) => e.toString(),
           'message',
           contains('Registration failed'),
         )),
@@ -475,9 +482,9 @@ void main() {
 
     test('should handle initialization failure', () async {
       expect(
-            () => Zen.registerModules([InitFailingModule()]),
+        () => Zen.registerModules([InitFailingModule()]),
         throwsA(isA<Exception>().having(
-              (e) => e.toString(),
+          (e) => e.toString(),
           'message',
           contains('Initialization failed'),
         )),

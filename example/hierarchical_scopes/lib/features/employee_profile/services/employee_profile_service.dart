@@ -61,7 +61,8 @@ class EmployeeProfileService {
         if (employee != null) {
           _employeeProfiles[employeeId] = employee;
           _employeeEffect.success(employee);
-          ZenLogger.logInfo('Loaded employee profile $employeeId from employee service');
+          ZenLogger.logInfo(
+              'Loaded employee profile $employeeId from employee service');
           return employee;
         }
       }
@@ -102,7 +103,8 @@ class EmployeeProfileService {
   }
 
   /// Get employee activities/history
-  Future<List<Map<String, dynamic>>> getEmployeeActivities(String employeeId) async {
+  Future<List<Map<String, dynamic>>> getEmployeeActivities(
+      String employeeId) async {
     try {
       // Check cache first
       final cacheKey = 'employee_activities_$employeeId';
@@ -118,17 +120,20 @@ class EmployeeProfileService {
       // Cache the result
       _cacheService.set(cacheKey, response, ttl: const Duration(minutes: 5));
 
-      ZenLogger.logInfo('Loaded ${activities.length} activities for employee $employeeId');
+      ZenLogger.logInfo(
+          'Loaded ${activities.length} activities for employee $employeeId');
       return activities;
     } catch (e) {
-      ZenLogger.logError('Failed to load activities for employee $employeeId', e);
+      ZenLogger.logError(
+          'Failed to load activities for employee $employeeId', e);
       // Return mock data as fallback
       return _getMockActivities();
     }
   }
 
   /// Parse activities from API response, handling different response formats
-  List<Map<String, dynamic>> _parseActivitiesFromResponse(Map<String, dynamic> response) {
+  List<Map<String, dynamic>> _parseActivitiesFromResponse(
+      Map<String, dynamic> response) {
     final data = response['data'];
 
     // Handle case where data is a list
@@ -153,7 +158,8 @@ class EmployeeProfileService {
     }
 
     // If we can't parse it, return empty list
-    ZenLogger.logWarning('Unexpected activities response format: ${data.runtimeType}');
+    ZenLogger.logWarning(
+        'Unexpected activities response format: ${data.runtimeType}');
     return [];
   }
 
@@ -164,19 +170,22 @@ class EmployeeProfileService {
         'id': '1',
         'type': 'login',
         'description': 'Logged into system',
-        'timestamp': DateTime.now().subtract(const Duration(hours: 2)).toIso8601String(),
+        'timestamp':
+            DateTime.now().subtract(const Duration(hours: 2)).toIso8601String(),
       },
       {
         'id': '2',
         'type': 'task_completed',
         'description': 'Completed quarterly report',
-        'timestamp': DateTime.now().subtract(const Duration(hours: 5)).toIso8601String(),
+        'timestamp':
+            DateTime.now().subtract(const Duration(hours: 5)).toIso8601String(),
       },
       {
         'id': '3',
         'type': 'meeting',
         'description': 'Attended team standup',
-        'timestamp': DateTime.now().subtract(const Duration(hours: 1)).toIso8601String(),
+        'timestamp':
+            DateTime.now().subtract(const Duration(hours: 1)).toIso8601String(),
       },
     ];
   }

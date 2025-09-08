@@ -71,7 +71,8 @@ class TestReactiveZenView extends ZenView<CounterController> {
         children: [
           // Using ZenBuilder for reactivity - automatically rebuilds on controller.update()
           ZenBuilder<CounterController>(
-            builder: (context, controller) => Text('Count: ${controller.count}'),
+            builder: (context, controller) =>
+                Text('Count: ${controller.count}'),
           ),
           ElevatedButton(
             onPressed: controller.increment,
@@ -88,7 +89,8 @@ class CreateControllerTestView extends ZenView<CounterController> {
   const CreateControllerTestView({super.key});
 
   @override
-  CounterController Function()? get createController => () => CounterController();
+  CounterController Function()? get createController =>
+      () => CounterController();
 
   @override
   Widget build(BuildContext context) {
@@ -114,7 +116,8 @@ class TaggedTestView extends ZenView<CounterController> {
   String? get tag => 'custom_tag';
 
   @override
-  CounterController Function()? get createController => () => CounterController();
+  CounterController Function()? get createController =>
+      () => CounterController();
 
   @override
   Widget build(BuildContext context) {
@@ -162,7 +165,8 @@ class ParentZenView extends ZenView<CounterController> {
   const ParentZenView({super.key});
 
   @override
-  CounterController Function()? get createController => () => CounterController();
+  CounterController Function()? get createController =>
+      () => CounterController();
 
   @override
   Widget build(BuildContext context) {
@@ -190,7 +194,8 @@ class ContextTestView extends ZenView<CounterController> {
   const ContextTestView({super.key});
 
   @override
-  CounterController Function()? get createController => () => CounterController();
+  CounterController Function()? get createController =>
+      () => CounterController();
 
   @override
   Widget build(BuildContext context) {
@@ -200,7 +205,8 @@ class ContextTestView extends ZenView<CounterController> {
           Text('Count: ${controller.count}'),
           Builder(
             builder: (innerContext) {
-              final contextController = innerContext.controller<CounterController>();
+              final contextController =
+                  innerContext.controller<CounterController>();
               return Text('Context API Count: ${contextController.count}');
             },
           ),
@@ -221,7 +227,8 @@ void main() {
   });
 
   group('ZenView Widget Tests', () {
-    testWidgets('should get controller from dependency injection', (WidgetTester tester) async {
+    testWidgets('should get controller from dependency injection',
+        (WidgetTester tester) async {
       final controller = CounterController();
       Zen.put<CounterController>(controller);
 
@@ -235,7 +242,8 @@ void main() {
       expect(find.text('Context API Count: 0'), findsOneWidget);
     });
 
-    testWidgets('should allow controller interaction with manual updates', (WidgetTester tester) async {
+    testWidgets('should allow controller interaction with manual updates',
+        (WidgetTester tester) async {
       final controller = CounterController();
       Zen.put<CounterController>(controller);
 
@@ -252,10 +260,12 @@ void main() {
       expect(find.text('Count: 0'), findsOneWidget); // UI doesn't auto-update
 
       await tester.pump();
-      expect(find.text('Count: 0'), findsOneWidget); // Still doesn't update without reactive wrapper
+      expect(find.text('Count: 0'),
+          findsOneWidget); // Still doesn't update without reactive wrapper
     });
 
-    testWidgets('should automatically update UI with ZenBuilder in ZenView', (WidgetTester tester) async {
+    testWidgets('should automatically update UI with ZenBuilder in ZenView',
+        (WidgetTester tester) async {
       final controller = CounterController();
       Zen.put<CounterController>(controller);
 
@@ -275,7 +285,8 @@ void main() {
       expect(find.text('Count: 1'), findsOneWidget);
     });
 
-    testWidgets('should create controller using createController', (WidgetTester tester) async {
+    testWidgets('should create controller using createController',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: CreateControllerTestView(),
@@ -286,7 +297,8 @@ void main() {
       expect(Zen.find<CounterController>(), isNotNull);
     });
 
-    testWidgets('should create controller with tag', (WidgetTester tester) async {
+    testWidgets('should create controller with tag',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: TaggedTestView(),
@@ -297,7 +309,8 @@ void main() {
       expect(Zen.find<CounterController>(tag: 'custom_tag'), isNotNull);
     });
 
-    testWidgets('should use controller from scope', (WidgetTester tester) async {
+    testWidgets('should use controller from scope',
+        (WidgetTester tester) async {
       final customScope = Zen.createScope(name: "CustomScope");
       final controller = CounterController();
       controller.count = 42;
@@ -312,7 +325,8 @@ void main() {
       expect(find.text('Count: 42'), findsOneWidget);
     });
 
-    testWidgets('should handle error when controller not found', (WidgetTester tester) async {
+    testWidgets('should handle error when controller not found',
+        (WidgetTester tester) async {
       bool exceptionCaught = false;
       final originalOnError = FlutterError.onError;
 
@@ -334,7 +348,8 @@ void main() {
       expect(exceptionCaught, isTrue);
     });
 
-    testWidgets('should call controller lifecycle methods', (WidgetTester tester) async {
+    testWidgets('should call controller lifecycle methods',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: CreateControllerTestView(),
@@ -353,7 +368,8 @@ void main() {
       expect(Zen.find<CounterController>(), isNotNull);
     });
 
-    testWidgets('should access controller via BuildContext extension', (WidgetTester tester) async {
+    testWidgets('should access controller via BuildContext extension',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: ContextTestView(),
@@ -364,7 +380,8 @@ void main() {
       expect(find.text('Context API Count: 0'), findsOneWidget);
     });
 
-    testWidgets('should handle nested ZenViews with correct context stacking', (WidgetTester tester) async {
+    testWidgets('should handle nested ZenViews with correct context stacking',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: ParentZenView(),

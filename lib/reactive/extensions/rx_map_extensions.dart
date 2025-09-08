@@ -1,4 +1,3 @@
-
 // lib/reactive/extensions/rx_map_extensions.dart
 import '../core/rx_value.dart';
 import '../core/rx_tracking.dart';
@@ -80,7 +79,8 @@ extension RxMapExtensions<K, V> on Rx<Map<K, V>> {
   }
 
   /// Update value with error handling
-  RxResult<V> tryUpdate(K key, V Function(V value) update, {V Function()? ifAbsent}) {
+  RxResult<V> tryUpdate(K key, V Function(V value) update,
+      {V Function()? ifAbsent}) {
     return RxResult.tryExecute(() {
       final newMap = Map<K, V>.from(value);
       final result = newMap.update(key, update, ifAbsent: ifAbsent);

@@ -105,29 +105,31 @@ class EmployeeProfilePage extends ZenView<EmployeeProfileController> {
 
             return errorMessage.isNotEmpty
                 ? Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(12),
-              color: Colors.red.shade100,
-              child: Row(
-                children: [
-                  Icon(Icons.error_outline, color: Colors.red.shade700, size: 20),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      errorMessage,
-                      style: TextStyle(
-                        color: Colors.red.shade700,
-                        fontWeight: FontWeight.w500,
-                      ),
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    color: Colors.red.shade100,
+                    child: Row(
+                      children: [
+                        Icon(Icons.error_outline,
+                            color: Colors.red.shade700, size: 20),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            errorMessage,
+                            style: TextStyle(
+                              color: Colors.red.shade700,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.close,
+                              color: Colors.red.shade700, size: 18),
+                          onPressed: controller.clearError,
+                        ),
+                      ],
                     ),
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.close, color: Colors.red.shade700, size: 18),
-                    onPressed: controller.clearError,
-                  ),
-                ],
-              ),
-            )
+                  )
                 : const SizedBox.shrink();
           },
         ),
@@ -137,7 +139,8 @@ class EmployeeProfilePage extends ZenView<EmployeeProfileController> {
           child: ZenBuilder<EmployeeProfileController>(
             builder: (context, controller) {
               return Obx(() {
-                ZenLogger.logInfo('Building body - Loading: ${controller.isLoading.value}, Employee: ${controller.employee.value?.name}');
+                ZenLogger.logInfo(
+                    'Building body - Loading: ${controller.isLoading.value}, Employee: ${controller.employee.value?.name}');
 
                 if (controller.isLoading.value) {
                   return const Center(
@@ -215,7 +218,8 @@ class EmployeeProfilePage extends ZenView<EmployeeProfileController> {
               const SizedBox(width: 8),
               _buildEffectIndicator('Employee', controller.loadEmployeeEffect),
               const SizedBox(width: 8),
-              _buildEffectIndicator('Activities', controller.loadActivitiesEffect),
+              _buildEffectIndicator(
+                  'Activities', controller.loadActivitiesEffect),
               const SizedBox(width: 8),
               _buildEffectIndicator('Refresh', controller.refreshEffect),
               const SizedBox(width: 8),
@@ -301,8 +305,10 @@ class EmployeeProfilePage extends ZenView<EmployeeProfileController> {
                   ),
                   const SizedBox(height: 8),
                   Chip(
-                    avatar: Icon(Icons.business, size: 16, color: Colors.blue.shade700),
-                    label: Text('Department: ${employee.departmentId}',style: TextStyle(color: Colors.black)),
+                    avatar: Icon(Icons.business,
+                        size: 16, color: Colors.blue.shade700),
+                    label: Text('Department: ${employee.departmentId}',
+                        style: TextStyle(color: Colors.black)),
                     backgroundColor: Colors.blue.shade50,
                   ),
                 ],
@@ -334,9 +340,11 @@ class EmployeeProfilePage extends ZenView<EmployeeProfileController> {
             const Divider(),
             _buildDetailRow(Icons.phone, 'Phone', employee.phone ?? 'No phone'),
             const Divider(),
-            _buildDetailRow(Icons.calendar_today, 'Hire Date', employee.hireDate),
+            _buildDetailRow(
+                Icons.calendar_today, 'Hire Date', employee.hireDate),
             const Divider(),
-            _buildDetailRow(Icons.location_on, 'Address', employee.address ?? 'No address'),
+            _buildDetailRow(
+                Icons.location_on, 'Address', employee.address ?? 'No address'),
           ],
         ),
       ),
@@ -367,9 +375,10 @@ class EmployeeProfilePage extends ZenView<EmployeeProfileController> {
                 runSpacing: 8,
                 children: employee.skills
                     .map((skill) => Chip(
-                  label: Text(skill, style: TextStyle(color: Colors.black)),
-                  backgroundColor: Colors.green.shade50,
-                ))
+                          label: Text(skill,
+                              style: TextStyle(color: Colors.black)),
+                          backgroundColor: Colors.green.shade50,
+                        ))
                     .toList(),
               ),
           ],
@@ -458,7 +467,8 @@ class EmployeeProfilePage extends ZenView<EmployeeProfileController> {
     );
   }
 
-  Widget _buildActivitiesSection(List<Map<String, dynamic>> activities, EmployeeProfileController controller) {
+  Widget _buildActivitiesSection(List<Map<String, dynamic>> activities,
+      EmployeeProfileController controller) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -481,8 +491,10 @@ class EmployeeProfilePage extends ZenView<EmployeeProfileController> {
                 height: 16,
                 child: CircularProgressIndicator(strokeWidth: 2),
               ),
-              onSuccess: (activities) => Icon(Icons.check_circle, size: 16, color: Colors.green.shade600),
-              onError: (error) => Icon(Icons.error, size: 16, color: Colors.red.shade600),
+              onSuccess: (activities) => Icon(Icons.check_circle,
+                  size: 16, color: Colors.green.shade600),
+              onError: (error) =>
+                  Icon(Icons.error, size: 16, color: Colors.red.shade600),
             ),
           ],
         ),

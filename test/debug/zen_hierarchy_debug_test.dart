@@ -1,4 +1,3 @@
-
 // test/debug/zen_hierarchy_builder_test.dart
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zenify/zenify.dart';
@@ -33,12 +32,16 @@ void main() {
       // Find our specific child in the children list
       final children = tree['children'] as List;
       final ourChild = children.cast<Map<String, dynamic>>().firstWhere(
-            (child) => child['scope']['scopeInfo']['name'] == 'hierarchy-test-child',
-        orElse: () => <String, dynamic>{}, // Return empty map instead of null
-      );
+            (child) =>
+                child['scope']['scopeInfo']['name'] == 'hierarchy-test-child',
+            orElse: () =>
+                <String, dynamic>{}, // Return empty map instead of null
+          );
 
-      expect(ourChild.isNotEmpty, isTrue, reason: 'Should find our created child scope');
-      expect(ourChild['scope']['scopeInfo']['name'], equals('hierarchy-test-child'));
+      expect(ourChild.isNotEmpty, isTrue,
+          reason: 'Should find our created child scope');
+      expect(ourChild['scope']['scopeInfo']['name'],
+          equals('hierarchy-test-child'));
 
       // Clean up
       childScope.dispose();

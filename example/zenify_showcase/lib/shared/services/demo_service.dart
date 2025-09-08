@@ -1,7 +1,8 @@
 class DemoService {
   // Simulate API calls and data operations
 
-  Future<String> fetchData({Duration delay = const Duration(seconds: 2)}) async {
+  Future<String> fetchData(
+      {Duration delay = const Duration(seconds: 2)}) async {
     await Future.delayed(delay);
     return 'Data fetched at ${DateTime.now().toIso8601String()}';
   }

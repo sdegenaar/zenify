@@ -102,7 +102,8 @@ void main() {
       // For allInstances, we need to account for the fact that all 100 services are of the same type
       // but with different tags, so getAllInstances might return them as a single type entry
       // Let's check that we have at least the services we registered
-      expect(allInstances.length, greaterThanOrEqualTo(1)); // At least the TestService type
+      expect(allInstances.length,
+          greaterThanOrEqualTo(1)); // At least the TestService type
 
       // Verify we can actually find our tagged services
       expect(testScope.exists<TestService>(tag: 'tag0'), isTrue);
@@ -113,11 +114,13 @@ void main() {
       // Debug operations should be reasonably fast (either 0ms or not significantly slower)
       if (registrationTime > 0) {
         expect(debugTime, lessThanOrEqualTo(registrationTime * 3),
-            reason: 'Debug operations should not be significantly slower than registration');
+            reason:
+                'Debug operations should not be significantly slower than registration');
       } else {
         // If registration was instant (0ms), debug operations should also be very fast
         expect(debugTime, lessThanOrEqualTo(10),
-            reason: 'Debug operations should complete quickly when registration is instant');
+            reason:
+                'Debug operations should complete quickly when registration is instant');
       }
     });
   });

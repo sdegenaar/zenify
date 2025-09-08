@@ -31,23 +31,24 @@ class LoginPage extends ZenView<LoginController> {
                     const SizedBox(height: 16),
                     Text(
                       'Welcome Back',
-                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style:
+                          Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'Sign in to continue shopping',
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Colors.grey.shade600,
-                      ),
+                            color: Colors.grey.shade600,
+                          ),
                     ),
                   ],
                 ),
               ),
-              
+
               const SizedBox(height: 32),
-              
+
               // Form error message
               Obx(() => controller.formError.value != null
                   ? Container(
@@ -72,7 +73,7 @@ class LoginPage extends ZenView<LoginController> {
                       ),
                     )
                   : const SizedBox.shrink()),
-              
+
               // Email field
               TextField(
                 decoration: InputDecoration(
@@ -85,29 +86,29 @@ class LoginPage extends ZenView<LoginController> {
                 textInputAction: TextInputAction.next,
                 onChanged: controller.setEmail,
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               // Password field
               Obx(() => TextField(
-                decoration: InputDecoration(
-                  labelText: 'Password',
-                  hintText: 'Enter your password',
-                  prefixIcon: const Icon(Icons.lock),
-                  errorText: controller.passwordError.value,
-                ),
-                obscureText: true,
-                textInputAction: TextInputAction.done,
-                onChanged: controller.setPassword,
-              )),
-              
+                    decoration: InputDecoration(
+                      labelText: 'Password',
+                      hintText: 'Enter your password',
+                      prefixIcon: const Icon(Icons.lock),
+                      errorText: controller.passwordError.value,
+                    ),
+                    obscureText: true,
+                    textInputAction: TextInputAction.done,
+                    onChanged: controller.setPassword,
+                  )),
+
               // Remember me checkbox
               Row(
                 children: [
                   Obx(() => Checkbox(
-                    value: controller.rememberMe.value,
-                    onChanged: (value) => controller.toggleRememberMe(),
-                  )),
+                        value: controller.rememberMe.value,
+                        onChanged: (value) => controller.toggleRememberMe(),
+                      )),
                   const Text('Remember me'),
                   const Spacer(),
                   TextButton(
@@ -115,7 +116,8 @@ class LoginPage extends ZenView<LoginController> {
                       // Forgot password functionality would go here
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('Forgot password functionality not implemented in this demo'),
+                          content: Text(
+                              'Forgot password functionality not implemented in this demo'),
                         ),
                       );
                     },
@@ -123,39 +125,40 @@ class LoginPage extends ZenView<LoginController> {
                   ),
                 ],
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               // Login button
               Obx(() => ElevatedButton(
-                onPressed: controller.isLoading.value
-                    ? null
-                    : () => _login(context),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                ),
-                child: controller.isLoading.value
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                        ),
-                      )
-                    : const Text(
-                        'Login',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-              )),
-              
+                    onPressed: controller.isLoading.value
+                        ? null
+                        : () => _login(context),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                    ),
+                    child: controller.isLoading.value
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          )
+                        : const Text(
+                            'Login',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                  )),
+
               const SizedBox(height: 16),
-              
+
               // Register link
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -163,15 +166,16 @@ class LoginPage extends ZenView<LoginController> {
                   const Text("Don't have an account?"),
                   TextButton(
                     onPressed: () {
-                      Navigator.of(context).pushReplacementNamed(AppRoutes.register);
+                      Navigator.of(context)
+                          .pushReplacementNamed(AppRoutes.register);
                     },
                     child: const Text('Register'),
                   ),
                 ],
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               // Social login options
               Column(
                 children: [
@@ -190,7 +194,8 @@ class LoginPage extends ZenView<LoginController> {
                         onPressed: () {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text('Google login not implemented in this demo'),
+                              content: Text(
+                                  'Google login not implemented in this demo'),
                             ),
                           );
                         },
@@ -203,7 +208,8 @@ class LoginPage extends ZenView<LoginController> {
                         onPressed: () {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text('Facebook login not implemented in this demo'),
+                              content: Text(
+                                  'Facebook login not implemented in this demo'),
                             ),
                           );
                         },
@@ -216,7 +222,8 @@ class LoginPage extends ZenView<LoginController> {
                         onPressed: () {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text('Apple login not implemented in this demo'),
+                              content: Text(
+                                  'Apple login not implemented in this demo'),
                             ),
                           );
                         },
@@ -259,9 +266,9 @@ class LoginPage extends ZenView<LoginController> {
   Future<void> _login(BuildContext context) async {
     // Hide keyboard
     FocusScope.of(context).unfocus();
-    
+
     final success = await controller.login();
-    
+
     if (success && context.mounted) {
       // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
@@ -270,7 +277,7 @@ class LoginPage extends ZenView<LoginController> {
           backgroundColor: Colors.green,
         ),
       );
-      
+
       // Navigate to home page
       Navigator.of(context).pushReplacementNamed(AppRoutes.home);
     }

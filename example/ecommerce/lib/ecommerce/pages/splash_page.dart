@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:zenify/zenify.dart';
 import '../routes/app_routes.dart';
@@ -76,9 +75,7 @@ class _SplashPageState extends State<SplashPage> {
                 size: 80,
                 color: Colors.white,
               ),
-
               SizedBox(height: 24),
-
               Text(
                 'Zenify Shop',
                 style: TextStyle(
@@ -87,9 +84,7 @@ class _SplashPageState extends State<SplashPage> {
                   color: Colors.white,
                 ),
               ),
-
               SizedBox(height: 8),
-
               Text(
                 'Shopping made simple',
                 style: TextStyle(
@@ -97,9 +92,7 @@ class _SplashPageState extends State<SplashPage> {
                   color: Colors.white70,
                 ),
               ),
-
               SizedBox(height: 48),
-
               CircularProgressIndicator(
                 valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
               ),

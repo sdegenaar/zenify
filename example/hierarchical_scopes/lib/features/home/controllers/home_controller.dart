@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:zenify/zenify.dart';
 
@@ -69,7 +68,8 @@ class HomeController extends ZenController with ZenTickerProvider {
     // Start performance monitoring
     _startPerformanceMonitoring();
 
-    ZenLogger.logInfo('🏠 HomeController initialized with hierarchical services');
+    ZenLogger.logInfo(
+        '🏠 HomeController initialized with hierarchical services');
   }
 
   void _initializeServicesFromHierarchy() {
@@ -78,21 +78,22 @@ class HomeController extends ZenController with ZenTickerProvider {
     _cacheService = Zen.find<CacheService>();
     _navigationService = Zen.find<NavigationService>();
 
-    ZenLogger.logInfo('✅ All services inherited from parent scope successfully');
+    ZenLogger.logInfo(
+        '✅ All services inherited from parent scope successfully');
   }
 
   void _startPerformanceMonitoring() {
     // Monitor performance metrics every second
     interval(
       obs(DateTime.now()),
-          (value) => _updatePerformanceMetrics(),
+      (value) => _updatePerformanceMetrics(),
       const Duration(seconds: 1),
     );
 
     // Monitor hierarchy stats every 5 seconds
     interval(
       obs(DateTime.now()),
-          (value) => _updateHierarchyStats(),
+      (value) => _updateHierarchyStats(),
       const Duration(seconds: 5),
     );
   }
@@ -130,7 +131,9 @@ class HomeController extends ZenController with ZenTickerProvider {
     scope = currentScope;
     while (scope != null) {
       // Use ZenScopeInspector.getAllInstances() instead of scope.getAllInstances()
-      allServices.addAll(ZenScopeInspector.getAllInstances(scope).keys.map((key) => key.toString()));
+      allServices.addAll(ZenScopeInspector.getAllInstances(scope)
+          .keys
+          .map((key) => key.toString()));
       scope = scope.parent;
     }
 

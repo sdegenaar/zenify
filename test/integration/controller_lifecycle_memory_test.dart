@@ -35,7 +35,8 @@ void main() {
       expect(controller2.isDisposed, false);
     });
 
-    test('should prevent multiple controller instances with same signature', () {
+    test('should prevent multiple controller instances with same signature',
+        () {
       final controller1 = TestController('first');
 
       Zen.put<TestController>(controller1);
@@ -77,7 +78,9 @@ void main() {
       }
     });
 
-    test('should verify controller lifecycle states during navigation simulation', () {
+    test(
+        'should verify controller lifecycle states during navigation simulation',
+        () {
       // Simulate the DepartmentsController -> DepartmentDetailController -> EmployeeProfileController flow
 
       // 1. Start with DepartmentsController
@@ -89,23 +92,28 @@ void main() {
 
       // 2. Navigate to department detail - DepartmentsController should remain
       final departmentDetailController = TestController('department_detail');
-      Zen.put<TestController>(departmentDetailController, tag: 'department_detail');
+      Zen.put<TestController>(departmentDetailController,
+          tag: 'department_detail');
 
       expect(departmentsController.isDisposed, false);
       expect(departmentDetailController.isDisposed, false);
       expect(Zen.findOrNull<TestController>(tag: 'departments'), isNotNull);
-      expect(Zen.findOrNull<TestController>(tag: 'department_detail'), isNotNull);
+      expect(
+          Zen.findOrNull<TestController>(tag: 'department_detail'), isNotNull);
 
       // 3. Navigate to employee profile - both previous should remain (PROBLEM!)
       final employeeProfileController = TestController('employee_profile');
-      Zen.put<TestController>(employeeProfileController, tag: 'employee_profile');
+      Zen.put<TestController>(employeeProfileController,
+          tag: 'employee_profile');
 
       expect(departmentsController.isDisposed, false);
       expect(departmentDetailController.isDisposed, false);
       expect(employeeProfileController.isDisposed, false);
       expect(Zen.findOrNull<TestController>(tag: 'departments'), isNotNull);
-      expect(Zen.findOrNull<TestController>(tag: 'department_detail'), isNotNull);
-      expect(Zen.findOrNull<TestController>(tag: 'employee_profile'), isNotNull);
+      expect(
+          Zen.findOrNull<TestController>(tag: 'department_detail'), isNotNull);
+      expect(
+          Zen.findOrNull<TestController>(tag: 'employee_profile'), isNotNull);
 
       // 4. Navigate back to home - should dispose intermediate controllers
       // This is what SHOULD happen but currently doesn't:

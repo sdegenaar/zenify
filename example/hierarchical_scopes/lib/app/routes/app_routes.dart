@@ -39,7 +39,8 @@ class AppRoutes {
             moduleBuilder: () => DepartmentsModule(),
             page: const DepartmentsPage(),
             scopeName: 'DepartmentsScope',
-            useParentScope: true, // 🔥 Inherits: ApiService, CacheService, NavigationService
+            useParentScope:
+                true, // 🔥 Inherits: ApiService, CacheService, NavigationService
             // Registers: DepartmentService, EmployeeService (shared business logic)
           ),
         );
@@ -50,7 +51,8 @@ class AppRoutes {
 
         return MaterialPageRoute(
           builder: (_) => ZenRoute(
-            moduleBuilder: () => DepartmentDetailModule(departmentId: departmentId),
+            moduleBuilder: () =>
+                DepartmentDetailModule(departmentId: departmentId),
             page: DepartmentDetailPage(departmentId: departmentId),
             scopeName: 'DepartmentDetailScope',
             useParentScope: true,
@@ -64,13 +66,15 @@ class AppRoutes {
 
         return MaterialPageRoute(
           builder: (_) => ZenRoute(
-            moduleBuilder: () => EmployeeProfileModule(employeeId: employeeId, departmentId: departmentId),
+            moduleBuilder: () => EmployeeProfileModule(
+                employeeId: employeeId, departmentId: departmentId),
             page: EmployeeProfilePage(
               employeeId: employeeId,
               departmentId: departmentId,
             ),
             scopeName: 'EmployeeProfileScope',
-            useParentScope: true, // 🔥 Deepest level - inherits ALL shared services!
+            useParentScope:
+                true, // 🔥 Deepest level - inherits ALL shared services!
             // Has access to: ApiService, CacheService, DepartmentService, EmployeeService
             // Plus any controllers from department detail scope
           ),

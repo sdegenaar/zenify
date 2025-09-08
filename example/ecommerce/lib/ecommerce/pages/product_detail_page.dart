@@ -18,11 +18,10 @@ class ProductDetailPage extends ZenView<ProductDetailController> {
 
   @override
   ProductDetailController Function()? get createController => () {
-    return ProductDetailController(
-      productService: Zen.find<ProductService>(),
-    )..initialize(productId); // Initialize immediately
-  };
-
+        return ProductDetailController(
+          productService: Zen.find<ProductService>(),
+        )..initialize(productId); // Initialize immediately
+      };
 
   @override
   Widget build(BuildContext context) {
@@ -130,13 +129,13 @@ class ProductDetailPage extends ZenView<ProductDetailController> {
                   ),
                   child: IconButton(
                     icon: Obx(() => Icon(
-                      controller.isFavorite.value
-                          ? Icons.favorite
-                          : Icons.favorite_border,
-                      color: controller.isFavorite.value
-                          ? Colors.red
-                          : Colors.grey,
-                    )),
+                          controller.isFavorite.value
+                              ? Icons.favorite
+                              : Icons.favorite_border,
+                          color: controller.isFavorite.value
+                              ? Colors.red
+                              : Colors.grey,
+                        )),
                     onPressed: () => controller.toggleFavorite(product),
                   ),
                 ),
@@ -189,8 +188,8 @@ class ProductDetailPage extends ZenView<ProductDetailController> {
                           index < product.rating.floor()
                               ? Icons.star
                               : (index < product.rating
-                              ? Icons.star_half
-                              : Icons.star_border),
+                                  ? Icons.star_half
+                                  : Icons.star_border),
                           color: Colors.amber,
                           size: 20,
                         );
@@ -223,7 +222,8 @@ class ProductDetailPage extends ZenView<ProductDetailController> {
                   children: product.categories.map((category) {
                     return Chip(
                       label: Text(category),
-                      backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                      backgroundColor:
+                          Theme.of(context).colorScheme.surfaceContainerHighest,
                     );
                   }).toList(),
                 ),
@@ -274,12 +274,12 @@ class ProductDetailPage extends ZenView<ProductDetailController> {
                           ),
                           // Quantity
                           Obx(() => Text(
-                            controller.quantity.value.toString(),
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          )),
+                                controller.quantity.value.toString(),
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              )),
                           // Increment button
                           IconButton(
                             icon: const Icon(Icons.add),
@@ -361,7 +361,9 @@ class ProductDetailPage extends ZenView<ProductDetailController> {
                 );
               }
 
-              if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
+              if (snapshot.hasError ||
+                  !snapshot.hasData ||
+                  snapshot.data!.isEmpty) {
                 return const Center(
                   child: Text('No related products found'),
                 );
@@ -383,7 +385,7 @@ class ProductDetailPage extends ZenView<ProductDetailController> {
                           product: relatedProduct,
                           onTap: () {
                             Navigator.of(context).pushNamed(
-                            AppRoutes.productDetail,
+                              AppRoutes.productDetail,
                               arguments: {'productId': relatedProduct.id},
                             );
                           },

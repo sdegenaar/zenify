@@ -73,9 +73,9 @@ class _TimingData {
   }
 
   Map<String, dynamic> get stats => {
-    'changeCount': changeCount,
-    'lastChangeTime': lastChangeTime,
-  };
+        'changeCount': changeCount,
+        'lastChangeTime': lastChangeTime,
+      };
 }
 
 /// Performance tracking extensions for reactive values
@@ -148,7 +148,8 @@ extension RxTimingExtensions<T> on Rx<T> {
   }
 
   /// Sample value changes at regular intervals
-  StreamSubscription<T> sample(Duration interval, void Function(T value) callback) {
+  StreamSubscription<T> sample(
+      Duration interval, void Function(T value) callback) {
     RxTimingUtils._register(this);
     late StreamController<T> controller;
     Timer? timer;
@@ -259,7 +260,8 @@ extension RxTimingExtensions<T> on Rx<T> {
   }
 
   /// Only call callback when value meets condition
-  void where(bool Function(T value) condition, void Function(T value) callback) {
+  void where(
+      bool Function(T value) condition, void Function(T value) callback) {
     void listener() {
       if (condition(value)) {
         callback(value);
@@ -270,7 +272,8 @@ extension RxTimingExtensions<T> on Rx<T> {
   }
 
   /// Transform value before calling callback
-  void map<R>(R Function(T value) transformer, void Function(R value) callback) {
+  void map<R>(
+      R Function(T value) transformer, void Function(R value) callback) {
     void listener() {
       final transformed = transformer(value);
       callback(transformed);
@@ -280,7 +283,8 @@ extension RxTimingExtensions<T> on Rx<T> {
   }
 
   /// Only call callback when value actually changes (distinct)
-  void distinct(void Function(T value) callback, [bool Function(T previous, T current)? equals]) {
+  void distinct(void Function(T value) callback,
+      [bool Function(T previous, T current)? equals]) {
     T? previousValue;
     bool hasBeenSet = false;
 

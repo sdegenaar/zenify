@@ -19,7 +19,9 @@ class RxLogger {
 
   /// Log a general reactive system message
   static void logInfo(String message, {String? context}) {
-    if (!getRxErrorConfig().logErrors) return; // Reuse the logErrors flag for general logging
+    if (!getRxErrorConfig().logErrors) {
+      return; // Reuse the logErrors flag for general logging
+    }
 
     final prefix = context != null ? 'Rx$context' : 'Rx';
     debugPrint('$prefix: $message');
@@ -43,11 +45,11 @@ class RxLogger {
 
   /// Create an RxException and log it
   static RxException createAndLogError(
-      String message, {
-        Object? originalError,
-        StackTrace? stackTrace,
-        String? context,
-      }) {
+    String message, {
+    Object? originalError,
+    StackTrace? stackTrace,
+    String? context,
+  }) {
     final error = RxException.withTimestamp(
       message,
       originalError: originalError,

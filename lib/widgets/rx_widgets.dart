@@ -133,7 +133,8 @@ class _ObxState extends State<Obx> {
 
     // Check if tracking was successful
     if (_trackedValues.isEmpty) {
-      ZenLogger.logWarning("No tracked values found in Obx widget. Reactivity won't work.");
+      ZenLogger.logWarning(
+          "No tracked values found in Obx widget. Reactivity won't work.");
     }
 
     return result;

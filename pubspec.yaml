@@ -1,9 +1,7 @@
 name: zenify
-description: A modern state management library for Flutter with hierarchical dependency injection,
-  automatic memory leak prevention, and production-ready reactive programming.
-  Stop fighting with state management - bring true "zen" to your development experience.
+description: Modern Flutter state management with hierarchical DI, automatic memory leak prevention, and reactive programming. Bring zen to your development.
 
-version: 0.5.2
+version: 0.5.3
 homepage: https://github.com/sdegenaar/zenify
 repository: https://github.com/sdegenaar/zenify
 issue_tracker: https://github.com/sdegenaar/zenify/issues
@@ -35,4 +33,4 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^3.0.0
+  flutter_lints: ^6.0.0

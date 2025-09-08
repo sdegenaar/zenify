@@ -23,7 +23,8 @@ class ZenScopeStackTracker {
     _scopeUsesParentScope[scopeName] = useParentScope;
 
     if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('📚 Scope stack push: ${_formatStack()} (useParentScope: $useParentScope)');
+      ZenLogger.logDebug(
+          '📚 Scope stack push: ${_formatStack()} (useParentScope: $useParentScope)');
     }
   }
 
@@ -39,10 +40,12 @@ class ZenScopeStackTracker {
       // Check if we're popping back to a non-parent-scope route
       final currentTopScope = getCurrentScope();
       if (currentTopScope != null) {
-        final topScopeUsesParentScope = _scopeUsesParentScope[currentTopScope] ?? true;
+        final topScopeUsesParentScope =
+            _scopeUsesParentScope[currentTopScope] ?? true;
         if (!topScopeUsesParentScope) {
           if (ZenConfig.enableDebugLogs) {
-            ZenLogger.logDebug('🧹 Popped back to non-parent-scope route: $currentTopScope. Triggering cleanup.');
+            ZenLogger.logDebug(
+                '🧹 Popped back to non-parent-scope route: $currentTopScope. Triggering cleanup.');
           }
           // Trigger cleanup when popping back to a route that doesn't use parent scope
           ZenScopeManager.cleanupAllScopesExcept(currentTopScope);

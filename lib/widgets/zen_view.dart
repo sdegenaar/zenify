@@ -46,7 +46,8 @@ class _ZenViewState<T extends ZenController> extends State<ZenView<T>> {
     }
 
     if (instance == null) {
-      throw Exception('Controller $T not found. Register it or provide createController.');
+      throw Exception(
+          'Controller $T not found. Register it or provide createController.');
     }
 
     _controller = instance;
@@ -56,7 +57,8 @@ class _ZenViewState<T extends ZenController> extends State<ZenView<T>> {
   }
 
   T? _findController() {
-    final targetScope = widget.scope ?? (context.mounted ? context.zenScope : null);
+    final targetScope =
+        widget.scope ?? (context.mounted ? context.zenScope : null);
 
     if (targetScope != null) {
       final controller = targetScope.find<T>(tag: widget.tag);
@@ -67,7 +69,8 @@ class _ZenViewState<T extends ZenController> extends State<ZenView<T>> {
   }
 
   void _registerController(T controller) {
-    final targetScope = widget.scope ?? (context.mounted ? context.zenScope : null);
+    final targetScope =
+        widget.scope ?? (context.mounted ? context.zenScope : null);
     if (targetScope != null) {
       targetScope.put<T>(controller, tag: widget.tag);
     } else {
@@ -134,7 +137,8 @@ extension ZenViewExtension<T extends ZenController> on ZenView<T> {
       return globalController;
     }
 
-    throw Exception('Controller $T not available. Access from build method only.');
+    throw Exception(
+        'Controller $T not available. Access from build method only.');
   }
 }
 

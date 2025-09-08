@@ -37,9 +37,8 @@ class CartService {
     await Future.delayed(const Duration(milliseconds: 300));
 
     // Check if product already exists in cart
-    final existingIndex = cartItems.value.indexWhere(
-            (item) => item.product.id == product.id
-    );
+    final existingIndex =
+        cartItems.value.indexWhere((item) => item.product.id == product.id);
 
     if (existingIndex >= 0) {
       // Update quantity if product already in cart

@@ -27,24 +27,24 @@ class CacheService {
   /// Get a value from the cache
   T? get<T>(String key) {
     final entry = _cache[key];
-    
+
     if (entry == null || entry.isExpired) {
       _cacheMisses.value++;
       _updateStats();
-      
+
       // Remove expired entry if it exists
       if (entry != null && entry.isExpired) {
         _cache.remove(key);
         _cacheSize.value = _cache.length;
       }
-      
+
       return null;
     }
-    
+
     _cacheHits.value++;
     entry.lastAccessed = DateTime.now();
     _updateStats();
-    
+
     return entry.value as T?;
   }
 
@@ -56,12 +56,13 @@ class CacheService {
       lastAccessed: DateTime.now(),
       ttl: ttl,
     );
-    
+
     _cache[key] = entry;
     _cacheSize.value = _cache.length;
     _updateStats();
-    
-    ZenLogger.logInfo('Cache: Set "$key" with TTL ${ttl?.inSeconds ?? 'infinite'} seconds');
+
+    ZenLogger.logInfo(
+        'Cache: Set "$key" with TTL ${ttl?.inSeconds ?? 'infinite'} seconds');
   }
 
   /// Check if a key exists in the cache and is not expired
@@ -75,7 +76,7 @@ class CacheService {
     _cache.remove(key);
     _cacheSize.value = _cache.length;
     _updateStats();
-    
+
     ZenLogger.logInfo('Cache: Removed "$key"');
   }
 
@@ -84,7 +85,7 @@ class CacheService {
     _cache.clear();
     _cacheSize.value = 0;
     _updateStats();
-    
+
     ZenLogger.logInfo('Cache: Cleared all entries');
   }
 
@@ -96,13 +97,13 @@ class CacheService {
   /// Get all entries in the cache
   Map<String, dynamic> entries() {
     final result = <String, dynamic>{};
-    
+
     _cache.forEach((key, entry) {
       if (!entry.isExpired) {
         result[key] = entry.value;
       }
     });
-    
+
     return result;
   }
 
@@ -116,22 +117,23 @@ class CacheService {
   /// Cleanup expired entries
   void _cleanupExpiredEntries() {
     final expiredKeys = <String>[];
-    
+
     _cache.forEach((key, entry) {
       if (entry.isExpired) {
         expiredKeys.add(key);
       }
     });
-    
+
     for (final key in expiredKeys) {
       _cache.remove(key);
     }
-    
+
     if (expiredKeys.isNotEmpty) {
       _cacheSize.value = _cache.length;
       _updateStats();
-      
-      ZenLogger.logInfo('Cache: Cleaned up ${expiredKeys.length} expired entries');
+
+      ZenLogger.logInfo(
+          'Cache: Cleaned up ${expiredKeys.length} expired entries');
     }
   }
 
@@ -144,7 +146,7 @@ class CacheService {
     final newestEntry = _cache.values.isEmpty
         ? null
         : _cache.values.reduce((a, b) => a.created.isAfter(b.created) ? a : b);
-    
+
     _cacheStats.value = {
       'size': _cache.length,
       'hits': _cacheHits.value,
@@ -157,8 +159,8 @@ class CacheService {
       'averageAge': _cache.values.isEmpty
           ? 0
           : _cache.values
-              .map((e) => now.difference(e.created).inSeconds)
-              .reduce((a, b) => a + b) ~/
+                  .map((e) => now.difference(e.created).inSeconds)
+                  .reduce((a, b) => a + b) ~/
               _cache.length,
     };
   }
@@ -200,11 +202,12 @@ class CacheEntry {
   /// Check if the entry is expired
   bool get isExpired {
     if (ttl == null) return false;
-    
+
     final now = DateTime.now();
     return now.difference(created) > ttl!;
   }
 
   @override
-  String toString() => 'CacheEntry(value: $value, created: $created, ttl: $ttl)';
+  String toString() =>
+      'CacheEntry(value: $value, created: $created, ttl: $ttl)';
 }

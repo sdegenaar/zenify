@@ -24,7 +24,7 @@ class HomeController extends ZenController {
     // Set up workers to react to search and category changes
     ZenWorkers.debounce(
       searchQuery,
-          (_) => filterProducts(),
+      (_) => filterProducts(),
       const Duration(milliseconds: 300),
     );
 
@@ -67,7 +67,8 @@ class HomeController extends ZenController {
       if (selectedCategory.value == 'All' || selectedCategory.value.isEmpty) {
         filteredProducts = await productService.getProducts();
       } else {
-        filteredProducts = await productService.getProductsByCategory(selectedCategory.value);
+        filteredProducts =
+            await productService.getProductsByCategory(selectedCategory.value);
       }
 
       // Apply search filter

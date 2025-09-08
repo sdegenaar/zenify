@@ -27,7 +27,7 @@ class TeamService {
   // Computed values
   Team? get selectedTeam {
     if (_selectedTeamId.value == null) return null;
-    
+
     for (final teamList in _teams.values) {
       for (final team in teamList) {
         if (team.id == _selectedTeamId.value) {
@@ -35,7 +35,7 @@ class TeamService {
         }
       }
     }
-    
+
     return null;
   }
 
@@ -59,7 +59,8 @@ class TeamService {
         final department = _departmentService.selectedDepartment;
         if (department != null && department.teams.isNotEmpty) {
           _teams[departmentId] = department.teams;
-          ZenLogger.logInfo('Loaded ${department.teams.length} teams for department $departmentId from department service');
+          ZenLogger.logInfo(
+              'Loaded ${department.teams.length} teams for department $departmentId from department service');
           return department.teams;
         }
       }
@@ -70,24 +71,27 @@ class TeamService {
       if (cachedData != null) {
         final department = Department.fromJson(cachedData['data']);
         _teams[departmentId] = department.teams;
-        ZenLogger.logInfo('Loaded ${department.teams.length} teams for department $departmentId from cache');
+        ZenLogger.logInfo(
+            'Loaded ${department.teams.length} teams for department $departmentId from cache');
         return department.teams;
       }
 
       // Fetch from API
       final response = await _apiService.get('department/$departmentId');
       final department = Department.fromJson(response['data']);
-      
+
       // Update state
       _teams[departmentId] = department.teams;
-      
+
       // Cache the result
       _cacheService.set(cacheKey, response, ttl: const Duration(minutes: 5));
-      
-      ZenLogger.logInfo('Loaded ${department.teams.length} teams for department $departmentId from API');
+
+      ZenLogger.logInfo(
+          'Loaded ${department.teams.length} teams for department $departmentId from API');
       return department.teams;
     } catch (e) {
-      ZenLogger.logError('Failed to load teams for department $departmentId', e);
+      ZenLogger.logError(
+          'Failed to load teams for department $departmentId', e);
       rethrow;
     } finally {
       _isLoading.value = false;
@@ -104,13 +108,13 @@ class TeamService {
   Team? getTeam(String id, String departmentId) {
     final departmentTeams = _teams[departmentId];
     if (departmentTeams == null) return null;
-    
+
     for (final team in departmentTeams) {
       if (team.id == id) {
         return team;
       }
     }
-    
+
     return null;
   }
 

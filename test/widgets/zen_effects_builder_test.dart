@@ -14,7 +14,8 @@ void main() {
       effect.dispose();
     });
 
-    testWidgets('should show initial state when effect is in initial state', (tester) async {
+    testWidgets('should show initial state when effect is in initial state',
+        (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: ZenEffectBuilder<String>(
@@ -32,7 +33,9 @@ void main() {
       expect(find.text('Success: test'), findsNothing);
     });
 
-    testWidgets('should show empty widget when no onInitial provided and in initial state', (tester) async {
+    testWidgets(
+        'should show empty widget when no onInitial provided and in initial state',
+        (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: ZenEffectBuilder<String>(
@@ -50,7 +53,8 @@ void main() {
       expect(find.byType(SizedBox), findsOneWidget);
     });
 
-    testWidgets('should show loading state when effect is loading', (tester) async {
+    testWidgets('should show loading state when effect is loading',
+        (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: ZenEffectBuilder<String>(
@@ -72,7 +76,8 @@ void main() {
       expect(find.text('Success: test'), findsNothing);
     });
 
-    testWidgets('should show success state when effect has data', (tester) async {
+    testWidgets('should show success state when effect has data',
+        (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: ZenEffectBuilder<String>(
@@ -94,7 +99,8 @@ void main() {
       expect(find.text('Initial'), findsNothing);
     });
 
-    testWidgets('should show success state even when data is null', (tester) async {
+    testWidgets('should show success state even when data is null',
+        (tester) async {
       final nullableEffect = createEffect<String?>(name: 'nullable_test');
 
       await tester.pumpWidget(
@@ -119,7 +125,8 @@ void main() {
       nullableEffect.dispose();
     });
 
-    testWidgets('should show error state when effect has error', (tester) async {
+    testWidgets('should show error state when effect has error',
+        (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: ZenEffectBuilder<String>(
@@ -221,7 +228,8 @@ void main() {
       expect(find.text('Error: error'), findsOneWidget);
     });
 
-    testWidgets('should handle effect changes when widget updates', (tester) async {
+    testWidgets('should handle effect changes when widget updates',
+        (tester) async {
       final effect1 = createEffect<String>(name: 'effect1');
       final effect2 = createEffect<String>(name: 'effect2');
 
@@ -351,7 +359,8 @@ void main() {
       expect(find.text('Success: immediate data'), findsOneWidget);
     });
 
-    testWidgets('should work with manual error state transition', (tester) async {
+    testWidgets('should work with manual error state transition',
+        (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: ZenEffectBuilder<String>(
@@ -406,7 +415,8 @@ void main() {
       });
 
       testWidgets('should handle complex data types', (tester) async {
-        final complexEffect = createEffect<Map<String, dynamic>>(name: 'complex');
+        final complexEffect =
+            createEffect<Map<String, dynamic>>(name: 'complex');
 
         await tester.pumpWidget(
           MaterialApp(
@@ -428,7 +438,8 @@ void main() {
         complexEffect.dispose();
       });
 
-      testWidgets('should handle multiple effects on same widget', (tester) async {
+      testWidgets('should handle multiple effects on same widget',
+          (tester) async {
         final effect1 = createEffect<String>(name: 'effect1');
         final effect2 = createEffect<String>(name: 'effect2');
 

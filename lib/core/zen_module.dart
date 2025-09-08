@@ -1,4 +1,3 @@
-
 // lib/core/zen_module.dart
 import 'zen_scope.dart';
 import 'zen_logger.dart';
@@ -39,7 +38,8 @@ class ZenModuleRegistry {
   static final Map<String, ZenModule> _modules = {};
 
   /// Register and load modules atomically with dependency resolution
-  static Future<void> registerModules(List<ZenModule> modules, ZenScope scope) async {
+  static Future<void> registerModules(
+      List<ZenModule> modules, ZenScope scope) async {
     if (modules.isEmpty) return;
 
     // Store original state for rollback
@@ -57,7 +57,8 @@ class ZenModuleRegistry {
       final loadOrder = _calculateLoadOrder(allModules);
 
       if (ZenConfig.enableDebugLogs) {
-        ZenLogger.logInfo('Loading ${loadOrder.length} modules: ${loadOrder.map((m) => m.name).join(' -> ')}');
+        ZenLogger.logInfo(
+            'Loading ${loadOrder.length} modules: ${loadOrder.map((m) => m.name).join(' -> ')}');
       }
 
       // 4. Load modules in dependency order (this can fail)
@@ -77,9 +78,9 @@ class ZenModuleRegistry {
       }
 
       if (ZenConfig.enableDebugLogs) {
-        ZenLogger.logInfo('✅ Successfully loaded all ${loadOrder.length} modules');
+        ZenLogger.logInfo(
+            '✅ Successfully loaded all ${loadOrder.length} modules');
       }
-
     } catch (error, stackTrace) {
       // Rollback: restore original module registry
       _modules.clear();
@@ -123,7 +124,8 @@ class ZenModuleRegistry {
     for (final module in _modules.values) {
       buffer.writeln('📦 ${module.name}');
       if (module.dependencies.isNotEmpty) {
-        buffer.writeln('   ↳ ${module.dependencies.map((d) => d.name).join(', ')}');
+        buffer.writeln(
+            '   ↳ ${module.dependencies.map((d) => d.name).join(', ')}');
       }
     }
 
@@ -165,7 +167,8 @@ class ZenModuleRegistry {
   }
 
   /// Restore the original state of a scope after failure
-  static void _restoreOriginalScopeState(ZenScope scope, Map<String, dynamic> originalState) {
+  static void _restoreOriginalScopeState(
+      ZenScope scope, Map<String, dynamic> originalState) {
     try {
       // Clear current dependencies
       final currentDeps = scope.getAllDependencies();
@@ -186,7 +189,6 @@ class ZenModuleRegistry {
           // Continue restoration
         }
       }
-
     } catch (e) {
       if (ZenConfig.enableDebugLogs) {
         ZenLogger.logWarning('Failed to fully restore scope state: $e');

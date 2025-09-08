@@ -37,20 +37,18 @@ void main() {
       LogCapture.clear();
 
       // Set custom handlers for testing
-      ZenLogger.init(
-          logHandler: (String message, LogLevel level) {
-            capturedLogs.add('[$level] $message');
-          },
-          errorHandler: (String message, [dynamic error, StackTrace? stackTrace]) {
-            capturedLogs.add('[error] $message');
-            if (error != null) {
-              capturedLogs.add('Error: $error');
-            }
-            if (stackTrace != null) {
-              capturedLogs.add('StackTrace: Present');
-            }
-          }
-      );
+      ZenLogger.init(logHandler: (String message, LogLevel level) {
+        capturedLogs.add('[$level] $message');
+      }, errorHandler: (String message,
+          [dynamic error, StackTrace? stackTrace]) {
+        capturedLogs.add('[error] $message');
+        if (error != null) {
+          capturedLogs.add('Error: $error');
+        }
+        if (stackTrace != null) {
+          capturedLogs.add('StackTrace: Present');
+        }
+      });
     });
 
     tearDown(() {
@@ -143,7 +141,8 @@ void main() {
       // Setup with only error handler
       ZenLogger.init(
           logHandler: null,
-          errorHandler: (String message, [dynamic error, StackTrace? stackTrace]) {
+          errorHandler: (String message,
+              [dynamic error, StackTrace? stackTrace]) {
             capturedLogs.add('Custom error handler: $message');
             if (error != null) {
               capturedLogs.add('Has error: true');
@@ -151,8 +150,7 @@ void main() {
             if (stackTrace != null) {
               capturedLogs.add('Has stack: true');
             }
-          }
-      );
+          });
 
       final error = Exception('Custom error');
       final stack = StackTrace.current;
@@ -174,18 +172,23 @@ void main() {
           logHandler: (String message, LogLevel level) {
             capturedLogs.add('Custom log handler: [$level] $message');
           },
-          errorHandler: null
-      );
+          errorHandler: null);
 
       ZenLogger.logInfo('Info with custom handler');
       ZenLogger.logWarning('Warning with custom handler');
 
       expect(capturedLogs.length, 2);
-      expect(capturedLogs[0], contains('Custom log handler: [info] Info with custom handler'));
-      expect(capturedLogs[1], contains('Custom log handler: [warning] Warning with custom handler'));
+      expect(capturedLogs[0],
+          contains('Custom log handler: [info] Info with custom handler'));
+      expect(
+          capturedLogs[1],
+          contains(
+              'Custom log handler: [warning] Warning with custom handler'));
     });
 
-    test('should use log handler for errors when error handler is not available', () {
+    test(
+        'should use log handler for errors when error handler is not available',
+        () {
       // Clear captured logs
       capturedLogs.clear();
 
@@ -194,8 +197,7 @@ void main() {
           logHandler: (String message, LogLevel level) {
             capturedLogs.add('Custom log handler: [$level] $message');
           },
-          errorHandler: null
-      );
+          errorHandler: null);
 
       final error = Exception('Test error');
       final stack = StackTrace.current;
@@ -204,9 +206,12 @@ void main() {
 
       // Should use log handler for all parts of the error
       expect(capturedLogs.length, 3);
-      expect(capturedLogs[0], contains('Custom log handler: [error] Error with log handler'));
-      expect(capturedLogs[1], contains('Custom log handler: [error] Error: Exception: Test error'));
-      expect(capturedLogs[2], contains('Custom log handler: [error] StackTrace:'));
+      expect(capturedLogs[0],
+          contains('Custom log handler: [error] Error with log handler'));
+      expect(capturedLogs[1],
+          contains('Custom log handler: [error] Error: Exception: Test error'));
+      expect(
+          capturedLogs[2], contains('Custom log handler: [error] StackTrace:'));
     });
   });
 }

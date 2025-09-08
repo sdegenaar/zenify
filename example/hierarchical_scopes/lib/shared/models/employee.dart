@@ -35,9 +35,13 @@ class Employee {
       phone: json['phone'] as String?,
       hireDate: json['hireDate'] as String,
       address: json['address'] as String?,
-      skills: (json['skills'] as List<dynamic>?)?.map((skill) => skill as String).toList() ?? [],
+      skills: (json['skills'] as List<dynamic>?)
+              ?.map((skill) => skill as String)
+              .toList() ??
+          [],
       projects: (json['projects'] as List<dynamic>?)
-              ?.map((project) => Project.fromJson(project as Map<String, dynamic>))
+              ?.map((project) =>
+                  Project.fromJson(project as Map<String, dynamic>))
               .toList() ??
           [],
     );

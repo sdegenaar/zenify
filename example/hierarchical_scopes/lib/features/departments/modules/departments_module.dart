@@ -1,4 +1,3 @@
-
 import 'package:zenify/zenify.dart';
 
 import '../../../app/services/api_service.dart';
@@ -38,9 +37,12 @@ class DepartmentsModule extends ZenModule {
       ),
     );
 
-    scope.put(DepartmentsController(departmentService: departmentService, navigationService: navigationService));
+    scope.put(DepartmentsController(
+        departmentService: departmentService,
+        navigationService: navigationService));
 
-    ZenLogger.logInfo('✅ Departments-level services registered: DepartmentService, EmployeeService');
+    ZenLogger.logInfo(
+        '✅ Departments-level services registered: DepartmentService, EmployeeService');
   }
 
   @override

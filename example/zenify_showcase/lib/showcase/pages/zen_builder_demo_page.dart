@@ -1,14 +1,15 @@
-
 import 'package:flutter/material.dart';
 import 'package:zenify/zenify.dart';
 import '../controllers/zen_builder_demo_controller.dart'; // Changed import
 import '../widgets/demo_section.dart';
 
-class ZenBuilderDemoPage extends ZenView<ZenBuilderDemoController> { // Changed controller type
+class ZenBuilderDemoPage extends ZenView<ZenBuilderDemoController> {
+  // Changed controller type
   const ZenBuilderDemoPage({super.key});
 
   @override
-  ZenBuilderDemoController Function()? get createController => () => ZenBuilderDemoController(); // Changed controller
+  ZenBuilderDemoController Function()? get createController =>
+      () => ZenBuilderDemoController(); // Changed controller
 
   @override
   Widget build(BuildContext context) {
@@ -50,9 +51,12 @@ class ZenBuilderDemoPage extends ZenView<ZenBuilderDemoController> { // Changed 
                                   ),
                                 ),
                                 const SizedBox(height: 8),
-                                Text('Counter: ${controller.counter}'), // No .value needed
-                                Text('Message: ${controller.message}'), // No .value needed
-                                Text('Items: ${controller.items.length}'), // No .value needed
+                                Text(
+                                    'Counter: ${controller.counter}'), // No .value needed
+                                Text(
+                                    'Message: ${controller.message}'), // No .value needed
+                                Text(
+                                    'Items: ${controller.items.length}'), // No .value needed
                                 const SizedBox(height: 8),
                                 Text(
                                   'Built at: ${DateTime.now().toString().split('.').first}',
@@ -111,7 +115,8 @@ class ZenBuilderDemoPage extends ZenView<ZenBuilderDemoController> { // Changed 
                                   padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(
                                     color: Colors.blue.shade50,
-                                    border: Border.all(color: Colors.blue.shade200),
+                                    border:
+                                        Border.all(color: Colors.blue.shade200),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Column(
@@ -126,10 +131,13 @@ class ZenBuilderDemoPage extends ZenView<ZenBuilderDemoController> { // Changed 
                                       const SizedBox(height: 8),
                                       Text(
                                         '${controller.counter}', // No .value needed
-                                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                          color: Colors.blue,
-                                          fontWeight: FontWeight.bold,
-                                        ),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .headlineMedium
+                                            ?.copyWith(
+                                              color: Colors.blue,
+                                              fontWeight: FontWeight.bold,
+                                            ),
                                       ),
                                       const Text('Counter Focus'),
                                     ],
@@ -148,7 +156,8 @@ class ZenBuilderDemoPage extends ZenView<ZenBuilderDemoController> { // Changed 
                                   padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(
                                     color: Colors.purple.shade50,
-                                    border: Border.all(color: Colors.purple.shade200),
+                                    border: Border.all(
+                                        color: Colors.purple.shade200),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Column(
@@ -201,12 +210,18 @@ class ZenBuilderDemoPage extends ZenView<ZenBuilderDemoController> { // Changed 
                                   ),
                                 ),
                                 const SizedBox(height: 8),
-                                Text('Counter: ${controller.counter}'), // No .value needed
-                                Text('Message: "${controller.message}"'), // No .value needed
-                                Text('Items: ${controller.items.length}'), // No .value needed
-                                Text('Feature A: ${controller.featureA}'), // No .value needed
-                                Text('Feature B: ${controller.featureB}'), // No .value needed
-                                Text('Both Enabled: ${controller.bothFeaturesEnabled}'),
+                                Text(
+                                    'Counter: ${controller.counter}'), // No .value needed
+                                Text(
+                                    'Message: "${controller.message}"'), // No .value needed
+                                Text(
+                                    'Items: ${controller.items.length}'), // No .value needed
+                                Text(
+                                    'Feature A: ${controller.featureA}'), // No .value needed
+                                Text(
+                                    'Feature B: ${controller.featureB}'), // No .value needed
+                                Text(
+                                    'Both Enabled: ${controller.bothFeaturesEnabled}'),
                               ],
                             ),
                           );

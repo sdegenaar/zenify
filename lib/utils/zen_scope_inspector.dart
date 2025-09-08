@@ -5,7 +5,6 @@ import '../controllers/zen_controller.dart';
 /// Debugging and introspection utilities for ZenScope
 /// Separated from core functionality to keep ZenScope clean
 class ZenScopeInspector {
-
   /// Get all instances registered in a scope (for debugging and introspection)
   /// Returns a map of Type -> instance for easy inspection
   static Map<Type, dynamic> getAllInstances(ZenScope scope) {
@@ -60,12 +59,15 @@ class ZenScopeInspector {
       'dependencies': {
         'totalDependencies': dependencies.length,
       },
-      'registeredTypes': getRegisteredTypes(scope).map((t) => t.toString()).toList(),
-      'children': scope.childScopes.map((child) => {
-        'name': child.name ?? 'unnamed',
-        'id': child.id,
-        'dependencyCount': child.getAllDependencies().length,
-      }).toList(),
+      'registeredTypes':
+          getRegisteredTypes(scope).map((t) => t.toString()).toList(),
+      'children': scope.childScopes
+          .map((child) => {
+                'name': child.name ?? 'unnamed',
+                'id': child.id,
+                'dependencyCount': child.getAllDependencies().length,
+              })
+          .toList(),
     };
   }
 

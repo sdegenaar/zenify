@@ -34,7 +34,9 @@ class TestModel {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is TestModel && runtimeType == other.runtimeType && name == other.name;
+      other is TestModel &&
+          runtimeType == other.runtimeType &&
+          name == other.name;
 
   @override
   int get hashCode => name.hashCode;
@@ -259,18 +261,16 @@ void main() {
             capturedValues.add('ever:$value');
             expect(value.runtimeType, String);
           }),
-
           controller.once(controller.stringValue, (value) {
             capturedValues.add('once:$value');
             expect(value.runtimeType, String);
           }),
-
           controller.debounce(controller.stringValue, (value) {
             capturedValues.add('debounce:$value');
             expect(value.runtimeType, String);
           }, const Duration(milliseconds: 50)),
-
-          controller.condition(controller.stringValue, (value) => value.isNotEmpty, (value) {
+          controller.condition(
+              controller.stringValue, (value) => value.isNotEmpty, (value) {
             capturedValues.add('condition:$value');
             expect(value.runtimeType, String);
           }),
@@ -377,7 +377,9 @@ void main() {
           }
         });
 
-        complexData.value = {'numbers': [1, 2, 3]};
+        complexData.value = {
+          'numbers': [1, 2, 3]
+        };
         await Future.delayed(Duration.zero);
 
         expect(capturedValue?['numbers'], [1, 2, 3]);

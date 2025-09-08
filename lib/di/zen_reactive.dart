@@ -1,4 +1,3 @@
-
 // lib/di/zen_reactive.dart
 import 'package:flutter/widgets.dart';
 import 'package:zenify/di/zen_di.dart';
@@ -85,16 +84,17 @@ class ZenReactiveSystem {
 
       // Consider removing problematic listeners in production
       if (ZenConfig.enableDebugLogs) {
-        ZenLogger.logWarning('Consider checking listener implementation for $type');
+        ZenLogger.logWarning(
+            'Consider checking listener implementation for $type');
       }
     }
   }
 
   /// Enhanced listen with comprehensive memory protection
   ZenSubscription listen<T>(
-      dynamic provider,
-      void Function(T) listener,
-      ) {
+    dynamic provider,
+    void Function(T) listener,
+  ) {
     // Memory protection - prevent runaway subscriptions
     _checkMemoryPressure();
 
@@ -104,8 +104,10 @@ class ZenReactiveSystem {
 
     // Validate listener count per key
     final existingListeners = _listeners[key];
-    if (existingListeners != null && existingListeners.length >= _maxListenersPerKey) {
-      ZenLogger.logWarning('High listener count (${existingListeners.length}) for $type:$tag. Potential memory leak?');
+    if (existingListeners != null &&
+        existingListeners.length >= _maxListenersPerKey) {
+      ZenLogger.logWarning(
+          'High listener count (${existingListeners.length}) for $type:$tag. Potential memory leak?');
     }
 
     _listeners.putIfAbsent(key, () => <VoidCallback>{});
@@ -158,8 +160,7 @@ class ZenReactiveSystem {
     if (totalListeners > _maxTotalListeners) {
       ZenLogger.logWarning(
           'HIGH MEMORY PRESSURE: $totalListeners total listeners. '
-              'Max recommended: $_maxTotalListeners. Check for memory leaks!'
-      );
+          'Max recommended: $_maxTotalListeners. Check for memory leaks!');
 
       // Force cleanup
       _cleanupEmptyListeners();
@@ -182,7 +183,8 @@ class ZenReactiveSystem {
 
       if (ZenConfig.enableDebugLogs) {
         final stats = getMemoryStats();
-        ZenLogger.logDebug('Reactive system stats: $stats, errors: $_errorCount');
+        ZenLogger.logDebug(
+            'Reactive system stats: $stats, errors: $_errorCount');
       }
     }
   }
@@ -194,7 +196,8 @@ class ZenReactiveSystem {
     final finalCount = _listeners.length;
 
     if (removedCount != finalCount && ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('Cleaned up ${removedCount - finalCount} empty listener sets');
+      ZenLogger.logDebug(
+          'Cleaned up ${removedCount - finalCount} empty listener sets');
     }
   }
 
@@ -202,12 +205,14 @@ class ZenReactiveSystem {
   Map<String, dynamic> getMemoryStats() {
     final totalListeners = _listeners.values.fold<int>(
       0,
-          (sum, set) => sum + set.length,
+      (sum, set) => sum + set.length,
     );
 
-    final listenerCounts = _listeners.values.map((set) => set.length).toList()..sort();
+    final listenerCounts = _listeners.values.map((set) => set.length).toList()
+      ..sort();
     final maxListeners = listenerCounts.isEmpty ? 0 : listenerCounts.last;
-    final avgListeners = _listeners.isEmpty ? 0.0 : totalListeners / _listeners.length;
+    final avgListeners =
+        _listeners.isEmpty ? 0.0 : totalListeners / _listeners.length;
 
     return {
       'totalKeys': _listeners.length,
@@ -217,8 +222,11 @@ class ZenReactiveSystem {
       'emptyKeys': _listeners.values.where((set) => set.isEmpty).length,
       'notificationCount': _notificationCount,
       'errorCount': _errorCount,
-      'memoryPressure': totalListeners > _maxTotalListeners ? 'HIGH' :
-      totalListeners > (_maxTotalListeners * 0.7) ? 'MEDIUM' : 'LOW',
+      'memoryPressure': totalListeners > _maxTotalListeners
+          ? 'HIGH'
+          : totalListeners > (_maxTotalListeners * 0.7)
+              ? 'MEDIUM'
+              : 'LOW',
       'lastCleanup': _lastCleanup?.toIso8601String() ?? 'never',
     };
   }
@@ -226,7 +234,8 @@ class ZenReactiveSystem {
   /// Get health status for monitoring
   Map<String, dynamic> getHealthStatus() {
     final stats = getMemoryStats();
-    final errorRate = _notificationCount == 0 ? 0.0 : _errorCount / _notificationCount;
+    final errorRate =
+        _notificationCount == 0 ? 0.0 : _errorCount / _notificationCount;
 
     return {
       'status': _getHealthLevel(stats, errorRate),
@@ -238,11 +247,14 @@ class ZenReactiveSystem {
 
   String _getHealthLevel(Map<String, dynamic> stats, double errorRate) {
     if (stats['memoryPressure'] == 'HIGH' || errorRate > 0.1) return 'CRITICAL';
-    if (stats['memoryPressure'] == 'MEDIUM' || errorRate > 0.05) return 'WARNING';
+    if (stats['memoryPressure'] == 'MEDIUM' || errorRate > 0.05) {
+      return 'WARNING';
+    }
     return 'HEALTHY';
   }
 
-  List<String> _getRecommendations(Map<String, dynamic> stats, double errorRate) {
+  List<String> _getRecommendations(
+      Map<String, dynamic> stats, double errorRate) {
     final recommendations = <String>[];
 
     if (stats['memoryPressure'] == 'HIGH') {
@@ -264,7 +276,8 @@ class ZenReactiveSystem {
 
   /// Clear all listeners with logging
   void clearListeners() {
-    final count = _listeners.values.fold<int>(0, (sum, set) => sum + set.length);
+    final count =
+        _listeners.values.fold<int>(0, (sum, set) => sum + set.length);
     _listeners.clear();
     _notificationCount = 0;
     _errorCount = 0;

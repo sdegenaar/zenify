@@ -26,7 +26,6 @@ class AuthService {
     });
   }
 
-
   /// Login with email and password
   Future<User> login(String email, String password) async {
     isLoading.value = true;
@@ -79,7 +78,10 @@ class AuthService {
       await Future.delayed(const Duration(seconds: 1));
 
       // Validate input (mock implementation)
-      if (name.isEmpty || email.isEmpty || !email.contains('@') || password.length < 6) {
+      if (name.isEmpty ||
+          email.isEmpty ||
+          !email.contains('@') ||
+          password.length < 6) {
         throw Exception('Invalid registration data');
       }
 

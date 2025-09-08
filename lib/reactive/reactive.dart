@@ -23,7 +23,7 @@ export 'extensions/rx_set_extensions.dart';
 // Transformations and utilities
 export 'utils/rx_transformations.dart';
 export 'utils/rx_timing.dart';
-export 'utils/rx_logger.dart';  //
+export 'utils/rx_logger.dart'; //
 
 // Testing utilities (only export in test environment)
 export 'testing/rx_testing.dart';

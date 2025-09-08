@@ -14,7 +14,8 @@ void main() {
 
       // Wait for completion
       await future;
-      await Future.delayed(const Duration(milliseconds: 20)); // Give it time to update
+      await Future.delayed(
+          const Duration(milliseconds: 20)); // Give it time to update
 
       expect(rxFuture.isLoading, false);
       expect(rxFuture.hasData, true);
@@ -22,7 +23,8 @@ void main() {
     });
 
     test('should handle future errors', () async {
-      final future = Future.delayed(const Duration(milliseconds: 10), () => throw 'Test error');
+      final future = Future.delayed(
+          const Duration(milliseconds: 10), () => throw 'Test error');
       final rxFuture = RxFuture<int>(future);
 
       // Wait for error
@@ -41,14 +43,16 @@ void main() {
     test('should allow setting new futures', () async {
       final rxFuture = RxFuture<String>();
 
-      final future1 = Future.delayed(const Duration(milliseconds: 10), () => 'first');
+      final future1 =
+          Future.delayed(const Duration(milliseconds: 10), () => 'first');
       rxFuture.future = future1;
 
       await future1;
       await Future.delayed(const Duration(milliseconds: 20));
       expect(rxFuture.data, 'first');
 
-      final future2 = Future.delayed(const Duration(milliseconds: 10), () => 'second');
+      final future2 =
+          Future.delayed(const Duration(milliseconds: 10), () => 'second');
       rxFuture.future = future2;
 
       await future2;
@@ -75,7 +79,8 @@ void main() {
       var callCount = 0;
       Future<int> future() {
         callCount++;
-        return Future.delayed(const Duration(milliseconds: 10), () => callCount);
+        return Future.delayed(
+            const Duration(milliseconds: 10), () => callCount);
       }
 
       final rxFuture = RxFuture<int>.fromFactory(future);
@@ -85,7 +90,8 @@ void main() {
     });
 
     test('should provide both wrapped and original errors', () async {
-      final future = Future.delayed(const Duration(milliseconds: 10), () => throw 'Test error');
+      final future = Future.delayed(
+          const Duration(milliseconds: 10), () => throw 'Test error');
       final rxFuture = RxFuture<int>(future);
 
       try {

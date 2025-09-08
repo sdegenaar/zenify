@@ -12,7 +12,7 @@ import '../pages/register_page.dart';
 import '../pages/splash_page.dart';
 
 /// Routes for the e-commerce app
-/// 
+///
 /// This class demonstrates how to use ZenModulePage for routing and automatic
 /// scope creation and cleanup.
 class AppRoutes {
@@ -33,7 +33,7 @@ class AppRoutes {
         return MaterialPageRoute(
           builder: (_) => const SplashPage(),
         );
-        
+
       case home:
         return MaterialPageRoute(
           builder: (_) => ZenRoute(
@@ -42,7 +42,7 @@ class AppRoutes {
             scopeName: 'HomeScope',
           ),
         );
-        
+
       case login:
         return MaterialPageRoute(
           builder: (_) => ZenRoute(
@@ -51,7 +51,7 @@ class AppRoutes {
             scopeName: 'LoginScope',
           ),
         );
-        
+
       case register:
         return MaterialPageRoute(
           builder: (_) => ZenRoute(
@@ -60,12 +60,12 @@ class AppRoutes {
             scopeName: 'RegisterScope',
           ),
         );
-        
+
       case productDetail:
         // Extract product ID from arguments
         final args = settings.arguments as Map<String, dynamic>?;
         final productId = args?['productId'] as String? ?? '';
-        
+
         return MaterialPageRoute(
           builder: (_) => ZenRoute(
             moduleBuilder: () => ProductModule(),
@@ -73,7 +73,7 @@ class AppRoutes {
             scopeName: 'ProductDetailScope',
           ),
         );
-        
+
       case cart:
         return MaterialPageRoute(
           builder: (_) => ZenRoute(
@@ -82,7 +82,7 @@ class AppRoutes {
             scopeName: 'CartScope',
           ),
         );
-        
+
       default:
         return MaterialPageRoute(
           builder: (_) => Scaffold(

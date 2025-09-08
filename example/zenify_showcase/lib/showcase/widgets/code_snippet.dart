@@ -56,9 +56,9 @@ class CodeSnippet extends StatelessWidget {
               color: Colors.grey.shade900,
               borderRadius: title != null
                   ? const BorderRadius.only(
-                bottomLeft: Radius.circular(12),
-                bottomRight: Radius.circular(12),
-              )
+                      bottomLeft: Radius.circular(12),
+                      bottomRight: Radius.circular(12),
+                    )
                   : BorderRadius.circular(12),
             ),
             child: Text(

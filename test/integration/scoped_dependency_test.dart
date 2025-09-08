@@ -104,9 +104,7 @@ void main() {
     test('should support scope hierarchy with dependency inheritance', () {
       // Create parent scope with a config service
       final parentScope = Zen.createScope(name: "ParentScope");
-      parentScope.put<ConfigService>(
-          ConfigService(environment: "production")
-      );
+      parentScope.put<ConfigService>(ConfigService(environment: "production"));
 
       // Create child scopes
       final childScopeA = Zen.createScope(parent: parentScope, name: "ChildA");
@@ -133,23 +131,22 @@ void main() {
       parentScope.dispose();
     });
 
-    test('should shadow parent dependencies when registered in child scope', () {
+    test('should shadow parent dependencies when registered in child scope',
+        () {
       // Create parent scope with a config service
       final parentScope = Zen.createScope(name: "ParentScope");
-      parentScope.put<ConfigService>(
-          ConfigService(environment: "production")
-      );
+      parentScope.put<ConfigService>(ConfigService(environment: "production"));
 
       // Create child scope
-      final childScope = Zen.createScope(parent: parentScope, name: "ChildScope");
+      final childScope =
+          Zen.createScope(parent: parentScope, name: "ChildScope");
 
       // Child scope has access to parent's config
       expect(childScope.find<ConfigService>()?.environment, "production");
 
       // Register a different config in child scope
       childScope.put<ConfigService>(
-          ConfigService(environment: "development", isDarkMode: true)
-      );
+          ConfigService(environment: "development", isDarkMode: true));
 
       // Child should now use its own config
       expect(childScope.find<ConfigService>()?.environment, "development");
@@ -167,7 +164,8 @@ void main() {
     test('should clean up properly when a scope is disposed', () {
       // Create parent and child scopes
       final parentScope = Zen.createScope(name: "ParentScope");
-      final childScope = Zen.createScope(parent: parentScope, name: "ChildScope");
+      final childScope =
+          Zen.createScope(parent: parentScope, name: "ChildScope");
 
       // Register dependencies
       final parentConfig = ConfigService(environment: "production");
@@ -184,7 +182,8 @@ void main() {
       childScope.dispose();
 
       // Create a new child scope with the same name
-      final newChildScope = Zen.createScope(parent: parentScope, name: "ChildScope");
+      final newChildScope =
+          Zen.createScope(parent: parentScope, name: "ChildScope");
 
       // Child dependency should be gone
       expect(newChildScope.findInThisScope<CounterService>(), isNull);
@@ -209,7 +208,8 @@ void main() {
     test('should support disposing child scopes when parent is disposed', () {
       // Create a scope hierarchy
       final rootScope = Zen.createScope(name: "RootScope");
-      final middleScope = Zen.createScope(parent: rootScope, name: "MiddleScope");
+      final middleScope =
+          Zen.createScope(parent: rootScope, name: "MiddleScope");
       final leafScope = Zen.createScope(parent: middleScope, name: "LeafScope");
 
       // Register dependencies at each level
@@ -227,8 +227,10 @@ void main() {
 
       // Create new scopes
       final newRootScope = Zen.createScope(name: "RootScope");
-      final newMiddleScope = Zen.createScope(parent: newRootScope, name: "MiddleScope");
-      final newLeafScope = Zen.createScope(parent: newMiddleScope, name: "LeafScope");
+      final newMiddleScope =
+          Zen.createScope(parent: newRootScope, name: "MiddleScope");
+      final newLeafScope =
+          Zen.createScope(parent: newMiddleScope, name: "LeafScope");
 
       // All dependencies should be gone
       expect(newLeafScope.find<String>(tag: "level"), isNull);
@@ -241,7 +243,9 @@ void main() {
       newRootScope.dispose();
     });
 
-    test('should register and resolve dependencies with type and tag combinations', () {
+    test(
+        'should register and resolve dependencies with type and tag combinations',
+        () {
       final scope = Zen.createScope(name: "TestScope");
 
       // Register multiple instances of same type with different tags
@@ -269,9 +273,7 @@ void main() {
       expect(scope.findInThisScope<ConfigService>(), isNull);
 
       // Register an untagged instance
-      scope.put<ConfigService>(
-          ConfigService(environment: "default")
-      );
+      scope.put<ConfigService>(ConfigService(environment: "default"));
 
       // Now default type lookup should work
       expect(scope.find<ConfigService>()?.environment, "default");
@@ -290,7 +292,8 @@ void main() {
       scope1.put<ConfigService>(ConfigService(environment: "scope1"));
 
       scope2.put<CounterService>(CounterService());
-      scope2.put<ConfigService>(ConfigService(environment: "scope2", isDarkMode: true));
+      scope2.put<ConfigService>(
+          ConfigService(environment: "scope2", isDarkMode: true));
 
       // Create controllers in each scope
       final controller1 = ScopedController(
@@ -365,11 +368,15 @@ void main() {
       expect(rootServices.any((s) => s.getResource("level") == "root"), true);
       expect(rootServices.any((s) => s.getResource("level") == "childA"), true);
       expect(rootServices.any((s) => s.getResource("level") == "childB"), true);
-      expect(rootServices.any((s) => s.getResource("level") == "grandchild"), true);
+      expect(rootServices.any((s) => s.getResource("level") == "grandchild"),
+          true);
 
-      expect(childAServices.any((s) => s.getResource("level") == "childA"), true);
-      expect(childAServices.any((s) => s.getResource("level") == "grandchild"), true);
-      expect(childAServices.any((s) => s.getResource("level") == "root"), false);
+      expect(
+          childAServices.any((s) => s.getResource("level") == "childA"), true);
+      expect(childAServices.any((s) => s.getResource("level") == "grandchild"),
+          true);
+      expect(
+          childAServices.any((s) => s.getResource("level") == "root"), false);
 
       expect(grandchildServices.first.getResource("level"), "grandchild");
 
@@ -386,13 +393,11 @@ void main() {
       final prodScope = Zen.createScope(name: "ProdScope");
 
       // Register lazy dependencies
-      devScope.putLazy<ConfigService>(() =>
-          ConfigService(environment: "development", isDarkMode: true)
-      );
+      devScope.putLazy<ConfigService>(
+          () => ConfigService(environment: "development", isDarkMode: true));
 
-      prodScope.putLazy<ConfigService>(() =>
-          ConfigService(environment: "production", isDarkMode: false)
-      );
+      prodScope.putLazy<ConfigService>(
+          () => ConfigService(environment: "production", isDarkMode: false));
 
       // Register factory counter services (new instance each time)
       devScope.putFactory<CounterService>(() => CounterService());
@@ -405,7 +410,8 @@ void main() {
 
       final devCounter1 = devScope.find<CounterService>();
       final devCounter2 = devScope.find<CounterService>();
-      expect(devCounter1, isNot(same(devCounter2))); // Different instances from factory
+      expect(devCounter1,
+          isNot(same(devCounter2))); // Different instances from factory
 
       // Create controllers using the services
       final devController = ScopedController(
@@ -449,12 +455,10 @@ void main() {
         final userScope = Zen.createScope(name: "UserScope-$userId");
 
         // Register user-specific configuration
-        userScope.put<ConfigService>(
-            ConfigService(
-              environment: "user-instance",
-              isDarkMode: i % 2 == 0, // Even users get dark mode
-            )
-        );
+        userScope.put<ConfigService>(ConfigService(
+          environment: "user-instance",
+          isDarkMode: i % 2 == 0, // Even users get dark mode
+        ));
 
         // Register user-specific counter
         userScope.put<CounterService>(CounterService());
@@ -501,8 +505,7 @@ void main() {
 
       // Register fresh config and counter
       user2Scope.put<ConfigService>(
-          ConfigService(environment: "user-instance", isDarkMode: true)
-      );
+          ConfigService(environment: "user-instance", isDarkMode: true));
       user2Scope.put<CounterService>(CounterService());
 
       // Verify user 2 has a fresh counter
@@ -532,10 +535,12 @@ void main() {
       final appScope = Zen.createScope(name: "AppScope");
       final featureAScope = Zen.createScope(parent: appScope, name: "FeatureA");
       final featureBScope = Zen.createScope(parent: appScope, name: "FeatureB");
-      final sharedScope = Zen.createScope(parent: appScope, name: "SharedScope");
+      final sharedScope =
+          Zen.createScope(parent: appScope, name: "SharedScope");
 
       // Create a scope that depends on multiple features
-      final integrationScope = Zen.createScope(parent: sharedScope, name: "Integration");
+      final integrationScope =
+          Zen.createScope(parent: sharedScope, name: "Integration");
 
       // Register app-level config
       appScope.put<ConfigService>(ConfigService(environment: "app-level"));
@@ -548,14 +553,20 @@ void main() {
       sharedScope.put<ResourceService>(ResourceService(scopeName: "Shared"));
 
       // Test access patterns
-      expect(featureAScope.find<ConfigService>()?.environment, "app-level"); // Inherited
-      expect(featureBScope.find<ConfigService>()?.environment, "app-level"); // Inherited
-      expect(integrationScope.find<ConfigService>()?.environment, "app-level"); // Inherited
-      expect(integrationScope.find<ResourceService>()?.scopeName, "Shared"); // From parent
+      expect(featureAScope.find<ConfigService>()?.environment,
+          "app-level"); // Inherited
+      expect(featureBScope.find<ConfigService>()?.environment,
+          "app-level"); // Inherited
+      expect(integrationScope.find<ConfigService>()?.environment,
+          "app-level"); // Inherited
+      expect(integrationScope.find<ResourceService>()?.scopeName,
+          "Shared"); // From parent
 
       // Test scope isolation
-      expect(featureAScope.findInThisScope<CounterService>(tag: "featureB"), isNull);
-      expect(featureBScope.findInThisScope<CounterService>(tag: "featureA"), isNull);
+      expect(featureAScope.findInThisScope<CounterService>(tag: "featureB"),
+          isNull);
+      expect(featureBScope.findInThisScope<CounterService>(tag: "featureA"),
+          isNull);
 
       // Test cross-scope access doesn't work
       expect(featureAScope.find<CounterService>(tag: "featureB"), isNull);
@@ -579,24 +590,32 @@ void main() {
       final childScope = Zen.createScope(parent: rootScope, name: "Child");
 
       // Register tagged services at different levels
-      rootScope.put<ConfigService>(ConfigService(environment: "root-prod"), tag: "prod");
-      rootScope.put<ConfigService>(ConfigService(environment: "root-dev"), tag: "dev");
+      rootScope.put<ConfigService>(ConfigService(environment: "root-prod"),
+          tag: "prod");
+      rootScope.put<ConfigService>(ConfigService(environment: "root-dev"),
+          tag: "dev");
 
-      childScope.put<ConfigService>(ConfigService(environment: "child-prod"), tag: "prod");
+      childScope.put<ConfigService>(ConfigService(environment: "child-prod"),
+          tag: "prod");
       // Child doesn't have dev config, should inherit from parent
 
       // Test tag resolution with shadowing
-      expect(childScope.find<ConfigService>(tag: "prod")?.environment, "child-prod"); // Shadowed
-      expect(childScope.find<ConfigService>(tag: "dev")?.environment, "root-dev"); // Inherited
+      expect(childScope.find<ConfigService>(tag: "prod")?.environment,
+          "child-prod"); // Shadowed
+      expect(childScope.find<ConfigService>(tag: "dev")?.environment,
+          "root-dev"); // Inherited
 
       // Test that parent still has original values
-      expect(rootScope.find<ConfigService>(tag: "prod")?.environment, "root-prod");
-      expect(rootScope.find<ConfigService>(tag: "dev")?.environment, "root-dev");
+      expect(
+          rootScope.find<ConfigService>(tag: "prod")?.environment, "root-prod");
+      expect(
+          rootScope.find<ConfigService>(tag: "dev")?.environment, "root-dev");
 
       // Register a controller that uses both configs
       final controller = ScopedController(
         counterService: CounterService(), // Local instance
-        configService: childScope.find<ConfigService>(tag: "prod")!, // Shadowed config
+        configService:
+            childScope.find<ConfigService>(tag: "prod")!, // Shadowed config
         scopeName: "Child",
       );
 

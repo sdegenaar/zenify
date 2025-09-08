@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:zenify/zenify.dart';
 
@@ -10,7 +9,8 @@ class NavigationService {
   final _navigationCount = 0.obs();
 
   // Global navigator key for navigation
-  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+  static final GlobalKey<NavigatorState> navigatorKey =
+      GlobalKey<NavigatorState>();
 
   // Reactive getters
   RxList<NavigationItem> get breadcrumbs => _breadcrumbs;
@@ -18,10 +18,12 @@ class NavigationService {
   Rx<int> get navigationCount => _navigationCount;
 
   /// Navigate to a route
-  Future<T?> navigateTo<T extends Object?>(String route, {Map<String, dynamic>? arguments}) async {
+  Future<T?> navigateTo<T extends Object?>(String route,
+      {Map<String, dynamic>? arguments}) async {
     final navigator = navigatorKey.currentState;
     if (navigator == null) {
-      ZenLogger.logError('Navigator not available. Make sure to set NavigationService.navigatorKey in your MaterialApp');
+      ZenLogger.logError(
+          'Navigator not available. Make sure to set NavigationService.navigatorKey in your MaterialApp');
       return null;
     }
 
@@ -39,10 +41,10 @@ class NavigationService {
 
   /// Navigate and replace current route
   Future<T?> navigateAndReplace<T extends Object?, TO extends Object?>(
-      String route, {
-        Map<String, dynamic>? arguments,
-        TO? result,
-      }) async {
+    String route, {
+    Map<String, dynamic>? arguments,
+    TO? result,
+  }) async {
     final navigator = navigatorKey.currentState;
     if (navigator == null) {
       ZenLogger.logError('Navigator not available');
@@ -54,7 +56,8 @@ class NavigationService {
       _navigationCount.value++;
 
       ZenLogger.logInfo('Navigation: Replacing current route with $route');
-      return await navigator.pushReplacementNamed(route, arguments: arguments, result: result);
+      return await navigator.pushReplacementNamed(route,
+          arguments: arguments, result: result);
     } catch (e) {
       ZenLogger.logError('Navigation replacement failed to $route', e);
       return null;
@@ -62,7 +65,8 @@ class NavigationService {
   }
 
   /// Navigate and clear stack
-  Future<T?> navigateAndClearStack<T extends Object?>(String route, {Map<String, dynamic>? arguments}) async {
+  Future<T?> navigateAndClearStack<T extends Object?>(String route,
+      {Map<String, dynamic>? arguments}) async {
     final navigator = navigatorKey.currentState;
     if (navigator == null) {
       ZenLogger.logError('Navigator not available');
@@ -77,7 +81,8 @@ class NavigationService {
       clear();
 
       ZenLogger.logInfo('Navigation: Clearing stack and navigating to $route');
-      return await navigator.pushNamedAndRemoveUntil(route, (route) => false, arguments: arguments);
+      return await navigator.pushNamedAndRemoveUntil(route, (route) => false,
+          arguments: arguments);
     } catch (e) {
       ZenLogger.logError('Navigation with clear stack failed to $route', e);
       return null;
@@ -108,7 +113,8 @@ class NavigationService {
   }
 
   /// Add a breadcrumb for navigation tracking
-  void pushBreadcrumb(String title, String route, {Map<String, dynamic>? args}) {
+  void pushBreadcrumb(String title, String route,
+      {Map<String, dynamic>? args}) {
     // Don't add duplicate breadcrumbs
     if (_breadcrumbs.isNotEmpty && _breadcrumbs.last.route == route) {
       return;
@@ -143,7 +149,8 @@ class NavigationService {
         _currentPath.value = '/';
       }
 
-      ZenLogger.logInfo('Navigation: Removed $removed breadcrumbs, back to level $level');
+      ZenLogger.logInfo(
+          'Navigation: Removed $removed breadcrumbs, back to level $level');
     }
   }
 
@@ -153,7 +160,8 @@ class NavigationService {
       final removed = _breadcrumbs.last; // Get the last item first
 
       // Remove the last item using reactive-friendly approach
-      final newBreadcrumbs = _breadcrumbs.take(_breadcrumbs.length - 1).toList();
+      final newBreadcrumbs =
+          _breadcrumbs.take(_breadcrumbs.length - 1).toList();
       _breadcrumbs.value = newBreadcrumbs;
 
       // Update current path
@@ -178,11 +186,14 @@ class NavigationService {
   int get depth => _breadcrumbs.length;
 
   /// Get current breadcrumb
-  NavigationItem? get current => _breadcrumbs.isNotEmpty ? _breadcrumbs.last : null;
+  NavigationItem? get current =>
+      _breadcrumbs.isNotEmpty ? _breadcrumbs.last : null;
 
   /// Get breadcrumb at specific level
   NavigationItem? getBreadcrumbAt(int level) {
-    return (level >= 0 && level < _breadcrumbs.length) ? _breadcrumbs[level] : null;
+    return (level >= 0 && level < _breadcrumbs.length)
+        ? _breadcrumbs[level]
+        : null;
   }
 
   /// Check if we're at a specific route
@@ -225,10 +236,10 @@ class NavigationItem {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is NavigationItem &&
-              runtimeType == other.runtimeType &&
-              title == other.title &&
-              route == other.route;
+      other is NavigationItem &&
+          runtimeType == other.runtimeType &&
+          title == other.title &&
+          route == other.route;
 
   @override
   int get hashCode => title.hashCode ^ route.hashCode;

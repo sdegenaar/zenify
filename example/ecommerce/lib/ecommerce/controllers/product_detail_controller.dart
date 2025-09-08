@@ -116,7 +116,8 @@ class ProductDetailController extends ZenController {
       // Get products in the same category
       if (product.categories.isNotEmpty) {
         final category = product.categories.first;
-        final relatedProducts = await productService.getProductsByCategory(category);
+        final relatedProducts =
+            await productService.getProductsByCategory(category);
 
         // Filter out the current product
         return relatedProducts

@@ -31,10 +31,13 @@ class PerformanceMetricsCard extends StatelessWidget {
             const SizedBox(height: 16),
             Obx(() {
               final metrics = controller.performanceMetrics.value;
-              final lastUpdated = metrics['lastUpdated'] as String? ?? 'Not available';
+              final lastUpdated =
+                  metrics['lastUpdated'] as String? ?? 'Not available';
               final apiStats = metrics['api'] as Map<String, dynamic>? ?? {};
-              final cacheStats = metrics['cache'] as Map<String, dynamic>? ?? {};
-              final navStats = metrics['navigation'] as Map<String, dynamic>? ?? {};
+              final cacheStats =
+                  metrics['cache'] as Map<String, dynamic>? ?? {};
+              final navStats =
+                  metrics['navigation'] as Map<String, dynamic>? ?? {};
 
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -74,7 +77,8 @@ class PerformanceMetricsCard extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  Text('Last Updated: $lastUpdated', 
+                  Text(
+                    'Last Updated: $lastUpdated',
                     style: const TextStyle(
                       fontSize: 12,
                       fontStyle: FontStyle.italic,

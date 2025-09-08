@@ -25,9 +25,9 @@ class DepartmentService {
   Department? get selectedDepartment => _selectedDepartmentId.value == null
       ? null
       : _departments.firstWhere(
-        (dept) => dept.id == _selectedDepartmentId.value,
-    orElse: () => throw Exception('Department not found'),
-  );
+          (dept) => dept.id == _selectedDepartmentId.value,
+          orElse: () => throw Exception('Department not found'),
+        );
 
   DepartmentService({
     required ApiService apiService,
@@ -58,7 +58,8 @@ class DepartmentService {
       if (cachedData != null) {
         final departments = _parseDepartmentsResponse(cachedData);
         _departments.value = departments;
-        ZenLogger.logInfo('Loaded ${departments.length} departments from cache');
+        ZenLogger.logInfo(
+            'Loaded ${departments.length} departments from cache');
         return departments;
       }
 
@@ -70,7 +71,8 @@ class DepartmentService {
       _departments.value = departments;
 
       // Cache the result
-      _cacheService.set('departments', response, ttl: const Duration(minutes: 5));
+      _cacheService.set('departments', response,
+          ttl: const Duration(minutes: 5));
 
       ZenLogger.logInfo('Loaded ${departments.length} departments from API');
       return departments;
@@ -128,21 +130,20 @@ class DepartmentService {
   /// Parse departments response
   List<Department> _parseDepartmentsResponse(Map<String, dynamic> response) {
     final List<dynamic> data = response['data'] as List<dynamic>;
-    return data
-        .map((item) {
+    return data.map((item) {
       final itemMap = item as Map<String, dynamic>;
       return Department.fromJson({
-        'id': itemMap['id']?.toString() ?? DateTime.now().millisecondsSinceEpoch.toString(),
+        'id': itemMap['id']?.toString() ??
+            DateTime.now().millisecondsSinceEpoch.toString(),
         'name': itemMap['name']?.toString() ?? 'Unknown Department',
-        'description': itemMap['description']?.toString() ?? 'Department of ${itemMap['name'] ?? 'Unknown'}',
+        'description': itemMap['description']?.toString() ??
+            'Department of ${itemMap['name'] ?? 'Unknown'}',
         'employeeCount': itemMap['employeeCount'] ?? 0,
         'budget': itemMap['budget']?.toDouble() ?? 0.0,
         'teams': itemMap['teams'] ?? [],
       });
-    })
-        .toList();
+    }).toList();
   }
-
 
   void dispose() {
     ZenLogger.logInfo('DepartmentService disposed');

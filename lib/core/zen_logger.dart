@@ -19,7 +19,8 @@ class ZenLogger {
 
   /// Log handlers
   static void Function(String message, LogLevel level)? _logHandler;
-  static void Function(String message, [dynamic error, StackTrace? stackTrace])? _errorHandler;
+  static void Function(String message, [dynamic error, StackTrace? stackTrace])?
+      _errorHandler;
 
   /// Test mode flag
   static bool testMode = false;
@@ -66,13 +67,16 @@ class ZenLogger {
   }
 
   /// Log an error message with optional error object and stack trace
-  static void logError(String message, [dynamic error, StackTrace? stackTrace]) {
+  static void logError(String message,
+      [dynamic error, StackTrace? stackTrace]) {
     if (_errorHandler != null) {
       _errorHandler!(message, error, stackTrace);
     } else if (_logHandler != null) {
       _logHandler!(message, LogLevel.error);
       if (error != null) _logHandler!('Error: $error', LogLevel.error);
-      if (stackTrace != null) _logHandler!('StackTrace: $stackTrace', LogLevel.error);
+      if (stackTrace != null) {
+        _logHandler!('StackTrace: $stackTrace', LogLevel.error);
+      }
     } else {
       _log('ERROR', message);
       if (error != null) _log('ERROR', 'Error: $error');

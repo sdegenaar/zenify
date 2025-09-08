@@ -7,7 +7,8 @@ class WorkerDemoPage extends ZenView<WorkerDemoController> {
   const WorkerDemoPage({super.key});
 
   @override
-  WorkerDemoController Function()? get createController => () => WorkerDemoController();
+  WorkerDemoController Function()? get createController =>
+      () => WorkerDemoController();
 
   @override
   Widget build(BuildContext context) {
@@ -31,12 +32,15 @@ class WorkerDemoPage extends ZenView<WorkerDemoController> {
                   child: Column(
                     children: [
                       Obx(() => Text(
-                        '${controller.counter.value}',
-                        style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                          color: Colors.teal,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      )),
+                            '${controller.counter.value}',
+                            style: Theme.of(context)
+                                .textTheme
+                                .displayLarge
+                                ?.copyWith(
+                                  color: Colors.teal,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                          )),
                       const SizedBox(height: 16),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -76,27 +80,32 @@ class WorkerDemoPage extends ZenView<WorkerDemoController> {
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     children: [
-                      Obx(() => _buildWorkerStats('Ever Worker',
+                      Obx(() => _buildWorkerStats(
+                          'Ever Worker',
                           controller.everCount.value,
                           'Fires on every change',
                           Colors.blue)),
                       const SizedBox(height: 12),
-                      Obx(() => _buildWorkerStats('Debounce Worker',
+                      Obx(() => _buildWorkerStats(
+                          'Debounce Worker',
                           controller.debounceCount.value,
                           'Waits 500ms after last change',
                           Colors.orange)),
                       const SizedBox(height: 12),
-                      Obx(() => _buildWorkerStats('Throttle Worker',
+                      Obx(() => _buildWorkerStats(
+                          'Throttle Worker',
                           controller.throttleCount.value,
                           'Max once per 1000ms',
                           Colors.purple)),
                       const SizedBox(height: 12),
-                      Obx(() => _buildWorkerStats('Once Worker',
+                      Obx(() => _buildWorkerStats(
+                          'Once Worker',
                           controller.onceCount.value,
                           'Fires only once then stops',
                           Colors.green)),
                       const SizedBox(height: 12),
-                      Obx(() => _buildWorkerStats('Condition Worker',
+                      Obx(() => _buildWorkerStats(
+                          'Condition Worker',
                           controller.conditionCount.value,
                           'Only when counter is even',
                           Colors.red)),
@@ -118,25 +127,26 @@ class WorkerDemoPage extends ZenView<WorkerDemoController> {
                   child: Column(
                     children: [
                       Obx(() => Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.blue.shade50,
-                          border: Border.all(color: Colors.blue.shade200),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.text_fields, color: Colors.blue.shade700),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                controller.message.value,
-                                style: const TextStyle(fontSize: 16),
-                              ),
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.shade50,
+                              border: Border.all(color: Colors.blue.shade200),
+                              borderRadius: BorderRadius.circular(8),
                             ),
-                          ],
-                        ),
-                      )),
+                            child: Row(
+                              children: [
+                                Icon(Icons.text_fields,
+                                    color: Colors.blue.shade700),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    controller.message.value,
+                                    style: const TextStyle(fontSize: 16),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )),
                       const SizedBox(height: 16),
                       Row(
                         children: [
@@ -157,12 +167,12 @@ class WorkerDemoPage extends ZenView<WorkerDemoController> {
                       ),
                       const SizedBox(height: 12),
                       Obx(() => Text(
-                        'String worker fired ${controller.stringWorkerCount.value} times',
-                        style: TextStyle(
-                          color: Colors.grey.shade600,
-                          fontSize: 12,
-                        ),
-                      )),
+                            'String worker fired ${controller.stringWorkerCount.value} times',
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontSize: 12,
+                            ),
+                          )),
                     ],
                   ),
                 ),
@@ -181,52 +191,58 @@ class WorkerDemoPage extends ZenView<WorkerDemoController> {
                   child: Column(
                     children: [
                       Obx(() => Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.green.shade50,
-                          border: Border.all(color: Colors.green.shade200),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Icon(Icons.list, color: Colors.green.shade700),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Items (${controller.items.length})',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.green.shade700,
-                                  ),
-                                ),
-                              ],
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.green.shade50,
+                              border: Border.all(color: Colors.green.shade200),
+                              borderRadius: BorderRadius.circular(8),
                             ),
-                            const SizedBox(height: 8),
-                            if (controller.items.isEmpty)
-                              const Text('No items in the list')
-                            else
-                              ...controller.items.map((item) => Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 2),
-                                child: Row(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
                                   children: [
-                                    Icon(Icons.fiber_manual_record,
-                                        size: 8, color: Colors.green.shade600),
+                                    Icon(Icons.list,
+                                        color: Colors.green.shade700),
                                     const SizedBox(width: 8),
-                                    Expanded(child: Text(item)),
-                                    IconButton(
-                                      icon: const Icon(Icons.delete, size: 16),
-                                      onPressed: () => controller.removeItem(item),
-                                      padding: EdgeInsets.zero,
-                                      constraints: const BoxConstraints(),
+                                    Text(
+                                      'Items (${controller.items.length})',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.green.shade700,
+                                      ),
                                     ),
                                   ],
                                 ),
-                              )),
-                          ],
-                        ),
-                      )),
+                                const SizedBox(height: 8),
+                                if (controller.items.isEmpty)
+                                  const Text('No items in the list')
+                                else
+                                  ...controller.items.map((item) => Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 2),
+                                        child: Row(
+                                          children: [
+                                            Icon(Icons.fiber_manual_record,
+                                                size: 8,
+                                                color: Colors.green.shade600),
+                                            const SizedBox(width: 8),
+                                            Expanded(child: Text(item)),
+                                            IconButton(
+                                              icon: const Icon(Icons.delete,
+                                                  size: 16),
+                                              onPressed: () =>
+                                                  controller.removeItem(item),
+                                              padding: EdgeInsets.zero,
+                                              constraints:
+                                                  const BoxConstraints(),
+                                            ),
+                                          ],
+                                        ),
+                                      )),
+                              ],
+                            ),
+                          )),
                       const SizedBox(height: 16),
                       Row(
                         children: [
@@ -247,12 +263,12 @@ class WorkerDemoPage extends ZenView<WorkerDemoController> {
                       ),
                       const SizedBox(height: 12),
                       Obx(() => Text(
-                        'List worker fired ${controller.listWorkerCount.value} times',
-                        style: TextStyle(
-                          color: Colors.grey.shade600,
-                          fontSize: 12,
-                        ),
-                      )),
+                            'List worker fired ${controller.listWorkerCount.value} times',
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontSize: 12,
+                            ),
+                          )),
                     ],
                   ),
                 ),
@@ -309,7 +325,8 @@ class WorkerDemoPage extends ZenView<WorkerDemoController> {
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.info_outline, color: Colors.amber.shade700),
+                            Icon(Icons.info_outline,
+                                color: Colors.amber.shade700),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
@@ -331,7 +348,8 @@ class WorkerDemoPage extends ZenView<WorkerDemoController> {
     );
   }
 
-  Widget _buildWorkerStats(String name, int count, String description, Color color) {
+  Widget _buildWorkerStats(
+      String name, int count, String description, Color color) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(

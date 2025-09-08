@@ -60,7 +60,8 @@ class RxComputed<T> extends ValueNotifier<T> {
   /// Whether the computed value has an error
   bool get hasError => _lastError != null;
 
-  static (T, Set<ValueNotifier>) _computeAndTrackDependencies<T>(T Function() computation) {
+  static (T, Set<ValueNotifier>) _computeAndTrackDependencies<T>(
+      T Function() computation) {
     final trackedDeps = <ValueNotifier>{};
 
     RxTracking.setTrackerWithoutRebuild((notifier) {
@@ -140,7 +141,8 @@ class RxComputed<T> extends ValueNotifier<T> {
 
   @override
   set value(T newValue) {
-    throw UnsupportedError('Cannot set value of computed reactive. Use dependencies instead.');
+    throw UnsupportedError(
+        'Cannot set value of computed reactive. Use dependencies instead.');
   }
 
   /// Force recomputation of the value
@@ -162,7 +164,8 @@ class RxComputed<T> extends ValueNotifier<T> {
   }
 
   @override
-  String toString() => 'RxComputed<$T>($value, deps: ${_dependencies.length}, disposed: $_disposed, hasError: $hasError)';
+  String toString() =>
+      'RxComputed<$T>($value, deps: ${_dependencies.length}, disposed: $_disposed, hasError: $hasError)';
 }
 
 // Rest of the file remains the same...
@@ -186,29 +189,29 @@ extension RxComputedExtensions<T> on Rx<T> {
 
 extension RxCombine on Never {
   static RxComputed<R> combine2<T1, T2, R>(
-      Rx<T1> rx1,
-      Rx<T2> rx2,
-      R Function(T1, T2) combiner,
-      ) {
+    Rx<T1> rx1,
+    Rx<T2> rx2,
+    R Function(T1, T2) combiner,
+  ) {
     return computed(() => combiner(rx1.value, rx2.value));
   }
 
   static RxComputed<R> combine3<T1, T2, T3, R>(
-      Rx<T1> rx1,
-      Rx<T2> rx2,
-      Rx<T3> rx3,
-      R Function(T1, T2, T3) combiner,
-      ) {
+    Rx<T1> rx1,
+    Rx<T2> rx2,
+    Rx<T3> rx3,
+    R Function(T1, T2, T3) combiner,
+  ) {
     return computed(() => combiner(rx1.value, rx2.value, rx3.value));
   }
 
   static RxComputed<R> combine4<T1, T2, T3, T4, R>(
-      Rx<T1> rx1,
-      Rx<T2> rx2,
-      Rx<T3> rx3,
-      Rx<T4> rx4,
-      R Function(T1, T2, T3, T4) combiner,
-      ) {
+    Rx<T1> rx1,
+    Rx<T2> rx2,
+    Rx<T3> rx3,
+    Rx<T4> rx4,
+    R Function(T1, T2, T3, T4) combiner,
+  ) {
     return computed(() => combiner(rx1.value, rx2.value, rx3.value, rx4.value));
   }
 }

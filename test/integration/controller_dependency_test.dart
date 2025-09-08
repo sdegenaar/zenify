@@ -102,7 +102,8 @@ void main() {
     test('should find dependencies across scopes correctly', () {
       // Create parent and child scopes
       final parentScope = Zen.createScope(name: "ParentScope");
-      final childScope = Zen.createScope(parent: parentScope, name: "ChildScope");
+      final childScope =
+          Zen.createScope(parent: parentScope, name: "ChildScope");
 
       // Register service in parent scope
       final service = MockService();
@@ -175,8 +176,10 @@ void main() {
       testScope.put<DependentController>(controller2, tag: "controller2");
 
       // Verify correct dependencies
-      final retrievedController1 = testScope.find<DependentController>(tag: "controller1");
-      final retrievedController2 = testScope.find<DependentController>(tag: "controller2");
+      final retrievedController1 =
+          testScope.find<DependentController>(tag: "controller1");
+      final retrievedController2 =
+          testScope.find<DependentController>(tag: "controller2");
 
       expect(retrievedController1!.service, same(service1));
       expect(retrievedController2!.service, same(service2));
@@ -225,7 +228,8 @@ void main() {
     test('should support dependency injection in scoped controllers', () {
       // Create scopes
       final parentScope = Zen.createScope(name: "ParentScope");
-      final childScope = Zen.createScope(parent: parentScope, name: "ChildScope");
+      final childScope =
+          Zen.createScope(parent: parentScope, name: "ChildScope");
 
       // Create controllers tied to specific scopes
       final parentController = ScopedController(parentScope);
@@ -235,14 +239,19 @@ void main() {
       childScope.put<ScopedController>(childController, tag: "child");
 
       // Verify scope isolation and inheritance
-      final foundParentInParent = parentScope.find<ScopedController>(tag: "parent");
-      final foundParentInChild = childScope.find<ScopedController>(tag: "parent");
-      final foundChildInParent = parentScope.findInThisScope<ScopedController>(tag: "child");
+      final foundParentInParent =
+          parentScope.find<ScopedController>(tag: "parent");
+      final foundParentInChild =
+          childScope.find<ScopedController>(tag: "parent");
+      final foundChildInParent =
+          parentScope.findInThisScope<ScopedController>(tag: "child");
       final foundChildInChild = childScope.find<ScopedController>(tag: "child");
 
       expect(foundParentInParent, same(parentController));
-      expect(foundParentInChild, same(parentController)); // Parent is visible in child scope
-      expect(foundChildInParent, isNull); // Child is not visible in parent scope
+      expect(foundParentInChild,
+          same(parentController)); // Parent is visible in child scope
+      expect(
+          foundChildInParent, isNull); // Child is not visible in parent scope
       expect(foundChildInChild, same(childController));
 
       // Test disposing a parent scope

@@ -22,7 +22,7 @@ class TodoDetailPage extends ZenView<TodoDetailController> {
 
   @override
   TodoDetailController Function()? get createController =>
-          () => TodoDetailController(initialTodo: todo);
+      () => TodoDetailController(initialTodo: todo);
 
   @override
   Widget build(BuildContext context) {
@@ -37,9 +37,8 @@ class TodoDetailPage extends ZenView<TodoDetailController> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Obx(() => Text(
-              controller.isEditMode.value ? 'Edit Todo' : 'Create Todo'
-          )),
+          title: Obx(() =>
+              Text(controller.isEditMode.value ? 'Edit Todo' : 'Create Todo')),
           backgroundColor: Theme.of(context).colorScheme.primaryContainer,
           // Override the back button to ensure cleanup
           leading: IconButton(
@@ -53,20 +52,20 @@ class TodoDetailPage extends ZenView<TodoDetailController> {
           actions: [
             // Reset button for create mode
             Obx(() => !controller.isEditMode.value &&
-                (controller.title.value.isNotEmpty ||
-                    controller.notes.value.isNotEmpty ||
-                    controller.priority.value != 2 ||
-                    controller.dueDate.value != null)
+                    (controller.title.value.isNotEmpty ||
+                        controller.notes.value.isNotEmpty ||
+                        controller.priority.value != 2 ||
+                        controller.dueDate.value != null)
                 ? IconButton(
-              icon: const Icon(Icons.refresh),
-              onPressed: () {
-                controller.resetForm();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Form reset')),
-                );
-              },
-              tooltip: 'Reset form',
-            )
+                    icon: const Icon(Icons.refresh),
+                    onPressed: () {
+                      controller.resetForm();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Form reset')),
+                      );
+                    },
+                    tooltip: 'Reset form',
+                  )
                 : const SizedBox.shrink()),
           ],
         ),
@@ -79,151 +78,163 @@ class TodoDetailPage extends ZenView<TodoDetailController> {
               _buildSectionLabel('Title'),
               const SizedBox(height: 8),
               Obx(() => TextField(
-                controller: TextEditingController(text: controller.title.value)
-                  ..selection = TextSelection.fromPosition(
-                    TextPosition(offset: controller.title.value.length),
-                  ),
-                decoration: InputDecoration(
-                  hintText: 'Enter todo title',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  errorText: controller.title.value.isEmpty &&
-                      controller.title.value != controller.initialTodo?.title
-                      ? 'Title is required'
-                      : null,
-                ),
-                onChanged: controller.setTitle,
-                textCapitalization: TextCapitalization.sentences,
-                autofocus: !controller.isEditMode.value,
-              )),
+                    controller:
+                        TextEditingController(text: controller.title.value)
+                          ..selection = TextSelection.fromPosition(
+                            TextPosition(offset: controller.title.value.length),
+                          ),
+                    decoration: InputDecoration(
+                      hintText: 'Enter todo title',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      errorText: controller.title.value.isEmpty &&
+                              controller.title.value !=
+                                  controller.initialTodo?.title
+                          ? 'Title is required'
+                          : null,
+                    ),
+                    onChanged: controller.setTitle,
+                    textCapitalization: TextCapitalization.sentences,
+                    autofocus: !controller.isEditMode.value,
+                  )),
               const SizedBox(height: 24),
 
               // Priority selection
               _buildSectionLabel('Priority'),
               const SizedBox(height: 8),
               Obx(() => Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: SegmentedButton<int>(
-                    segments: const [
-                      ButtonSegment<int>(
-                        value: 1,
-                        label: Text('Low'),
-                        icon: Icon(Icons.low_priority, color: Colors.green),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: SegmentedButton<int>(
+                        segments: const [
+                          ButtonSegment<int>(
+                            value: 1,
+                            label: Text('Low'),
+                            icon: Icon(Icons.low_priority, color: Colors.green),
+                          ),
+                          ButtonSegment<int>(
+                            value: 2,
+                            label: Text('Medium'),
+                            icon:
+                                Icon(Icons.priority_high, color: Colors.orange),
+                          ),
+                          ButtonSegment<int>(
+                            value: 3,
+                            label: Text('High'),
+                            icon:
+                                Icon(Icons.warning_rounded, color: Colors.red),
+                          ),
+                        ],
+                        selected: {controller.priority.value},
+                        onSelectionChanged: (Set<int> selection) {
+                          if (selection.isNotEmpty) {
+                            controller.setPriority(selection.first);
+                          }
+                        },
                       ),
-                      ButtonSegment<int>(
-                        value: 2,
-                        label: Text('Medium'),
-                        icon: Icon(Icons.priority_high, color: Colors.orange),
-                      ),
-                      ButtonSegment<int>(
-                        value: 3,
-                        label: Text('High'),
-                        icon: Icon(Icons.warning_rounded, color: Colors.red),
-                      ),
-                    ],
-                    selected: {controller.priority.value},
-                    onSelectionChanged: (Set<int> selection) {
-                      if (selection.isNotEmpty) {
-                        controller.setPriority(selection.first);
-                      }
-                    },
-                  ),
-                ),
-              )),
+                    ),
+                  )),
               const SizedBox(height: 24),
 
               // Due date selection
               _buildSectionLabel('Due Date (Optional)'),
               const SizedBox(height: 8),
               Obx(() => Card(
-                child: ListTile(
-                  leading: const Icon(Icons.calendar_today),
-                  title: Text(
-                    controller.dueDate.value != null
-                        ? DateFormat.yMMMd().format(controller.dueDate.value!)
-                        : 'No due date set',
-                    style: TextStyle(
-                      color: controller.dueDate.value != null
-                          ? null
-                          : Colors.grey.shade600,
+                    child: ListTile(
+                      leading: const Icon(Icons.calendar_today),
+                      title: Text(
+                        controller.dueDate.value != null
+                            ? DateFormat.yMMMd()
+                                .format(controller.dueDate.value!)
+                            : 'No due date set',
+                        style: TextStyle(
+                          color: controller.dueDate.value != null
+                              ? null
+                              : Colors.grey.shade600,
+                        ),
+                      ),
+                      trailing: controller.dueDate.value != null
+                          ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: controller.clearDueDate,
+                              tooltip: 'Clear due date',
+                            )
+                          : null,
+                      onTap: () => _selectDate(context),
                     ),
-                  ),
-                  trailing: controller.dueDate.value != null
-                      ? IconButton(
-                    icon: const Icon(Icons.clear),
-                    onPressed: controller.clearDueDate,
-                    tooltip: 'Clear due date',
-                  )
-                      : null,
-                  onTap: () => _selectDate(context),
-                ),
-              )),
+                  )),
               const SizedBox(height: 24),
 
               // Notes field
               _buildSectionLabel('Notes (Optional)'),
               const SizedBox(height: 8),
               Obx(() => TextField(
-                controller: TextEditingController(text: controller.notes.value)
-                  ..selection = TextSelection.fromPosition(
-                    TextPosition(offset: controller.notes.value.length),
-                  ),
-                decoration: InputDecoration(
-                  hintText: 'Add notes, details, or reminders...',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  alignLabelWithHint: true,
-                ),
-                onChanged: controller.setNotes,
-                maxLines: 5,
-                textCapitalization: TextCapitalization.sentences,
-              )),
+                    controller:
+                        TextEditingController(text: controller.notes.value)
+                          ..selection = TextSelection.fromPosition(
+                            TextPosition(offset: controller.notes.value.length),
+                          ),
+                    decoration: InputDecoration(
+                      hintText: 'Add notes, details, or reminders...',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      alignLabelWithHint: true,
+                    ),
+                    onChanged: controller.setNotes,
+                    maxLines: 5,
+                    textCapitalization: TextCapitalization.sentences,
+                  )),
               const SizedBox(height: 32),
 
               // Form validation summary (helpful feedback)
               Obx(() => !controller.isValid
                   ? Container(
-                padding: const EdgeInsets.all(12),
-                margin: const EdgeInsets.only(bottom: 16),
-                decoration: BoxDecoration(
-                  color: Colors.orange.shade50,
-                  border: Border.all(color: Colors.orange.shade200),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.info_outline, color: Colors.orange.shade700),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Please enter a title to continue',
-                      style: TextStyle(color: Colors.orange.shade700),
-                    ),
-                  ],
-                ),
-              )
+                      padding: const EdgeInsets.all(12),
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.shade50,
+                        border: Border.all(color: Colors.orange.shade200),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.info_outline,
+                              color: Colors.orange.shade700),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Please enter a title to continue',
+                            style: TextStyle(color: Colors.orange.shade700),
+                          ),
+                        ],
+                      ),
+                    )
                   : const SizedBox.shrink()),
 
               // Save button
               SizedBox(
                 width: double.infinity,
                 child: Obx(() => ElevatedButton(
-                  onPressed: controller.isValid ? () => _saveTodo(context) : null,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: Text(
-                    controller.isEditMode.value ? 'Update Todo' : 'Create Todo',
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                  ),
-                )),
+                      onPressed:
+                          controller.isValid ? () => _saveTodo(context) : null,
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        foregroundColor:
+                            Theme.of(context).colorScheme.onPrimary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        controller.isEditMode.value
+                            ? 'Update Todo'
+                            : 'Create Todo',
+                        style: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w600),
+                      ),
+                    )),
               ),
 
               // Cancel button

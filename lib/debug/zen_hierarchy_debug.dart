@@ -7,16 +7,14 @@ import '../utils/zen_scope_inspector.dart';
 /// Debug utilities for building and analyzing Zen scope hierarchies
 /// Contains debug-specific functionality like dumping and visualization
 class ZenHierarchyDebug {
-
   /// Build a complete hierarchy tree starting from root
   static Map<String, dynamic> buildHierarchyTree([ZenScope? startScope]) {
     final scope = startScope ?? Zen.rootScope;
 
     return {
       'scope': ZenScopeInspector.toDebugMap(scope),
-      'children': scope.childScopes
-          .map((child) => buildHierarchyTree(child))
-          .toList(),
+      'children':
+          scope.childScopes.map((child) => buildHierarchyTree(child)).toList(),
     };
   }
 
@@ -51,22 +49,26 @@ class ZenHierarchyDebug {
   }
 
   /// Recursively dump scope information with indentation
-  static void _dumpScopeRecursively(ZenScope scope, StringBuffer buffer, int depth) {
+  static void _dumpScopeRecursively(
+      ZenScope scope, StringBuffer buffer, int depth) {
     final indent = '  ' * depth;
     final scopeInfo = ZenScopeInspector.toDebugMap(scope);
     final scopeData = scopeInfo['scopeInfo'] as Map<String, dynamic>;
     final dependencies = scopeInfo['dependencies'] as Map<String, dynamic>;
 
     buffer.writeln('$indent📁 ${scopeData['name']}');
-    buffer.writeln('$indent   Status: ${scopeData['disposed'] ? 'Disposed' : 'Active'}');
-    buffer.writeln('$indent   Dependencies: ${dependencies['totalDependencies']}');
+    buffer.writeln(
+        '$indent   Status: ${scopeData['disposed'] ? 'Disposed' : 'Active'}');
+    buffer.writeln(
+        '$indent   Dependencies: ${dependencies['totalDependencies']}');
 
     if (dependencies['totalDependencies'] > 0) {
       final breakdown = ZenScopeInspector.getDependencyBreakdown(scope);
       final summary = breakdown['summary'] as Map<String, dynamic>;
 
       if (summary['totalControllers'] > 0) {
-        buffer.writeln('$indent   └─ Controllers: ${summary['totalControllers']}');
+        buffer.writeln(
+            '$indent   └─ Controllers: ${summary['totalControllers']}');
       }
       if (summary['totalServices'] > 0) {
         buffer.writeln('$indent   └─ Services: ${summary['totalServices']}');

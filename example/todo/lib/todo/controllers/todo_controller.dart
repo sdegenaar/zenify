@@ -31,10 +31,16 @@ class TodoController extends ZenController {
 
     // Apply search filter
     if (searchQuery.value.isNotEmpty) {
-      filtered = filtered.where((todo) => 
-        todo.title.toLowerCase().contains(searchQuery.value.toLowerCase()) ||
-        (todo.notes?.toLowerCase().contains(searchQuery.value.toLowerCase()) ?? false)
-      ).toList();
+      filtered = filtered
+          .where((todo) =>
+              todo.title
+                  .toLowerCase()
+                  .contains(searchQuery.value.toLowerCase()) ||
+              (todo.notes
+                      ?.toLowerCase()
+                      .contains(searchQuery.value.toLowerCase()) ??
+                  false))
+          .toList();
     }
 
     // Apply status filter
@@ -153,7 +159,8 @@ class TodoController extends ZenController {
   }
 
   /// Adds a new todo
-  Future<void> addTodo(String title, {int priority = 1, DateTime? dueDate, String? notes}) async {
+  Future<void> addTodo(String title,
+      {int priority = 1, DateTime? dueDate, String? notes}) async {
     if (title.trim().isEmpty) return;
 
     try {
@@ -201,7 +208,8 @@ class TodoController extends ZenController {
         isCompleted: !todo.isCompleted,
         updatedAt: DateTime.now(),
       );
-      statusMessage.value = todo.isCompleted ? 'Todo marked as active' : 'Todo completed';
+      statusMessage.value =
+          todo.isCompleted ? 'Todo marked as active' : 'Todo completed';
     }
   }
 

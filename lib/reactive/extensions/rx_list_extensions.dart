@@ -33,7 +33,8 @@ extension RxListExtensions<T> on Rx<List<T>> {
   RxResult<void> tryInsert(int index, T element) {
     return RxResult.tryExecute(() {
       if (index < 0 || index > value.length) {
-        throw RxException('Invalid index: $index for list of length ${value.length}');
+        throw RxException(
+            'Invalid index: $index for list of length ${value.length}');
       }
       final newList = [...value];
       newList.insert(index, element);
@@ -45,7 +46,8 @@ extension RxListExtensions<T> on Rx<List<T>> {
   RxResult<void> tryInsertAll(int index, Iterable<T> iterable) {
     return RxResult.tryExecute(() {
       if (index < 0 || index > value.length) {
-        throw RxException('Invalid index: $index for list of length ${value.length}');
+        throw RxException(
+            'Invalid index: $index for list of length ${value.length}');
       }
       final newList = [...value];
       newList.insertAll(index, iterable);
@@ -57,7 +59,8 @@ extension RxListExtensions<T> on Rx<List<T>> {
   RxResult<T> tryRemoveAt(int index) {
     return RxResult.tryExecute(() {
       if (index < 0 || index >= value.length) {
-        throw RxException('Invalid index: $index for list of length ${value.length}');
+        throw RxException(
+            'Invalid index: $index for list of length ${value.length}');
       }
       final newList = [...value];
       final removed = newList.removeAt(index);
@@ -70,7 +73,8 @@ extension RxListExtensions<T> on Rx<List<T>> {
   RxResult<T> tryElementAt(int index) {
     return RxResult.tryExecute(() {
       if (index < 0 || index >= value.length) {
-        throw RxException('Index $index out of bounds for list of length ${value.length}');
+        throw RxException(
+            'Index $index out of bounds for list of length ${value.length}');
       }
       return value[index];
     }, 'get element at index $index');
@@ -80,7 +84,8 @@ extension RxListExtensions<T> on Rx<List<T>> {
   RxResult<void> trySetAt(int index, T element) {
     return RxResult.tryExecute(() {
       if (index < 0 || index >= value.length) {
-        throw RxException('Invalid index: $index for list of length ${value.length}');
+        throw RxException(
+            'Invalid index: $index for list of length ${value.length}');
       }
       final newList = [...value];
       newList[index] = element;
@@ -142,10 +147,12 @@ extension RxListExtensions<T> on Rx<List<T>> {
   RxResult<void> tryReplaceRange(int start, int end, Iterable<T> replacements) {
     return RxResult.tryExecute(() {
       if (start < 0 || start > value.length) {
-        throw RxException('Invalid start index: $start for list of length ${value.length}');
+        throw RxException(
+            'Invalid start index: $start for list of length ${value.length}');
       }
       if (end < start || end > value.length) {
-        throw RxException('Invalid end index: $end for list of length ${value.length}');
+        throw RxException(
+            'Invalid end index: $end for list of length ${value.length}');
       }
       final newList = [...value];
       newList.replaceRange(start, end, replacements);
@@ -157,7 +164,8 @@ extension RxListExtensions<T> on Rx<List<T>> {
   RxResult<void> tryUpdateAt(int index, T element) {
     return RxResult.tryExecute(() {
       if (index < 0 || index >= value.length) {
-        throw RxException('Invalid index: $index for list of length ${value.length}');
+        throw RxException(
+            'Invalid index: $index for list of length ${value.length}');
       }
       final newList = [...value];
       newList[index] = element;
@@ -168,7 +176,8 @@ extension RxListExtensions<T> on Rx<List<T>> {
   /// Replace all occurrences with error handling
   RxResult<void> tryReplaceAll(T oldElement, T newElement) {
     return RxResult.tryExecute(() {
-      final newList = value.map((e) => e == oldElement ? newElement : e).toList();
+      final newList =
+          value.map((e) => e == oldElement ? newElement : e).toList();
       value = newList;
     }, 'replace all occurrences');
   }
@@ -332,19 +341,19 @@ extension RxListExtensions<T> on Rx<List<T>> {
     return value.isNotEmpty;
   }
 
-  /// Get first element (throws if empty - matches List<T>.first behavior)
+  /// Get first element (throws if empty - matches `List<T>.first` behavior)
   T get first {
     RxTracking.track(this);
     return value.first;
   }
 
-  /// Get last element (throws if empty - matches List<T>.last behavior)
+  /// Get last element (throws if empty - matches `List<T>.last` behavior)
   T get last {
     RxTracking.track(this);
     return value.last;
   }
 
-  /// Get single element (throws if empty or more than one - matches List<T>.single behavior)
+  /// Get single element (throws if empty or more than one - matches `List<T>.single` behavior)
   T get single {
     RxTracking.track(this);
     return value.single;

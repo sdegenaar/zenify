@@ -59,18 +59,14 @@ class BenchmarkModule extends ZenModule {
   @override
   void register(ZenScope scope) {
     // Use put() instead of register()
-    scope.put<SimpleDependency>(
-        SimpleDependency(moduleId),
-        tag: 'simple$moduleId'
-    );
+    scope.put<SimpleDependency>(SimpleDependency(moduleId),
+        tag: 'simple$moduleId');
 
     final simple = SimpleDependency(moduleId * 10);
     scope.put<SimpleDependency>(simple, tag: 'base$moduleId');
 
-    scope.put<NestedDependency>(
-        NestedDependency(simple, moduleId),
-        tag: 'nested$moduleId'
-    );
+    scope.put<NestedDependency>(NestedDependency(simple, moduleId),
+        tag: 'nested$moduleId');
   }
 }
 
@@ -94,7 +90,7 @@ class BenchmarkResult {
   @override
   String toString() =>
       '$name: ${operationsPerSecond.toStringAsFixed(2)} ops/sec, '
-          '${avgMicrosecondsPerOperation.toStringAsFixed(2)} microseconds per op';
+      '${avgMicrosecondsPerOperation.toStringAsFixed(2)} microseconds per op';
 }
 
 // Global benchmark tracking
@@ -126,17 +122,22 @@ class BenchmarkTracker {
         final status = result.errorRate > 0 ? '⚠️ ' : '✅';
         debugPrint('   $status ${result.toString()}');
         if (result.errorRate > 0) {
-          debugPrint('      └─ Error rate: ${result.errorRate.toStringAsFixed(1)}%');
+          debugPrint(
+              '      └─ Error rate: ${result.errorRate.toStringAsFixed(1)}%');
         }
       }
 
       // Find fastest and slowest
-      _results.sort((a, b) => b.operationsPerSecond.compareTo(a.operationsPerSecond));
+      _results.sort(
+          (a, b) => b.operationsPerSecond.compareTo(a.operationsPerSecond));
       debugPrint('');
-      debugPrint('🥇 Fastest: ${_results.first.name} (${_results.first.operationsPerSecond.toStringAsFixed(2)} ops/sec)');
-      debugPrint('🐌 Slowest: ${_results.last.name} (${_results.last.operationsPerSecond.toStringAsFixed(2)} ops/sec)');
+      debugPrint(
+          '🥇 Fastest: ${_results.first.name} (${_results.first.operationsPerSecond.toStringAsFixed(2)} ops/sec)');
+      debugPrint(
+          '🐌 Slowest: ${_results.last.name} (${_results.last.operationsPerSecond.toStringAsFixed(2)} ops/sec)');
       debugPrint('');
-      debugPrint('📖 Legend: ops/sec = operations per second, microseconds = μs');
+      debugPrint(
+          '📖 Legend: ops/sec = operations per second, microseconds = μs');
     }
     debugPrint('════════════════════════════════════════════════════════════');
     debugPrint('');
@@ -175,7 +176,8 @@ void main() {
   });
 
   group('Dependency Resolution Benchmarks', () {
-    BenchmarkResult runBenchmark(String name, int iterations, Function() benchmarkFn) {
+    BenchmarkResult runBenchmark(
+        String name, int iterations, Function() benchmarkFn) {
       // Log benchmark start
       debugPrint('🔄 Running: $name ($iterations iterations)...');
 
@@ -232,15 +234,18 @@ void main() {
       }
       stopwatch.stop();
 
-      final result = BenchmarkResult(name, iterations, stopwatch.elapsed, errorCount);
+      final result =
+          BenchmarkResult(name, iterations, stopwatch.elapsed, errorCount);
 
       // Log results immediately after timing
       final status = errorCount > 0 ? '⚠️ ' : '✅';
-      debugPrint('   $status ${result.operationsPerSecond.toStringAsFixed(2)} ops/sec '
+      debugPrint(
+          '   $status ${result.operationsPerSecond.toStringAsFixed(2)} ops/sec '
           '(${result.avgMicrosecondsPerOperation.toStringAsFixed(2)} microseconds per op)');
 
       if (errorCount > 0) {
-        debugPrint('   └─ $errorCount/$iterations errors (${result.errorRate.toStringAsFixed(1)}%)');
+        debugPrint(
+            '   └─ $errorCount/$iterations errors (${result.errorRate.toStringAsFixed(1)}%)');
       }
 
       // Track result for summary
@@ -260,7 +265,8 @@ void main() {
 
       // Performance threshold check
       if (result.operationsPerSecond < 1000) {
-        debugPrint('   ⚠️  Performance warning: Registration slower than expected');
+        debugPrint(
+            '   ⚠️  Performance warning: Registration slower than expected');
       }
     });
 
@@ -275,7 +281,8 @@ void main() {
       expect(result.operationsPerSecond > 0, true);
 
       if (result.operationsPerSecond < 5000) {
-        debugPrint('   ⚠️  Performance warning: Resolution slower than expected');
+        debugPrint(
+            '   ⚠️  Performance warning: Resolution slower than expected');
       }
     });
 
@@ -385,11 +392,8 @@ void main() {
         }
 
         // Create complex dependency
-        final complex = ComplexDependency(
-            dependencies,
-            {'count': dependencies.length, 'version': 1},
-            'BenchmarkComplex'
-        );
+        final complex = ComplexDependency(dependencies,
+            {'count': dependencies.length, 'version': 1}, 'BenchmarkComplex');
         Zen.put<ComplexDependency>(complex);
 
         // Access it
@@ -483,7 +487,6 @@ void main() {
           child.find<SimpleDependency>(tag: 'level1'); // From grandparent
           child.find<SimpleDependency>(tag: 'level2'); // From parent
           child.find<SimpleDependency>(tag: 'level3'); // From self
-
         } finally {
           child.dispose();
           parent.dispose();
@@ -507,18 +510,19 @@ void main() {
 
             // Register multiple dependencies per scope
             for (int j = 0; j < 10; j++) {
-              scope.put<SimpleDependency>(SimpleDependency(i * 10 + j), tag: 'stress_${i}_$j');
+              scope.put<SimpleDependency>(SimpleDependency(i * 10 + j),
+                  tag: 'stress_${i}_$j');
             }
           }
 
           // Access dependencies across all scopes
           for (int i = 0; i < 10; i++) {
             for (int j = 0; j < 10; j++) {
-              final dep = scopes[i].find<SimpleDependency>(tag: 'stress_${i}_$j');
+              final dep =
+                  scopes[i].find<SimpleDependency>(tag: 'stress_${i}_$j');
               expect(dep?.id, i * 10 + j);
             }
           }
-
         } finally {
           // Clean up all scopes
           for (final scope in scopes) {

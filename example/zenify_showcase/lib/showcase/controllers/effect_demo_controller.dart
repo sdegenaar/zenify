@@ -27,7 +27,8 @@ class EffectDemoController extends ZenController {
   // Updated methods to use the getter
   Future<void> runBasicEffect() async {
     await basicEffect.run(() async {
-      final result = await _demoService.fetchData(delay: const Duration(seconds: 2));
+      final result =
+          await _demoService.fetchData(delay: const Duration(seconds: 2));
       return result;
     });
   }

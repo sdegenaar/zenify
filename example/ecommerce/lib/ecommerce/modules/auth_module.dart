@@ -12,12 +12,12 @@ class AuthModule extends ZenModule {
   void register(ZenScope scope) {
     // Find the AuthService from the parent scope
     final authService = Zen.find<AuthService>();
-    
+
     // Register controllers for this module
     scope.putLazy<LoginController>(
       () => LoginController(authService: authService),
     );
-    
+
     scope.putLazy<RegisterController>(
       () => RegisterController(authService: authService),
     );
@@ -29,7 +29,7 @@ class AuthModule extends ZenModule {
       ZenLogger.logInfo('AuthModule initialized');
     }
   }
-  
+
   @override
   Future<void> onDispose(ZenScope scope) async {
     if (ZenConfig.enableDebugLogs) {

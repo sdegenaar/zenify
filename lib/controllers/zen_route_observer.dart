@@ -1,4 +1,3 @@
-
 // lib/zenify/zen_route_observer.dart
 import 'package:flutter/material.dart';
 import '../core/zen_metrics.dart';
@@ -29,7 +28,8 @@ class ZenRouteObserver extends NavigatorObserver {
   ZenRouteObserver({this.onRouteChanged});
 
   /// Register controllers for a specific route
-  void registerForRoute(String routeName, List<Type> controllerTypes, {ZenScope? scope}) {
+  void registerForRoute(String routeName, List<Type> controllerTypes,
+      {ZenScope? scope}) {
     _routeControllers[routeName] = controllerTypes;
 
     if (scope != null) {
@@ -37,12 +37,14 @@ class ZenRouteObserver extends NavigatorObserver {
     }
 
     if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('Registered ${controllerTypes.length} controllers for route $routeName${scope != null ? ' in scope ${scope.name ?? scope.id}' : ''}');
+      ZenLogger.logDebug(
+          'Registered ${controllerTypes.length} controllers for route $routeName${scope != null ? ' in scope ${scope.name ?? scope.id}' : ''}');
     }
   }
 
   /// Register tagged controllers for a specific route
-  void registerTaggedForRoute(String routeName, List<String> controllerTags, {ZenScope? scope}) {
+  void registerTaggedForRoute(String routeName, List<String> controllerTags,
+      {ZenScope? scope}) {
     _routeControllerTags[routeName] = controllerTags;
 
     if (scope != null) {
@@ -50,7 +52,8 @@ class ZenRouteObserver extends NavigatorObserver {
     }
 
     if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('Registered ${controllerTags.length} tagged controllers for route $routeName${scope != null ? ' in scope ${scope.name ?? scope.id}' : ''}');
+      ZenLogger.logDebug(
+          'Registered ${controllerTags.length} tagged controllers for route $routeName${scope != null ? ' in scope ${scope.name ?? scope.id}' : ''}');
     }
   }
 
@@ -74,7 +77,8 @@ class ZenRouteObserver extends NavigatorObserver {
     onRouteChanged?.call(newRoute, oldRoute);
 
     if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('Route replaced: ${oldRoute?.settings.name ?? 'unnamed'} -> ${newRoute?.settings.name ?? 'unnamed'}');
+      ZenLogger.logDebug(
+          'Route replaced: ${oldRoute?.settings.name ?? 'unnamed'} -> ${newRoute?.settings.name ?? 'unnamed'}');
     }
   }
 
@@ -120,7 +124,8 @@ class ZenRouteObserver extends NavigatorObserver {
           }
 
           if (ZenConfig.enableDebugLogs) {
-            ZenLogger.logDebug('Auto-disposing controller $controllerType for route $routeName: ${disposed ? 'success' : 'not found'}');
+            ZenLogger.logDebug(
+                'Auto-disposing controller $controllerType for route $routeName: ${disposed ? 'success' : 'not found'}');
           }
 
           // Track metrics
@@ -144,7 +149,8 @@ class ZenRouteObserver extends NavigatorObserver {
           }
 
           if (ZenConfig.enableDebugLogs) {
-            ZenLogger.logDebug('Auto-disposing tagged controller \'$tag\' for route $routeName: ${disposed ? 'success' : 'not found'}');
+            ZenLogger.logDebug(
+                'Auto-disposing tagged controller \'$tag\' for route $routeName: ${disposed ? 'success' : 'not found'}');
           }
         }
       }
@@ -153,9 +159,9 @@ class ZenRouteObserver extends NavigatorObserver {
       if (routeScope != null && _isRouteSpecificScope(routeName, routeScope)) {
         _cleanupRouteScope(routeName, routeScope);
       }
-
     } catch (e, stack) {
-      ZenLogger.logError('Error disposing controllers for route $routeName', e, stack);
+      ZenLogger.logError(
+          'Error disposing controllers for route $routeName', e, stack);
     }
   }
 
@@ -165,7 +171,8 @@ class ZenRouteObserver extends NavigatorObserver {
       return scope.deleteByTag(tag, force: true);
     } catch (e) {
       if (ZenConfig.enableDebugLogs) {
-        ZenLogger.logWarning('Failed to delete tag \'$tag\' from scope ${scope.name ?? scope.id}: $e');
+        ZenLogger.logWarning(
+            'Failed to delete tag \'$tag\' from scope ${scope.name ?? scope.id}: $e');
       }
       return false;
     }
@@ -191,7 +198,8 @@ class ZenRouteObserver extends NavigatorObserver {
           ZenLogger.logDebug('Disposed empty route scope for $routeName');
         }
       } else if (ZenConfig.enableDebugLogs) {
-        ZenLogger.logDebug('Route scope for $routeName still has ${dependencies.length} dependencies, keeping alive');
+        ZenLogger.logDebug(
+            'Route scope for $routeName still has ${dependencies.length} dependencies, keeping alive');
       }
     } catch (e) {
       ZenLogger.logError('Failed to cleanup route scope for $routeName', e);
@@ -212,7 +220,8 @@ class ZenRouteObserver extends NavigatorObserver {
   /// Get debug information about registered routes
   Map<String, dynamic> getDebugInfo() {
     return {
-      'routeControllers': _routeControllers.map((k, v) => MapEntry(k, v.map((t) => t.toString()).toList())),
+      'routeControllers': _routeControllers
+          .map((k, v) => MapEntry(k, v.map((t) => t.toString()).toList())),
       'routeControllerTags': Map.from(_routeControllerTags),
       'routeScopes': _routeScopes.map((k, v) => MapEntry(k, v.name ?? v.id)),
     };

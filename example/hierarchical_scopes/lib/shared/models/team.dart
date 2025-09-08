@@ -66,5 +66,6 @@ class Team {
   }
 
   @override
-  String toString() => 'Team(id: $id, name: $name, departmentId: $departmentId, memberCount: $memberCount)';
+  String toString() =>
+      'Team(id: $id, name: $name, departmentId: $departmentId, memberCount: $memberCount)';
 }

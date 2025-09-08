@@ -59,7 +59,7 @@ class WorkerDemoController extends ZenController {
     // Debounce worker - waits for inactivity
     _debounceHandle = debounce(
       counter,
-          (value) {
+      (value) {
         debounceCount.value++;
         if (ZenConfig.enableDebugLogs) {
           ZenLogger.logDebug('Debounce worker fired: counter = $value');
@@ -71,7 +71,7 @@ class WorkerDemoController extends ZenController {
     // Throttle worker - limits frequency
     _throttleHandle = throttle(
       counter,
-          (value) {
+      (value) {
         throttleCount.value++;
         if (ZenConfig.enableDebugLogs) {
           ZenLogger.logDebug('Throttle worker fired: counter = $value');
@@ -84,18 +84,20 @@ class WorkerDemoController extends ZenController {
     _onceHandle = once(counter, (value) {
       onceCount.value++;
       if (ZenConfig.enableDebugLogs) {
-        ZenLogger.logDebug('Once worker fired: counter = $value (will not fire again)');
+        ZenLogger.logDebug(
+            'Once worker fired: counter = $value (will not fire again)');
       }
     });
 
     // Condition worker - fires only when condition is met
     _conditionHandle = condition(
       counter,
-          (value) => value.isEven, // Only fire when counter is even
-          (value) {
+      (value) => value.isEven, // Only fire when counter is even
+      (value) {
         conditionCount.value++;
         if (ZenConfig.enableDebugLogs) {
-          ZenLogger.logDebug('Condition worker fired: counter = $value (even number)');
+          ZenLogger.logDebug(
+              'Condition worker fired: counter = $value (even number)');
         }
       },
     );
@@ -103,7 +105,7 @@ class WorkerDemoController extends ZenController {
     // Interval worker - fires periodically
     _intervalHandle = interval(
       counter,
-          (value) {
+      (value) {
         intervalCount.value++;
         if (ZenConfig.enableDebugLogs) {
           ZenLogger.logDebug('Interval worker fired: counter = $value');

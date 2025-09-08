@@ -37,7 +37,8 @@ class DepartmentsPage extends ZenView<DepartmentsController> {
                   onPressed: hasSearchQuery
                       ? controller.clearSearch
                       : () => _showSearchDialog(context, controller),
-                  tooltip: hasSearchQuery ? 'Clear Search' : 'Search Departments',
+                  tooltip:
+                      hasSearchQuery ? 'Clear Search' : 'Search Departments',
                 ),
                 // Refresh button with ZenEffectBuilder
                 ZenEffectBuilder<bool>(
@@ -103,29 +104,31 @@ class DepartmentsPage extends ZenView<DepartmentsController> {
 
             return errorMessage.isNotEmpty
                 ? Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(12),
-              color: Colors.red.shade100,
-              child: Row(
-                children: [
-                  Icon(Icons.error_outline, color: Colors.red.shade700, size: 20),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      errorMessage,
-                      style: TextStyle(
-                        color: Colors.red.shade700,
-                        fontWeight: FontWeight.w500,
-                      ),
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    color: Colors.red.shade100,
+                    child: Row(
+                      children: [
+                        Icon(Icons.error_outline,
+                            color: Colors.red.shade700, size: 20),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            errorMessage,
+                            style: TextStyle(
+                              color: Colors.red.shade700,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.close,
+                              color: Colors.red.shade700, size: 18),
+                          onPressed: () => controller.lastError.value = '',
+                        ),
+                      ],
                     ),
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.close, color: Colors.red.shade700, size: 18),
-                    onPressed: () => controller.lastError.value = '',
-                  ),
-                ],
-              ),
-            )
+                  )
                 : const SizedBox.shrink();
           },
         ),
@@ -137,42 +140,46 @@ class DepartmentsPage extends ZenView<DepartmentsController> {
 
             return searchQuery.isNotEmpty
                 ? Container(
-              padding: const EdgeInsets.all(16),
-              color: Colors.blue.shade50,
-              child: Row(
-                children: [
-                  // Search effect status indicator
-                  ZenEffectBuilder<String>(
-                    effect: controller.searchEffect,
-                    onInitial: () => Icon(Icons.search, color: Colors.blue.shade700, size: 20),
-                    onLoading: () => SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.blue.shade700,
-                      ),
+                    padding: const EdgeInsets.all(16),
+                    color: Colors.blue.shade50,
+                    child: Row(
+                      children: [
+                        // Search effect status indicator
+                        ZenEffectBuilder<String>(
+                          effect: controller.searchEffect,
+                          onInitial: () => Icon(Icons.search,
+                              color: Colors.blue.shade700, size: 20),
+                          onLoading: () => SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.blue.shade700,
+                            ),
+                          ),
+                          onSuccess: (result) => Icon(Icons.search,
+                              color: Colors.green.shade700, size: 20),
+                          onError: (error) => Icon(Icons.search_off,
+                              color: Colors.red.shade700, size: 20),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Searching for: "$searchQuery"',
+                            style: TextStyle(
+                              color: Colors.blue.shade700,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.close,
+                              color: Colors.blue.shade700, size: 20),
+                          onPressed: controller.clearSearch,
+                        ),
+                      ],
                     ),
-                    onSuccess: (result) => Icon(Icons.search, color: Colors.green.shade700, size: 20),
-                    onError: (error) => Icon(Icons.search_off, color: Colors.red.shade700, size: 20),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Searching for: "$searchQuery"',
-                      style: TextStyle(
-                        color: Colors.blue.shade700,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.close, color: Colors.blue.shade700, size: 20),
-                    onPressed: controller.clearSearch,
-                  ),
-                ],
-              ),
-            )
+                  )
                 : const SizedBox.shrink();
           },
         ),
@@ -312,11 +319,12 @@ class DepartmentsPage extends ZenView<DepartmentsController> {
     });
   }
 
-  Widget _buildDepartmentCard(Department department, DepartmentsController controller) {
+  Widget _buildDepartmentCard(
+      Department department, DepartmentsController controller) {
     final teamCount = department.teams.length;
     final totalMembers = department.teams.fold<int>(
       0,
-          (sum, team) => sum + team.members.length,
+      (sum, team) => sum + team.members.length,
     );
 
     return Card(
@@ -366,7 +374,8 @@ class DepartmentsPage extends ZenView<DepartmentsController> {
                   if (totalMembers > 0)
                     _buildInfoChip(
                       icon: Icons.person,
-                      label: '$totalMembers ${totalMembers == 1 ? 'member' : 'members'}',
+                      label:
+                          '$totalMembers ${totalMembers == 1 ? 'member' : 'members'}',
                       color: Colors.green,
                     ),
                 ],
@@ -415,16 +424,16 @@ class DepartmentsPage extends ZenView<DepartmentsController> {
           onPressed: controller.isLoading.value
               ? null
               : () => _showAddDepartmentDialog(context, controller),
-          backgroundColor: controller.isLoading.value
-              ? Colors.grey
-              : Colors.blue.shade700,
+          backgroundColor:
+              controller.isLoading.value ? Colors.grey : Colors.blue.shade700,
           child: const Icon(Icons.add),
         );
       },
     );
   }
 
-  void _showSearchDialog(BuildContext context, DepartmentsController controller) {
+  void _showSearchDialog(
+      BuildContext context, DepartmentsController controller) {
     final textController = TextEditingController();
     textController.text = controller.searchQuery.value;
 
@@ -461,7 +470,8 @@ class DepartmentsPage extends ZenView<DepartmentsController> {
     );
   }
 
-  void _showAddDepartmentDialog(BuildContext context, DepartmentsController controller) {
+  void _showAddDepartmentDialog(
+      BuildContext context, DepartmentsController controller) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(

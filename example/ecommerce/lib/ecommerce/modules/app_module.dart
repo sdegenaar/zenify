@@ -15,12 +15,12 @@ class AppModule extends ZenModule {
       AuthService(),
       permanent: true,
     );
-    
+
     scope.put<CartService>(
       CartService(),
       permanent: true,
     );
-    
+
     scope.put<ProductService>(
       ProductService(),
       permanent: true,
@@ -32,7 +32,7 @@ class AppModule extends ZenModule {
     if (ZenConfig.enableDebugLogs) {
       ZenLogger.logInfo('AppModule initialized');
     }
-    
+
     // Pre-load products
     final productService = scope.find<ProductService>();
     await productService?.getProducts();

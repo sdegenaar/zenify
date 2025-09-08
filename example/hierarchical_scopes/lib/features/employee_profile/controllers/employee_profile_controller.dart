@@ -1,4 +1,3 @@
-
 import 'package:zenify/zenify.dart';
 
 import '../../../app/services/cache_service.dart';
@@ -26,7 +25,8 @@ class EmployeeProfileController extends ZenController {
 
   // ZenEffects for tracking operations - using createEffect pattern
   late final loadEmployeeEffect = createEffect<Employee>(name: 'loadEmployee');
-  late final loadActivitiesEffect = createEffect<List<Map<String, dynamic>>>(name: 'loadActivities');
+  late final loadActivitiesEffect =
+      createEffect<List<Map<String, dynamic>>>(name: 'loadActivities');
   late final refreshEffect = createEffect<bool>(name: 'refresh');
   late final navigationEffect = createEffect<void>(name: 'navigation');
 
@@ -65,7 +65,8 @@ class EmployeeProfileController extends ZenController {
     // Load employee profile
     _loadEmployeeProfile();
 
-    ZenLogger.logInfo('👤 EmployeeProfileController initialized with ZenEffects');
+    ZenLogger.logInfo(
+        '👤 EmployeeProfileController initialized with ZenEffects');
   }
 
   /// Initialize effect watchers to respond to effect state changes
@@ -76,7 +77,8 @@ class EmployeeProfileController extends ZenController {
       onData: (employee) {
         if (employee != null) {
           _employee.value = employee;
-          ZenLogger.logInfo('👤 Load employee effect completed: ${employee.name}');
+          ZenLogger.logInfo(
+              '👤 Load employee effect completed: ${employee.name}');
         }
       },
       onError: (error) {
@@ -93,7 +95,8 @@ class EmployeeProfileController extends ZenController {
       onData: (activities) {
         if (activities != null) {
           _activities.value = activities;
-          ZenLogger.logInfo('📋 Load activities effect completed: ${activities.length} activities');
+          ZenLogger.logInfo(
+              '📋 Load activities effect completed: ${activities.length} activities');
         }
       },
       onError: (error) {
@@ -156,7 +159,8 @@ class EmployeeProfileController extends ZenController {
       // Load employee activities with effect tracking
       await loadActivitiesEffect.run(() async {
         try {
-          final activities = await _employeeProfileService.getEmployeeActivities(employeeId);
+          final activities =
+              await _employeeProfileService.getEmployeeActivities(employeeId);
           ZenLogger.logInfo('Activities loaded: ${activities.length} items');
           return activities;
         } catch (e) {
@@ -167,24 +171,29 @@ class EmployeeProfileController extends ZenController {
               'id': '1',
               'type': 'login',
               'description': 'Logged into system',
-              'timestamp': DateTime.now().subtract(const Duration(hours: 2)).toIso8601String(),
+              'timestamp': DateTime.now()
+                  .subtract(const Duration(hours: 2))
+                  .toIso8601String(),
             },
             {
               'id': '2',
               'type': 'task_completed',
               'description': 'Completed quarterly report',
-              'timestamp': DateTime.now().subtract(const Duration(hours: 5)).toIso8601String(),
+              'timestamp': DateTime.now()
+                  .subtract(const Duration(hours: 5))
+                  .toIso8601String(),
             },
             {
               'id': '3',
               'type': 'meeting',
               'description': 'Attended team standup',
-              'timestamp': DateTime.now().subtract(const Duration(hours: 1)).toIso8601String(),
+              'timestamp': DateTime.now()
+                  .subtract(const Duration(hours: 1))
+                  .toIso8601String(),
             },
           ];
         }
       });
-
     } catch (e) {
       _lastError.value = 'Error loading employee profile: $e';
       ZenLogger.logError('Error loading employee profile: $e');
@@ -253,7 +262,8 @@ class EmployeeProfileController extends ZenController {
   String get employeePosition => _employee.value?.position ?? '';
 
   /// Get employee department ID safely
-  String get employeeDepartmentId => _employee.value?.departmentId ?? departmentId;
+  String get employeeDepartmentId =>
+      _employee.value?.departmentId ?? departmentId;
 
   /// Get employee phone safely
   String get employeePhone => _employee.value?.phone ?? '';

@@ -1,4 +1,3 @@
-
 // test/di/zen_reactive_test.dart
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zenify/zenify.dart';
@@ -35,7 +34,6 @@ class CounterService {
     ZenReactiveSystem.instance.notifyListeners<CounterService>(_tag);
   }
 }
-
 
 class TaggedService {
   final String name;
@@ -79,7 +77,7 @@ void main() {
         bool listenerCalled = false;
         final subscription = reactiveSystem.listen<ReactiveTestService>(
           ReactiveTestService,
-              (value) => listenerCalled = true,
+          (value) => listenerCalled = true,
         );
 
         // Initial call should trigger listener
@@ -101,7 +99,7 @@ void main() {
 
         final subscription = reactiveSystem.listen<ReactiveTestService>(
           ReactiveTestService,
-              (value) {},
+          (value) {},
         );
 
         subscription.close();
@@ -117,12 +115,12 @@ void main() {
 
         final sub1 = reactiveSystem.listen<ReactiveTestService>(
           ReactiveTestService,
-              (value) => callCount1++,
+          (value) => callCount1++,
         );
 
         final sub2 = reactiveSystem.listen<ReactiveTestService>(
           ReactiveTestService,
-              (value) => callCount2++,
+          (value) => callCount2++,
         );
 
         // Both should be called initially
@@ -167,7 +165,7 @@ void main() {
         int callCount = 0;
         final subscription = reactiveSystem.listen<ReactiveTestService>(
           ReactiveTestService,
-              (value) => callCount++,
+          (value) => callCount++,
         );
 
         // Initial call
@@ -193,7 +191,7 @@ void main() {
           final index = i;
           final sub = reactiveSystem.listen<ReactiveTestService>(
             ReactiveTestService,
-                (value) => callCounts[index]++,
+            (value) => callCounts[index]++,
           );
           subscriptions.add(sub);
         }
@@ -230,12 +228,12 @@ void main() {
 
         final sub1 = reactiveSystem.listen<TaggedService>(
           'TaggedService:first',
-              (service) => received1 = service.name,
+          (service) => received1 = service.name,
         );
 
         final sub2 = reactiveSystem.listen<TaggedService>(
           'TaggedService:second',
-              (service) => received2 = service.name,
+          (service) => received2 = service.name,
         );
 
         // Initial calls
@@ -265,7 +263,7 @@ void main() {
         String? received;
         final subscription = reactiveSystem.listen<TaggedService>(
           'TaggedService:mytag',
-              (service) => received = service.name,
+          (service) => received = service.name,
         );
 
         expect(received, 'tagged');
@@ -285,7 +283,7 @@ void main() {
         // Listener that throws
         final errorSub = reactiveSystem.listen<ReactiveTestService>(
           ReactiveTestService,
-              (value) {
+          (value) {
             errorListenerCalled = true;
             throw Exception('Test error');
           },
@@ -294,7 +292,7 @@ void main() {
         // Normal listener
         final normalSub = reactiveSystem.listen<ReactiveTestService>(
           ReactiveTestService,
-              (value) => normalListenerCalled = true,
+          (value) => normalListenerCalled = true,
         );
 
         // Initial calls
@@ -326,7 +324,7 @@ void main() {
         String? received;
         final subscription = reactiveSystem.listen<ReactiveTestService>(
           ReactiveTestService,
-              (value) => received = value.value,
+          (value) => received = value.value,
         );
 
         // Should not crash, received should be null
@@ -346,7 +344,7 @@ void main() {
         expect(() {
           reactiveSystem.listen<ReactiveTestService>(
             ReactiveTestService,
-                (value) {
+            (value) {
               listenerCalled = true;
               throw Exception('Initial call error');
             },
@@ -371,7 +369,7 @@ void main() {
         for (int i = 0; i < 3; i++) {
           final sub = reactiveSystem.listen<ReactiveTestService>(
             ReactiveTestService,
-                (value) {},
+            (value) {},
           );
           subscriptions.add(sub);
         }
@@ -407,7 +405,7 @@ void main() {
 
           final sub = reactiveSystem.listen<ReactiveTestService>(
             'ReactiveTestService:service$i',
-                (value) {},
+            (value) {},
           );
           subscriptions.add(sub);
         }
@@ -427,7 +425,7 @@ void main() {
 
         final subscription = reactiveSystem.listen<ReactiveTestService>(
           ReactiveTestService,
-              (value) {},
+          (value) {},
         );
 
         final statsWithListeners = reactiveSystem.getMemoryStats();
@@ -444,8 +442,10 @@ void main() {
       test('should provide health status information', () {
         final health = reactiveSystem.getHealthStatus();
 
-        expect(health, containsPair('status', anyOf(['HEALTHY', 'WARNING', 'CRITICAL'])));
-        expect(health, containsPair('memoryPressure', anyOf(['LOW', 'MEDIUM', 'HIGH'])));
+        expect(health,
+            containsPair('status', anyOf(['HEALTHY', 'WARNING', 'CRITICAL'])));
+        expect(health,
+            containsPair('memoryPressure', anyOf(['LOW', 'MEDIUM', 'HIGH'])));
         expect(health, containsPair('errorRate', isA<String>()));
         expect(health, containsPair('recommendations', isA<List>()));
       });
@@ -458,7 +458,7 @@ void main() {
 
         final subscription = reactiveSystem.listen<ReactiveTestService>(
           ReactiveTestService,
-              (value) {},
+          (value) {},
         );
 
         final initialStats = reactiveSystem.getMemoryStats();
@@ -483,7 +483,7 @@ void main() {
 
         final subscription = reactiveSystem.listen<ReactiveTestService>(
           ReactiveTestService,
-              (value) {},
+          (value) {},
         );
 
         // Trigger enough notifications to hit maintenance threshold
@@ -506,7 +506,7 @@ void main() {
         int receivedCount = 0;
         final subscription = reactiveSystem.listen<CounterService>(
           CounterService,
-              (service) => receivedCount = service.count,
+          (service) => receivedCount = service.count,
         );
 
         // Initial value
@@ -528,7 +528,6 @@ void main() {
         subscription.dispose();
       });
 
-
       test('should work with multiple reactive services', () {
         final counter1 = CounterService('counter1'); // Pass tag to constructor
         final counter2 = CounterService('counter2'); // Pass tag to constructor
@@ -540,12 +539,12 @@ void main() {
 
         final sub1 = reactiveSystem.listen<CounterService>(
           'CounterService:counter1',
-              (service) => received1 = service.count,
+          (service) => received1 = service.count,
         );
 
         final sub2 = reactiveSystem.listen<CounterService>(
           'CounterService:counter2',
-              (service) => received2 = service.count,
+          (service) => received2 = service.count,
         );
 
         // Initial values
@@ -580,7 +579,7 @@ void main() {
         // With listeners
         final subscription = reactiveSystem.listen<ReactiveTestService>(
           ReactiveTestService,
-              (value) {},
+          (value) {},
         );
 
         dump = reactiveSystem.dumpListeners();
@@ -599,7 +598,7 @@ void main() {
         for (int i = 0; i < 3; i++) {
           final sub = reactiveSystem.listen<ReactiveTestService>(
             ReactiveTestService,
-                (value) {},
+            (value) {},
           );
           subscriptions.add(sub);
         }

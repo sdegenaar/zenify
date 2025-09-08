@@ -187,7 +187,8 @@ void main() {
       final allControllers = testScope.findAllOfType<TestController>();
 
       expect(allControllers.length, 3);
-      expect(allControllers, containsAll([controllerA, controllerB, controllerC]));
+      expect(
+          allControllers, containsAll([controllerA, controllerB, controllerC]));
 
       // Verify all controllers were auto-initialized
       expect(controllerA.isInitialized, isTrue);
@@ -219,15 +220,19 @@ void main() {
 
       // Test findAllOfType for each type
       final allTestControllers = testScope.findAllOfType<TestController>();
-      final allAnotherControllers = testScope.findAllOfType<AnotherTestController>();
+      final allAnotherControllers =
+          testScope.findAllOfType<AnotherTestController>();
       final allZenControllers = testScope.findAllOfType<ZenController>();
 
       expect(allTestControllers.length, 2);
       expect(allAnotherControllers.length, 2);
-      expect(allZenControllers.length, 4); // All controllers extend ZenController
+      expect(
+          allZenControllers.length, 4); // All controllers extend ZenController
 
-      expect(allTestControllers, containsAll([testController1, testController2]));
-      expect(allAnotherControllers, containsAll([anotherController1, anotherController2]));
+      expect(
+          allTestControllers, containsAll([testController1, testController2]));
+      expect(allAnotherControllers,
+          containsAll([anotherController1, anotherController2]));
 
       // Clean up
       testScope.dispose();
@@ -238,10 +243,14 @@ void main() {
       final controller = TestController();
       final afterCreation = DateTime.now();
 
-      expect(controller.createdAt.isAfter(beforeCreation) ||
-          controller.createdAt.isAtSameMomentAs(beforeCreation), isTrue);
-      expect(controller.createdAt.isBefore(afterCreation) ||
-          controller.createdAt.isAtSameMomentAs(afterCreation), isTrue);
+      expect(
+          controller.createdAt.isAfter(beforeCreation) ||
+              controller.createdAt.isAtSameMomentAs(beforeCreation),
+          isTrue);
+      expect(
+          controller.createdAt.isBefore(afterCreation) ||
+              controller.createdAt.isAtSameMomentAs(afterCreation),
+          isTrue);
     });
 
     test('should execute disposers when controller is disposed', () {
@@ -348,27 +357,32 @@ void main() {
       controller.startObservingAppLifecycle();
 
       // Simulate app lifecycle events
-      WidgetsBinding.instance.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      WidgetsBinding.instance
+          .handleAppLifecycleStateChanged(AppLifecycleState.inactive);
       expect(controller.onInactiveCalled, isTrue);
 
       controller.onInactiveCalled = false; // reset
 
-      WidgetsBinding.instance.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      WidgetsBinding.instance
+          .handleAppLifecycleStateChanged(AppLifecycleState.paused);
       expect(controller.onPauseCalled, isTrue);
 
       controller.onPauseCalled = false; // reset
 
-      WidgetsBinding.instance.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      WidgetsBinding.instance
+          .handleAppLifecycleStateChanged(AppLifecycleState.resumed);
       expect(controller.onResumeCalled, isTrue);
 
       controller.onResumeCalled = false; // reset
 
-      WidgetsBinding.instance.handleAppLifecycleStateChanged(AppLifecycleState.detached);
+      WidgetsBinding.instance
+          .handleAppLifecycleStateChanged(AppLifecycleState.detached);
       expect(controller.onDetachedCalled, isTrue);
 
       controller.onDetachedCalled = false; // reset
 
-      WidgetsBinding.instance.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+      WidgetsBinding.instance
+          .handleAppLifecycleStateChanged(AppLifecycleState.hidden);
       expect(controller.onHiddenCalled, isTrue);
 
       // Clean up

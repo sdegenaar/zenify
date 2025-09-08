@@ -462,7 +462,8 @@ void main() {
   });
 
   group('ZenModulePage Basic Functionality', () {
-    testWidgets('should create and provide scope to child widget', (tester) async {
+    testWidgets('should create and provide scope to child widget',
+        (tester) async {
       final module = BasicTestModule();
       ZenScope? capturedScope;
 
@@ -542,7 +543,9 @@ void main() {
   });
 
   group('ZenModulePage Hierarchical Scoping', () {
-    testWidgets('should create parent-child scope relationship with parent scope', (tester) async {
+    testWidgets(
+        'should create parent-child scope relationship with parent scope',
+        (tester) async {
       // First create parent scope directly via ZenScopeManager
       final parentModule = ParentTestModule();
       final parentScope = ZenScopeManager.getOrCreateScope(
@@ -570,7 +573,8 @@ void main() {
             ),
             scopeName: 'ChildScope',
             parentScope: parentScope,
-            useParentScope: true, // 🔥 This prevents the parent scope from being disposed
+            useParentScope:
+                true, // 🔥 This prevents the parent scope from being disposed
           ),
         ),
       );
@@ -597,7 +601,8 @@ void main() {
       expect(childScopes, contains('ChildScope'));
     });
 
-    testWidgets('should handle missing parent scope gracefully', (tester) async {
+    testWidgets('should handle missing parent scope gracefully',
+        (tester) async {
       final module = BasicTestModule();
 
       await tester.pumpWidget(
@@ -735,7 +740,9 @@ void main() {
   });
 
   group('ZenRoute Automatic Scope Cleanup', () {
-    testWidgets('should automatically clean up scopes when navigating back to routes with useParentScope=false', (tester) async {
+    testWidgets(
+        'should automatically clean up scopes when navigating back to routes with useParentScope=false',
+        (tester) async {
       // Track which controllers and services get disposed
       final disposedControllers = <String>[];
       final disposedServices = <String>[];
@@ -746,31 +753,42 @@ void main() {
           home: ZenRoute(
             moduleBuilder: () => HomeModule(disposedServices),
             page: HomePage(
-              onNavigateToDepartments: () => Navigator.of(tester.element(find.byType(HomePage))).push(
+              onNavigateToDepartments: () =>
+                  Navigator.of(tester.element(find.byType(HomePage))).push(
                 MaterialPageRoute(
                   builder: (context) => ZenRoute(
-                    moduleBuilder: () => DepartmentsModule(disposedControllers, disposedServices),
+                    moduleBuilder: () => DepartmentsModule(
+                        disposedControllers, disposedServices),
                     page: DepartmentsPage(
                       onNavigateToDetail: () => Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (context) => ZenRoute(
-                            moduleBuilder: () => DepartmentDetailModule(disposedControllers, disposedServices),
+                            moduleBuilder: () => DepartmentDetailModule(
+                                disposedControllers, disposedServices),
                             page: DepartmentDetailPage(
-                              onNavigateToEmployee: () => Navigator.of(context).push(
+                              onNavigateToEmployee: () =>
+                                  Navigator.of(context).push(
                                 MaterialPageRoute(
                                   builder: (context) => ZenRoute(
-                                    moduleBuilder: () => EmployeeModule(disposedControllers, disposedServices),
+                                    moduleBuilder: () => EmployeeModule(
+                                        disposedControllers, disposedServices),
                                     page: EmployeePage(
-                                      onNavigateHome: () => Navigator.of(context).pushAndRemoveUntil(
+                                      onNavigateHome: () =>
+                                          Navigator.of(context)
+                                              .pushAndRemoveUntil(
                                         MaterialPageRoute(
                                           builder: (context) => ZenRoute(
-                                            moduleBuilder: () => HomeModule(disposedServices),
-                                            page: const TestPage(content: 'Home Again'),
+                                            moduleBuilder: () =>
+                                                HomeModule(disposedServices),
+                                            page: const TestPage(
+                                                content: 'Home Again'),
                                             scopeName: 'HomeScope2',
-                                            useParentScope: false, // Reset point
+                                            useParentScope:
+                                                false, // Reset point
                                           ),
                                         ),
-                                            (route) => false, // Remove all previous routes
+                                        (route) =>
+                                            false, // Remove all previous routes
                                       ),
                                     ),
                                     scopeName: 'EmployeeScope',
@@ -844,13 +862,17 @@ void main() {
       expect(ZenScopeManager.getScope('EmployeeScope'), isNull);
 
       // Verify all controllers and services were disposed
-      expect(disposedControllers, containsAll(['departments', 'department-detail', 'employee']));
-      expect(disposedServices, containsAll(['departments', 'department-detail', 'employee']));
+      expect(disposedControllers,
+          containsAll(['departments', 'department-detail', 'employee']));
+      expect(disposedServices,
+          containsAll(['departments', 'department-detail', 'employee']));
 
       expect(find.text('Home Again'), findsOneWidget);
     });
 
-    testWidgets('should cleanup scopes via stack tracking when popping back to useParentScope=false route', (tester) async {
+    testWidgets(
+        'should cleanup scopes via stack tracking when popping back to useParentScope=false route',
+        (tester) async {
       ZenConfig.enableDebugLogs = true; // Enable to see cleanup logs
 
       // Simulate the exact scenario from your logs
@@ -871,15 +893,20 @@ void main() {
 
       // Add Departments to stack
       ZenScopeStackTracker.pushScope('DepartmentsScope', useParentScope: true);
-      ZenScopeManager.getOrCreateScope(name: 'DepartmentsScope', autoDispose: false);
+      ZenScopeManager.getOrCreateScope(
+          name: 'DepartmentsScope', autoDispose: false);
 
       // Add DepartmentDetail to stack
-      ZenScopeStackTracker.pushScope('DepartmentDetailScope', useParentScope: true);
-      ZenScopeManager.getOrCreateScope(name: 'DepartmentDetailScope', autoDispose: false);
+      ZenScopeStackTracker.pushScope('DepartmentDetailScope',
+          useParentScope: true);
+      ZenScopeManager.getOrCreateScope(
+          name: 'DepartmentDetailScope', autoDispose: false);
 
       // Add EmployeeProfile to stack
-      ZenScopeStackTracker.pushScope('EmployeeProfileScope', useParentScope: true);
-      ZenScopeManager.getOrCreateScope(name: 'EmployeeProfileScope', autoDispose: false);
+      ZenScopeStackTracker.pushScope('EmployeeProfileScope',
+          useParentScope: true);
+      ZenScopeManager.getOrCreateScope(
+          name: 'EmployeeProfileScope', autoDispose: false);
 
       // Verify stack is built
       final stack = ZenScopeStackTracker.getCurrentStack();
@@ -912,9 +939,9 @@ void main() {
       expect(remainingScopes.length, equals(2));
     });
 
-
-
-    testWidgets('should prevent controller accumulation across multiple navigation cycles', (tester) async {
+    testWidgets(
+        'should prevent controller accumulation across multiple navigation cycles',
+        (tester) async {
       // This test simulates the original problem: controllers accumulating
       CountingController.resetGlobalCount();
 
@@ -926,17 +953,17 @@ void main() {
             initialRoute: '/home',
             routes: {
               '/home': (context) => ZenRoute(
-                moduleBuilder: () => BasicTestModule(),
-                page: const HomePage2(),
-                scopeName: 'HomeScope',
-                useParentScope: false, // Reset point
-              ),
+                    moduleBuilder: () => BasicTestModule(),
+                    page: const HomePage2(),
+                    scopeName: 'HomeScope',
+                    useParentScope: false, // Reset point
+                  ),
               '/feature': (context) => ZenRoute(
-                moduleBuilder: () => CountingModule(),
-                page: const FeaturePage(),
-                scopeName: 'FeatureScope',
-                useParentScope: true,
-              ),
+                    moduleBuilder: () => CountingModule(),
+                    page: const FeaturePage(),
+                    scopeName: 'FeatureScope',
+                    useParentScope: true,
+                  ),
             },
           ),
         );
@@ -973,7 +1000,8 @@ void main() {
       // Verify no controller accumulation occurred
       // If cleanup is working properly, count should be 0 (all disposed)
       expect(CountingController.globalCreationCount, equals(0),
-          reason: 'Controllers should be properly disposed after each cycle, not accumulated');
+          reason:
+              'Controllers should be properly disposed after each cycle, not accumulated');
     });
   });
 
@@ -1032,7 +1060,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byKey(const ValueKey('custom-error')), findsOneWidget);
-      expect(find.text('Custom Error: Exception: Registration failed'), findsOneWidget);
+      expect(find.text('Custom Error: Exception: Registration failed'),
+          findsOneWidget);
     });
 
     testWidgets('should retry on error', (tester) async {
@@ -1070,7 +1099,8 @@ void main() {
   });
 
   group('ZenModulePage Scope Management Integration', () {
-    testWidgets('should integrate with ZenScopeManager correctly', (tester) async {
+    testWidgets('should integrate with ZenScopeManager correctly',
+        (tester) async {
       final module = BasicTestModule();
 
       await tester.pumpWidget(
@@ -1185,8 +1215,8 @@ void main() {
   });
 
   group('ZenBuilder Integration with ZenRoute', () {
-
-    testWidgets('should work with controllers from module scope', (tester) async {
+    testWidgets('should work with controllers from module scope',
+        (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: ZenRoute(
@@ -1203,7 +1233,8 @@ void main() {
       expect(find.text('Local Value: 0'), findsOneWidget);
 
       // Get the scoped controller and update it
-      final scope = tester.element(find.byType(ZenBuilderInModuleTestPage)).zenScope!;
+      final scope =
+          tester.element(find.byType(ZenBuilderInModuleTestPage)).zenScope!;
       final controller = scope.find<TestController>()!;
       controller.increment();
       await tester.pump();
@@ -1213,7 +1244,8 @@ void main() {
       expect(find.text('Local Value: 0'), findsOneWidget);
     });
 
-    testWidgets('should handle controller lifecycle within ZenRoute', (tester) async {
+    testWidgets('should handle controller lifecycle within ZenRoute',
+        (tester) async {
       late ZenScope capturedScope;
 
       await tester.pumpWidget(
@@ -1246,7 +1278,8 @@ void main() {
       expect(capturedScope.find<TestController>(), isNull);
     });
 
-    testWidgets('should support multiple ZenBuilders with scope inheritance', (tester) async {
+    testWidgets('should support multiple ZenBuilders with scope inheritance',
+        (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: ZenRoute(
@@ -1293,7 +1326,9 @@ void main() {
       expect(find.text('B: 1'), findsOneWidget);
     });
 
-    testWidgets('should resolve named parent scope across navigation boundaries', (tester) async {
+    testWidgets(
+        'should resolve named parent scope across navigation boundaries',
+        (tester) async {
       // Create persistent parent scope (simulating /departments route)
       final parentScope = ZenScopeManager.getOrCreateScope(
         name: 'DepartmentsScope',
@@ -1430,20 +1465,20 @@ class _TestScopeWidgetState extends State<_TestScopeWidget> {
             Expanded(
               flex: 1,
               child: Center(
-                child: Text(
-                    showChild
-                        ? 'Waiting for parent scope...'
-                        : 'Child Removed'
-                ),
+                child: Text(showChild
+                    ? 'Waiting for parent scope...'
+                    : 'Child Removed'),
               ),
             ),
           // Toggle button
           ElevatedButton(
-            onPressed: parentScopeReady ? () {
-              setState(() {
-                showChild = !showChild;
-              });
-            } : null,
+            onPressed: parentScopeReady
+                ? () {
+                    setState(() {
+                      showChild = !showChild;
+                    });
+                  }
+                : null,
             child: Text(showChild ? 'Hide Child' : 'Show Child'),
           ),
         ],
@@ -1451,7 +1486,6 @@ class _TestScopeWidgetState extends State<_TestScopeWidget> {
     );
   }
 }
-
 
 // Test page widgets for navigation
 class HomePage extends StatelessWidget {
@@ -1495,7 +1529,6 @@ class DepartmentsPage extends StatelessWidget {
     );
   }
 }
-
 
 class DepartmentDetailPage extends StatelessWidget {
   final VoidCallback onNavigateToEmployee;
@@ -1605,7 +1638,7 @@ class FeaturePage extends StatelessWidget {
           ElevatedButton(
             onPressed: () => Navigator.of(context).pushNamedAndRemoveUntil(
               '/home',
-                  (route) => false, // Remove all previous routes
+              (route) => false, // Remove all previous routes
             ),
             child: const Text('Back to Home'),
           ),
@@ -1614,4 +1647,3 @@ class FeaturePage extends StatelessWidget {
     );
   }
 }
-

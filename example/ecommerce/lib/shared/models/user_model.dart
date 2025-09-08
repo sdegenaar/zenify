@@ -24,12 +24,12 @@ class User {
       name: json['name'] as String,
       avatarUrl: json['avatarUrl'] as String?,
       favoriteProductIds: (json['favoriteProductIds'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList() ??
+              ?.map((e) => e as String)
+              .toList() ??
           [],
       orderIds: (json['orderIds'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList() ??
+              ?.map((e) => e as String)
+              .toList() ??
           [],
     );
   }
@@ -78,7 +78,8 @@ class User {
   /// Remove a product from favorites
   User removeFromFavorites(String productId) {
     return copyWith(
-      favoriteProductIds: favoriteProductIds.where((id) => id != productId).toList(),
+      favoriteProductIds:
+          favoriteProductIds.where((id) => id != productId).toList(),
     );
   }
 

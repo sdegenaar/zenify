@@ -10,7 +10,6 @@ import '../widgets/product_card.dart';
 class CartPage extends ZenView<CartController> {
   const CartPage({super.key});
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -21,10 +20,10 @@ class CartPage extends ZenView<CartController> {
           Obx(() => controller.isEmpty
               ? const SizedBox.shrink()
               : IconButton(
-            icon: const Icon(Icons.delete_outline),
-            onPressed: () => _showClearCartDialog(context),
-            tooltip: 'Clear cart',
-          )),
+                  icon: const Icon(Icons.delete_outline),
+                  onPressed: () => _showClearCartDialog(context),
+                  tooltip: 'Clear cart',
+                )),
         ],
       ),
       body: Obx(() {
@@ -84,7 +83,6 @@ class CartPage extends ZenView<CartController> {
     );
   }
 
-
   Widget _buildEmptyCart(BuildContext context) {
     return SingleChildScrollView(
       child: Column(
@@ -114,7 +112,8 @@ class CartPage extends ZenView<CartController> {
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton(
-                  onPressed: () => Navigator.of(context).pushReplacementNamed(AppRoutes.home),
+                  onPressed: () => Navigator.of(context)
+                      .pushReplacementNamed(AppRoutes.home),
                   child: const Text('Continue Shopping'),
                 ),
               ],
@@ -205,16 +204,19 @@ class CartPage extends ZenView<CartController> {
                                 cartItem.quantity - 1,
                               ),
                               child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 4),
                                 child: const Icon(Icons.remove, size: 16),
                               ),
                             ),
                             // Quantity
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 8),
                               child: Text(
                                 cartItem.quantity.toString(),
-                                style: const TextStyle(fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold),
                               ),
                             ),
                             // Increment button
@@ -224,7 +226,8 @@ class CartPage extends ZenView<CartController> {
                                 cartItem.quantity + 1,
                               ),
                               child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 4),
                                 child: const Icon(Icons.add, size: 16),
                               ),
                             ),
@@ -273,12 +276,12 @@ class CartPage extends ZenView<CartController> {
                 style: TextStyle(fontSize: 16),
               ),
               Obx(() => Text(
-                '\$${controller.totalPrice.toStringAsFixed(2)}',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              )),
+                    '\$${controller.totalPrice.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  )),
             ],
           ),
           const SizedBox(height: 8),
@@ -311,13 +314,13 @@ class CartPage extends ZenView<CartController> {
                 ),
               ),
               Obx(() => Text(
-                '\$${controller.totalPrice.toStringAsFixed(2)}',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-              )),
+                    '\$${controller.totalPrice.toStringAsFixed(2)}',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  )),
             ],
           ),
           const SizedBox(height: 16),
@@ -326,36 +329,38 @@ class CartPage extends ZenView<CartController> {
           SizedBox(
             width: double.infinity,
             child: Obx(() => ElevatedButton(
-              onPressed: controller.isProcessingCheckout.value
-                  ? null
-                  : () => _processCheckout(context),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                backgroundColor: Theme.of(context).colorScheme.primary,
-                foregroundColor: Theme.of(context).colorScheme.onPrimary,
-              ),
-              child: controller.isProcessingCheckout.value
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    )
-                  : const Text(
-                      'Checkout',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-            )),
+                  onPressed: controller.isProcessingCheckout.value
+                      ? null
+                      : () => _processCheckout(context),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                  ),
+                  child: controller.isProcessingCheckout.value
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : const Text(
+                          'Checkout',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                )),
           ),
 
           // Continue shopping button
           TextButton(
-            onPressed: () => Navigator.of(context).pushReplacementNamed(AppRoutes.home),
+            onPressed: () =>
+                Navigator.of(context).pushReplacementNamed(AppRoutes.home),
             child: const Text('Continue Shopping'),
           ),
         ],
@@ -368,7 +373,8 @@ class CartPage extends ZenView<CartController> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Clear Cart'),
-        content: const Text('Are you sure you want to remove all items from your cart?'),
+        content: const Text(
+            'Are you sure you want to remove all items from your cart?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),

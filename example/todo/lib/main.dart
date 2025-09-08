@@ -5,19 +5,19 @@ import 'todo/pages/todo_home_page.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize Zenify
   Zen.init();
-  
+
   // Configure for development with detailed logging
   ZenConfig.enableDebugLogs = true;
   ZenConfig.enablePerformanceMetrics = true;
-  
+
   // Register the TodoModule
   Zen.registerModules([
     TodoModule(),
   ]);
-  
+
   runApp(const TodoApp());
 }
 

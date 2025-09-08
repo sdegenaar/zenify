@@ -1,4 +1,3 @@
-
 import 'package:zenify/zenify.dart';
 import '../../shared/services/product_service.dart';
 import '../controllers/home_controller.dart';
@@ -10,7 +9,8 @@ class ProductModule extends ZenModule {
 
   @override
   void register(ZenScope scope) {
-    ZenLogger.logDebug('ProductModule.register() called with scope: ${scope.name}');
+    ZenLogger.logDebug(
+        'ProductModule.register() called with scope: ${scope.name}');
 
     // Check if ProductService is available
     final productService = Zen.find<ProductService>();
@@ -21,7 +21,6 @@ class ProductModule extends ZenModule {
       final homeController = HomeController(productService: productService);
       scope.put<HomeController>(homeController);
       ZenLogger.logDebug('HomeController registered successfully');
-
     } catch (e) {
       ZenLogger.logError('Error registering controllers: $e');
       rethrow;
@@ -35,7 +34,8 @@ class ProductModule extends ZenModule {
 
       // Verify controllers are accessible
       final homeController = scope.find<HomeController>();
-      ZenLogger.logDebug('HomeController accessible in scope: ${homeController != null}');
+      ZenLogger.logDebug(
+          'HomeController accessible in scope: ${homeController != null}');
     }
   }
 

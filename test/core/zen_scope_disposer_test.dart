@@ -1,4 +1,3 @@
-
 // test/core/zen_scope_disposer_test.dart
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zenify/zenify.dart';
@@ -67,17 +66,17 @@ void main() {
       scope.dispose();
 
       // Verify all disposers were called, including the one after the error
-      expect(disposerCalls, containsAll(['disposer1', 'errorDisposer', 'disposer3']));
+      expect(disposerCalls,
+          containsAll(['disposer1', 'errorDisposer', 'disposer3']));
       expect(disposerCalls.length, equals(3));
     });
 
-    test('should execute parent scope disposers when child scope is disposed', () {
+    test('should execute parent scope disposers when child scope is disposed',
+        () {
       // Create parent and child scopes
       final parentScope = Zen.createScope(name: 'ParentScope');
-      final childScope = Zen.createScope(
-          name: 'ChildScope',
-          parent: parentScope
-      );
+      final childScope =
+          Zen.createScope(name: 'ChildScope', parent: parentScope);
 
       // Track disposer calls
       final disposerCalls = <String>[];
@@ -105,17 +104,15 @@ void main() {
       expect(disposerCalls, containsAll(['childDisposer', 'parentDisposer']));
     });
 
-    test('should execute all child scope disposers when parent scope is disposed', () {
+    test(
+        'should execute all child scope disposers when parent scope is disposed',
+        () {
       // Create parent and child scopes
       final parentScope = Zen.createScope(name: 'ParentScope');
-      final childScope1 = Zen.createScope(
-          name: 'ChildScope1',
-          parent: parentScope
-      );
-      final childScope2 = Zen.createScope(
-          name: 'ChildScope2',
-          parent: parentScope
-      );
+      final childScope1 =
+          Zen.createScope(name: 'ChildScope1', parent: parentScope);
+      final childScope2 =
+          Zen.createScope(name: 'ChildScope2', parent: parentScope);
 
       // Track disposer calls
       final disposerCalls = <String>[];
@@ -137,7 +134,8 @@ void main() {
       parentScope.dispose();
 
       // All disposers should be called
-      expect(disposerCalls, containsAll(['parentDisposer', 'child1Disposer', 'child2Disposer']));
+      expect(disposerCalls,
+          containsAll(['parentDisposer', 'child1Disposer', 'child2Disposer']));
 
       // Child scopes should be marked as disposed
       expect(childScope1.isDisposed, isTrue);
@@ -264,6 +262,4 @@ class MockResource {
 }
 
 // Test controller class
-class TestController extends ZenController {
-
-}
+class TestController extends ZenController {}

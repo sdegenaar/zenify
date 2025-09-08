@@ -1,4 +1,3 @@
-
 import 'dart:developer' as developer;
 
 import 'package:flutter/foundation.dart';
@@ -26,7 +25,6 @@ void main() {
     },
   );
 
-
   runApp(const CounterApp());
 }
 
@@ -43,7 +41,8 @@ class CounterApp extends StatelessWidget {
         useMaterial3: true,
         cardTheme: CardThemeData(
           elevation: 2,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       ),
       home: ZenControllerScope<CounterController>(
@@ -137,7 +136,7 @@ class CounterController extends ZenController {
     // Debounce worker - waits for user to stop clicking (auto-save trigger)
     workerGroup.add(debounce(
       counter,
-          (value) {
+      (value) {
         ZenLogger.logDebug('Counter stabilized at: $value');
         if (isAutoSaveEnabled.value && value > 0) {
           saveCounter();
@@ -149,8 +148,8 @@ class CounterController extends ZenController {
     // Condition worker - milestone celebrations
     workerGroup.add(condition(
       counter,
-          (value) => value % 5 == 0 && value > 0, // Every 5th count
-          (value) {
+      (value) => value % 5 == 0 && value > 0, // Every 5th count
+      (value) {
         ZenLogger.logInfo('Milestone reached: $value');
         status.value = "🎉 Milestone: $value! Amazing!";
 
@@ -167,7 +166,7 @@ class CounterController extends ZenController {
     // Interval worker - periodic backup (when enabled)
     workerGroup.add(interval(
       isAutoSaveEnabled,
-          (enabled) {
+      (enabled) {
         if (enabled && counter.value > 0) {
           ZenLogger.logDebug('Periodic backup check: ${counter.value}');
           // Auto-save to device storage
@@ -302,7 +301,7 @@ class CounterController extends ZenController {
     // Calculate average duration
     final totalMs = _effectDurations.fold<int>(
       0,
-          (sum, duration) => sum + duration.inMilliseconds,
+      (sum, duration) => sum + duration.inMilliseconds,
     );
     averageEffectDuration.value = totalMs / _effectDurations.length;
   }
@@ -336,7 +335,8 @@ class CounterController extends ZenController {
 
   void toggleAutoSave() {
     isAutoSaveEnabled.value = !isAutoSaveEnabled.value;
-    ZenLogger.logInfo('Auto-save ${isAutoSaveEnabled.value ? "enabled" : "disabled"}');
+    ZenLogger.logInfo(
+        'Auto-save ${isAutoSaveEnabled.value ? "enabled" : "disabled"}');
   }
 
   // Manual update increment (GetBuilder style)
@@ -352,12 +352,14 @@ class CounterController extends ZenController {
     try {
       await saveEffect.run(() async {
         // Simulate network request with realistic random delay
-        final delay = Duration(milliseconds: 1000 + _random.nextInt(2000)); // 1-3 seconds
+        final delay =
+            Duration(milliseconds: 1000 + _random.nextInt(2000)); // 1-3 seconds
         await Future.delayed(delay);
 
         // Enhanced error simulation - more discoverable
         if (counter.value > 15) {
-          throw Exception('Demo Error: Counter too high! (Try keeping it ≤ 15)');
+          throw Exception(
+              'Demo Error: Counter too high! (Try keeping it ≤ 15)');
         }
 
         final timestamp = DateTime.now().toLocal().toString().substring(11, 19);
@@ -376,7 +378,8 @@ class CounterController extends ZenController {
     final stopwatch = Stopwatch()..start();
     try {
       await loadEffect.run(() async {
-        final delay = Duration(milliseconds: 800 + _random.nextInt(1500)); // 0.8-2.3 seconds
+        final delay = Duration(
+            milliseconds: 800 + _random.nextInt(1500)); // 0.8-2.3 seconds
         await Future.delayed(delay);
 
         // Simulate loading a random saved value
@@ -475,16 +478,16 @@ class CounterPage extends ZenView<CounterController> {
         actions: [
           // Auto-save toggle
           Obx(() => IconButton(
-            onPressed: controller.toggleAutoSave,
-            icon: Icon(
-              controller.isAutoSaveEnabled.value
-                  ? Icons.auto_awesome
-                  : Icons.auto_awesome_outlined,
-            ),
-            tooltip: controller.isAutoSaveEnabled.value
-                ? 'Auto-save ON'
-                : 'Auto-save OFF',
-          )),
+                onPressed: controller.toggleAutoSave,
+                icon: Icon(
+                  controller.isAutoSaveEnabled.value
+                      ? Icons.auto_awesome
+                      : Icons.auto_awesome_outlined,
+                ),
+                tooltip: controller.isAutoSaveEnabled.value
+                    ? 'Auto-save ON'
+                    : 'Auto-save OFF',
+              )),
         ],
       ),
       body: SingleChildScrollView(
@@ -500,7 +503,8 @@ class CounterPage extends ZenView<CounterController> {
                   children: [
                     const Text(
                       '🧘‍♂️ Zenify State Management Demo',
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -513,24 +517,30 @@ class CounterPage extends ZenView<CounterController> {
                     ),
                     const SizedBox(height: 12),
                     Obx(() => Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        Chip(
-                          label: Text('Auto-save: ${controller.isAutoSaveEnabled.value ? "ON" : "OFF"}'),
-                          backgroundColor: controller.isAutoSaveEnabled.value
-                              ? Colors.green.shade100
-                              : Colors.grey.shade100,
-                        ),
-                        Obx(() => Chip(
-                          label: Text('Device: ${controller.deviceStorageStatus.value}'),
-                          backgroundColor: controller.deviceStorageStatus.value.contains('✅')
-                              ? Colors.green.shade100
-                              : controller.deviceStorageStatus.value.contains('❌')
-                              ? Colors.red.shade100
-                              : Colors.blue.shade100,
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            Chip(
+                              label: Text(
+                                  'Auto-save: ${controller.isAutoSaveEnabled.value ? "ON" : "OFF"}'),
+                              backgroundColor:
+                                  controller.isAutoSaveEnabled.value
+                                      ? Colors.green.shade100
+                                      : Colors.grey.shade100,
+                            ),
+                            Obx(() => Chip(
+                                  label: Text(
+                                      'Device: ${controller.deviceStorageStatus.value}'),
+                                  backgroundColor: controller
+                                          .deviceStorageStatus.value
+                                          .contains('✅')
+                                      ? Colors.green.shade100
+                                      : controller.deviceStorageStatus.value
+                                              .contains('❌')
+                                          ? Colors.red.shade100
+                                          : Colors.blue.shade100,
+                                )),
+                          ],
                         )),
-                      ],
-                    )),
                   ],
                 ),
               ),
@@ -559,29 +569,42 @@ class CounterPage extends ZenView<CounterController> {
                       child: Column(
                         children: [
                           Obx(() => Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text('State Updates:', style: TextStyle(fontWeight: FontWeight.w500)),
-                              Text('${controller.stateUpdateCount.value}', style: const TextStyle(fontSize: 16)),
-                            ],
-                          )),
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Text('State Updates:',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.w500)),
+                                  Text('${controller.stateUpdateCount.value}',
+                                      style: const TextStyle(fontSize: 16)),
+                                ],
+                              )),
                           const SizedBox(height: 8),
                           Obx(() => Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text('Effect Executions:', style: TextStyle(fontWeight: FontWeight.w500)),
-                              Text('${controller.effectExecutionCount.value}', style: const TextStyle(fontSize: 16)),
-                            ],
-                          )),
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Text('Effect Executions:',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.w500)),
+                                  Text(
+                                      '${controller.effectExecutionCount.value}',
+                                      style: const TextStyle(fontSize: 16)),
+                                ],
+                              )),
                           const SizedBox(height: 8),
                           Obx(() => Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text('Avg Effect Duration:', style: TextStyle(fontWeight: FontWeight.w500)),
-                              Text('${controller.averageEffectDuration.value.toStringAsFixed(0)}ms',
-                                  style: const TextStyle(fontSize: 16)),
-                            ],
-                          )),
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Text('Avg Effect Duration:',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.w500)),
+                                  Text(
+                                      '${controller.averageEffectDuration.value.toStringAsFixed(0)}ms',
+                                      style: const TextStyle(fontSize: 16)),
+                                ],
+                              )),
                           const SizedBox(height: 12),
                           Container(
                             padding: const EdgeInsets.all(8),
@@ -591,7 +614,8 @@ class CounterPage extends ZenView<CounterController> {
                             ),
                             child: const Text(
                               'These metrics show real-time performance data from ZenMetrics',
-                              style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic),
+                              style: TextStyle(
+                                  fontSize: 12, fontStyle: FontStyle.italic),
                               textAlign: TextAlign.center,
                             ),
                           ),
@@ -612,11 +636,13 @@ class CounterPage extends ZenView<CounterController> {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.psychology, color: Theme.of(context).primaryColor),
+                        Icon(Icons.psychology,
+                            color: Theme.of(context).primaryColor),
                         const SizedBox(width: 8),
                         const Text(
                           'Reactive Counter (Obx Pattern)',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
@@ -624,50 +650,51 @@ class CounterPage extends ZenView<CounterController> {
 
                     // Enhanced counter display with animation
                     Obx(() => AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: controller.counter.value > 10
-                            ? Colors.purple.shade50
-                            : Colors.blue.shade50,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: controller.counter.value > 10
-                              ? Colors.purple.shade200
-                              : Colors.blue.shade200,
-                        ),
-                      ),
-                      child: Text(
-                        '${controller.counter.value}',
-                        style: TextStyle(
-                          fontSize: 52,
-                          fontWeight: FontWeight.bold,
-                          color: controller.counter.value > 10
-                              ? Colors.purple.shade700
-                              : Colors.blue.shade700,
-                        ),
-                      ),
-                    )),
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: controller.counter.value > 10
+                                ? Colors.purple.shade50
+                                : Colors.blue.shade50,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: controller.counter.value > 10
+                                  ? Colors.purple.shade200
+                                  : Colors.blue.shade200,
+                            ),
+                          ),
+                          child: Text(
+                            '${controller.counter.value}',
+                            style: TextStyle(
+                              fontSize: 52,
+                              fontWeight: FontWeight.bold,
+                              color: controller.counter.value > 10
+                                  ? Colors.purple.shade700
+                                  : Colors.blue.shade700,
+                            ),
+                          ),
+                        )),
 
                     const SizedBox(height: 12),
 
                     // Enhanced status display
                     Obx(() => Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        controller.status.value,
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Theme.of(context).colorScheme.primary,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    )),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade100,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            controller.status.value,
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Theme.of(context).colorScheme.primary,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        )),
 
                     const SizedBox(height: 20),
 
@@ -720,11 +747,13 @@ class CounterPage extends ZenView<CounterController> {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.cloud_sync, color: Theme.of(context).primaryColor),
+                        Icon(Icons.cloud_sync,
+                            color: Theme.of(context).primaryColor),
                         const SizedBox(width: 8),
                         const Text(
                           'Async Operations (ZenEffectBuilder)',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
@@ -761,7 +790,8 @@ class CounterPage extends ZenView<CounterController> {
                             SizedBox(height: 8),
                             Text(
                               'Please wait while we sync your data',
-                              style: TextStyle(fontSize: 12, color: Colors.grey),
+                              style:
+                                  TextStyle(fontSize: 12, color: Colors.grey),
                             ),
                           ],
                         ),
@@ -777,7 +807,8 @@ class CounterPage extends ZenView<CounterController> {
                         ),
                         child: Column(
                           children: [
-                            const Icon(Icons.error_outline, color: Colors.red, size: 40),
+                            const Icon(Icons.error_outline,
+                                color: Colors.red, size: 40),
                             const SizedBox(height: 12),
                             Text(
                               'Oops! Something went wrong',
@@ -803,14 +834,18 @@ class CounterPage extends ZenView<CounterController> {
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
-                            colors: [Colors.green.shade50, Colors.green.shade100],
+                            colors: [
+                              Colors.green.shade50,
+                              Colors.green.shade100
+                            ],
                           ),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(color: Colors.green.shade300),
                         ),
                         child: Column(
                           children: [
-                            const Icon(Icons.check_circle_outline, color: Colors.green, size: 40),
+                            const Icon(Icons.check_circle_outline,
+                                color: Colors.green, size: 40),
                             const SizedBox(height: 12),
                             const Text(
                               'Success! 🎉',
@@ -841,7 +876,8 @@ class CounterPage extends ZenView<CounterController> {
                         ),
                         child: const Column(
                           children: [
-                            Icon(Icons.cloud_upload_outlined, size: 40, color: Colors.grey),
+                            Icon(Icons.cloud_upload_outlined,
+                                size: 40, color: Colors.grey),
                             SizedBox(height: 12),
                             Text(
                               'Ready to save your progress',
@@ -854,7 +890,8 @@ class CounterPage extends ZenView<CounterController> {
                             SizedBox(height: 8),
                             Text(
                               'Click save to store your counter value',
-                              style: TextStyle(fontSize: 12, color: Colors.grey),
+                              style:
+                                  TextStyle(fontSize: 12, color: Colors.grey),
                             ),
                           ],
                         ),
@@ -879,7 +916,8 @@ class CounterPage extends ZenView<CounterController> {
                             ),
                             label: const Text('Saving...'),
                             style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 24, vertical: 12),
                             ),
                           ),
                           onError: (error) => ElevatedButton.icon(
@@ -889,7 +927,8 @@ class CounterPage extends ZenView<CounterController> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.orange,
                               foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 24, vertical: 12),
                             ),
                           ),
                           onSuccess: (data) => ElevatedButton.icon(
@@ -899,7 +938,8 @@ class CounterPage extends ZenView<CounterController> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.green,
                               foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 24, vertical: 12),
                             ),
                           ),
                           onInitial: () => ElevatedButton.icon(
@@ -907,7 +947,8 @@ class CounterPage extends ZenView<CounterController> {
                             icon: const Icon(Icons.save),
                             label: const Text('Save'),
                             style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 24, vertical: 12),
                             ),
                           ),
                         ),
@@ -925,7 +966,8 @@ class CounterPage extends ZenView<CounterController> {
                             label: const Text('Loading...'),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.blue.shade100,
-                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 24, vertical: 12),
                             ),
                           ),
                           onError: (error) => ElevatedButton.icon(
@@ -935,7 +977,8 @@ class CounterPage extends ZenView<CounterController> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.orange,
                               foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 24, vertical: 12),
                             ),
                           ),
                           onSuccess: (data) => ElevatedButton.icon(
@@ -945,7 +988,8 @@ class CounterPage extends ZenView<CounterController> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.blue,
                               foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 24, vertical: 12),
                             ),
                           ),
                           onInitial: () => ElevatedButton.icon(
@@ -955,7 +999,8 @@ class CounterPage extends ZenView<CounterController> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.blue.shade100,
                               foregroundColor: Colors.blue.shade700,
-                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 24, vertical: 12),
                             ),
                           ),
                         ),
@@ -981,7 +1026,8 @@ class CounterPage extends ZenView<CounterController> {
                         const SizedBox(width: 8),
                         const Text(
                           'Device Persistence (SharedPreferences)',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
@@ -994,36 +1040,38 @@ class CounterPage extends ZenView<CounterController> {
 
                     // Device storage status
                     Obx(() => Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.amber.shade100,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.amber.shade300),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            controller.deviceStorageStatus.value.contains('✅')
-                                ? Icons.check_circle
-                                : controller.deviceStorageStatus.value.contains('❌')
-                                ? Icons.error
-                                : Icons.storage,
-                            color: Colors.amber.shade700,
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.amber.shade100,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.amber.shade300),
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              'Status: ${controller.deviceStorageStatus.value}',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.amber.shade800,
+                          child: Row(
+                            children: [
+                              Icon(
+                                controller.deviceStorageStatus.value
+                                        .contains('✅')
+                                    ? Icons.check_circle
+                                    : controller.deviceStorageStatus.value
+                                            .contains('❌')
+                                        ? Icons.error
+                                        : Icons.storage,
+                                color: Colors.amber.shade700,
                               ),
-                            ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  'Status: ${controller.deviceStorageStatus.value}',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.amber.shade800,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                    )),
+                        )),
 
                     const SizedBox(height: 20),
 
@@ -1074,7 +1122,6 @@ class CounterPage extends ZenView<CounterController> {
                             ),
                           ),
                         ),
-
                         ZenEffectBuilder<String>(
                           effect: controller.deviceLoadEffect,
                           onLoading: () => ElevatedButton.icon(
@@ -1130,7 +1177,8 @@ class CounterPage extends ZenView<CounterController> {
                       ),
                       child: const Text(
                         'Your data persists across app restarts! Try closing and reopening the app.',
-                        style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic),
+                        style: TextStyle(
+                            fontSize: 12, fontStyle: FontStyle.italic),
                         textAlign: TextAlign.center,
                       ),
                     ),
@@ -1149,11 +1197,13 @@ class CounterPage extends ZenView<CounterController> {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.build, color: Theme.of(context).primaryColor),
+                        Icon(Icons.build,
+                            color: Theme.of(context).primaryColor),
                         const SizedBox(width: 8),
                         const Text(
                           'Manual Updates (ZenBuilder Pattern)',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
@@ -1193,7 +1243,8 @@ class CounterPage extends ZenView<CounterController> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.amber.shade100,
                         foregroundColor: Colors.amber.shade700,
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 12),
                       ),
                     ),
                   ],
@@ -1223,9 +1274,9 @@ class CounterPage extends ZenView<CounterController> {
                     const SizedBox(height: 8),
                     Text(
                       '• Try incrementing above 15 to see error handling\n'
-                          '• Toggle auto-save to see debounced workers\n'
-                          '• Watch performance metrics in debug mode\n'
-                          '• Close and reopen app to test persistence',
+                      '• Toggle auto-save to see debounced workers\n'
+                      '• Watch performance metrics in debug mode\n'
+                      '• Close and reopen app to test persistence',
                       textAlign: TextAlign.left,
                       style: TextStyle(
                         fontSize: 12,

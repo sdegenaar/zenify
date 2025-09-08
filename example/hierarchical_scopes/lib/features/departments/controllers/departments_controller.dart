@@ -1,4 +1,3 @@
-
 import 'package:zenify/zenify.dart';
 
 import '../../../app/routes/app_routes.dart';
@@ -33,7 +32,7 @@ class DepartmentsController extends ZenController {
   DepartmentsController({
     required DepartmentService departmentService,
     required NavigationService navigationService,
-  }) : _departmentService = departmentService,
+  })  : _departmentService = departmentService,
         _navigationService = navigationService {
     ZenLogger.logInfo('DepartmentsController created');
   }
@@ -116,7 +115,8 @@ class DepartmentsController extends ZenController {
         ZenLogger.logInfo('  - ${dept.name}: ${dept.teams.length} teams');
         if (dept.teams.isNotEmpty) {
           for (final team in dept.teams) {
-            ZenLogger.logInfo('    * ${team.name} (${team.members.length} members)');
+            ZenLogger.logInfo(
+                '    * ${team.name} (${team.members.length} members)');
           }
         }
       }
@@ -165,10 +165,8 @@ class DepartmentsController extends ZenController {
     // Run the navigation effect
     navigationEffect.run(() async {
       ZenLogger.logInfo('🧭 Navigation effect triggered: $departmentId');
-      _navigationService.navigateTo(
-          AppRoutes.departmentDetail,
-          arguments: {'departmentId': departmentId}
-      );
+      _navigationService.navigateTo(AppRoutes.departmentDetail,
+          arguments: {'departmentId': departmentId});
       return departmentId;
     });
   }

@@ -1,4 +1,3 @@
-
 // lib/di/zen_dependency_analyzer.dart
 
 import '../core/zen_config.dart';
@@ -24,7 +23,8 @@ class ZenDependencyAnalyzer {
       // Since we don't have access to actual dependency relationships in the current
       // scope implementation, we can only do basic checks
       if (ZenConfig.enableDebugLogs) {
-        ZenLogger.logDebug('Cycle detection is limited - requires constructor dependency analysis');
+        ZenLogger.logDebug(
+            'Cycle detection is limited - requires constructor dependency analysis');
       }
 
       return false; // No cycles detectable with current API
@@ -65,7 +65,8 @@ class ZenDependencyAnalyzer {
     // Report types registered in multiple scopes
     for (final entry in typeToScopes.entries) {
       if (entry.value.length > 1) {
-        buffer.writeln('MULTIPLE REGISTRATIONS: ${entry.key} is registered in multiple scopes:');
+        buffer.writeln(
+            'MULTIPLE REGISTRATIONS: ${entry.key} is registered in multiple scopes:');
         for (final scope in entry.value) {
           buffer.writeln('  - ${scope.name ?? scope.id}');
         }
@@ -77,7 +78,8 @@ class ZenDependencyAnalyzer {
     // Check for potential memory leaks (same instance in multiple scopes)
     for (final entry in instanceToScopes.entries) {
       if (entry.value.length > 1) {
-        buffer.writeln('POTENTIAL MEMORY LEAK: Same instance registered in multiple scopes:');
+        buffer.writeln(
+            'POTENTIAL MEMORY LEAK: Same instance registered in multiple scopes:');
         for (final scope in entry.value) {
           buffer.writeln('  - ${scope.name ?? scope.id}');
         }
@@ -90,8 +92,10 @@ class ZenDependencyAnalyzer {
       buffer.writeln('No problematic dependencies detected');
     }
 
-    buffer.writeln('\nNOTE: Advanced circular dependency detection requires constructor');
-    buffer.writeln('dependency analysis, which is not available with the current scope API.');
+    buffer.writeln(
+        '\nNOTE: Advanced circular dependency detection requires constructor');
+    buffer.writeln(
+        'dependency analysis, which is not available with the current scope API.');
 
     return buffer.toString();
   }
@@ -140,8 +144,10 @@ class ZenDependencyAnalyzer {
       buffer.writeln();
     }
 
-    buffer.writeln('NOTE: This visualization shows registered dependencies but cannot');
-    buffer.writeln('display actual dependency relationships without constructor analysis.');
+    buffer.writeln(
+        'NOTE: This visualization shows registered dependencies but cannot');
+    buffer.writeln(
+        'display actual dependency relationships without constructor analysis.');
 
     return buffer.toString();
   }
@@ -166,7 +172,8 @@ class ZenDependencyAnalyzer {
       }
     }
 
-    buffer.writeln('Total Scopes: ${scopes.where((s) => !s.isDisposed).length}');
+    buffer
+        .writeln('Total Scopes: ${scopes.where((s) => !s.isDisposed).length}');
     buffer.writeln('Total Dependencies: $totalDependencies');
     buffer.writeln('Unique Types: ${allTypes.length}');
     buffer.writeln();
@@ -174,7 +181,8 @@ class ZenDependencyAnalyzer {
     // List all unique types
     if (allTypes.isNotEmpty) {
       buffer.writeln('Registered Types:');
-      final sortedTypes = allTypes.toList()..sort((a, b) => a.toString().compareTo(b.toString()));
+      final sortedTypes = allTypes.toList()
+        ..sort((a, b) => a.toString().compareTo(b.toString()));
       for (final type in sortedTypes) {
         buffer.writeln('  - $type');
       }
@@ -190,7 +198,8 @@ class ZenDependencyAnalyzer {
     buffer.writeln('=== SCOPE HIERARCHY ANALYSIS ===\n');
 
     // Find root scopes (those without parents)
-    final rootScopes = scopes.where((s) => s.parent == null && !s.isDisposed).toList();
+    final rootScopes =
+        scopes.where((s) => s.parent == null && !s.isDisposed).toList();
 
     if (rootScopes.isEmpty) {
       buffer.writeln('No root scopes found');

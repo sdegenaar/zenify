@@ -7,14 +7,19 @@ import '../core/zen_logger.dart';
 enum WorkerType {
   /// Executes whenever the value changes
   ever,
+
   /// Executes only once on the first change
   once,
+
   /// Executes after a delay, resets the timer on each change
   debounce,
+
   /// Executes at most once per specified duration
   throttle,
+
   /// Executes periodically while a condition is true
   interval,
+
   /// Conditionally executes based on value changes
   condition;
 }
@@ -30,12 +35,13 @@ class ZenWorkerHandle {
   bool _disposed = false;
   bool _paused = false;
 
-  ZenWorkerHandle(this._disposer, {
+  ZenWorkerHandle(
+    this._disposer, {
     void Function()? pauseFunction,
     void Function()? resumeFunction,
     bool Function()? isPausedGetter,
     bool Function()? isDisposedGetter,
-  }) : _pauseFunction = pauseFunction,
+  })  : _pauseFunction = pauseFunction,
         _resumeFunction = resumeFunction,
         _isPausedGetter = isPausedGetter,
         _isDisposedGetter = isDisposedGetter;
@@ -138,7 +144,8 @@ class ZenWorkerGroup {
   int get length => _handles.where((h) => !h.isDisposed).length;
 
   /// Number of paused workers in the group
-  int get pausedCount => _handles.where((h) => !h.isDisposed && h.isPaused).length;
+  int get pausedCount =>
+      _handles.where((h) => !h.isDisposed && h.isPaused).length;
 }
 
 /// Core worker implementation with improved type safety and pause/resume support
@@ -210,6 +217,7 @@ class _ZenWorker<T> {
       previous = obs.value;
       _execute(obs.value);
     }
+
     obs.addListener(listener);
     _disposer = () => obs.removeListener(listener);
   }
@@ -223,6 +231,7 @@ class _ZenWorker<T> {
       // Auto-dispose the handle which will trigger worker disposal
       _handle?.dispose();
     }
+
     obs.addListener(listener);
     _disposer = () => obs.removeListener(listener);
   }
@@ -237,6 +246,7 @@ class _ZenWorker<T> {
         }
       });
     }
+
     obs.addListener(listener);
     _disposer = () {
       obs.removeListener(listener);
@@ -253,6 +263,7 @@ class _ZenWorker<T> {
         _execute(obs.value);
       }
     }
+
     obs.addListener(listener);
     _disposer = () => obs.removeListener(listener);
   }
@@ -275,6 +286,7 @@ class _ZenWorker<T> {
       if (_disposed) return;
       hasPendingChange = true;
     }
+
     obs.addListener(listener);
     _disposer = () {
       obs.removeListener(listener);
@@ -291,6 +303,7 @@ class _ZenWorker<T> {
         _execute(obs.value);
       }
     }
+
     obs.addListener(listener);
     _disposer = () => obs.removeListener(listener);
   }
@@ -316,16 +329,16 @@ class _ZenWorker<T> {
 class ZenWorkers {
   /// Universal worker creation method with explicit generic type preservation
   static ZenWorkerHandle watch<T>(
-      ValueNotifier<T> observable,
-      void Function(T) callback, {
-        WorkerType type = WorkerType.ever,
-        Duration? duration,
-        bool Function(T)? condition,
-      }) {
+    ValueNotifier<T> observable,
+    void Function(T) callback, {
+    WorkerType type = WorkerType.ever,
+    Duration? duration,
+    bool Function(T)? condition,
+  }) {
     // Validate configuration
     if ((type == WorkerType.debounce ||
-        type == WorkerType.throttle ||
-        type == WorkerType.interval) &&
+            type == WorkerType.throttle ||
+            type == WorkerType.interval) &&
         duration == null) {
       throw ArgumentError('Duration required for ${type.name}');
     }
@@ -345,7 +358,7 @@ class ZenWorkers {
 
     // Create handle with proper delegation
     final handle = ZenWorkerHandle(
-          () => worker.dispose(),
+      () => worker.dispose(),
       pauseFunction: () => worker.pause(),
       resumeFunction: () => worker.resume(),
       isPausedGetter: () => worker.isPaused,
@@ -361,58 +374,62 @@ class ZenWorkers {
 
   /// Convenience methods with improved type inference
   static ZenWorkerHandle ever<T>(
-      ValueNotifier<T> obs,
-      void Function(T) callback,
-      ) {
+    ValueNotifier<T> obs,
+    void Function(T) callback,
+  ) {
     return watch<T>(obs, callback, type: WorkerType.ever);
   }
 
   static ZenWorkerHandle once<T>(
-      ValueNotifier<T> obs,
-      void Function(T) callback,
-      ) {
+    ValueNotifier<T> obs,
+    void Function(T) callback,
+  ) {
     return watch<T>(obs, callback, type: WorkerType.once);
   }
 
   static ZenWorkerHandle debounce<T>(
-      ValueNotifier<T> obs,
-      void Function(T) callback,
-      Duration duration,
-      ) {
+    ValueNotifier<T> obs,
+    void Function(T) callback,
+    Duration duration,
+  ) {
     if (duration.isNegative) {
       throw ArgumentError('Duration cannot be negative');
     }
-    return watch<T>(obs, callback, type: WorkerType.debounce, duration: duration);
+    return watch<T>(obs, callback,
+        type: WorkerType.debounce, duration: duration);
   }
 
   static ZenWorkerHandle throttle<T>(
-      ValueNotifier<T> obs,
-      void Function(T) callback,
-      Duration duration,
-      ) {
+    ValueNotifier<T> obs,
+    void Function(T) callback,
+    Duration duration,
+  ) {
     if (duration.isNegative) {
       throw ArgumentError('Duration cannot be negative');
     }
-    return watch<T>(obs, callback, type: WorkerType.throttle, duration: duration);
+    return watch<T>(obs, callback,
+        type: WorkerType.throttle, duration: duration);
   }
 
   static ZenWorkerHandle interval<T>(
-      ValueNotifier<T> obs,
-      void Function(T) callback,
-      Duration duration,
-      ) {
+    ValueNotifier<T> obs,
+    void Function(T) callback,
+    Duration duration,
+  ) {
     if (duration.isNegative) {
       throw ArgumentError('Duration cannot be negative');
     }
-    return watch<T>(obs, callback, type: WorkerType.interval, duration: duration);
+    return watch<T>(obs, callback,
+        type: WorkerType.interval, duration: duration);
   }
 
   static ZenWorkerHandle condition<T>(
-      ValueNotifier<T> obs,
-      bool Function(T) condition,
-      void Function(T) callback,
-      ) {
-    return watch<T>(obs, callback, type: WorkerType.condition, condition: condition);
+    ValueNotifier<T> obs,
+    bool Function(T) condition,
+    void Function(T) callback,
+  ) {
+    return watch<T>(obs, callback,
+        type: WorkerType.condition, condition: condition);
   }
 
   /// Composable worker for multiple observables

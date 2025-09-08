@@ -5,7 +5,7 @@ import '../controllers/todo_controller.dart';
 /// Widget for filtering todos by status (all, active, completed)
 class TodoFilterBar extends StatelessWidget {
   final TodoController controller;
-  
+
   const TodoFilterBar({
     super.key,
     required this.controller,
@@ -44,61 +44,61 @@ class TodoFilterBar extends StatelessWidget {
                   ),
                 )
               : const SizedBox.shrink()),
-          
+
           // Filter buttons
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               Expanded(
                 child: Obx(() => _buildFilterButton(
-                  context,
-                  label: 'All',
-                  value: 'all',
-                  count: controller.todos.length,
-                  isSelected: controller.filterMode.value == 'all',
-                )),
+                      context,
+                      label: 'All',
+                      value: 'all',
+                      count: controller.todos.length,
+                      isSelected: controller.filterMode.value == 'all',
+                    )),
               ),
               Expanded(
                 child: Obx(() => _buildFilterButton(
-                  context,
-                  label: 'Active',
-                  value: 'active',
-                  count: controller.activeCount,
-                  isSelected: controller.filterMode.value == 'active',
-                )),
+                      context,
+                      label: 'Active',
+                      value: 'active',
+                      count: controller.activeCount,
+                      isSelected: controller.filterMode.value == 'active',
+                    )),
               ),
               Expanded(
                 child: Obx(() => _buildFilterButton(
-                  context,
-                  label: 'Completed',
-                  value: 'completed',
-                  count: controller.completedCount,
-                  isSelected: controller.filterMode.value == 'completed',
-                )),
+                      context,
+                      label: 'Completed',
+                      value: 'completed',
+                      count: controller.completedCount,
+                      isSelected: controller.filterMode.value == 'completed',
+                    )),
               ),
             ],
           ),
-          
+
           // Sort indicator
           Obx(() => Padding(
-            padding: const EdgeInsets.only(top: 4),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.sort, size: 14),
-                const SizedBox(width: 4),
-                Text(
-                  'Sorted by: ${_getSortLabel(controller.sortMode.value)}',
-                  style: const TextStyle(fontSize: 12),
+                padding: const EdgeInsets.only(top: 4),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.sort, size: 14),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Sorted by: ${_getSortLabel(controller.sortMode.value)}',
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          )),
+              )),
         ],
       ),
     );
   }
-  
+
   Widget _buildFilterButton(
     BuildContext context, {
     required String label,
@@ -135,7 +135,7 @@ class TodoFilterBar extends StatelessWidget {
       ),
     );
   }
-  
+
   String _getSortLabel(String sortMode) {
     switch (sortMode) {
       case 'created':

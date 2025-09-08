@@ -7,7 +7,8 @@ class ObxDemoPage extends ZenView<ReactiveDemoController> {
   const ObxDemoPage({super.key});
 
   @override
-  ReactiveDemoController Function()? get createController => () => ReactiveDemoController();
+  ReactiveDemoController Function()? get createController =>
+      () => ReactiveDemoController();
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +25,8 @@ class ObxDemoPage extends ZenView<ReactiveDemoController> {
             // Granular Updates Demo
             DemoSection(
               title: 'Granular Updates',
-              subtitle: 'Only specific Obx widgets rebuild when their observed values change',
+              subtitle:
+                  'Only specific Obx widgets rebuild when their observed values change',
               child: Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
@@ -52,12 +54,15 @@ class ObxDemoPage extends ZenView<ReactiveDemoController> {
                                   ),
                                   const SizedBox(height: 8),
                                   Obx(() => Text(
-                                    '${controller.counter.value}',
-                                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                      color: Colors.blue,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  )),
+                                        '${controller.counter.value}',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .headlineMedium
+                                            ?.copyWith(
+                                              color: Colors.blue,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                      )),
                                   const SizedBox(height: 8),
                                   Text(
                                     'Only rebuilds when counter changes',
@@ -79,7 +84,8 @@ class ObxDemoPage extends ZenView<ReactiveDemoController> {
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
                                 color: Colors.green.shade50,
-                                border: Border.all(color: Colors.green.shade200),
+                                border:
+                                    Border.all(color: Colors.green.shade200),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Column(
@@ -93,14 +99,14 @@ class ObxDemoPage extends ZenView<ReactiveDemoController> {
                                   ),
                                   const SizedBox(height: 8),
                                   Obx(() => Text(
-                                    controller.message.value,
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      color: Colors.green.shade700,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  )),
+                                        controller.message.value,
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.green.shade700,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      )),
                                   const SizedBox(height: 8),
                                   Text(
                                     'Only rebuilds when message changes',
@@ -162,13 +168,13 @@ class ObxDemoPage extends ZenView<ReactiveDemoController> {
                               'Counter',
                               Colors.red,
                               Obx(() => Text(
-                                '${controller.counter.value}',
-                                style: const TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              )),
+                                    '${controller.counter.value}',
+                                    style: const TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  )),
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -177,13 +183,13 @@ class ObxDemoPage extends ZenView<ReactiveDemoController> {
                               'Items Count',
                               Colors.purple,
                               Obx(() => Text(
-                                '${controller.items.length}',
-                                style: const TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              )),
+                                    '${controller.items.length}',
+                                    style: const TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  )),
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -192,12 +198,12 @@ class ObxDemoPage extends ZenView<ReactiveDemoController> {
                               'Features',
                               Colors.teal,
                               Obx(() => Icon(
-                                controller.bothFeaturesEnabled
-                                    ? Icons.check_circle
-                                    : Icons.radio_button_unchecked,
-                                color: Colors.white,
-                                size: 24,
-                              )),
+                                    controller.bothFeaturesEnabled
+                                        ? Icons.check_circle
+                                        : Icons.radio_button_unchecked,
+                                    color: Colors.white,
+                                    size: 24,
+                                  )),
                             ),
                           ),
                         ],
@@ -212,23 +218,31 @@ class ObxDemoPage extends ZenView<ReactiveDemoController> {
                         children: [
                           ElevatedButton(
                             onPressed: controller.increment,
-                            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                            child: const Text('+ Counter', style: TextStyle(color: Colors.white)),
+                            style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.red),
+                            child: const Text('+ Counter',
+                                style: TextStyle(color: Colors.white)),
                           ),
                           ElevatedButton(
                             onPressed: controller.addItem,
-                            style: ElevatedButton.styleFrom(backgroundColor: Colors.purple),
-                            child: const Text('+ Item', style: TextStyle(color: Colors.white)),
+                            style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.purple),
+                            child: const Text('+ Item',
+                                style: TextStyle(color: Colors.white)),
                           ),
                           ElevatedButton(
                             onPressed: () => controller.featureA.toggle(),
-                            style: ElevatedButton.styleFrom(backgroundColor: Colors.teal),
-                            child: const Text('Toggle A', style: TextStyle(color: Colors.white)),
+                            style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.teal),
+                            child: const Text('Toggle A',
+                                style: TextStyle(color: Colors.white)),
                           ),
                           ElevatedButton(
                             onPressed: () => controller.featureB.toggle(),
-                            style: ElevatedButton.styleFrom(backgroundColor: Colors.teal),
-                            child: const Text('Toggle B', style: TextStyle(color: Colors.white)),
+                            style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.teal),
+                            child: const Text('Toggle B',
+                                style: TextStyle(color: Colors.white)),
                           ),
                         ],
                       ),
@@ -250,13 +264,17 @@ class ObxDemoPage extends ZenView<ReactiveDemoController> {
                   child: Column(
                     children: [
                       // Rebuild counters (simulated)
-                      _buildPerformanceMetric('Counter Obx Rebuilds', _getCounterRebuilds()),
+                      _buildPerformanceMetric(
+                          'Counter Obx Rebuilds', _getCounterRebuilds()),
                       const SizedBox(height: 8),
-                      _buildPerformanceMetric('Message Obx Rebuilds', _getMessageRebuilds()),
+                      _buildPerformanceMetric(
+                          'Message Obx Rebuilds', _getMessageRebuilds()),
                       const SizedBox(height: 8),
-                      _buildPerformanceMetric('Items Obx Rebuilds', _getItemsRebuilds()),
+                      _buildPerformanceMetric(
+                          'Items Obx Rebuilds', _getItemsRebuilds()),
                       const SizedBox(height: 8),
-                      _buildPerformanceMetric('Features Obx Rebuilds', _getFeaturesRebuilds()),
+                      _buildPerformanceMetric(
+                          'Features Obx Rebuilds', _getFeaturesRebuilds()),
 
                       const SizedBox(height: 16),
 
@@ -319,37 +337,50 @@ class ObxDemoPage extends ZenView<ReactiveDemoController> {
                                   ),
                                 ),
                                 Obx(() => Chip(
-                                  label: Text('${controller.items.length}'),
-                                  backgroundColor: Colors.blue.shade200,
-                                )),
+                                      label: Text('${controller.items.length}'),
+                                      backgroundColor: Colors.blue.shade200,
+                                    )),
                               ],
                             ),
                             const SizedBox(height: 8),
-                            Obx(() => controller.items.isEmpty
-                                ? const Text('No items added yet')
-                                : Column(
-                              children: controller.items.value.take(3).map((item) =>
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 2),
-                                    child: Row(
-                                      children: [
-                                        Icon(Icons.circle,
-                                            size: 8, color: Colors.blue.shade600),
-                                        const SizedBox(width: 8),
-                                        Expanded(child: Text(item)),
-                                        if (controller.items.length > 3 && item == controller.items.value[2])
-                                          Text(
-                                            '+${controller.items.length - 3} more',
-                                            style: TextStyle(
-                                              color: Colors.grey.shade600,
-                                              fontSize: 12,
+                            Obx(
+                              () => controller.items.isEmpty
+                                  ? const Text('No items added yet')
+                                  : Column(
+                                      children: controller.items.value
+                                          .take(3)
+                                          .map(
+                                            (item) => Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      vertical: 2),
+                                              child: Row(
+                                                children: [
+                                                  Icon(Icons.circle,
+                                                      size: 8,
+                                                      color:
+                                                          Colors.blue.shade600),
+                                                  const SizedBox(width: 8),
+                                                  Expanded(child: Text(item)),
+                                                  if (controller.items.length >
+                                                          3 &&
+                                                      item ==
+                                                          controller
+                                                              .items.value[2])
+                                                    Text(
+                                                      '+${controller.items.length - 3} more',
+                                                      style: TextStyle(
+                                                        color: Colors
+                                                            .grey.shade600,
+                                                        fontSize: 12,
+                                                      ),
+                                                    ),
+                                                ],
+                                              ),
                                             ),
-                                          ),
-                                      ],
+                                          )
+                                          .toList(),
                                     ),
-                                  ),
-                              ).toList(),
-                            ),
                             ),
                           ],
                         ),
@@ -362,18 +393,26 @@ class ObxDemoPage extends ZenView<ReactiveDemoController> {
                         children: [
                           Expanded(
                             child: Obx(() => _buildStatusIndicator(
-                              'Counter Status',
-                              controller.counter.value > 0 ? 'Active' : 'Zero',
-                              controller.counter.value > 0 ? Colors.green : Colors.grey,
-                            )),
+                                  'Counter Status',
+                                  controller.counter.value > 0
+                                      ? 'Active'
+                                      : 'Zero',
+                                  controller.counter.value > 0
+                                      ? Colors.green
+                                      : Colors.grey,
+                                )),
                           ),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Obx(() => _buildStatusIndicator(
-                              'Features Status',
-                              controller.bothFeaturesEnabled ? 'Enabled' : 'Disabled',
-                              controller.bothFeaturesEnabled ? Colors.green : Colors.orange,
-                            )),
+                                  'Features Status',
+                                  controller.bothFeaturesEnabled
+                                      ? 'Enabled'
+                                      : 'Disabled',
+                                  controller.bothFeaturesEnabled
+                                      ? Colors.green
+                                      : Colors.orange,
+                                )),
                           ),
                         ],
                       ),
@@ -471,5 +510,6 @@ class ObxDemoPage extends ZenView<ReactiveDemoController> {
   int _getCounterRebuilds() => controller.counter.value; // Approximate
   int _getMessageRebuilds() => 5; // Simulated
   int _getItemsRebuilds() => controller.items.length;
-  int _getFeaturesRebuilds() => (controller.featureA.value ? 1 : 0) + (controller.featureB.value ? 1 : 0);
+  int _getFeaturesRebuilds() =>
+      (controller.featureA.value ? 1 : 0) + (controller.featureB.value ? 1 : 0);
 }

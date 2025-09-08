@@ -1,4 +1,3 @@
-
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zenify/zenify.dart';
@@ -9,7 +8,8 @@ class TodoService {
   static const String _todosKey = 'zenify_todos';
 
   /// Effect for loading todos from storage
-  final ZenEffect<List<Todo>> loadTodosEffect = ZenEffect<List<Todo>>(name: 'loadTodos');
+  final ZenEffect<List<Todo>> loadTodosEffect =
+      ZenEffect<List<Todo>>(name: 'loadTodos');
 
   /// Effect for saving todos to storage
   final ZenEffect<bool> saveTodosEffect = ZenEffect<bool>(name: 'saveTodos');
@@ -46,9 +46,8 @@ class TodoService {
       final result = await saveTodosEffect.run(() async {
         final prefs = await SharedPreferences.getInstance();
 
-        final todosJson = todos
-            .map((todo) => jsonEncode(todo.toJson()))
-            .toList();
+        final todosJson =
+            todos.map((todo) => jsonEncode(todo.toJson())).toList();
 
         final success = await prefs.setStringList(_todosKey, todosJson);
         return success;

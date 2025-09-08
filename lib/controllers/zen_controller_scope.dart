@@ -45,7 +45,8 @@ class ZenControllerScope<T extends ZenController> extends StatefulWidget {
   State<ZenControllerScope> createState() => _ZenControllerScopeState<T>();
 }
 
-class _ZenControllerScopeState<T extends ZenController> extends State<ZenControllerScope<T>> {
+class _ZenControllerScopeState<T extends ZenController>
+    extends State<ZenControllerScope<T>> {
   late T controller;
   late ZenScope _effectiveScope;
   ZenScope? _storedScope; // Store the scope reference when stable
@@ -62,7 +63,8 @@ class _ZenControllerScopeState<T extends ZenController> extends State<ZenControl
     super.didChangeDependencies();
 
     // ✅ Store the scope reference while the widget tree is stable
-    _storedScope = widget.scope ?? ZenScopeWidget.maybeOf(context) ?? Zen.rootScope;
+    _storedScope =
+        widget.scope ?? ZenScopeWidget.maybeOf(context) ?? Zen.rootScope;
 
     if (!_initialized) {
       _initController();
@@ -90,7 +92,8 @@ class _ZenControllerScopeState<T extends ZenController> extends State<ZenControl
         scopeToUse.delete<T>(tag: widget.tag, force: true);
 
         if (ZenConfig.enableDebugLogs) {
-          ZenLogger.logDebug('Disposed controller $T${widget.tag != null ? ' (${widget.tag})' : ''}');
+          ZenLogger.logDebug(
+              'Disposed controller $T${widget.tag != null ? ' (${widget.tag})' : ''}');
         }
       } catch (e) {
         if (ZenConfig.enableDebugLogs) {
@@ -127,7 +130,8 @@ class _ZenControllerScopeState<T extends ZenController> extends State<ZenControl
       controller = existingController;
 
       if (ZenConfig.enableDebugLogs) {
-        ZenLogger.logDebug('Using existing controller $T${widget.tag != null ? ' (${widget.tag})' : ''} from scope: ${_effectiveScope.name ?? _effectiveScope.id}');
+        ZenLogger.logDebug(
+            'Using existing controller $T${widget.tag != null ? ' (${widget.tag})' : ''} from scope: ${_effectiveScope.name ?? _effectiveScope.id}');
       }
     } else {
       // Create and register a new controller
@@ -151,7 +155,8 @@ class _ZenControllerScopeState<T extends ZenController> extends State<ZenControl
       }
 
       if (ZenConfig.enableDebugLogs) {
-        ZenLogger.logDebug('Created and registered controller $T${widget.tag != null ? ' (${widget.tag})' : ''} in scope: ${_effectiveScope.name ?? _effectiveScope.id}');
+        ZenLogger.logDebug(
+            'Created and registered controller $T${widget.tag != null ? ' (${widget.tag})' : ''} in scope: ${_effectiveScope.name ?? _effectiveScope.id}');
       }
     }
   }

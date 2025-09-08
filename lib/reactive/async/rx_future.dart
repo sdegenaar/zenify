@@ -56,7 +56,7 @@ class RxFuture<T> extends ValueNotifier<AsyncSnapshot<T>> {
 
   void _watchFuture(Future<T> future) {
     future.then(
-          (data) {
+      (data) {
         if (_currentFuture == future) {
           value = AsyncSnapshot.withData(ConnectionState.done, data);
         }
@@ -67,13 +67,14 @@ class RxFuture<T> extends ValueNotifier<AsyncSnapshot<T>> {
           final rxError = error is RxException
               ? error
               : RxException.withTimestamp(
-            'Future operation failed',
-            originalError: error,
-            stackTrace: stackTrace,
-          );
+                  'Future operation failed',
+                  originalError: error,
+                  stackTrace: stackTrace,
+                );
 
           RxLogger.logError(rxError, context: 'Future');
-          value = AsyncSnapshot.withError(ConnectionState.done, rxError, stackTrace);
+          value = AsyncSnapshot.withError(
+              ConnectionState.done, rxError, stackTrace);
         }
       },
     );
@@ -91,10 +92,10 @@ class RxFuture<T> extends ValueNotifier<AsyncSnapshot<T>> {
     final rxError = error is RxException
         ? error
         : RxException.withTimestamp(
-      'Manual error set',
-      originalError: error,
-      stackTrace: stackTrace,
-    );
+            'Manual error set',
+            originalError: error,
+            stackTrace: stackTrace,
+          );
 
     value = AsyncSnapshot.withError(
       ConnectionState.done,
@@ -202,9 +203,9 @@ class RxFuture<T> extends ValueNotifier<AsyncSnapshot<T>> {
       final rxError = err is RxException
           ? err
           : RxException.withTimestamp(
-        'Future has error state',
-        originalError: err,
-      );
+              'Future has error state',
+              originalError: err,
+            );
       return RxResult.failure(rxError);
     }
 
@@ -239,5 +240,6 @@ class RxFuture<T> extends ValueNotifier<AsyncSnapshot<T>> {
   }
 
   @override
-  String toString() => 'RxFuture<$T>(loading: $isLoading, hasData: $hasData, hasError: $hasError)';
+  String toString() =>
+      'RxFuture<$T>(loading: $isLoading, hasData: $hasData, hasError: $hasError)';
 }

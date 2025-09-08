@@ -44,7 +44,8 @@ class ZenScope {
     this.parent,
     this.name,
     String? id,
-  }) : id = id ?? '${name ?? 'scope'}-${DateTime.now().millisecondsSinceEpoch}' {
+  }) : id = id ??
+            '${name ?? 'scope'}-${DateTime.now().millisecondsSinceEpoch}' {
     // Add to parent's child scopes
     parent?._childScopes.add(this);
 
@@ -118,14 +119,16 @@ class ZenScope {
     }
 
     if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('Registered $T${tag != null ? ' with tag $tag' : ''} (${permanent ? 'permanent' : 'temporary'})');
+      ZenLogger.logDebug(
+          'Registered $T${tag != null ? ' with tag $tag' : ''} (${permanent ? 'permanent' : 'temporary'})');
     }
 
     return instance;
   }
 
   /// Register a lazy singleton factory
-  void putLazy<T>(T Function() factory, {String? tag, bool isPermanent = false}) {
+  void putLazy<T>(T Function() factory,
+      {String? tag, bool isPermanent = false}) {
     if (_disposed) {
       throw Exception('Cannot register in a disposed scope: $name');
     }
@@ -140,7 +143,8 @@ class ZenScope {
     _useCount[trackingKey] = isPermanent ? -1 : 0;
 
     if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('Registered lazy ${isPermanent ? 'permanent' : 'temporary'} singleton for $T${tag != null ? ' with tag $tag' : ''}');
+      ZenLogger.logDebug(
+          'Registered lazy ${isPermanent ? 'permanent' : 'temporary'} singleton for $T${tag != null ? ' with tag $tag' : ''}');
     }
   }
 
@@ -160,7 +164,8 @@ class ZenScope {
     _useCount[trackingKey] = -2;
 
     if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('Registered factory for $T${tag != null ? ' with tag $tag' : ''}');
+      ZenLogger.logDebug(
+          'Registered factory for $T${tag != null ? ' with tag $tag' : ''}');
     }
   }
 
@@ -225,7 +230,8 @@ class ZenScope {
   T findRequired<T>({String? tag}) {
     final result = find<T>(tag: tag);
     if (result == null) {
-      throw Exception('Dependency of type $T${tag != null ? ' with tag $tag' : ''} not found in scope: $name');
+      throw Exception(
+          'Dependency of type $T${tag != null ? ' with tag $tag' : ''} not found in scope: $name');
     }
     return result;
   }
@@ -246,7 +252,9 @@ class ZenScope {
 
     // Check type bindings (untagged instances) - explicitly check for type T
     final typeInstance = _typeBindings[T];
-    if (typeInstance != null && typeInstance is T && !seen.contains(typeInstance)) {
+    if (typeInstance != null &&
+        typeInstance is T &&
+        !seen.contains(typeInstance)) {
       result.add(typeInstance);
       seen.add(typeInstance);
     }
@@ -300,7 +308,8 @@ class ZenScope {
     if (_useCount.containsKey(key)) {
       final permanent = _useCount[key] == -1;
       if (permanent && !force) {
-        ZenLogger.logWarning('Attempted to delete permanent dependency of type $T${tag != null ? ' with tag $tag' : ''}. Use force=true to override.');
+        ZenLogger.logWarning(
+            'Attempted to delete permanent dependency of type $T${tag != null ? ' with tag $tag' : ''}. Use force=true to override.');
         return false;
       }
     }
@@ -347,7 +356,8 @@ class ZenScope {
     }
 
     if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('Deleted dependency $T${tag != null ? ' with tag $tag' : ''}');
+      ZenLogger.logDebug(
+          'Deleted dependency $T${tag != null ? ' with tag $tag' : ''}');
     }
 
     return true;
@@ -369,7 +379,8 @@ class ZenScope {
 
     // Check if permanent
     if (_useCount.containsKey(key) && _useCount[key] == -1 && !force) {
-      ZenLogger.logWarning('Attempted to delete permanent dependency with tag $tag. Use force=true to override.');
+      ZenLogger.logWarning(
+          'Attempted to delete permanent dependency with tag $tag. Use force=true to override.');
       return false;
     }
 
@@ -408,7 +419,8 @@ class ZenScope {
 
     // Check if permanent
     if (_useCount.containsKey(key) && _useCount[key] == -1 && !force) {
-      ZenLogger.logWarning('Attempted to delete permanent dependency of type $type. Use force=true to override.');
+      ZenLogger.logWarning(
+          'Attempted to delete permanent dependency of type $type. Use force=true to override.');
       return false;
     }
 
@@ -541,7 +553,8 @@ class ZenScope {
             instance.dispose();
           } catch (e) {
             if (ZenConfig.enableDebugLogs) {
-              ZenLogger.logError('Error disposing controller during clearAll: $e');
+              ZenLogger.logError(
+                  'Error disposing controller during clearAll: $e');
             }
           }
         }
@@ -575,7 +588,8 @@ class ZenScope {
             instance.dispose();
           } catch (e) {
             if (ZenConfig.enableDebugLogs) {
-              ZenLogger.logError('Error disposing controller during clearAll: $e');
+              ZenLogger.logError(
+                  'Error disposing controller during clearAll: $e');
             }
           }
         }
@@ -595,7 +609,8 @@ class ZenScope {
         // Try to parse the factory key to get type and tag info
         // For simplicity, we'll check the use count map
         final matchingKeys = _useCount.entries.where((e) =>
-        e.value != -1 && factoryKey.contains(e.key.toString().split('|')[0]));
+            e.value != -1 &&
+            factoryKey.contains(e.key.toString().split('|')[0]));
 
         if (matchingKeys.isNotEmpty) {
           factoriesToRemove.add(factoryKey);
@@ -725,13 +740,15 @@ class ZenScope {
   void _initializeController(ZenController controller) {
     if (!controller.isInitialized) {
       if (ZenConfig.enableDebugLogs) {
-        ZenLogger.logDebug('Auto-initializing ZenController: ${controller.runtimeType}');
+        ZenLogger.logDebug(
+            'Auto-initializing ZenController: ${controller.runtimeType}');
       }
       controller.onInit();
     }
     if (!controller.isReady) {
       if (ZenConfig.enableDebugLogs) {
-        ZenLogger.logDebug('Auto-readying ZenController: ${controller.runtimeType}');
+        ZenLogger.logDebug(
+            'Auto-readying ZenController: ${controller.runtimeType}');
       }
       controller.onReady();
     }
@@ -785,7 +802,8 @@ class ZenScope {
     }
 
     if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('Created ${isSingleton ? 'lazy' : 'factory'} instance for $T${tag != null ? ' with tag $tag' : ''}');
+      ZenLogger.logDebug(
+          'Created ${isSingleton ? 'lazy' : 'factory'} instance for $T${tag != null ? ' with tag $tag' : ''}');
     }
 
     return instance;

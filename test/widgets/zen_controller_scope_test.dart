@@ -60,7 +60,8 @@ void main() {
   });
 
   group('ZenControllerScope Tests', () {
-    testWidgets('should create controller and make it available to children', (tester) async {
+    testWidgets('should create controller and make it available to children',
+        (tester) async {
       // Create a controller flag to track creation
       bool controllerCreated = false;
 
@@ -100,7 +101,9 @@ void main() {
       expect(find.text('Count: 1'), findsOneWidget);
     });
 
-    testWidgets('should automatically dispose controller when widget is removed', (tester) async {
+    testWidgets(
+        'should automatically dispose controller when widget is removed',
+        (tester) async {
       // Track disposal state
       bool disposerCalled = false;
 
@@ -137,7 +140,8 @@ void main() {
       expect(Zen.findOrNull<CounterController>(), isNull);
     });
 
-    testWidgets('should maintain controller when widget rebuilds', (tester) async {
+    testWidgets('should maintain controller when widget rebuilds',
+        (tester) async {
       // Counter to track controller creation count
       int createCount = 0;
 
@@ -160,7 +164,7 @@ void main() {
                     ),
                   ),
                   ElevatedButton(
-                    onPressed: () => setState(() {}),  // Force rebuild
+                    onPressed: () => setState(() {}), // Force rebuild
                     child: const Text('Rebuild'),
                   ),
                 ],
@@ -186,17 +190,19 @@ void main() {
       await tester.pump();
 
       // Verify controller wasn't created again and state persists
-      expect(createCount, 1);  // Still just one creation
-      expect(find.text('Count: 1'), findsOneWidget);  // Count still preserved
+      expect(createCount, 1); // Still just one creation
+      expect(find.text('Count: 1'), findsOneWidget); // Count still preserved
     });
 
-    testWidgets('should support nested controller scopes with dependencies', (tester) async {
+    testWidgets('should support nested controller scopes with dependencies',
+        (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: ZenControllerScope<CounterController>(
             create: () => CounterController(),
             child: ZenControllerScope<DependentController>(
-              create: () => DependentController(),  // This depends on CounterController
+              create: () =>
+                  DependentController(), // This depends on CounterController
               child: Builder(
                 builder: (context) {
                   // Get both controllers
@@ -206,7 +212,8 @@ void main() {
                   return Column(
                     children: [
                       Text('Parent Count: ${counterController.count}'),
-                      Text('Child can access: ${dependentController.counter.count}'),
+                      Text(
+                          'Child can access: ${dependentController.counter.count}'),
                       ElevatedButton(
                         onPressed: () {
                           dependentController.incrementCounter();
@@ -276,7 +283,7 @@ void main() {
         MaterialApp(
           home: ZenControllerScope<CounterController>(
             create: () => CounterController(),
-            permanent: true,  // Make the controller permanent
+            permanent: true, // Make the controller permanent
             child: const Text('Permanent Controller'),
           ),
         ),
@@ -320,7 +327,7 @@ void main() {
                 tag: 'counter2',
                 create: () {
                   final controller = CounterController();
-                  controller.count = 10;  // Give it a different initial value
+                  controller.count = 10; // Give it a different initial value
                   return controller;
                 },
                 child: ZenBuilder<CounterController>(
@@ -352,7 +359,9 @@ void main() {
       expect(find.text('Counter 2: 11'), findsOneWidget);
     });
 
-    testWidgets('should handle controller with onInit and onReady lifecycle methods', (tester) async {
+    testWidgets(
+        'should handle controller with onInit and onReady lifecycle methods',
+        (tester) async {
       // Define the controller class outside the test body
       final lifecycleController = LifecycleController();
 
@@ -362,7 +371,8 @@ void main() {
             create: () => lifecycleController,
             child: ZenBuilder<LifecycleController>(
               builder: (context, controller) {
-                return Text('Lifecycle status: Init=${controller.onInitCalled}, Ready=${controller.onReadyCalled}');
+                return Text(
+                    'Lifecycle status: Init=${controller.onInitCalled}, Ready=${controller.onReadyCalled}');
               },
             ),
           ),
@@ -390,7 +400,8 @@ void main() {
     testWidgets('should handle many controllers efficiently', (tester) async {
       // Create a list to track controllers
       final List<CounterController> controllers = [];
-      const int controllerCount = 20; // Reduced from 50 to ensure test runs faster
+      const int controllerCount =
+          20; // Reduced from 50 to ensure test runs faster
 
       // Build a widget with many nested scopes
       await tester.pumpWidget(
@@ -447,7 +458,8 @@ void main() {
       }
     });
 
-    testWidgets('should handle error in controller creation gracefully', (tester) async {
+    testWidgets('should handle error in controller creation gracefully',
+        (tester) async {
       // Track if error handler was called
       bool errorHandlerCalled = false;
 
@@ -481,7 +493,8 @@ void main() {
       FlutterError.onError = FlutterError.dumpErrorToConsole;
     });
 
-    testWidgets('should properly dispose controller when widget is removed', (tester) async {
+    testWidgets('should properly dispose controller when widget is removed',
+        (tester) async {
       // Create a flag to track disposal
       bool disposeCalled = false;
 
@@ -514,7 +527,8 @@ void main() {
       expect(Zen.findOrNull<CounterController>(), isNull);
     });
 
-    testWidgets('should create new controller when key changes', (tester) async {
+    testWidgets('should create new controller when key changes',
+        (tester) async {
       // First reset the DI system to ensure clean environment
       Zen.reset();
 
@@ -586,7 +600,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify a new controller was created
-      expect(createdControllers.length, 2, reason: 'Should have created a second controller when key changed');
+      expect(createdControllers.length, 2,
+          reason: 'Should have created a second controller when key changed');
 
       // The new controller should have the default count
       expect(find.text('Count: 0'), findsOneWidget);

@@ -6,14 +6,15 @@ class ZenConfig {
 
   /// Debug settings
   static bool enableDebugLogs = false;
-  static bool strictMode = false;  // Throw exceptions for misuse
+  static bool strictMode = false; // Throw exceptions for misuse
 
   /// Performance and metrics settings
   static bool enablePerformanceTracking = false;
 
   /// Alias for enablePerformanceTracking to match naming in other areas
   static bool get enablePerformanceMetrics => enablePerformanceTracking;
-  static set enablePerformanceMetrics(bool value) => enablePerformanceTracking = value;
+  static set enablePerformanceMetrics(bool value) =>
+      enablePerformanceTracking = value;
 
   /// New metrics settings
   static bool enableMetrics = false;
@@ -34,9 +35,6 @@ class ZenConfig {
 
   /// Whether to enable dependency visualization
   static bool enableDependencyVisualization = false;
-
-
-
 
   /// Reset all settings to defaults
   static void reset() {
@@ -97,7 +95,9 @@ class ZenConfig {
   }) {
     if (debugLogs != null) enableDebugLogs = debugLogs;
     if (strict != null) strictMode = strict;
-    if (performanceTracking != null) enablePerformanceTracking = performanceTracking;
+    if (performanceTracking != null) {
+      enablePerformanceTracking = performanceTracking;
+    }
     if (metrics != null) enableMetrics = metrics;
     if (autoDispose != null) enableAutoDispose = autoDispose;
     if (cacheExpiry != null) controllerCacheExpiry = cacheExpiry;

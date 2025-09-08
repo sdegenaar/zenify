@@ -25,17 +25,20 @@ class ApiService {
   }
 
   /// Make a GET request to the API
-  Future<Map<String, dynamic>> get(String endpoint, {Map<String, dynamic>? params}) async {
+  Future<Map<String, dynamic>> get(String endpoint,
+      {Map<String, dynamic>? params}) async {
     return _makeRequest('GET', endpoint, params: params);
   }
 
   /// Make a POST request to the API
-  Future<Map<String, dynamic>> post(String endpoint, {Map<String, dynamic>? data}) async {
+  Future<Map<String, dynamic>> post(String endpoint,
+      {Map<String, dynamic>? data}) async {
     return _makeRequest('POST', endpoint, data: data);
   }
 
   /// Make a PUT request to the API
-  Future<Map<String, dynamic>> put(String endpoint, {Map<String, dynamic>? data}) async {
+  Future<Map<String, dynamic>> put(String endpoint,
+      {Map<String, dynamic>? data}) async {
     return _makeRequest('PUT', endpoint, data: data);
   }
 
@@ -46,12 +49,12 @@ class ApiService {
 
   /// Make a request to the API with retry logic
   Future<Map<String, dynamic>> _makeRequest(
-      String method,
-      String endpoint, {
-        Map<String, dynamic>? params,
-        Map<String, dynamic>? data,
-        int maxRetries = 3,
-      }) async {
+    String method,
+    String endpoint, {
+    Map<String, dynamic>? params,
+    Map<String, dynamic>? data,
+    int maxRetries = 3,
+  }) async {
     final request = ApiRequest(
       id: 'req_${DateTime.now().millisecondsSinceEpoch}',
       method: method,
@@ -69,7 +72,8 @@ class ApiService {
 
     // Trim request log if it gets too large
     if (_requestLog.length > 50) {
-      _requestLog.value.removeRange(0, _requestLog.length - 50);  // Now works correctly
+      _requestLog.value
+          .removeRange(0, _requestLog.length - 50); // Now works correctly
     }
 
     ZenLogger.logInfo('API Request: $method $endpoint');
@@ -102,8 +106,10 @@ class ApiService {
 
       // Retry logic
       if (maxRetries > 0) {
-        ZenLogger.logWarning('Retrying request: $method $endpoint (${maxRetries - 1} retries left)');
-        return _makeRequest(method, endpoint, params: params, data: data, maxRetries: maxRetries - 1);
+        ZenLogger.logWarning(
+            'Retrying request: $method $endpoint (${maxRetries - 1} retries left)');
+        return _makeRequest(method, endpoint,
+            params: params, data: data, maxRetries: maxRetries - 1);
       }
 
       rethrow;
@@ -121,15 +127,16 @@ class ApiService {
   }
 
   /// Create a mock response based on the endpoint
-  Map<String, dynamic> _createMockResponse(String endpoint, String method, {Map<String, dynamic>? params}) {
+  Map<String, dynamic> _createMockResponse(String endpoint, String method,
+      {Map<String, dynamic>? params}) {
     // Mock departments data with teams included
     if (endpoint.contains('departments')) {
       return {
         'data': [
           {
-            'id': 'dept1', 
-            'name': 'Engineering', 
-            'employeeCount': 42, 
+            'id': 'dept1',
+            'name': 'Engineering',
+            'employeeCount': 42,
             'location': 'Building A',
             'teams': [
               {'id': 'team1', 'name': 'Backend Team', 'memberCount': 8},
@@ -138,9 +145,9 @@ class ApiService {
             ]
           },
           {
-            'id': 'dept2', 
-            'name': 'Marketing', 
-            'employeeCount': 18, 
+            'id': 'dept2',
+            'name': 'Marketing',
+            'employeeCount': 18,
             'location': 'Building B',
             'teams': [
               {'id': 'team4', 'name': 'Digital Marketing', 'memberCount': 7},
@@ -149,9 +156,9 @@ class ApiService {
             ]
           },
           {
-            'id': 'dept3', 
-            'name': 'Finance', 
-            'employeeCount': 15, 
+            'id': 'dept3',
+            'name': 'Finance',
+            'employeeCount': 15,
             'location': 'Building C',
             'teams': [
               {'id': 'team7', 'name': 'Accounting', 'memberCount': 8},
@@ -159,9 +166,9 @@ class ApiService {
             ]
           },
           {
-            'id': 'dept4', 
-            'name': 'Human Resources', 
-            'employeeCount': 8, 
+            'id': 'dept4',
+            'name': 'Human Resources',
+            'employeeCount': 8,
             'location': 'Building B',
             'teams': [
               {'id': 'team9', 'name': 'Recruitment', 'memberCount': 4},
@@ -169,9 +176,9 @@ class ApiService {
             ]
           },
           {
-            'id': 'dept5', 
-            'name': 'Operations', 
-            'employeeCount': 23, 
+            'id': 'dept5',
+            'name': 'Operations',
+            'employeeCount': 23,
             'location': 'Building D',
             'teams': [
               {'id': 'team11', 'name': 'Logistics', 'memberCount': 9},
@@ -186,10 +193,15 @@ class ApiService {
 
     if (endpoint.contains('department/') && endpoint.split('/').length > 1) {
       final deptId = endpoint.split('/').last;
-      final deptName = deptId == 'dept1' ? 'Engineering' :
-      deptId == 'dept2' ? 'Marketing' :
-      deptId == 'dept3' ? 'Finance' :
-      deptId == 'dept4' ? 'Human Resources' : 'Operations';
+      final deptName = deptId == 'dept1'
+          ? 'Engineering'
+          : deptId == 'dept2'
+              ? 'Marketing'
+              : deptId == 'dept3'
+                  ? 'Finance'
+                  : deptId == 'dept4'
+                      ? 'Human Resources'
+                      : 'Operations';
 
       return {
         'data': {
@@ -202,7 +214,7 @@ class ApiService {
           'manager': 'emp${_random.nextInt(100) + 1}',
           'teams': List.generate(
             _random.nextInt(5) + 1,
-                (i) => {
+            (i) => {
               'id': 'team${i + 1}',
               'name': '$deptName Team ${i + 1}',
               'memberCount': _random.nextInt(10) + 2,
@@ -215,21 +227,27 @@ class ApiService {
     // Mock employees data
     if (endpoint.contains('employees')) {
       final deptId = params?['departmentId'] as String? ?? '';
-      final deptName = deptId == 'dept1' ? 'Engineering' :
-      deptId == 'dept2' ? 'Marketing' :
-      deptId == 'dept3' ? 'Finance' :
-      deptId == 'dept4' ? 'Human Resources' : 'Operations';
+      final deptName = deptId == 'dept1'
+          ? 'Engineering'
+          : deptId == 'dept2'
+              ? 'Marketing'
+              : deptId == 'dept3'
+                  ? 'Finance'
+                  : deptId == 'dept4'
+                      ? 'Human Resources'
+                      : 'Operations';
 
       return {
         'data': List.generate(
           _random.nextInt(20) + 5,
-              (i) => {
+          (i) => {
             'id': 'emp${i + 1}',
             'name': 'Employee ${i + 1}',
             'position': '$deptName Specialist',
             'departmentId': deptId,
             'email': 'employee${i + 1}@company.com',
-            'hireDate': '2023-${_random.nextInt(12) + 1}-${_random.nextInt(28) + 1}',
+            'hireDate':
+                '2023-${_random.nextInt(12) + 1}-${_random.nextInt(28) + 1}',
           },
         ),
         'meta': {'total': _random.nextInt(50) + 5, 'page': 1, 'perPage': 20}
@@ -247,16 +265,18 @@ class ApiService {
           'position': 'Senior Specialist',
           'departmentId': 'dept${_random.nextInt(5) + 1}',
           'email': 'employee${empId.replaceAll('emp', '')}@company.com',
-          'phone': '+1 ${_random.nextInt(900) + 100} ${_random.nextInt(900) + 100} ${_random.nextInt(9000) + 1000}',
-          'hireDate': '2023-${_random.nextInt(12) + 1}-${_random.nextInt(28) + 1}',
+          'phone':
+              '+1 ${_random.nextInt(900) + 100} ${_random.nextInt(900) + 100} ${_random.nextInt(9000) + 1000}',
+          'hireDate':
+              '2023-${_random.nextInt(12) + 1}-${_random.nextInt(28) + 1}',
           'address': '${_random.nextInt(1000) + 100} Main St, City',
           'skills': List.generate(
             _random.nextInt(5) + 1,
-                (i) => 'Skill ${i + 1}',
+            (i) => 'Skill ${i + 1}',
           ),
           'projects': List.generate(
             _random.nextInt(3) + 1,
-                (i) => {
+            (i) => {
               'id': 'proj${i + 1}',
               'name': 'Project ${i + 1}',
               'role': 'Team Member',

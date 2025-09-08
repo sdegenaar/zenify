@@ -136,7 +136,8 @@ void main() {
 
     test('should support hierarchical scope lookups', () {
       final parentScope = Zen.createScope(name: 'ParentScope');
-      final childScope = Zen.createScope(name: 'ChildScope', parent: parentScope);
+      final childScope =
+          Zen.createScope(name: 'ChildScope', parent: parentScope);
 
       // Register in parent scope
       final controller = TestController('hierarchical');
@@ -248,8 +249,10 @@ void main() {
       Zen.put<TestService>(service);
 
       // Verify they exist
-      expect(Zen.findOrNull<TestController>(tag: 'controller1'), same(controller1));
-      expect(Zen.findOrNull<TestController>(tag: 'controller2'), same(controller2));
+      expect(Zen.findOrNull<TestController>(tag: 'controller1'),
+          same(controller1));
+      expect(Zen.findOrNull<TestController>(tag: 'controller2'),
+          same(controller2));
       expect(Zen.findOrNull<TestService>(), same(service));
 
       // Call deleteAll
@@ -388,7 +391,8 @@ void main() {
       expect(scope.exists<TestService>(tag: 'mytag'), isTrue);
     });
 
-    test('should handle multiple instances of same type with different tags', () {
+    test('should handle multiple instances of same type with different tags',
+        () {
       final scope = Zen.createScope(name: 'MultipleInstances');
 
       final services = <TestService>[];
@@ -440,7 +444,8 @@ void main() {
       expect(controller.disposeMethodCalled, isTrue);
     });
 
-    testWidgets('should handle disposal in widget tree properly', (WidgetTester tester) async {
+    testWidgets('should handle disposal in widget tree properly',
+        (WidgetTester tester) async {
       bool disposerCalled = false;
 
       await tester.pumpWidget(
@@ -477,7 +482,8 @@ void main() {
     });
 
     // ✅ NEW: Test for error handling in lifecycle methods
-    testWidgets('should handle errors in lifecycle methods gracefully', (WidgetTester tester) async {
+    testWidgets('should handle errors in lifecycle methods gracefully',
+        (WidgetTester tester) async {
       await tester.pumpWidget(const MaterialApp(home: Scaffold()));
 
       final controller = ErrorProneController();
@@ -492,7 +498,8 @@ void main() {
     });
 
     // ✅ NEW: Test for multiple lifecycle calls
-    testWidgets('should handle multiple lifecycle calls correctly', (WidgetTester tester) async {
+    testWidgets('should handle multiple lifecycle calls correctly',
+        (WidgetTester tester) async {
       await tester.pumpWidget(const MaterialApp(home: Scaffold()));
 
       final controller = TestController('multiple-calls');

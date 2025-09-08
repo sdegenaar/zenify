@@ -1,4 +1,3 @@
-
 /// Product model for the e-commerce app
 class Product {
   final String id;
@@ -31,7 +30,10 @@ class Product {
       description: json['description'] as String,
       price: (json['price'] as num).toDouble(),
       imageUrl: json['imageUrl'] as String,
-      categories: (json['categories'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [],
+      categories: (json['categories'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          [],
       rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
       reviewCount: (json['reviewCount'] as num?)?.toInt() ?? 0,
       inStock: json['inStock'] as bool? ?? true,

@@ -28,13 +28,13 @@ class LoginController extends ZenController {
     // Set up workers to validate form fields
     ZenWorkers.debounce(
       email,
-          (_) => validateEmail(),
+      (_) => validateEmail(),
       const Duration(milliseconds: 500),
     );
 
     ZenWorkers.debounce(
       password,
-          (_) => validatePassword(),
+      (_) => validatePassword(),
       const Duration(milliseconds: 500),
     );
   }

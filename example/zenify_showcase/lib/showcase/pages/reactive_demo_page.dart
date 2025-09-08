@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:zenify/zenify.dart';
 import '../controllers/reactive_demo_controller.dart';
@@ -8,7 +7,8 @@ class ReactiveDemoPage extends ZenView<ReactiveDemoController> {
   const ReactiveDemoPage({super.key});
 
   @override
-  ReactiveDemoController Function()? get createController => () => ReactiveDemoController();
+  ReactiveDemoController Function()? get createController =>
+      () => ReactiveDemoController();
 
   @override
   Widget build(BuildContext context) {
@@ -39,12 +39,15 @@ class ReactiveDemoPage extends ZenView<ReactiveDemoController> {
                           ),
                           const SizedBox(height: 16),
                           Obx(() => Text(
-                            '${controller.counter.value}',
-                            style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                              color: Colors.blue,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          )),
+                                '${controller.counter.value}',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .displayMedium
+                                    ?.copyWith(
+                                      color: Colors.blue,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                              )),
                           const SizedBox(height: 16),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -81,17 +84,18 @@ class ReactiveDemoPage extends ZenView<ReactiveDemoController> {
                           ),
                           const SizedBox(height: 16),
                           Obx(() => Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.blue.shade50,
-                              border: Border.all(color: Colors.blue.shade200),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              controller.message.value,
-                              style: const TextStyle(fontSize: 16),
-                            ),
-                          )),
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.blue.shade50,
+                                  border:
+                                      Border.all(color: Colors.blue.shade200),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  controller.message.value,
+                                  style: const TextStyle(fontSize: 16),
+                                ),
+                              )),
                           const SizedBox(height: 16),
                           ElevatedButton(
                             onPressed: controller.updateMessage,
@@ -124,22 +128,27 @@ class ReactiveDemoPage extends ZenView<ReactiveDemoController> {
                           ),
                           const SizedBox(height: 16),
                           Obx(() => Column(
-                            children: controller.items.map((item) =>
-                                Card(
-                                  margin: const EdgeInsets.symmetric(vertical: 2),
-                                  child: ListTile(
-                                    leading: CircleAvatar(
-                                      child: Text('${controller.items.value.indexOf(item) + 1}'),
-                                    ),
-                                    title: Text(item),
-                                    trailing: IconButton(
-                                      icon: const Icon(Icons.delete),
-                                      onPressed: () => controller.removeItem(item),
-                                    ),
-                                  ),
-                                ),
-                            ).toList(),
-                          )),
+                                children: controller.items
+                                    .map(
+                                      (item) => Card(
+                                        margin: const EdgeInsets.symmetric(
+                                            vertical: 2),
+                                        child: ListTile(
+                                          leading: CircleAvatar(
+                                            child: Text(
+                                                '${controller.items.value.indexOf(item) + 1}'),
+                                          ),
+                                          title: Text(item),
+                                          trailing: IconButton(
+                                            icon: const Icon(Icons.delete),
+                                            onPressed: () =>
+                                                controller.removeItem(item),
+                                          ),
+                                        ),
+                                      ),
+                                    )
+                                    .toList(),
+                              )),
                           const SizedBox(height: 16),
                           Row(
                             children: [
@@ -177,48 +186,50 @@ class ReactiveDemoPage extends ZenView<ReactiveDemoController> {
                           ),
                           const SizedBox(height: 16),
                           Obx(() => SwitchListTile(
-                            title: const Text('Feature A'),
-                            value: controller.featureA.value,
-                            onChanged: (value) => controller.featureA.value = value,
-                          )),
+                                title: const Text('Feature A'),
+                                value: controller.featureA.value,
+                                onChanged: (value) =>
+                                    controller.featureA.value = value,
+                              )),
                           Obx(() => SwitchListTile(
-                            title: const Text('Feature B'),
-                            value: controller.featureB.value,
-                            onChanged: (value) => controller.featureB.value = value,
-                          )),
+                                title: const Text('Feature B'),
+                                value: controller.featureB.value,
+                                onChanged: (value) =>
+                                    controller.featureB.value = value,
+                              )),
                           const SizedBox(height: 16),
                           Obx(() => Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: controller.bothFeaturesEnabled
-                                  ? Colors.green.shade50
-                                  : Colors.grey.shade50,
-                              border: Border.all(
-                                color: controller.bothFeaturesEnabled
-                                    ? Colors.green.shade200
-                                    : Colors.grey.shade200,
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  controller.bothFeaturesEnabled
-                                      ? Icons.check_circle
-                                      : Icons.radio_button_unchecked,
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
                                   color: controller.bothFeaturesEnabled
-                                      ? Colors.green
-                                      : Colors.grey,
+                                      ? Colors.green.shade50
+                                      : Colors.grey.shade50,
+                                  border: Border.all(
+                                    color: controller.bothFeaturesEnabled
+                                        ? Colors.green.shade200
+                                        : Colors.grey.shade200,
+                                  ),
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  controller.bothFeaturesEnabled
-                                      ? 'Both features enabled!'
-                                      : 'Enable both features to unlock premium mode',
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      controller.bothFeaturesEnabled
+                                          ? Icons.check_circle
+                                          : Icons.radio_button_unchecked,
+                                      color: controller.bothFeaturesEnabled
+                                          ? Colors.green
+                                          : Colors.grey,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      controller.bothFeaturesEnabled
+                                          ? 'Both features enabled!'
+                                          : 'Enable both features to unlock premium mode',
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                          )),
+                              )),
                         ],
                       ),
                     ),
