@@ -1,4 +1,11 @@
 
+## 0.5.4
+
+* **📱 Pub.dev Example Improvements**
+    * Updated example application displayed on pub.dev package page
+    * Cleaner code structure and improved readability for new users
+    * Better demonstration of ZenView and reactive state patterns
+
 ## 0.5.3
 
 * **🏆 Perfect pub.dev Package Score Achievement (160/160)**
