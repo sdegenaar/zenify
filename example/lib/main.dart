@@ -31,7 +31,7 @@ class CounterPage extends ZenView<CounterController> {
 
   @override
   CounterController Function()? get createController =>
-          () => CounterController();
+      () => CounterController();
 
   @override
   Widget build(BuildContext context) {
@@ -48,9 +48,9 @@ class CounterPage extends ZenView<CounterController> {
               'You have pushed the button this many times:',
             ),
             Obx(() => Text(
-              '${controller.count.value}',
-              style: Theme.of(context).textTheme.headlineMedium,
-            )),
+                  '${controller.count.value}',
+                  style: Theme.of(context).textTheme.headlineMedium,
+                )),
             const SizedBox(height: 24),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,

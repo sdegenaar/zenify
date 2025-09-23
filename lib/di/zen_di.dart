@@ -1,4 +1,5 @@
 // lib/di/zen_di.dart
+import '../controllers/zen_service.dart';
 import '../core/zen_logger.dart';
 import '../core/zen_config.dart';
 import '../core/zen_scope.dart';
@@ -125,7 +126,8 @@ class Zen {
 
   /// Register a dependency in the root scope (convenience method)
   static T put<T>(T instance, {String? tag, bool? isPermanent}) {
-    final permanent = isPermanent ?? false;
+    // Smart default: ZenService instances default to permanent
+    final permanent = isPermanent ?? (instance is ZenService ? true : false);
 
     final result = rootScope.put<T>(
       instance,
@@ -133,9 +135,11 @@ class Zen {
       permanent: permanent,
     );
 
-    // Initialize controller lifecycle if it's a controller
+    // Initialize via lifecycle manager for consistency
     if (instance is ZenController) {
       _lifecycleManager.initializeController(instance);
+    } else if (instance is ZenService) {
+      _lifecycleManager.initializeService(instance); // New method
     }
 
     return result;
@@ -144,12 +148,14 @@ class Zen {
   /// Register a lazy factory in root scope
   static void putLazy<T>(T Function() factory,
       {String? tag, bool? isPermanent}) {
+    // Keep lazy behavior simple and explicit
     final permanent = isPermanent ?? false;
     rootScope.putLazy<T>(factory, tag: tag, isPermanent: permanent);
   }
 
   /// Register a factory in root scope
   static void putFactory<T>(T Function() factory, {String? tag}) {
+    // Factories don't support permanent - they create new instances each time
     rootScope.putFactory<T>(factory, tag: tag);
   }
 
@@ -160,6 +166,12 @@ class Zen {
       throw Exception(
           'Dependency of type $T${tag != null ? ' with tag $tag' : ''} not found');
     }
+
+    // Auto-initialize ZenService instances when first accessed
+    if (result is ZenService && !result.isInitialized) {
+      result.ensureInitialized();
+    }
+
     return result;
   }
 

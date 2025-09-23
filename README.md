@@ -58,7 +58,7 @@ We've also incorporated proven concepts from **Riverpod's** hierarchical scoping
 ### 1. Install
 ```yaml
 dependencies:
-  zenify: ^0.5.4
+  zenify: ^0.5.5
 ```
 
 ### 2. Initialize
@@ -78,7 +78,20 @@ class CounterController extends ZenController {
   void decrement() => count.value--;
 }
 ```
-### 4. Use in Your Page
+### 4. Optional) Register a Service
+``` dart
+class LoggingService extends ZenService {
+    @override
+    void onInit() {/* setup sinks, files, etc. */}
+
+    @override
+    void onClose() {/* flush and close */}
+}
+
+// Permanent by default when using Zen.put
+Zen.put<LoggingService>(LoggingService());
+```
+### 5. Use in Your Page
 ``` dart
 class CounterPage extends ZenView<CounterController> {
   @override
@@ -375,6 +388,47 @@ class AnyController extends ZenController {
 - **Hot reload friendly** - Services persist across development iterations
 - **Testing support** - Easy to swap modules for testing
 - **Feature isolation** - Keep related dependencies grouped together
+
+## Services (ZenService) 
+Long-lived app-wide services (e.g., auth, logging, cache) with safe lifecycle.
+
+- Lifecycle:
+    - `onInit()` runs when the service first initializes
+    - `onClose()` runs during disposal
+    - `isInitialized` is true only after a successful `onInit()`
+- DI behavior:
+    - `Zen.put(instance)`: `ZenService` defaults to `isPermanent = true` and initializes via lifecycle manager
+    - `Zen.putLazy(factory)`: permanence is explicit (default `false`); instance is created and initialized on first `Zen.find()`
+    - `Zen.putFactory(factory)`: unchanged; always creates a new instance (no permanence)
+    - `Zen.find()`: auto-initializes a `ZenService` on first access (covers lazy/scoped resolutions)
+
+Example:
+``` dart
+class AuthService extends ZenService {
+    late final StreamSubscription _tokenSub;
+
+    @override
+    void onInit() {
+        _tokenSub = tokenStream.listen(_handleToken);
+    }
+
+    @override
+    void onClose() {
+        _tokenSub.cancel();
+    }
+
+    void _handleToken(String token) {/* ... */}
+}
+
+// Registration: permanent by default for services
+Zen.put<AuthService>(AuthService());
+
+// Lazy registration (make permanent explicitly if desired)
+Zen.putLazy<AuthService>(() => AuthService(), isPermanent: true);
+
+// Usage anywhere
+final auth = Zen.find<AuthService>(); // auto-initializes if needed
+```
 
 ## Organize with Modules
 Scale your app with clean dependency organization:

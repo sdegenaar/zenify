@@ -1,3 +1,24 @@
+## 0.5.5
+* **🆕 ZenService (long‑lived services)**
+    * Adds `ZenService` base with `onInit` and `onClose` lifecycle hooks
+    * Safe init: `isInitialized` set only after successful `onInit`
+    * Guaranteed cleanup via `onDelete` → `onClose`
+
+- **🧩 DI behavior and consistency**
+    * `Zen.put(instance)`: `ZenService` defaults to `isPermanent = true` and initializes via lifecycle manager
+    * `Zen.putLazy(factory)`: explicit permanence (default `false`); instance created on first `find()`
+    * `Zen.putFactory(factory)`: unchanged; always creates new instances
+    * `Zen.find()`: auto‑initializes `ZenService` on first access (covers lazy/scoped resolutions)
+
+- **✅ Compatibility**
+    * No changes to behavior `ZenController`
+    * Works across scopes and modules with consistent lifecycle handling
+
+- **🧪 Tests**
+    * Added unit/integration tests for service init/disposal, lazy resolution, and error handling
+
+- **📝 Docs**
+    * Updated guidance on services vs controllers, permanence defaults, and initialization semantics
 
 ## 0.5.4
 

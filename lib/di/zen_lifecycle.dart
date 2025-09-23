@@ -1,6 +1,7 @@
 // lib/di/zen_lifecycle.dart
 import 'package:flutter/widgets.dart';
 import '../controllers/zen_controller.dart';
+import '../controllers/zen_service.dart';
 import '../core/zen_config.dart';
 import '../core/zen_logger.dart';
 import '../core/zen_scope.dart';
@@ -32,6 +33,12 @@ class ZenLifecycleManager {
       ZenLogger.logError(
           'Error initializing controller ${controller.runtimeType}', e, stack);
     }
+  }
+
+  // New: provide a consistent entry point for services
+  void initializeService(ZenService service) {
+    // Initialize immediately (services are long-lived)
+    service.ensureInitialized();
   }
 
   /// Initialize the app lifecycle observer
