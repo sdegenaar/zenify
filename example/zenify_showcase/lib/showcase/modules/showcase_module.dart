@@ -10,7 +10,7 @@ class ShowcaseModule extends ZenModule {
     // Register services
     scope.put<DemoService>(
       DemoService(),
-      permanent: true,
+      isPermanent: true,
     );
   }
 

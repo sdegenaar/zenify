@@ -211,7 +211,7 @@ void main() {
       final controller = TestController();
 
       // Register controller in scope
-      scope.put(controller, permanent: false);
+      scope.put(controller, isPermanent: false);
 
       // Verify controller is not disposed yet
       expect(controller.isDisposed, isFalse);

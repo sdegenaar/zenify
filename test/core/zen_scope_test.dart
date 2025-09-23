@@ -115,7 +115,7 @@ void main() {
       final service = TestService('tagged');
 
       // Register as temporary (not permanent)
-      testScope.put(service, tag: 'my-tag', permanent: false);
+      testScope.put(service, tag: 'my-tag', isPermanent: false);
 
       // Verify it exists
       expect(testScope.find<TestService>(tag: 'my-tag'), isNotNull);
@@ -206,10 +206,10 @@ void main() {
       final temporaryService = TestService('temporary');
 
       // Register permanent dependency
-      testScope.put(permanentService, permanent: true);
+      testScope.put(permanentService, isPermanent: true);
 
       // Register temporary dependency
-      testScope.put(temporaryService, permanent: false, tag: 'temp');
+      testScope.put(temporaryService, isPermanent: false, tag: 'temp');
 
       // Try to delete permanent (should fail without force)
       final deletedPermanentWithoutForce = testScope.delete<TestService>();
@@ -289,7 +289,7 @@ void main() {
       final service = TestService('delete-test');
 
       // Explicitly register as temporary
-      testScope.put<TestService>(service, tag: 'delete-me', permanent: false);
+      testScope.put<TestService>(service, tag: 'delete-me', isPermanent: false);
 
       // Verify it exists
       expect(testScope.find<TestService>(tag: 'delete-me'), isNotNull);
@@ -333,8 +333,8 @@ void main() {
       final permService = TestService('perm');
 
       // Use explicit permanent flag
-      testScope.put(tempService, tag: 'temp', permanent: false);
-      testScope.put(permService, tag: 'perm', permanent: true);
+      testScope.put(tempService, tag: 'temp', isPermanent: false);
+      testScope.put(permService, tag: 'perm', isPermanent: true);
 
       // Both should exist
       expect(testScope.find<TestService>(tag: 'temp'), isNotNull);
@@ -368,7 +368,7 @@ void main() {
     test('should provide dependency metadata', () {
       final service = TestService('metadata-test');
 
-      testScope.put(service, tag: 'tagged', permanent: true);
+      testScope.put(service, tag: 'tagged', isPermanent: true);
       testScope.put(service); // Also register without tag
 
       // Check if permanent

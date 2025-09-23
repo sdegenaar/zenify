@@ -265,8 +265,8 @@ class TodoController extends ZenController {
   }
 
   @override
-  void onDispose() {
+  void onClose() {
     workerGroup.dispose();
-    super.onDispose();
+    super.onClose();
   }
 }

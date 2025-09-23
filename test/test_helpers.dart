@@ -434,9 +434,9 @@ class TestController extends ZenController {
   }
 
   @override
-  void onDispose() {
+  void onClose() {
     disposeMethodCalled = true; // Set our custom tracking property
-    super.onDispose();
+    super.onClose();
   }
 }
 
@@ -454,7 +454,7 @@ class TestModule extends ZenModule {
   @override
   void register(ZenScope scope) {
     final service = TestService('from module');
-    scope.put<TestService>(service, permanent: false);
+    scope.put<TestService>(service, isPermanent: false);
   }
 }
 

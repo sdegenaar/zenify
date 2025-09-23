@@ -186,9 +186,9 @@ class DepartmentsController extends ZenController {
   }
 
   @override
-  void onDispose() {
+  void onClose() {
     ZenLogger.logInfo('🧹 DepartmentsController disposed');
     // Effects will be automatically disposed by the base controller
-    super.onDispose();
+    super.onClose();
   }
 }

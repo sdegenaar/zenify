@@ -58,7 +58,7 @@ We've also incorporated proven concepts from **Riverpod's** hierarchical scoping
 ### 1. Install
 ```yaml
 dependencies:
-  zenify: ^0.5.5
+  zenify: ^0.6.0
 ```
 
 ### 2. Initialize
@@ -526,7 +526,7 @@ showModalBottomSheet(
 2. **Core Modules**: Register shared services in global/parent modules
 3. **Hierarchy Design**: Keep scope depth reasonable (max 3-4 levels)
 4. **Dependency Checking**: Always verify required dependencies exist in parent scopes
-5. **Lifecycle Hooks**: Use `onInit` and `onDispose` for resource management
+5. **Lifecycle Hooks**: Use `onInit` and `onClose` for resource management
 
 ### ⚡ Performance Optimization
 

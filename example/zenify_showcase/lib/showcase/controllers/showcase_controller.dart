@@ -239,11 +239,11 @@ class ShowcaseController extends ZenController {
   }
 
   @override
-  void onDispose() {
+  void onClose() {
     if (ZenConfig.enableDebugLogs) {
       ZenLogger.logDebug('ShowcaseController disposed');
     }
-    super.onDispose();
+    super.onClose();
   }
 }
 

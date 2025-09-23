@@ -52,7 +52,8 @@ class EmployeeProfileModule extends ZenModule {
       cacheService: cacheService,
       employeeService: employeeService,
     );
-    scope.put<EmployeeProfileService>(employeeProfileService, permanent: true);
+    scope.put<EmployeeProfileService>(employeeProfileService,
+        isPermanent: true);
 
     // Register the controller with ALL required dependencies
     scope.put<EmployeeProfileController>(

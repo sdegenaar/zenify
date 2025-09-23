@@ -195,10 +195,10 @@ class ZenBuilderDemoController extends ZenController {
   }
 
   @override
-  void onDispose() {
+  void onClose() {
     if (ZenConfig.enableDebugLogs) {
       ZenLogger.logDebug('ZenBuilderDemoController disposed');
     }
-    super.onDispose();
+    super.onClose();
   }
 }

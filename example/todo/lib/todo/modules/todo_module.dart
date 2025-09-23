@@ -11,7 +11,7 @@ class TodoModule extends ZenModule {
     // Register the TodoService as a permanent singleton
     scope.put<TodoService>(
       TodoService(),
-      permanent: true,
+      isPermanent: true,
     );
   }
 

@@ -69,10 +69,10 @@ class ReactiveDemoController extends ZenController {
   }
 
   @override
-  void onDispose() {
+  void onClose() {
     if (ZenConfig.enableDebugLogs) {
       ZenLogger.logDebug('ReactiveDemoController disposed');
     }
-    super.onDispose();
+    super.onClose();
   }
 }

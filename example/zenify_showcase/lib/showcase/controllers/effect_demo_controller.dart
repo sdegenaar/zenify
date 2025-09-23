@@ -91,10 +91,10 @@ class EffectDemoController extends ZenController {
   }
 
   @override
-  void onDispose() {
+  void onClose() {
     if (ZenConfig.enableDebugLogs) {
       ZenLogger.logDebug('EffectDemoController disposed');
     }
-    super.onDispose();
+    super.onClose();
   }
 }

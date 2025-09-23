@@ -459,10 +459,10 @@ class CounterController extends ZenController {
   }
 
   @override
-  void onDispose() {
+  void onClose() {
     ZenLogger.logInfo('CounterController disposing - cleaning up resources');
     workerGroup.dispose();
-    super.onDispose();
+    super.onClose();
   }
 }
 

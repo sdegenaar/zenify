@@ -59,6 +59,14 @@ void main() {
         expect(service.initData, 'modified'); // Should not reset
       });
 
+      test('re-entrant ensureInitialized is safe', () {
+        final reentrant = _ReentrantInitService();
+        reentrant.ensureInitialized();
+        expect(reentrant.initCount, 1);
+        expect(reentrant.isInitializing, false);
+        expect(reentrant.isInitialized, true);
+      });
+
       test('should track active services', () {
         expect(ZenService.activeServiceCount, 0);
 
@@ -68,22 +76,22 @@ void main() {
         final service2 = TestService();
         expect(ZenService.activeServiceCount, 2);
 
-        service1.onDelete();
+        service1.dispose();
         expect(ZenService.activeServiceCount, 1);
 
-        service2.onDelete();
+        service2.dispose();
         expect(ZenService.activeServiceCount, 0);
       });
 
       test('should prevent double disposal', () {
         final service = TestService();
 
-        service.onDelete();
+        service.dispose();
         expect(service.closeCalled, true);
         expect(service.isDisposed, true);
 
         service.closeCalled = false; // Reset flag
-        service.onDelete(); // Call again
+        service.dispose(); // Call again
 
         expect(service.closeCalled, false); // Should not call onClose again
       });
@@ -170,6 +178,7 @@ void main() {
 
         expect(() => service.ensureInitialized(), throwsException);
         expect(service.isInitialized, false); // Should remain false
+        expect(service.isInitializing, false);
       });
 
       test('should handle exception in onClose gracefully', () {
@@ -177,7 +186,7 @@ void main() {
         service.ensureInitialized();
 
         // Should not throw, just log error
-        expect(() => service.onDelete(), returnsNormally);
+        expect(() => service.dispose(), returnsNormally);
         expect(service.isDisposed, true);
       });
 
@@ -209,6 +218,17 @@ class _BadCloseService extends ZenService {
   void onClose() {
     super.onClose();
     throw Exception('Close failed');
-    // Note: super.onClose() won't be called due to exception
+  }
+}
+
+class _ReentrantInitService extends ZenService {
+  int initCount = 0;
+
+  @override
+  void onInit() {
+    initCount++;
+    // simulate nested ensureInitialized() call from within onInit
+    ensureInitialized();
+    super.onInit();
   }
 }

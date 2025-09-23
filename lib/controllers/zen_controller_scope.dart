@@ -143,14 +143,14 @@ class _ZenControllerScopeState<T extends ZenController>
         widget.scope!.put<T>(
           controller,
           tag: widget.tag,
-          permanent: widget.permanent,
+          isPermanent: widget.permanent,
         );
       } else {
         // Register in current effective scope
         _effectiveScope.put<T>(
           controller,
           tag: widget.tag,
-          permanent: widget.permanent,
+          isPermanent: widget.permanent,
         );
       }
 

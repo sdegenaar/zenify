@@ -25,9 +25,9 @@ class LifecycleController extends ZenController {
   }
 
   @override
-  void onDispose() {
-    events.add('onDispose');
-    super.onDispose();
+  void onClose() {
+    events.add('onClose');
+    super.onClose();
   }
 
   @override
@@ -307,7 +307,7 @@ void main() {
       // Controller should be initialized but not disposed
       expect(disposableController.hasEvent('onInit'), isTrue);
       expect(disposableController.hasEvent('onReady'), isTrue);
-      expect(disposableController.hasEvent('onDispose'), isFalse);
+      expect(disposableController.hasEvent('onClose'), isFalse);
       expect(disposableController.isDisposed, isFalse);
 
       // Toggle widget off to remove the scope
@@ -315,7 +315,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // When using the moduleBuilder approach, the widget should dispose the scope
-      expect(disposableController.hasEvent('onDispose'), isTrue);
+      expect(disposableController.hasEvent('onClose'), isTrue);
       expect(disposableController.isDisposed, isTrue);
     });
 
@@ -405,7 +405,7 @@ void main() {
 
       // Dispose
       controller.dispose();
-      expect(controller.hasEvent('onDispose'), isTrue);
+      expect(controller.hasEvent('onClose'), isTrue);
       expect(controller.isDisposed, isTrue);
     });
 

@@ -25,9 +25,9 @@ class CounterController extends ZenController {
   }
 
   @override
-  void onDispose() {
+  void onClose() {
     disposeCalled = true;
-    super.onDispose();
+    super.onClose();
   }
 }
 

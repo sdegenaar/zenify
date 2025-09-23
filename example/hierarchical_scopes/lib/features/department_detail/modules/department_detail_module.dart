@@ -51,7 +51,7 @@ class DepartmentDetailModule extends ZenModule {
       cacheService: cacheService,
       departmentService: departmentService,
     );
-    scope.put<TeamService>(teamService, permanent: true);
+    scope.put<TeamService>(teamService, isPermanent: true);
 
     // Register the controller with ALL required dependencies
     scope.put<DepartmentDetailController>(

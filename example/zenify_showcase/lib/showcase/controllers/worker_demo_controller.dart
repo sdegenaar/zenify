@@ -212,7 +212,7 @@ class WorkerDemoController extends ZenController {
   }
 
   @override
-  void onDispose() {
+  void onClose() {
     // Dispose all workers
     _everHandle.dispose();
     _debounceHandle.dispose();
@@ -226,6 +226,6 @@ class WorkerDemoController extends ZenController {
     if (ZenConfig.enableDebugLogs) {
       ZenLogger.logDebug('WorkerDemoController disposed with all workers');
     }
-    super.onDispose();
+    super.onClose();
   }
 }

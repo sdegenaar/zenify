@@ -78,9 +78,9 @@ class TestController extends ZenController {
   }
 
   @override
-  void onDispose() {
+  void onClose() {
     disposeCalled = true;
-    super.onDispose();
+    super.onClose();
   }
 }
 

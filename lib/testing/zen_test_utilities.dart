@@ -59,7 +59,7 @@ class ZenTestContainer {
     _scope.put<T>(
       instance,
       tag: tag,
-      permanent: permanent ?? false,
+      isPermanent: permanent ?? false,
     );
 
     return instance;
@@ -74,7 +74,7 @@ class ZenTestContainer {
     return _scope.put<T>(
       instance,
       tag: tag,
-      permanent: permanent ?? false,
+      isPermanent: permanent ?? false,
     );
   }
 

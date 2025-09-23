@@ -255,7 +255,7 @@ class DepartmentsModule extends ZenModule {
     final controller = scope.find<TestController>();
     final service = scope.find<TestService>();
 
-    controller?.onDispose();
+    controller?.onClose();
     disposedControllers.add('departments');
 
     service?.dispose();
@@ -283,7 +283,7 @@ class DepartmentDetailModule extends ZenModule {
     final controller = scope.find<TestController>();
     final service = scope.find<TestService>();
 
-    controller?.onDispose();
+    controller?.onClose();
     disposedControllers.add('department-detail');
 
     service?.dispose();
@@ -311,7 +311,7 @@ class EmployeeModule extends ZenModule {
     final controller = scope.find<TestController>();
     final service = scope.find<TestService>();
 
-    controller?.onDispose();
+    controller?.onClose();
     disposedControllers.add('employee');
 
     service?.dispose();
@@ -349,8 +349,8 @@ class CountingController extends ZenController {
   }
 
   @override
-  void onDispose() {
-    super.onDispose();
+  void onClose() {
+    super.onClose();
     _globalCreationCount--;
   }
 }

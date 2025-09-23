@@ -1,3 +1,37 @@
+## 0.6.0
+
+### 🚨 BREAKING CHANGES
+- **Lifecycle Standardization**: Renamed lifecycle methods for consistency
+    - `ZenController.onDispose()` → `ZenController.onClose()`
+    - `ZenService.onDelete()` → `ZenService.onClose()`
+- **API Consistency**: `ZenScope.put()` parameter `permanent` → `isPermanent`
+
+### ✨ New Features
+- **Automatic ZenService Disposal**: Services are automatically disposed when their scope is disposed (promotes proper scope design)
+- **Enhanced ZenService Integration**: `ZenScope` now matches `Zen` API behavior for services
+- **Smart Defaults**: ZenService instances default to permanent across all registration methods
+
+### 🔧 Improvements
+- Consistent lifecycle pattern: `onInit()` → `onClose()` → `dispose()`
+- ZenService instances properly initialize from lazy factories
+- Complete disposal coverage in all scope cleanup operations
+
+### 🔄 Migration Guide
+```
+// Lifecycle methods
+@override void onDispose() → @override void onClose()
+@override void onDelete() → @override void onClose()
+
+// Scope registration
+scope.put(service, permanent: true) → scope.put(service, isPermanent: true)
+```
+
+### 📝 Internal Changes
+- **Restructured ZenService disposal**: Added internal `dispose()` method that calls user's `onClose()`
+- **Improved separation of concerns**: Clear distinction between user cleanup (`onClose()`) and framework disposal (`dispose()`)
+- Updated all examples and documentation to use new lifecycle methods
+- Enhanced error messages to reference correct method names
+
 ## 0.5.5
 * **🆕 ZenService (long‑lived services)**
     * Adds `ZenService` base with `onInit` and `onClose` lifecycle hooks

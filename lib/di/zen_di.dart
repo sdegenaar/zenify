@@ -132,7 +132,7 @@ class Zen {
     final result = rootScope.put<T>(
       instance,
       tag: tag,
-      permanent: permanent,
+      isPermanent: permanent,
     );
 
     // Initialize via lifecycle manager for consistency

@@ -287,8 +287,8 @@ class EmployeeProfileController extends ZenController {
   int get activitiesCount => _activities.length;
 
   @override
-  void onDispose() {
+  void onClose() {
     ZenLogger.logInfo('🧹 EmployeeProfileController disposed');
-    super.onDispose();
+    super.onClose();
   }
 }

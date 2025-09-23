@@ -281,8 +281,8 @@ class DepartmentDetailController extends ZenController {
   String get departmentDescription => _department.value?.description ?? '';
 
   @override
-  void onDispose() {
+  void onClose() {
     ZenLogger.logInfo('🧹 DepartmentDetailController disposed');
-    super.onDispose();
+    super.onClose();
   }
 }

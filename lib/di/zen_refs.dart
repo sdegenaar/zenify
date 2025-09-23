@@ -77,7 +77,7 @@ class EagerRef<T> implements Ref<T> {
       return scope!.put<T>(
         instance,
         tag: tag,
-        permanent: isPermanent ?? false,
+        isPermanent: isPermanent ?? false,
       );
     } else {
       return Zen.put<T>(instance, tag: tag, isPermanent: isPermanent);
@@ -195,7 +195,7 @@ class ControllerRef<T extends ZenController> implements Ref<T> {
       return scope!.put<T>(
         controller,
         tag: tag,
-        permanent: isPermanent,
+        isPermanent: isPermanent,
       );
     } else {
       return Zen.put<T>(controller, tag: tag, isPermanent: isPermanent);
@@ -213,7 +213,7 @@ extension ZenControllerRefExtension on ZenController {
   }) {
     if (this is T) {
       if (scope != null) {
-        scope.put<T>(this as T, tag: tag, permanent: isPermanent);
+        scope.put<T>(this as T, tag: tag, isPermanent: isPermanent);
       } else {
         Zen.put<T>(this as T, tag: tag, isPermanent: isPermanent);
       }
@@ -230,7 +230,7 @@ extension ZenControllerRefExtension on ZenController {
   }) {
     if (this is T) {
       if (scope != null) {
-        return scope.put<T>(this as T, tag: tag, permanent: isPermanent);
+        return scope.put<T>(this as T, tag: tag, isPermanent: isPermanent);
       } else {
         return Zen.put<T>(this as T, tag: tag, isPermanent: isPermanent);
       }
@@ -251,7 +251,7 @@ extension ZenObjectRefExtension<T> on T {
       return scope.put<T>(
         this,
         tag: tag,
-        permanent: isPermanent ?? false,
+        isPermanent: isPermanent ?? false,
       );
     } else {
       return Zen.put<T>(this, tag: tag, isPermanent: isPermanent);

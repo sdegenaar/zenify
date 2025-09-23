@@ -230,9 +230,9 @@ class HomeController extends ZenController with ZenTickerProvider {
   }
 
   @override
-  void onDispose() {
+  void onClose() {
     tabController.dispose();
     ZenLogger.logInfo('🧹 HomeController disposed');
-    super.onDispose();
+    super.onClose();
   }
 }

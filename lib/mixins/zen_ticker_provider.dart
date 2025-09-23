@@ -20,8 +20,8 @@ mixin ZenTickerProvider on ZenController implements TickerProvider {
   }
 
   @override
-  void onDispose() {
+  void onClose() {
     _disposeTickers();
-    super.onDispose();
+    super.onClose();
   }
 }

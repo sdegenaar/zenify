@@ -144,14 +144,14 @@ class TestController extends ZenController {
   }
 
   @override
-  void onDispose() {
+  void onClose() {
     disposeCalled = true;
     ZenLogger.logDebug('TestController disposing: $id');
 
     MemoryLeakDetector.trackDisposal('TestController');
     ZenResourceTracker.untrackController();
 
-    super.onDispose();
+    super.onClose();
   }
 
   void increment() {
@@ -261,7 +261,7 @@ class _SafeZenTestViewState extends State<SafeZenTestView> {
     ZenLogger.logDebug('SafeZenTestView disposing...');
 
     if (!_disposed && _controller != null) {
-      _controller!.onDispose(); // Manually dispose controller
+      _controller!.onClose(); // Manually dispose controller
       _disposed = true;
     }
     super.dispose();

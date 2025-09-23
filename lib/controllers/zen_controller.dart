@@ -202,11 +202,11 @@ abstract class ZenController with WidgetsBindingObserver {
     }
   }
 
-  /// User-defined dispose hook - called before internal cleanup
+  /// User-defined cleanup hook - called before internal disposal
   @mustCallSuper
-  void onDispose() {
+  void onClose() {
     if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('Controller $runtimeType onDispose called');
+      ZenLogger.logDebug('Controller $runtimeType onClose called');
     }
   }
 
@@ -576,7 +576,7 @@ abstract class ZenController with WidgetsBindingObserver {
 
     try {
       // Call user lifecycle method first
-      onDispose();
+      onClose();
     } catch (e, stack) {
       ZenLogger.logError(
           'Error in onDispose for controller $runtimeType', e, stack);

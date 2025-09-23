@@ -15,9 +15,9 @@ class AppModule extends ZenModule {
     ZenLogger.logInfo('🚀 Registering App-level services (Root Scope)');
 
     // Core infrastructure services - available to ALL child scopes
-    scope.put<ApiService>(ApiService(), permanent: true);
-    scope.put<CacheService>(CacheService(), permanent: true);
-    scope.put<NavigationService>(NavigationService(), permanent: true);
+    scope.put<ApiService>(ApiService(), isPermanent: true);
+    scope.put<CacheService>(CacheService(), isPermanent: true);
+    scope.put<NavigationService>(NavigationService(), isPermanent: true);
 
     ZenLogger.logInfo(
         '✅ App-level services registered: ApiService, CacheService, NavigationService');

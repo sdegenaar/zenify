@@ -13,17 +13,17 @@ class AppModule extends ZenModule {
     // Register global services as singletons
     scope.put<AuthService>(
       AuthService(),
-      permanent: true,
+      isPermanent: true,
     );
 
     scope.put<CartService>(
       CartService(),
-      permanent: true,
+      isPermanent: true,
     );
 
     scope.put<ProductService>(
       ProductService(),
-      permanent: true,
+      isPermanent: true,
     );
   }
 

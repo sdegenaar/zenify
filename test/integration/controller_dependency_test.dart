@@ -346,7 +346,7 @@ void main() {
       testScope.put<MockService>(service);
 
       final controller = DependentController(service);
-      testScope.put<DependentController>(controller, permanent: false);
+      testScope.put<DependentController>(controller, isPermanent: false);
 
       // Verify they exist
       expect(testScope.find<MockService>(), same(service));
@@ -371,11 +371,11 @@ void main() {
 
       // Register permanent service
       final service = MockService();
-      testScope.put<MockService>(service, permanent: true);
+      testScope.put<MockService>(service, isPermanent: true);
 
       // Register temporary controller
       final controller = DependentController(service);
-      testScope.put<DependentController>(controller, permanent: false);
+      testScope.put<DependentController>(controller, isPermanent: false);
 
       // Try to delete permanent service (should fail without force)
       final serviceDeleted = testScope.delete<MockService>();
