@@ -471,14 +471,14 @@ class UserProfilePage extends ZenView<UserController> {
 
 ## ️ Advanced Features
 **For complex applications:**
-- **️ Route-Based Scoping** - Automatic module lifecycle with navigation using `ZenModulePage`
+- **️ Route-Based Scoping** - Automatic module lifecycle with navigation using `ZenRoute`
 - ** Hierarchical Dependency Injection** - Parent-child scope inheritance with `ZenScopeWidget`
 - ** Tagged Dependencies** - Multiple instances with smart resolution
 - ** Performance Monitoring** - Built-in metrics and leak detection
 - ** Comprehensive Testing** - Mocking, lifecycle, and memory leak tests
 - ** Advanced Lifecycle Hooks** - Module initialization and disposal callbacks
 
-### ZenModulePage - Route-Based Module Management
+### ZenRoute - Route-Based Module Management
 ``` dart
 // Automatic module lifecycle tied to navigation
 class AppRoutes {
@@ -486,7 +486,7 @@ class AppRoutes {
     switch (settings.name) {
       case '/product':
         return MaterialPageRoute(
-          builder: (_) => ZenModulePage(
+          builder: (_) => ZenRoute(
             moduleBuilder: () => ProductModule(),
             page: ProductDetailPage(),
             scopeName: 'ProductScope',
