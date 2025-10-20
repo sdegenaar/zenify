@@ -49,7 +49,8 @@ void main() {
     setUp(() {
       // Initialize Zen for each test
       Zen.init();
-      ZenConfig.enableDebugLogs = false; // Disable logs for cleaner test output
+      ZenConfig.applyEnvironment(ZenEnvironment.test); // Apply test settings
+      ZenConfig.logLevel = ZenLogLevel.none; // Override to disable all logs
     });
 
     tearDown(() {
@@ -419,7 +420,7 @@ void main() {
 
     test('should handle ZenConfig debug logs correctly', () {
       // Arrange
-      ZenConfig.enableDebugLogs = true;
+      ZenConfig.logLevel = ZenLogLevel.debug;
 
       // This test ensures that when debug logs are enabled,
       // the error handling doesn't throw exceptions
@@ -431,19 +432,19 @@ void main() {
       expect(() => widget, returnsNormally);
 
       // Reset debug logs
-      ZenConfig.enableDebugLogs = false;
+      ZenConfig.logLevel = ZenLogLevel.none;
     });
   });
 
   group('ZenConsumer Error Handling', () {
     setUp(() {
       Zen.init();
-      ZenConfig.enableDebugLogs = true; // Enable for error testing
+      ZenConfig.logLevel = ZenLogLevel.debug; // Enable for error testing
     });
 
     tearDown(() {
       Zen.reset();
-      ZenConfig.enableDebugLogs = false;
+      ZenConfig.logLevel = ZenLogLevel.none;
     });
 
     testWidgets('should handle Zen.findOrNull throwing exception',

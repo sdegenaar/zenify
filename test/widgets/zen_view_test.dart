@@ -219,7 +219,8 @@ class ContextTestView extends ZenView<CounterController> {
 void main() {
   setUp(() {
     Zen.init();
-    ZenConfig.enableDebugLogs = false;
+    ZenConfig.applyEnvironment(ZenEnvironment.test); // Apply test settings
+    ZenConfig.logLevel = ZenLogLevel.none; // Override to disable all logs
   });
 
   tearDown(() {

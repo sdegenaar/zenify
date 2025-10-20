@@ -16,8 +16,6 @@ class ShowcaseModule extends ZenModule {
 
   @override
   Future<void> onInit(ZenScope scope) async {
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logInfo('ShowcaseModule initialized');
-    }
+    ZenLogger.logInfo('ShowcaseModule initialized');
   }
 }

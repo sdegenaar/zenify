@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:zenify/core/zen_config.dart';
+import 'package:zenify/core/zen_log_level.dart';
 import 'package:zenify/reactive/reactive.dart';
 
 void main() {
@@ -23,6 +25,9 @@ void main() {
     });
 
     test('should handle future errors', () async {
+      // we don't need to log this
+      ZenConfig.logLevel = ZenLogLevel.none;
+
       final future = Future.delayed(
           const Duration(milliseconds: 10), () => throw 'Test error');
       final rxFuture = RxFuture<int>(future);

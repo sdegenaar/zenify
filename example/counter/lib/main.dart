@@ -13,7 +13,7 @@ void main() {
   Zen.init();
 
   // Configure for development with detailed logging
-  ZenConfig.applyEnvironment('dev');
+  ZenConfig.applyEnvironment(ZenEnvironment.development);
   ZenLogger.init(
     logHandler: (message, level) {
       if (kDebugMode) {

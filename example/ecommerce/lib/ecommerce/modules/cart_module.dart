@@ -25,15 +25,11 @@ class CartModule extends ZenModule {
 
   @override
   Future<void> onInit(ZenScope scope) async {
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logInfo('CartModule initialized');
-    }
+    ZenLogger.logInfo('CartModule initialized');
   }
 
   @override
   Future<void> onDispose(ZenScope scope) async {
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logInfo('CartModule disposed');
-    }
+    ZenLogger.logInfo('CartModule disposed');
   }
 }

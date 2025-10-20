@@ -60,7 +60,7 @@ void main() {
     setUp(() {
       Zen.reset();
       Zen.init();
-      ZenConfig.enableDebugLogs = false;
+      ZenConfig.applyEnvironment(ZenEnvironment.test);
       reactiveSystem = ZenReactiveSystem.instance;
     });
 

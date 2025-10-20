@@ -15,10 +15,11 @@ Future<void> main() async {
   // Initialize Zen with enhanced configuration
   Zen.init();
 
-  // Configure for development with detailed logging
-  ZenConfig.applyEnvironment('dev');
-  ZenConfig.enableDebugLogs = true;
-  ZenConfig.enablePerformanceMetrics = true;
+  ZenConfig.configure(
+    level: kDebugMode ? ZenLogLevel.info : ZenLogLevel.warning,
+    performanceTracking: kDebugMode,
+    strict: kDebugMode,
+  );
 
   // Set up logger
   ZenLogger.init(

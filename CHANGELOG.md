@@ -1,3 +1,39 @@
+## 0.6.1
+
+### 🎯 Comprehensive Logging System Enhancement
+
+#### Breaking Changes
+- **Replaced simple `enableDebugLogs` with granular `ZenLogLevel` enum**
+    - `ZenLogLevel.none` - No logging (silent)
+    - `ZenLogLevel.error` - Only errors (recommended for production)
+    - `ZenLogLevel.warning` - Errors and warnings (recommended for production)
+    - `ZenLogLevel.info` - General information (recommended for development)
+    - `ZenLogLevel.debug` - Detailed debug info (for development)
+    - `ZenLogLevel.trace` - Very verbose including internals (debugging only)
+
+#### New Features
+
+**Type-Safe Environment Configuration**
+- Added `ZenEnvironment` enum for type-safe environment configuration
+- Prevents typos and provides IDE autocomplete
+- Supports aliases: 'prod' → production, 'dev' → development, 'stage' → staging
+- Backward compatible with string-based configuration
+
+**Available Environments:**
+- `ZenEnvironment.production` - Minimal logging, no debug features
+- `ZenEnvironment.staging` - Moderate logging, performance metrics
+- `ZenEnvironment.development` - Detailed logging, all debug features
+- `ZenEnvironment.debug` - Very detailed logging with strict mode
+- `ZenEnvironment.trace` - Extreme verbosity including Rx tracking
+- `ZenEnvironment.test` - Optimized for testing (no auto-dispose)
+
+#### Code Cleanup
+- Removed all deprecated `ZenConfig.enableDebugLogs` checks throughout codebase
+- Integrated `RxLogger` with `ZenLogger` to respect `ZenConfig.logLevel`
+- Simplified logging calls by removing redundant conditional checks
+- Improved consistency between core and reactive logging systems
+- All logging now properly respects the unified `ZenLogLevel` system
+
 ## 0.6.0
 
 ### 🚨 BREAKING CHANGES

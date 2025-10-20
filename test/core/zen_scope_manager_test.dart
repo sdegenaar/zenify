@@ -265,7 +265,7 @@ class ParentWithChildWidget extends StatelessWidget {
 // =============================================================================
 
 void main() {
-  ZenConfig.enableDebugLogs = true;
+  ZenConfig.applyEnvironment(ZenEnvironment.test);
 
   setUpAll(() {
     TestWidgetsFlutterBinding.ensureInitialized();
@@ -274,7 +274,7 @@ void main() {
   setUp(() {
     Zen.reset();
     Zen.init();
-    ZenConfig.enableDebugLogs = false;
+    ZenConfig.applyEnvironment(ZenEnvironment.test);
   });
 
   tearDown(() {
@@ -570,7 +570,7 @@ void main() {
 
     testWidgets('should prefer explicit parentScope over useParentScope',
         (tester) async {
-      ZenConfig.enableDebugLogs = true;
+      ZenConfig.applyEnvironment(ZenEnvironment.test);
 
       // Create explicit parent scope
       final explicitParent = ZenScopeManager.getOrCreateScope(

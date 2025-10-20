@@ -1,11 +1,12 @@
 // test/core/zen_config_test.dart
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zenify/core/zen_config.dart';
+import 'package:zenify/zenify.dart';
 
 void main() {
   group('ZenConfig', () {
     // Store original values to restore after tests
-    late bool originalEnableDebugLogs;
+    late ZenLogLevel originalLogLevel;
+    late bool originalEnableRxTracking;
     late bool originalStrictMode;
     late bool originalEnablePerformanceTracking;
     late bool originalEnableMetrics;
@@ -14,10 +15,13 @@ void main() {
     late bool originalEnableNavigationLogging;
     late bool originalEnableRouteLogging;
     late bool originalUseRxTracking;
+    late bool originalCheckForCircularDependencies;
+    late bool originalEnableDependencyVisualization;
 
     setUp(() {
       // Store original values
-      originalEnableDebugLogs = ZenConfig.enableDebugLogs;
+      originalLogLevel = ZenConfig.logLevel;
+      originalEnableRxTracking = ZenConfig.enableRxTracking;
       originalStrictMode = ZenConfig.strictMode;
       originalEnablePerformanceTracking = ZenConfig.enablePerformanceTracking;
       originalEnableMetrics = ZenConfig.enableMetrics;
@@ -26,11 +30,16 @@ void main() {
       originalEnableNavigationLogging = ZenConfig.enableNavigationLogging;
       originalEnableRouteLogging = ZenConfig.enableRouteLogging;
       originalUseRxTracking = ZenConfig.useRxTracking;
+      originalCheckForCircularDependencies =
+          ZenConfig.checkForCircularDependencies;
+      originalEnableDependencyVisualization =
+          ZenConfig.enableDependencyVisualization;
     });
 
     tearDown(() {
       // Restore original values
-      ZenConfig.enableDebugLogs = originalEnableDebugLogs;
+      ZenConfig.logLevel = originalLogLevel;
+      ZenConfig.enableRxTracking = originalEnableRxTracking;
       ZenConfig.strictMode = originalStrictMode;
       ZenConfig.enablePerformanceTracking = originalEnablePerformanceTracking;
       ZenConfig.enableMetrics = originalEnableMetrics;
@@ -39,191 +48,551 @@ void main() {
       ZenConfig.enableNavigationLogging = originalEnableNavigationLogging;
       ZenConfig.enableRouteLogging = originalEnableRouteLogging;
       ZenConfig.useRxTracking = originalUseRxTracking;
+      ZenConfig.checkForCircularDependencies =
+          originalCheckForCircularDependencies;
+      ZenConfig.enableDependencyVisualization =
+          originalEnableDependencyVisualization;
     });
 
-    test('should reset to default values', () {
-      // First set everything to non-default values
-      ZenConfig.enableDebugLogs = true;
-      ZenConfig.strictMode = true;
-      ZenConfig.enablePerformanceTracking = true;
-      ZenConfig.enableMetrics = true;
-      ZenConfig.enableAutoDispose = false;
-      ZenConfig.controllerCacheExpiry = const Duration(minutes: 5);
-      ZenConfig.enableNavigationLogging = true;
-      ZenConfig.enableRouteLogging = true;
-      ZenConfig.useRxTracking = false;
+    // ========================================================================
+    // LOG LEVEL TESTS
+    // ========================================================================
 
-      // Reset to defaults
-      ZenConfig.reset();
+    group('Log Levels', () {
+      test('should have sensible defaults', () {
+        ZenConfig.reset();
+        expect(ZenConfig.logLevel, isNotNull);
+        expect(ZenConfig.enableRxTracking, false);
+      });
 
-      // Verify reset to default values
-      expect(ZenConfig.enableDebugLogs, false);
-      expect(ZenConfig.strictMode, false);
-      expect(ZenConfig.enablePerformanceTracking, false);
-      expect(ZenConfig.enablePerformanceMetrics, false); // Alias check
-      expect(ZenConfig.enableMetrics, false);
-      expect(ZenConfig.enableAutoDispose, true);
-      expect(ZenConfig.controllerCacheExpiry, const Duration(minutes: 30));
-      expect(ZenConfig.enableNavigationLogging, false);
-      expect(ZenConfig.enableRouteLogging, false);
-      expect(ZenConfig.useRxTracking, true);
+      test('should update log level', () {
+        ZenConfig.logLevel = ZenLogLevel.error;
+        expect(ZenConfig.logLevel, ZenLogLevel.error);
+
+        ZenConfig.logLevel = ZenLogLevel.trace;
+        expect(ZenConfig.logLevel, ZenLogLevel.trace);
+      });
+
+      test('should support legacy enableDebugLogs setter', () {
+        // ignore: deprecated_member_use_from_same_package
+        ZenConfig.enableDebugLogs = true;
+        expect(ZenConfig.logLevel.level,
+            greaterThanOrEqualTo(ZenLogLevel.debug.level));
+
+        // ignore: deprecated_member_use_from_same_package
+        ZenConfig.enableDebugLogs = false;
+        expect(ZenConfig.logLevel, ZenLogLevel.warning);
+      });
+
+      test('should handle all log levels correctly', () {
+        for (final level in ZenLogLevel.values) {
+          ZenConfig.logLevel = level;
+          expect(ZenConfig.logLevel, level);
+        }
+      });
     });
 
-    test('should update values when modified', () {
-      // Modify values
-      ZenConfig.enableDebugLogs = true;
-      ZenConfig.strictMode = true;
-      ZenConfig.enablePerformanceTracking = true;
-      ZenConfig.enableMetrics = true;
-      ZenConfig.enableAutoDispose = false;
-      ZenConfig.controllerCacheExpiry = const Duration(minutes: 5);
-      ZenConfig.enableNavigationLogging = true;
-      ZenConfig.enableRouteLogging = true;
-      ZenConfig.useRxTracking = false;
+    // ========================================================================
+    // ZENENVIRONMENT ENUM TESTS
+    // ========================================================================
 
-      // Verify values were updated
-      expect(ZenConfig.enableDebugLogs, true);
-      expect(ZenConfig.strictMode, true);
-      expect(ZenConfig.enablePerformanceTracking, true);
-      expect(ZenConfig.enablePerformanceMetrics, true); // Alias check
-      expect(ZenConfig.enableMetrics, true);
-      expect(ZenConfig.enableAutoDispose, false);
-      expect(ZenConfig.controllerCacheExpiry, const Duration(minutes: 5));
-      expect(ZenConfig.enableNavigationLogging, true);
-      expect(ZenConfig.enableRouteLogging, true);
-      expect(ZenConfig.useRxTracking, false);
+    group('ZenEnvironment Enum', () {
+      test('should have correct string values', () {
+        expect(ZenEnvironment.production.value, 'production');
+        expect(ZenEnvironment.staging.value, 'staging');
+        expect(ZenEnvironment.development.value, 'development');
+        expect(ZenEnvironment.debug.value, 'debug');
+        expect(ZenEnvironment.trace.value, 'trace');
+        expect(ZenEnvironment.test.value, 'test');
+      });
+
+      test('should convert from string with exact names', () {
+        expect(
+            ZenEnvironment.fromString('production'), ZenEnvironment.production);
+        expect(ZenEnvironment.fromString('staging'), ZenEnvironment.staging);
+        expect(ZenEnvironment.fromString('development'),
+            ZenEnvironment.development);
+        expect(ZenEnvironment.fromString('debug'), ZenEnvironment.debug);
+        expect(ZenEnvironment.fromString('trace'), ZenEnvironment.trace);
+        expect(ZenEnvironment.fromString('test'), ZenEnvironment.test);
+      });
+
+      test('should convert from string with aliases', () {
+        expect(ZenEnvironment.fromString('prod'), ZenEnvironment.production);
+        expect(ZenEnvironment.fromString('stage'), ZenEnvironment.staging);
+        expect(ZenEnvironment.fromString('dev'), ZenEnvironment.development);
+      });
+
+      test('should be case insensitive', () {
+        expect(
+            ZenEnvironment.fromString('PRODUCTION'), ZenEnvironment.production);
+        expect(ZenEnvironment.fromString('Prod'), ZenEnvironment.production);
+        expect(ZenEnvironment.fromString('DEV'), ZenEnvironment.development);
+        expect(ZenEnvironment.fromString('Dev'), ZenEnvironment.development);
+        expect(ZenEnvironment.fromString('STAGING'), ZenEnvironment.staging);
+        expect(ZenEnvironment.fromString('Stage'), ZenEnvironment.staging);
+      });
+
+      test('should throw on unknown environment string', () {
+        expect(
+          () => ZenEnvironment.fromString('unknown'),
+          throwsArgumentError,
+        );
+        expect(
+          () => ZenEnvironment.fromString('invalid'),
+          throwsArgumentError,
+        );
+      });
+
+      test('should convert to string correctly', () {
+        expect(ZenEnvironment.production.toString(), 'production');
+        expect(ZenEnvironment.development.toString(), 'development');
+        expect(ZenEnvironment.staging.toString(), 'staging');
+      });
     });
 
-    test('should apply development configuration shortcut method', () {
-      // Apply development configuration
-      ZenConfig.configureDevelopment();
+    // ========================================================================
+    // ENVIRONMENT PRESET TESTS (ENUM)
+    // ========================================================================
 
-      // Verify development values
-      expect(ZenConfig.enableDebugLogs, true);
-      expect(ZenConfig.strictMode, true);
-      expect(ZenConfig.enablePerformanceTracking, true);
-      expect(ZenConfig.enablePerformanceMetrics, true); // Alias check
-      expect(ZenConfig.enableMetrics, true);
-      expect(ZenConfig.enableNavigationLogging, true);
-      expect(ZenConfig.enableRouteLogging, true);
+    group('Environment Presets (Type-Safe Enum)', () {
+      test('production environment should disable all debug features', () {
+        ZenConfig.applyEnvironment(ZenEnvironment.production);
+
+        expect(ZenConfig.logLevel, ZenLogLevel.error);
+        expect(ZenConfig.enableRxTracking, false);
+        expect(ZenConfig.enableNavigationLogging, false);
+        expect(ZenConfig.enableRouteLogging, false);
+        expect(ZenConfig.enablePerformanceTracking, false);
+        expect(ZenConfig.enableMetrics, false);
+        expect(ZenConfig.strictMode, false);
+        expect(ZenConfig.checkForCircularDependencies, false);
+        expect(ZenConfig.enableDependencyVisualization, false);
+      });
+
+      test('staging environment should enable moderate logging', () {
+        ZenConfig.applyEnvironment(ZenEnvironment.staging);
+
+        expect(ZenConfig.logLevel, ZenLogLevel.warning);
+        expect(ZenConfig.enableRxTracking, false);
+        expect(ZenConfig.enablePerformanceTracking, true);
+        expect(ZenConfig.enableMetrics, true);
+        expect(ZenConfig.checkForCircularDependencies, true);
+      });
+
+      test('development environment should enable most features', () {
+        ZenConfig.applyEnvironment(ZenEnvironment.development);
+
+        expect(ZenConfig.logLevel, ZenLogLevel.info);
+        expect(ZenConfig.enableNavigationLogging, true);
+        expect(ZenConfig.enableRouteLogging, true);
+        expect(ZenConfig.enablePerformanceTracking, true);
+        expect(ZenConfig.enableMetrics, true);
+        expect(ZenConfig.strictMode, true);
+        expect(ZenConfig.checkForCircularDependencies, true);
+        expect(ZenConfig.enableDependencyVisualization, true);
+        expect(ZenConfig.enableRxTracking, false); // Still too verbose
+      });
+
+      test('debug environment should enable very detailed logging', () {
+        ZenConfig.applyEnvironment(ZenEnvironment.debug);
+
+        expect(ZenConfig.logLevel, ZenLogLevel.debug);
+        expect(ZenConfig.strictMode, true);
+        expect(ZenConfig.checkForCircularDependencies, true);
+        expect(ZenConfig.enableRxTracking, false); // Still separate
+      });
+
+      test('trace environment should enable everything including Rx tracking',
+          () {
+        ZenConfig.applyEnvironment(ZenEnvironment.trace);
+
+        expect(ZenConfig.logLevel, ZenLogLevel.trace);
+        expect(ZenConfig.enableRxTracking, true); // Only env with Rx tracking
+        expect(ZenConfig.strictMode, true);
+        expect(ZenConfig.enablePerformanceTracking, true);
+      });
+
+      test('test environment should disable auto-dispose', () {
+        ZenConfig.applyEnvironment(ZenEnvironment.test);
+
+        expect(ZenConfig.enableAutoDispose, false);
+        expect(ZenConfig.strictMode, true);
+        expect(ZenConfig.enableMetrics, false);
+        expect(ZenConfig.logLevel, ZenLogLevel.warning);
+      });
     });
 
-    test('should apply production configuration shortcut method', () {
-      // Apply production configuration
-      ZenConfig.configureProduction();
+    // ========================================================================
+    // ENVIRONMENT PRESET TESTS (STRING - BACKWARD COMPATIBILITY)
+    // ========================================================================
 
-      // Verify production values
-      expect(ZenConfig.enableDebugLogs, false);
-      expect(ZenConfig.strictMode, false);
-      expect(ZenConfig.enablePerformanceTracking, false);
-      expect(ZenConfig.enablePerformanceMetrics, false); // Alias check
-      expect(ZenConfig.enableMetrics, false);
-      expect(ZenConfig.enableNavigationLogging, false);
-      expect(ZenConfig.enableRouteLogging, false);
+    group('Environment Presets (String - Legacy)', () {
+      test('should accept string for backward compatibility', () {
+        ZenConfig.applyEnvironment('production');
+        expect(ZenConfig.logLevel, ZenLogLevel.error);
+
+        ZenConfig.applyEnvironment('dev');
+        expect(ZenConfig.logLevel, ZenLogLevel.info);
+      });
+
+      test('should accept prod as alias for production', () {
+        ZenConfig.applyEnvironment('prod');
+        expect(ZenConfig.logLevel, ZenLogLevel.error);
+        expect(ZenConfig.strictMode, false);
+      });
+
+      test('should accept stage as alias for staging', () {
+        ZenConfig.applyEnvironment('stage');
+        expect(ZenConfig.logLevel, ZenLogLevel.warning);
+        expect(ZenConfig.enableMetrics, true);
+      });
+
+      test('should accept development as alias for dev', () {
+        ZenConfig.applyEnvironment('development');
+        expect(ZenConfig.logLevel, ZenLogLevel.info);
+        expect(ZenConfig.strictMode, true);
+      });
+
+      test('should be case insensitive with strings', () {
+        expect(() => ZenConfig.applyEnvironment('PRODUCTION'), returnsNormally);
+        expect(() => ZenConfig.applyEnvironment('Dev'), returnsNormally);
+        expect(() => ZenConfig.applyEnvironment('TeSt'), returnsNormally);
+      });
+
+      test('should throw on unknown environment string', () {
+        expect(
+          () => ZenConfig.applyEnvironment('unknown'),
+          throwsArgumentError,
+        );
+      });
     });
 
-    test('should apply test configuration shortcut method', () {
-      // Apply test configuration
-      ZenConfig.configureTest();
+    // ========================================================================
+    // CUSTOM CONFIGURATION TESTS
+    // ========================================================================
 
-      // Verify test values
-      expect(ZenConfig.enableDebugLogs, true);
-      expect(ZenConfig.strictMode, true);
-      expect(ZenConfig.enableAutoDispose, false);
-      expect(ZenConfig.enableMetrics, false);
-      expect(ZenConfig.enableNavigationLogging, false);
-      expect(ZenConfig.enableRouteLogging, false);
+    group('Custom Configuration', () {
+      test('should allow fine-grained control', () {
+        ZenConfig.configure(
+          level: ZenLogLevel.debug,
+          rxTracking: true,
+          performanceTracking: false,
+          strict: true,
+        );
+
+        expect(ZenConfig.logLevel, ZenLogLevel.debug);
+        expect(ZenConfig.enableRxTracking, true);
+        expect(ZenConfig.enablePerformanceTracking, false);
+        expect(ZenConfig.strictMode, true);
+      });
+
+      test('should only update specified fields', () {
+        ZenConfig.reset();
+        final originalCacheExpiry = ZenConfig.controllerCacheExpiry;
+
+        ZenConfig.configure(
+          level: ZenLogLevel.error,
+        );
+
+        expect(ZenConfig.logLevel, ZenLogLevel.error);
+        expect(ZenConfig.controllerCacheExpiry, originalCacheExpiry);
+      });
+
+      test('should configure all parameters', () {
+        ZenConfig.configure(
+          level: ZenLogLevel.trace,
+          rxTracking: true,
+          navigationLogging: true,
+          routeLogging: true,
+          performanceTracking: true,
+          metrics: true,
+          autoDispose: false,
+          cacheExpiry: const Duration(minutes: 5),
+          strict: true,
+          circularDependencyCheck: false,
+          dependencyVisualization: true,
+          useRxTrack: false,
+        );
+
+        expect(ZenConfig.logLevel, ZenLogLevel.trace);
+        expect(ZenConfig.enableRxTracking, true);
+        expect(ZenConfig.enableNavigationLogging, true);
+        expect(ZenConfig.enableRouteLogging, true);
+        expect(ZenConfig.enablePerformanceTracking, true);
+        expect(ZenConfig.enableMetrics, true);
+        expect(ZenConfig.enableAutoDispose, false);
+        expect(ZenConfig.controllerCacheExpiry, const Duration(minutes: 5));
+        expect(ZenConfig.strictMode, true);
+        expect(ZenConfig.checkForCircularDependencies, false);
+        expect(ZenConfig.enableDependencyVisualization, true);
+        expect(ZenConfig.useRxTracking, false);
+      });
+
+      test('should support legacy debugLogs parameter', () {
+        // ignore: deprecated_member_use_from_same_package
+        ZenConfig.configure(debugLogs: true);
+        expect(ZenConfig.logLevel.level,
+            greaterThanOrEqualTo(ZenLogLevel.debug.level));
+
+        // ignore: deprecated_member_use_from_same_package
+        ZenConfig.configure(debugLogs: false);
+        expect(ZenConfig.logLevel, ZenLogLevel.warning);
+      });
     });
 
-    test('should apply custom configuration with all parameters', () {
-      // Apply custom configuration
-      ZenConfig.configure(
-        debugLogs: true,
-        strict: true,
-        performanceTracking: true,
-        metrics: true,
-        autoDispose: false,
-        cacheExpiry: const Duration(minutes: 5),
-        navigationLogging: true,
-        routeLogging: true,
-        rxTracking: false,
-      );
+    // ========================================================================
+    // CONVENIENCE METHOD TESTS
+    // ========================================================================
 
-      // Verify custom values
-      expect(ZenConfig.enableDebugLogs, true);
-      expect(ZenConfig.strictMode, true);
-      expect(ZenConfig.enablePerformanceTracking, true);
-      expect(ZenConfig.enablePerformanceMetrics, true); // Alias check
-      expect(ZenConfig.enableMetrics, true);
-      expect(ZenConfig.enableAutoDispose, false);
-      expect(ZenConfig.controllerCacheExpiry, const Duration(minutes: 5));
-      expect(ZenConfig.enableNavigationLogging, true);
-      expect(ZenConfig.enableRouteLogging, true);
-      expect(ZenConfig.useRxTracking, false);
+    group('Convenience Methods', () {
+      test('configureDevelopment should apply dev environment', () {
+        ZenConfig.configureDevelopment();
+        expect(ZenConfig.logLevel, ZenLogLevel.info);
+        expect(ZenConfig.strictMode, true);
+      });
+
+      test('configureProduction should apply prod environment', () {
+        ZenConfig.configureProduction();
+        expect(ZenConfig.logLevel, ZenLogLevel.error);
+        expect(ZenConfig.strictMode, false);
+      });
+
+      test('configureTest should apply test environment', () {
+        ZenConfig.configureTest();
+        expect(ZenConfig.enableAutoDispose, false);
+        expect(ZenConfig.strictMode, true);
+      });
     });
 
-    test('should only update specified values in custom configuration', () {
-      // Reset to defaults first
-      ZenConfig.reset();
+    // ========================================================================
+    // RESET TESTS
+    // ========================================================================
 
-      // Apply partial custom configuration
-      ZenConfig.configure(
-        debugLogs: true,
-        metrics: true,
-        navigationLogging: true,
-      );
+    group('Reset', () {
+      test('should reset to default values', () {
+        // Set everything to non-default values
+        ZenConfig.logLevel = ZenLogLevel.trace;
+        ZenConfig.enableRxTracking = true;
+        ZenConfig.strictMode = true;
+        ZenConfig.enablePerformanceTracking = true;
+        ZenConfig.enableMetrics = true;
+        ZenConfig.enableAutoDispose = false;
+        ZenConfig.controllerCacheExpiry = const Duration(minutes: 5);
+        ZenConfig.enableNavigationLogging = true;
+        ZenConfig.enableRouteLogging = true;
+        ZenConfig.useRxTracking = false;
+        ZenConfig.checkForCircularDependencies = false;
+        ZenConfig.enableDependencyVisualization = true;
 
-      // Verify that only specified values changed
-      expect(ZenConfig.enableDebugLogs, true); // Changed
-      expect(ZenConfig.strictMode, false); // Default
-      expect(ZenConfig.enablePerformanceTracking, false); // Default
-      expect(ZenConfig.enablePerformanceMetrics, false); // Default (alias)
-      expect(ZenConfig.enableMetrics, true); // Changed
-      expect(ZenConfig.enableAutoDispose, true); // Default
-      expect(ZenConfig.controllerCacheExpiry,
-          const Duration(minutes: 30)); // Default
-      expect(ZenConfig.enableNavigationLogging, true); // Changed
-      expect(ZenConfig.enableRouteLogging, false); // Default
-      expect(ZenConfig.useRxTracking, true); // Default
+        // Reset to defaults
+        ZenConfig.reset();
+
+        // Verify reset to default values
+        expect(ZenConfig.enableRxTracking, false);
+        expect(ZenConfig.strictMode, false);
+        expect(ZenConfig.enablePerformanceTracking, false);
+        expect(ZenConfig.enablePerformanceMetrics, false); // Alias check
+        expect(ZenConfig.enableMetrics, false);
+        expect(ZenConfig.enableAutoDispose, true);
+        expect(ZenConfig.controllerCacheExpiry, const Duration(minutes: 10));
+        expect(ZenConfig.enableNavigationLogging, false);
+        expect(ZenConfig.enableRouteLogging, false);
+        expect(ZenConfig.useRxTracking, true);
+        expect(ZenConfig.checkForCircularDependencies, true);
+        expect(ZenConfig.enableDependencyVisualization, false);
+      });
+
+      test('should reset all settings including new log level', () {
+        ZenConfig.logLevel = ZenLogLevel.trace;
+        ZenConfig.enableRxTracking = true;
+
+        ZenConfig.reset();
+
+        expect(ZenConfig.enableRxTracking, false);
+        // Default log level depends on kDebugMode, so just check it's set
+        expect(ZenConfig.logLevel, isNotNull);
+      });
     });
 
-    test(
-        'enablePerformanceMetrics setter should update enablePerformanceTracking',
-        () {
-      // Set via the setter
-      ZenConfig.enablePerformanceMetrics = true;
-      expect(ZenConfig.enablePerformanceTracking, true);
+    // ========================================================================
+    // PERFORMANCE SETTINGS TESTS
+    // ========================================================================
 
-      ZenConfig.enablePerformanceMetrics = false;
-      expect(ZenConfig.enablePerformanceTracking, false);
+    group('Performance Settings', () {
+      test('should have alias for performance metrics', () {
+        ZenConfig.enablePerformanceMetrics = true;
+        expect(ZenConfig.enablePerformanceTracking, true);
+
+        ZenConfig.enablePerformanceTracking = false;
+        expect(ZenConfig.enablePerformanceMetrics, false);
+      });
+
+      test('should toggle performance tracking independently', () {
+        ZenConfig.reset();
+        expect(ZenConfig.enablePerformanceTracking, false);
+
+        ZenConfig.enablePerformanceTracking = true;
+        expect(ZenConfig.enablePerformanceMetrics, true);
+        expect(ZenConfig.enableMetrics, false); // Independent setting
+      });
     });
 
-    test('should apply environment configuration with different environments',
-        () {
-      // Test with 'dev' environment
-      ZenConfig.applyEnvironment('dev');
-      expect(ZenConfig.enableDebugLogs, true);
-      expect(ZenConfig.strictMode, true);
-      expect(ZenConfig.enablePerformanceTracking, true);
-      expect(ZenConfig.enableMetrics, true);
-      expect(ZenConfig.enableNavigationLogging, true);
-      expect(ZenConfig.enableRouteLogging, true);
+    // ========================================================================
+    // LEGACY COMPATIBILITY TESTS
+    // ========================================================================
 
-      // Test with 'test' environment
-      ZenConfig.applyEnvironment('test');
-      expect(ZenConfig.enableDebugLogs, true);
-      expect(ZenConfig.strictMode, true);
-      expect(ZenConfig.enableAutoDispose, false);
-      expect(ZenConfig.enableMetrics, false);
+    group('Legacy Compatibility', () {
+      test('should maintain backward compatibility with old tests', () {
+        // Old test pattern: setting enableDebugLogs
+        // ignore: deprecated_member_use_from_same_package
+        ZenConfig.enableDebugLogs = true;
+        expect(ZenConfig.strictMode, false); // Should not affect other settings
 
-      // Test with 'prod' environment
-      ZenConfig.applyEnvironment('prod');
-      expect(ZenConfig.enableDebugLogs, false);
-      expect(ZenConfig.strictMode, false);
-      expect(ZenConfig.enablePerformanceTracking, false);
-      expect(ZenConfig.enableMetrics, false);
-      expect(ZenConfig.enableNavigationLogging, false);
-      expect(ZenConfig.enableRouteLogging, false);
+        // Old test pattern: using applyEnvironment with string
+        ZenConfig.applyEnvironment('dev');
+        expect(ZenConfig.enablePerformanceTracking, true);
+        expect(ZenConfig.enableMetrics, true);
+      });
+
+      test('should handle old configure method signature', () {
+        // Old pattern with debugLogs parameter
+        ZenConfig.configure(
+          // ignore: deprecated_member_use_from_same_package
+          debugLogs: true,
+          strict: true,
+          performanceTracking: true,
+          metrics: true,
+        );
+
+        expect(ZenConfig.strictMode, true);
+        expect(ZenConfig.enablePerformanceTracking, true);
+        expect(ZenConfig.enableMetrics, true);
+      });
+    });
+
+    // ========================================================================
+    // INTEGRATION TESTS
+    // ========================================================================
+
+    group('Integration', () {
+      test('should maintain consistency between related settings', () {
+        ZenConfig.applyEnvironment(ZenEnvironment.production);
+
+        // In production, all debug features should be off
+        expect(ZenConfig.logLevel, ZenLogLevel.error);
+        expect(ZenConfig.enableRxTracking, false);
+        expect(ZenConfig.strictMode, false);
+        expect(ZenConfig.enableNavigationLogging, false);
+        expect(ZenConfig.enableRouteLogging, false);
+        expect(ZenConfig.enablePerformanceTracking, false);
+      });
+
+      test('should handle rapid environment switching with enum', () {
+        ZenConfig.applyEnvironment(ZenEnvironment.production);
+        expect(ZenConfig.logLevel, ZenLogLevel.error);
+
+        ZenConfig.applyEnvironment(ZenEnvironment.development);
+        expect(ZenConfig.logLevel, ZenLogLevel.info);
+
+        ZenConfig.applyEnvironment(ZenEnvironment.trace);
+        expect(ZenConfig.logLevel, ZenLogLevel.trace);
+        expect(ZenConfig.enableRxTracking, true);
+
+        ZenConfig.applyEnvironment(ZenEnvironment.production);
+        expect(ZenConfig.logLevel, ZenLogLevel.error);
+        expect(ZenConfig.enableRxTracking, false);
+      });
+
+      test('should handle rapid environment switching with strings', () {
+        ZenConfig.applyEnvironment('production');
+        expect(ZenConfig.logLevel, ZenLogLevel.error);
+
+        ZenConfig.applyEnvironment('dev');
+        expect(ZenConfig.logLevel, ZenLogLevel.info);
+
+        ZenConfig.applyEnvironment('trace');
+        expect(ZenConfig.logLevel, ZenLogLevel.trace);
+        expect(ZenConfig.enableRxTracking, true);
+
+        ZenConfig.applyEnvironment('production');
+        expect(ZenConfig.logLevel, ZenLogLevel.error);
+        expect(ZenConfig.enableRxTracking, false);
+      });
+
+      test('should preserve custom settings when partially reconfiguring', () {
+        ZenConfig.applyEnvironment(ZenEnvironment.development);
+        expect(ZenConfig.strictMode, true);
+
+        // Only change log level
+        ZenConfig.configure(level: ZenLogLevel.error);
+
+        // Other dev settings should be preserved
+        expect(ZenConfig.logLevel, ZenLogLevel.error);
+        expect(ZenConfig.strictMode, true); // Preserved
+        expect(ZenConfig.enableNavigationLogging, true); // Preserved
+      });
+
+      test('should work seamlessly with enum and string interchangeably', () {
+        // Start with enum
+        ZenConfig.applyEnvironment(ZenEnvironment.production);
+        expect(ZenConfig.logLevel, ZenLogLevel.error);
+
+        // Switch with string
+        ZenConfig.applyEnvironment('dev');
+        expect(ZenConfig.logLevel, ZenLogLevel.info);
+
+        // Switch back with enum
+        ZenConfig.applyEnvironment(ZenEnvironment.staging);
+        expect(ZenConfig.logLevel, ZenLogLevel.warning);
+
+        // Use alias string
+        ZenConfig.applyEnvironment('prod');
+        expect(ZenConfig.logLevel, ZenLogLevel.error);
+      });
+
+      test('should throw same error for invalid string or enum conversion', () {
+        expect(
+          () => ZenConfig.applyEnvironment('invalid'),
+          throwsArgumentError,
+        );
+
+        expect(
+          () => ZenEnvironment.fromString('invalid'),
+          throwsArgumentError,
+        );
+      });
+    });
+
+    // ========================================================================
+    // TYPE SAFETY TESTS
+    // ========================================================================
+
+    group('Type Safety', () {
+      test('should only accept ZenEnvironment or String types', () {
+        // Valid: enum
+        expect(() => ZenConfig.applyEnvironment(ZenEnvironment.production),
+            returnsNormally);
+
+        // Valid: string
+        expect(() => ZenConfig.applyEnvironment('production'), returnsNormally);
+
+        // Invalid: number
+        expect(() => ZenConfig.applyEnvironment(123), throwsArgumentError);
+
+        // Invalid: null
+        expect(() => ZenConfig.applyEnvironment(null), throwsArgumentError);
+
+        // Invalid: list
+        expect(() => ZenConfig.applyEnvironment([]), throwsArgumentError);
+      });
+
+      test('enum provides compile-time type safety', () {
+        // This wouldn't compile if we tried to pass an invalid enum value
+        ZenEnvironment env = ZenEnvironment.production;
+        ZenConfig.applyEnvironment(env);
+        expect(ZenConfig.logLevel, ZenLogLevel.error);
+      });
     });
   });
 }

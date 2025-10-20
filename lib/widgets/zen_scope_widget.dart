@@ -157,9 +157,7 @@ class _ZenScopeWidgetState extends State<ZenScopeWidget> {
         // Then initialize the main module
         await module.onInit(_scope);
 
-        if (ZenConfig.enableDebugLogs) {
-          ZenLogger.logInfo('Module ${module.name} fully initialized');
-        }
+        ZenLogger.logInfo('Module ${module.name} fully initialized');
       } catch (e, stack) {
         ZenLogger.logError(
             'Module initialization failed for ${module.name}', e, stack);

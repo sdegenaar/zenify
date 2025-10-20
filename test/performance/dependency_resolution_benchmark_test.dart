@@ -163,7 +163,8 @@ void main() {
   setUp(() {
     Zen.init();
     // Disable debug logs during benchmarks for accurate timing
-    ZenConfig.enableDebugLogs = false;
+    ZenConfig.applyEnvironment(ZenEnvironment.test); // Apply test settings
+    ZenConfig.logLevel = ZenLogLevel.none; // Override to disable all logs
     ZenConfig.checkForCircularDependencies = false;
   });
 

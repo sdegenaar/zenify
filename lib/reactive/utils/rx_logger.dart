@@ -1,46 +1,47 @@
 // lib/reactive/utils/rx_logger.dart
-import 'package:flutter/foundation.dart';
+import '../../core/zen_logger.dart';
+import '../../core/zen_config.dart';
+import '../../core/zen_log_level.dart';
 import '../core/rx_error_handling.dart';
 
 /// Centralized logging utility for the reactive system
 class RxLogger {
   /// Log an RxException with context
   static void logError(RxException error, {String? context}) {
-    if (!getRxErrorConfig().logErrors) return;
+    // Use ZenConfig.logLevel instead of getRxErrorConfig().logErrors
+    if (!ZenLogLevel.error.shouldLog(ZenConfig.logLevel)) return;
 
     final config = getRxErrorConfig();
     if (config.customLogger != null) {
       config.customLogger!(error);
     } else {
       final prefix = context != null ? 'Rx$context Error' : 'RxError';
-      debugPrint('$prefix: $error');
+      ZenLogger.logError('$prefix: $error');
     }
   }
 
   /// Log a general reactive system message
   static void logInfo(String message, {String? context}) {
-    if (!getRxErrorConfig().logErrors) {
-      return; // Reuse the logErrors flag for general logging
-    }
+    if (!ZenLogLevel.info.shouldLog(ZenConfig.logLevel)) return;
 
     final prefix = context != null ? 'Rx$context' : 'Rx';
-    debugPrint('$prefix: $message');
+    ZenLogger.logInfo('$prefix: $message');
   }
 
   /// Log a warning message
   static void logWarning(String message, {String? context}) {
-    if (!getRxErrorConfig().logErrors) return;
+    if (!ZenLogLevel.warning.shouldLog(ZenConfig.logLevel)) return;
 
     final prefix = context != null ? 'Rx$context Warning' : 'RxWarning';
-    debugPrint('$prefix: $message');
+    ZenLogger.logWarning('$prefix: $message');
   }
 
   /// Log debug information (only in debug mode)
   static void logDebug(String message, {String? context}) {
-    if (!kDebugMode || !getRxErrorConfig().logErrors) return;
+    if (!ZenLogLevel.debug.shouldLog(ZenConfig.logLevel)) return;
 
     final prefix = context != null ? 'Rx$context Debug' : 'RxDebug';
-    debugPrint('$prefix: $message');
+    ZenLogger.logDebug('$prefix: $message');
   }
 
   /// Create an RxException and log it

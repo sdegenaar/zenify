@@ -25,15 +25,11 @@ class AuthModule extends ZenModule {
 
   @override
   Future<void> onInit(ZenScope scope) async {
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logInfo('AuthModule initialized');
-    }
+    ZenLogger.logInfo('AuthModule initialized');
   }
 
   @override
   Future<void> onDispose(ZenScope scope) async {
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logInfo('AuthModule disposed');
-    }
+    ZenLogger.logInfo('AuthModule disposed');
   }
 }

@@ -1,9 +1,25 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:zenify/zenify.dart';
 
 void main() {
-  // Initialize Zenify
-  ZenConfig.applyEnvironment('dev');
+  WidgetsFlutterBinding.ensureInitialized();
+  Zen.init();
+
+  // Simple environment-based configuration (RECOMMENDED)
+  if (kReleaseMode) {
+    ZenConfig.applyEnvironment(ZenEnvironment.production);
+  } else {
+    ZenConfig.applyEnvironment(ZenEnvironment.development);
+  }
+
+  // Or use fine-grained control
+  ZenConfig.configure(
+    level: kDebugMode ? ZenLogLevel.info : ZenLogLevel.warning,
+    performanceTracking: kDebugMode,
+    strict: kDebugMode,
+  );
+
   runApp(const ZenifyExampleApp());
 }
 

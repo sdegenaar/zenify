@@ -10,8 +10,7 @@ void main() {
   Zen.init();
 
   // Configure for development with detailed logging
-  ZenConfig.enableDebugLogs = true;
-  ZenConfig.enablePerformanceMetrics = true;
+  ZenConfig.applyEnvironment(ZenEnvironment.development);
 
   // Register the TodoModule
   Zen.registerModules([

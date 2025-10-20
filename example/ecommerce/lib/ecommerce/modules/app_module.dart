@@ -29,9 +29,7 @@ class AppModule extends ZenModule {
 
   @override
   Future<void> onInit(ZenScope scope) async {
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logInfo('AppModule initialized');
-    }
+    ZenLogger.logInfo('AppModule initialized');
 
     // Pre-load products
     final productService = scope.find<ProductService>();

@@ -36,10 +36,8 @@ class ZenRouteObserver extends NavigatorObserver {
       _routeScopes[routeName] = scope;
     }
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug(
-          'Registered ${controllerTypes.length} controllers for route $routeName${scope != null ? ' in scope ${scope.name ?? scope.id}' : ''}');
-    }
+    ZenLogger.logDebug(
+        'Registered ${controllerTypes.length} controllers for route $routeName${scope != null ? ' in scope ${scope.name ?? scope.id}' : ''}');
   }
 
   /// Register tagged controllers for a specific route
@@ -51,10 +49,8 @@ class ZenRouteObserver extends NavigatorObserver {
       _routeScopes[routeName] = scope;
     }
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug(
-          'Registered ${controllerTags.length} tagged controllers for route $routeName${scope != null ? ' in scope ${scope.name ?? scope.id}' : ''}');
-    }
+    ZenLogger.logDebug(
+        'Registered ${controllerTags.length} tagged controllers for route $routeName${scope != null ? ' in scope ${scope.name ?? scope.id}' : ''}');
   }
 
   @override
@@ -64,9 +60,7 @@ class ZenRouteObserver extends NavigatorObserver {
     // Notify listener of route change
     onRouteChanged?.call(route, previousRoute);
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('Route pushed: ${route.settings.name ?? 'unnamed'}');
-    }
+    ZenLogger.logDebug('Route pushed: ${route.settings.name ?? 'unnamed'}');
   }
 
   @override
@@ -76,10 +70,8 @@ class ZenRouteObserver extends NavigatorObserver {
     // Notify listener of route change
     onRouteChanged?.call(newRoute, oldRoute);
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug(
-          'Route replaced: ${oldRoute?.settings.name ?? 'unnamed'} -> ${newRoute?.settings.name ?? 'unnamed'}');
-    }
+    ZenLogger.logDebug(
+        'Route replaced: ${oldRoute?.settings.name ?? 'unnamed'} -> ${newRoute?.settings.name ?? 'unnamed'}');
   }
 
   @override
@@ -123,10 +115,8 @@ class ZenRouteObserver extends NavigatorObserver {
             disposed = Zen.rootScope.deleteByType(controllerType, force: true);
           }
 
-          if (ZenConfig.enableDebugLogs) {
-            ZenLogger.logDebug(
-                'Auto-disposing controller $controllerType for route $routeName: ${disposed ? 'success' : 'not found'}');
-          }
+          ZenLogger.logDebug(
+              'Auto-disposing controller $controllerType for route $routeName: ${disposed ? 'success' : 'not found'}');
 
           // Track metrics
           if (disposed && ZenConfig.enablePerformanceMetrics) {
@@ -148,10 +138,8 @@ class ZenRouteObserver extends NavigatorObserver {
             disposed = _deleteByTagFromScope(tag, Zen.rootScope);
           }
 
-          if (ZenConfig.enableDebugLogs) {
-            ZenLogger.logDebug(
-                'Auto-disposing tagged controller \'$tag\' for route $routeName: ${disposed ? 'success' : 'not found'}');
-          }
+          ZenLogger.logDebug(
+              'Auto-disposing tagged controller \'$tag\' for route $routeName: ${disposed ? 'success' : 'not found'}');
         }
       }
 
@@ -170,10 +158,8 @@ class ZenRouteObserver extends NavigatorObserver {
     try {
       return scope.deleteByTag(tag, force: true);
     } catch (e) {
-      if (ZenConfig.enableDebugLogs) {
-        ZenLogger.logWarning(
-            'Failed to delete tag \'$tag\' from scope ${scope.name ?? scope.id}: $e');
-      }
+      ZenLogger.logWarning(
+          'Failed to delete tag \'$tag\' from scope ${scope.name ?? scope.id}: $e');
       return false;
     }
   }
@@ -194,10 +180,8 @@ class ZenRouteObserver extends NavigatorObserver {
         scope.dispose();
         _routeScopes.remove(routeName);
 
-        if (ZenConfig.enableDebugLogs) {
-          ZenLogger.logDebug('Disposed empty route scope for $routeName');
-        }
-      } else if (ZenConfig.enableDebugLogs) {
+        ZenLogger.logDebug('Disposed empty route scope for $routeName');
+      } else {
         ZenLogger.logDebug(
             'Route scope for $routeName still has ${dependencies.length} dependencies, keeping alive');
       }
@@ -212,9 +196,7 @@ class ZenRouteObserver extends NavigatorObserver {
     _routeControllerTags.clear();
     _routeScopes.clear();
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('Cleared all route controller registrations');
-    }
+    ZenLogger.logDebug('Cleared all route controller registrations');
   }
 
   /// Get debug information about registered routes

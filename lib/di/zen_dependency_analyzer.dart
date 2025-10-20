@@ -22,10 +22,8 @@ class ZenDependencyAnalyzer {
 
       // Since we don't have access to actual dependency relationships in the current
       // scope implementation, we can only do basic checks
-      if (ZenConfig.enableDebugLogs) {
-        ZenLogger.logDebug(
-            'Cycle detection is limited - requires constructor dependency analysis');
-      }
+      ZenLogger.logDebug(
+          'Cycle detection is limited - requires constructor dependency analysis');
 
       return false; // No cycles detectable with current API
     } catch (e, stack) {

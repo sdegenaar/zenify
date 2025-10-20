@@ -50,7 +50,8 @@ void main() {
   setUp(() {
     // Initialize the DI system
     Zen.init();
-    ZenConfig.enableDebugLogs = false;
+    ZenConfig.applyEnvironment(ZenEnvironment.test); // Apply test settings
+    ZenConfig.logLevel = ZenLogLevel.none; // Override to disable all logs
     Zen.reset();
   });
 

@@ -1,7 +1,6 @@
 // lib/di/zen_di.dart
 import '../controllers/zen_service.dart';
 import '../core/zen_logger.dart';
-import '../core/zen_config.dart';
 import '../core/zen_scope.dart';
 import '../core/zen_module.dart';
 import '../controllers/zen_controller.dart';
@@ -28,9 +27,7 @@ class Zen {
     // Initialize lifecycle management
     _lifecycleManager.initLifecycleObserver();
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logInfo('Zen initialized');
-    }
+    ZenLogger.logInfo('Zen initialized');
   }
 
   //
@@ -44,17 +41,13 @@ class Zen {
   /// Set the current scope (used internally by ZenRoute)
   static void setCurrentScope(ZenScope scope) {
     _currentScope = scope;
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('🔧 Zen.currentScope updated to: ${scope.name}');
-    }
+    ZenLogger.logDebug('🔧 Zen.currentScope updated to: ${scope.name}');
   }
 
   /// Reset current scope to root (useful for cleanup)
   static void resetCurrentScope() {
     _currentScope = null;
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('🔧 Zen.currentScope reset to root');
-    }
+    ZenLogger.logDebug('🔧 Zen.currentScope reset to root');
   }
 
   /// Get all active scopes in the system (for debugging)
@@ -246,8 +239,6 @@ class Zen {
     // 5. Force clear all scopes
     ZenScopeManager.disposeAll();
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logInfo('🔄 Zen completely reset');
-    }
+    ZenLogger.logInfo('🔄 Zen completely reset');
   }
 }

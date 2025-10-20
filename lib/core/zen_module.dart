@@ -1,7 +1,6 @@
 // lib/core/zen_module.dart
 import 'zen_scope.dart';
 import 'zen_logger.dart';
-import 'zen_config.dart';
 
 /// Abstract class for organizing related dependencies into modules
 abstract class ZenModule {
@@ -56,10 +55,8 @@ class ZenModuleRegistry {
       // 3. Calculate load order
       final loadOrder = _calculateLoadOrder(allModules);
 
-      if (ZenConfig.enableDebugLogs) {
-        ZenLogger.logInfo(
-            'Loading ${loadOrder.length} modules: ${loadOrder.map((m) => m.name).join(' -> ')}');
-      }
+      ZenLogger.logInfo(
+          'Loading ${loadOrder.length} modules: ${loadOrder.map((m) => m.name).join(' -> ')}');
 
       // 4. Load modules in dependency order (this can fail)
       for (final module in loadOrder) {
@@ -72,15 +69,11 @@ class ZenModuleRegistry {
         // Only add to registry after successful registration and init
         _modules[module.name] = module;
 
-        if (ZenConfig.enableDebugLogs) {
-          ZenLogger.logDebug('✅ Loaded: ${module.name}');
-        }
+        ZenLogger.logDebug('✅ Loaded: ${module.name}');
       }
 
-      if (ZenConfig.enableDebugLogs) {
-        ZenLogger.logInfo(
-            '✅ Successfully loaded all ${loadOrder.length} modules');
-      }
+      ZenLogger.logInfo(
+          '✅ Successfully loaded all ${loadOrder.length} modules');
     } catch (error, stackTrace) {
       // Rollback: restore original module registry
       _modules.clear();
@@ -109,9 +102,7 @@ class ZenModuleRegistry {
   /// Clear all modules (for testing)
   static void clear() {
     _modules.clear();
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logInfo('Cleared module registry');
-    }
+    ZenLogger.logInfo('Cleared module registry');
   }
 
   /// Debug info
@@ -190,9 +181,7 @@ class ZenModuleRegistry {
         }
       }
     } catch (e) {
-      if (ZenConfig.enableDebugLogs) {
-        ZenLogger.logWarning('Failed to fully restore scope state: $e');
-      }
+      ZenLogger.logWarning('Failed to fully restore scope state: $e');
     }
   }
 

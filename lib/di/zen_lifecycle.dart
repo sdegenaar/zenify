@@ -2,7 +2,6 @@
 import 'package:flutter/widgets.dart';
 import '../controllers/zen_controller.dart';
 import '../controllers/zen_service.dart';
-import '../core/zen_config.dart';
 import '../core/zen_logger.dart';
 import '../core/zen_scope.dart';
 import 'zen_di.dart';
@@ -47,9 +46,7 @@ class ZenLifecycleManager {
       _lifecycleObserver = _ZenAppLifecycleObserver();
       WidgetsBinding.instance.addObserver(_lifecycleObserver!);
 
-      if (ZenConfig.enableDebugLogs) {
-        ZenLogger.logDebug('Zen lifecycle observer initialized');
-      }
+      ZenLogger.logDebug('Zen lifecycle observer initialized');
     }
   }
 

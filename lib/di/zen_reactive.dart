@@ -2,7 +2,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:zenify/di/zen_di.dart';
 import '../core/zen_logger.dart';
-import '../core/zen_config.dart';
 
 /// Enhanced subscription with automatic cleanup and state tracking
 class ZenSubscription {
@@ -83,10 +82,8 @@ class ZenReactiveSystem {
       ZenLogger.logError('Error notifying listener for $type', e, stack);
 
       // Consider removing problematic listeners in production
-      if (ZenConfig.enableDebugLogs) {
-        ZenLogger.logWarning(
-            'Consider checking listener implementation for $type');
-      }
+      ZenLogger.logWarning(
+          'Consider checking listener implementation for $type');
     }
   }
 
@@ -166,9 +163,7 @@ class ZenReactiveSystem {
       _cleanupEmptyListeners();
 
       // Log detailed statistics for debugging
-      if (ZenConfig.enableDebugLogs) {
-        ZenLogger.logDebug('Memory stats: $stats');
-      }
+      ZenLogger.logDebug('Memory stats: $stats');
     }
   }
 
@@ -181,11 +176,8 @@ class ZenReactiveSystem {
       _cleanupEmptyListeners();
       _lastCleanup = now;
 
-      if (ZenConfig.enableDebugLogs) {
-        final stats = getMemoryStats();
-        ZenLogger.logDebug(
-            'Reactive system stats: $stats, errors: $_errorCount');
-      }
+      final stats = getMemoryStats();
+      ZenLogger.logDebug('Reactive system stats: $stats, errors: $_errorCount');
     }
   }
 
@@ -195,7 +187,7 @@ class ZenReactiveSystem {
     _listeners.removeWhere((key, listeners) => listeners.isEmpty);
     final finalCount = _listeners.length;
 
-    if (removedCount != finalCount && ZenConfig.enableDebugLogs) {
+    if (removedCount != finalCount) {
       ZenLogger.logDebug(
           'Cleaned up ${removedCount - finalCount} empty listener sets');
     }
@@ -283,9 +275,7 @@ class ZenReactiveSystem {
     _errorCount = 0;
     _lastCleanup = null;
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logInfo('Cleared $count listeners from reactive system');
-    }
+    ZenLogger.logInfo('Cleared $count listeners from reactive system');
   }
 
   /// Force cleanup for testing/debugging

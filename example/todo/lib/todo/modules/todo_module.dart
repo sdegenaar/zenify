@@ -17,9 +17,7 @@ class TodoModule extends ZenModule {
 
   @override
   Future<void> onInit(ZenScope scope) async {
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logInfo('TodoModule initialized');
-    }
+    ZenLogger.logInfo('TodoModule initialized');
 
     // Pre-load todos when the module initializes
     final todoService = scope.find<TodoService>();

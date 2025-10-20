@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../controllers/zen_controller.dart';
 import '../core/zen_scope.dart';
 import '../core/zen_logger.dart';
-import '../core/zen_config.dart';
 import '../di/zen_di.dart';
 import '../reactive/core/rx_value.dart';
 
@@ -41,17 +40,13 @@ class ZenTestContainer {
 
   ZenTestContainer({String? name})
       : _scope = Zen.createScope(name: name ?? 'TestScope') {
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug(
-          'ZenTestContainer created with scope: ${_scope.name} (${_scope.id})');
-    }
+    ZenLogger.logDebug(
+        'ZenTestContainer created with scope: ${_scope.name} (${_scope.id})');
   }
 
   /// Register a dependency or controller
   T register<T>(T Function() factory, {String? tag, bool? permanent}) {
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('Registering $T in test container');
-    }
+    ZenLogger.logDebug('Registering $T in test container');
 
     final instance = factory();
 
@@ -67,9 +62,7 @@ class ZenTestContainer {
 
   /// Register an existing instance
   T put<T>(T instance, {String? tag, bool? permanent}) {
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('Putting $T instance in test container');
-    }
+    ZenLogger.logDebug('Putting $T instance in test container');
 
     return _scope.put<T>(
       instance,
@@ -82,18 +75,14 @@ class ZenTestContainer {
   void putLazy<T>(T Function() factory, {String? tag}) {
     _scope.putLazy<T>(factory, tag: tag);
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('Registered lazy factory for $T in test container');
-    }
+    ZenLogger.logDebug('Registered lazy factory for $T in test container');
   }
 
   /// Register a factory function
   void putFactory<T>(T Function() factory, {String? tag}) {
     _scope.putFactory<T>(factory, tag: tag);
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('Registered factory for $T in test container');
-    }
+    ZenLogger.logDebug('Registered factory for $T in test container');
   }
 
   /// Find a dependency from the test container
@@ -132,10 +121,8 @@ class ZenTestContainer {
         }
       } catch (e) {
         // Continue clearing even if some fail
-        if (ZenConfig.enableDebugLogs) {
-          ZenLogger.logDebug(
-              'Failed to dispose dependency ${dependency.runtimeType}: $e');
-        }
+        ZenLogger.logDebug(
+            'Failed to dispose dependency ${dependency.runtimeType}: $e');
       }
     }
 
@@ -150,9 +137,7 @@ class ZenTestContainer {
       }
     }
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('Cleared all dependencies from test container');
-    }
+    ZenLogger.logDebug('Cleared all dependencies from test container');
   }
 
   /// Get all registered dependencies
@@ -162,9 +147,7 @@ class ZenTestContainer {
 
   /// Dispose all dependencies in the test container
   void dispose() {
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('Disposing ZenTestContainer');
-    }
+    ZenLogger.logDebug('Disposing ZenTestContainer');
 
     // Dispose the scope
     if (!_scope.isDisposed) {

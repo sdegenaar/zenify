@@ -97,11 +97,8 @@ abstract class ZenController with WidgetsBindingObserver {
   void _trackReactiveObject(Rx reactive) {
     if (!_reactiveObjects.contains(reactive)) {
       _reactiveObjects.add(reactive);
-
-      if (ZenConfig.enableDebugLogs) {
-        ZenLogger.logDebug(
-            'Controller $runtimeType: Tracking reactive ${reactive.runtimeType} (total: ${_reactiveObjects.length})');
-      }
+      ZenLogger.logDebug(
+          'Controller $runtimeType: Tracking reactive ${reactive.runtimeType} (total: ${_reactiveObjects.length})');
     }
   }
 
@@ -127,9 +124,7 @@ abstract class ZenController with WidgetsBindingObserver {
     if (_initialized) return;
     _initialized = true;
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('Controller $runtimeType initialized');
-    }
+    ZenLogger.logDebug('Controller $runtimeType initialized');
 
     if (ZenConfig.enablePerformanceMetrics) {
       ZenMetrics.incrementCounter('controller.initialized');
@@ -141,9 +136,7 @@ abstract class ZenController with WidgetsBindingObserver {
     if (_ready) return;
     _ready = true;
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('Controller $runtimeType ready');
-    }
+    ZenLogger.logDebug('Controller $runtimeType ready');
 
     if (ZenConfig.enablePerformanceMetrics) {
       ZenMetrics.incrementCounter('controller.ready');
@@ -155,9 +148,7 @@ abstract class ZenController with WidgetsBindingObserver {
   void onResume() {
     if (_checkDisposed('onResume')) return;
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('Controller $runtimeType resumed');
-    }
+    ZenLogger.logDebug('Controller $runtimeType resumed');
     resumeAllWorkers();
   }
 
@@ -166,9 +157,7 @@ abstract class ZenController with WidgetsBindingObserver {
   void onPause() {
     if (_checkDisposed('onPause')) return;
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('Controller $runtimeType paused');
-    }
+    ZenLogger.logDebug('Controller $runtimeType paused');
     pauseAllWorkers();
   }
 
@@ -177,9 +166,7 @@ abstract class ZenController with WidgetsBindingObserver {
   void onInactive() {
     if (_checkDisposed('onInactive')) return;
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('Controller $runtimeType inactive');
-    }
+    ZenLogger.logDebug('Controller $runtimeType inactive');
   }
 
   /// Called when the app is detached
@@ -187,9 +174,7 @@ abstract class ZenController with WidgetsBindingObserver {
   void onDetached() {
     if (_checkDisposed('onDetached')) return;
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('Controller $runtimeType detached');
-    }
+    ZenLogger.logDebug('Controller $runtimeType detached');
   }
 
   /// Called when the app is hidden
@@ -197,17 +182,13 @@ abstract class ZenController with WidgetsBindingObserver {
   void onHidden() {
     if (_checkDisposed('onHidden')) return;
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('Controller $runtimeType hidden');
-    }
+    ZenLogger.logDebug('Controller $runtimeType hidden');
   }
 
   /// User-defined cleanup hook - called before internal disposal
   @mustCallSuper
   void onClose() {
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('Controller $runtimeType onClose called');
-    }
+    ZenLogger.logDebug('Controller $runtimeType onClose called');
   }
 
   //
@@ -267,9 +248,7 @@ abstract class ZenController with WidgetsBindingObserver {
     _batchWorkerOperation(
         (worker) => worker.pause(), (group) => group.pauseAll());
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('Controller $runtimeType: All workers paused');
-    }
+    ZenLogger.logDebug('Controller $runtimeType: All workers paused');
   }
 
   /// Resume all workers managed by this controller
@@ -279,9 +258,7 @@ abstract class ZenController with WidgetsBindingObserver {
     _batchWorkerOperation(
         (worker) => worker.resume(), (group) => group.resumeAll());
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('Controller $runtimeType: All workers resumed');
-    }
+    ZenLogger.logDebug('Controller $runtimeType: All workers resumed');
   }
 
   /// Pause workers - convenience method for UI callbacks (no parameters)
@@ -534,7 +511,7 @@ abstract class ZenController with WidgetsBindingObserver {
 
   /// Dispose all tracked reactive objects - PREVENTS MEMORY LEAKS
   void _disposeReactiveObjects() {
-    if (ZenConfig.enableDebugLogs && _reactiveObjects.isNotEmpty) {
+    if (_reactiveObjects.isNotEmpty) {
       ZenLogger.logDebug(
           'Controller $runtimeType: Disposing ${_reactiveObjects.length} reactive objects');
     }
@@ -567,12 +544,10 @@ abstract class ZenController with WidgetsBindingObserver {
   void dispose() {
     if (_disposed) return;
 
-    if (ZenConfig.enableDebugLogs) {
-      final stats = getResourceStats();
-      ZenLogger.logDebug('Controller $runtimeType disposing... '
-          'Resources: ${stats['reactive_objects']} reactive, ${stats['workers']} workers, '
-          '${stats['effects']} effects, ${stats['disposers']} disposers');
-    }
+    final stats = getResourceStats();
+    ZenLogger.logDebug('Controller $runtimeType disposing... '
+        'Resources: ${stats['reactive_objects']} reactive, ${stats['workers']} workers, '
+        '${stats['effects']} effects, ${stats['disposers']} disposers');
 
     try {
       // Call user lifecycle method first
@@ -603,9 +578,7 @@ abstract class ZenController with WidgetsBindingObserver {
     // Clear update listeners
     _updateListeners.clear();
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('Controller $runtimeType disposed successfully');
-    }
+    ZenLogger.logDebug('Controller $runtimeType disposed successfully');
 
     if (ZenConfig.enablePerformanceMetrics) {
       ZenMetrics.incrementCounter('controller.disposed');
@@ -619,7 +592,7 @@ abstract class ZenController with WidgetsBindingObserver {
   /// Standard disposal check with optional operation logging
   bool _checkDisposed([String? operation]) {
     if (_disposed) {
-      if (operation != null && ZenConfig.enableDebugLogs) {
+      if (operation != null) {
         ZenLogger.logWarning(
             'Attempted $operation on disposed controller $runtimeType');
       }
@@ -860,14 +833,10 @@ extension ZenControllerAdvancedExtension on ZenController {
 /// Mixin for DI integration hooks
 mixin ZenDIIntegration on ZenController {
   void onDIRegistered() {
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('Controller $runtimeType registered in DI system');
-    }
+    ZenLogger.logDebug('Controller $runtimeType registered in DI system');
   }
 
   void onDIDisposing() {
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('Controller $runtimeType disposing from DI system');
-    }
+    ZenLogger.logDebug('Controller $runtimeType disposing from DI system');
   }
 }

@@ -1,4 +1,3 @@
-import 'zen_config.dart';
 import 'zen_logger.dart';
 import 'zen_scope_manager.dart';
 import 'zen_scope.dart';
@@ -22,10 +21,8 @@ class ZenScopeStackTracker {
     _scopeCreationTimes[scopeName] = DateTime.now();
     _scopeUsesParentScope[scopeName] = useParentScope;
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug(
-          '📚 Scope stack push: ${_formatStack()} (useParentScope: $useParentScope)');
-    }
+    ZenLogger.logDebug(
+        '📚 Scope stack push: ${_formatStack()} (useParentScope: $useParentScope)');
   }
 
   /// Called when a scope is disposed or becomes inactive
@@ -34,7 +31,7 @@ class ZenScopeStackTracker {
     _scopeCreationTimes.remove(scopeName);
     _scopeUsesParentScope.remove(scopeName);
 
-    if (removed && ZenConfig.enableDebugLogs) {
+    if (removed) {
       ZenLogger.logDebug('📚 Scope stack pop: ${_formatStack()}');
 
       // Check if we're popping back to a non-parent-scope route
@@ -43,10 +40,8 @@ class ZenScopeStackTracker {
         final topScopeUsesParentScope =
             _scopeUsesParentScope[currentTopScope] ?? true;
         if (!topScopeUsesParentScope) {
-          if (ZenConfig.enableDebugLogs) {
-            ZenLogger.logDebug(
-                '🧹 Popped back to non-parent-scope route: $currentTopScope. Triggering cleanup.');
-          }
+          ZenLogger.logDebug(
+              '🧹 Popped back to non-parent-scope route: $currentTopScope. Triggering cleanup.');
           // Trigger cleanup when popping back to a route that doesn't use parent scope
           ZenScopeManager.cleanupAllScopesExcept(currentTopScope);
         }
@@ -95,9 +90,7 @@ class ZenScopeStackTracker {
     _scopeStack.clear();
     _scopeCreationTimes.clear();
     _scopeUsesParentScope.clear();
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('📚 Scope stack cleared');
-    }
+    ZenLogger.logDebug('📚 Scope stack cleared');
   }
 
   /// Get debug information about the current stack state

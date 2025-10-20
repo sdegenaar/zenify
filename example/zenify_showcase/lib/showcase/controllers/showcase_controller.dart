@@ -82,9 +82,7 @@ class ShowcaseController extends ZenController {
     _initializeFeatureStats();
     _loadUserPreferences();
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('ShowcaseController initialized');
-    }
+    ZenLogger.logDebug('ShowcaseController initialized');
   }
 
   void _initializeFeatureStats() {
@@ -108,9 +106,7 @@ class ShowcaseController extends ZenController {
       totalDemosViewed.value++;
       _trackFeatureUsage(demoPages[index].title);
 
-      if (ZenConfig.enableDebugLogs) {
-        ZenLogger.logDebug('Navigated to page: ${demoPages[index].title}');
-      }
+      ZenLogger.logDebug('Navigated to page: ${demoPages[index].title}');
     }
   }
 
@@ -138,19 +134,15 @@ class ShowcaseController extends ZenController {
     isDarkMode.value = !isDarkMode.value;
     _trackInteraction();
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('Dark mode toggled: ${isDarkMode.value}');
-    }
+    ZenLogger.logDebug('Dark mode toggled: ${isDarkMode.value}');
   }
 
   void togglePerformanceOverlay() {
     showPerformanceOverlay.value = !showPerformanceOverlay.value;
     _trackInteraction();
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug(
-          'Performance overlay toggled: ${showPerformanceOverlay.value}');
-    }
+    ZenLogger.logDebug(
+        'Performance overlay toggled: ${showPerformanceOverlay.value}');
   }
 
   void toggleNavigationExpansion() {
@@ -208,9 +200,7 @@ class ShowcaseController extends ZenController {
     featureUsageStats.clear();
     _initializeFeatureStats();
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('Statistics reset');
-    }
+    ZenLogger.logDebug('Statistics reset');
   }
 
   // Search functionality
@@ -233,16 +223,12 @@ class ShowcaseController extends ZenController {
   void showAppInfo() {
     _trackInteraction();
     // This would typically show an info dialog
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('App info requested');
-    }
+    ZenLogger.logDebug('App info requested');
   }
 
   @override
   void onClose() {
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('ShowcaseController disposed');
-    }
+    ZenLogger.logDebug('ShowcaseController disposed');
     super.onClose();
   }
 }

@@ -142,10 +142,8 @@ class _ZenRouteState extends State<ZenRoute> {
 
       // Only clean up stack-tracked scopes, not explicit parent scopes
       if (!widget.useParentScope) {
-        if (ZenConfig.enableDebugLogs) {
-          ZenLogger.logDebug(
-              '🧹 Route with useParentScope=false detected. Cleaning up stack-tracked scopes except current: $_scopeName');
-        }
+        ZenLogger.logDebug(
+            '🧹 Route with useParentScope=false detected. Cleaning up stack-tracked scopes except current: $_scopeName');
         // Only clean up scopes that are actually in the scope stack
         // This preserves manually created scopes (like explicitParent in tests)
         ZenScopeManager.cleanupStackTrackedScopesExcept(_scopeName!);
@@ -170,14 +168,11 @@ class _ZenRouteState extends State<ZenRoute> {
         useRootAsDefault: true,
       );
 
-      if (ZenConfig.enableDebugLogs) {
-        ZenLogger.logDebug(
-            '🔗 Created/retrieved scope: ${_scope!.name} with autoDispose: $_effectiveAutoDispose');
-        ZenLogger.logDebug(
-            '🔗 Scope parent: ${_scope!.parent?.name ?? 'none'}');
-        ZenLogger.logDebug(
-            '📚 Current scope stack: ${ZenScopeStackTracker.getCurrentStack().join(' -> ')}');
-      }
+      ZenLogger.logDebug(
+          '🔗 Created/retrieved scope: ${_scope!.name} with autoDispose: $_effectiveAutoDispose');
+      ZenLogger.logDebug('🔗 Scope parent: ${_scope!.parent?.name ?? 'none'}');
+      ZenLogger.logDebug(
+          '📚 Current scope stack: ${ZenScopeStackTracker.getCurrentStack().join(' -> ')}');
 
       // Step 6: Create and initialize the module
       _module = widget.moduleBuilder();
@@ -187,9 +182,7 @@ class _ZenRouteState extends State<ZenRoute> {
       // Update Zen.currentScope to match the scope stack
       if (_scope != null) {
         Zen.setCurrentScope(_scope!);
-        if (ZenConfig.enableDebugLogs) {
-          ZenLogger.logDebug('🔧 Updated Zen.currentScope to: ${_scope!.name}');
-        }
+        ZenLogger.logDebug('🔧 Updated Zen.currentScope to: ${_scope!.name}');
       }
 
       // Step 7: Update UI to show success
@@ -222,41 +215,33 @@ class _ZenRouteState extends State<ZenRoute> {
     if (widget.parentScope != null) {
       // Explicit parent scope provided
       _parentScope = widget.parentScope;
-      if (ZenConfig.enableDebugLogs) {
-        ZenLogger.logDebug(
-            '🔗 Using explicit parent scope: ${_parentScope!.name}');
-      }
+      ZenLogger.logDebug(
+          '🔗 Using explicit parent scope: ${_parentScope!.name}');
     } else if (widget.useParentScope) {
       // Step 1: Try stack-based parent resolution (most reliable)
       _parentScope = _findStackBasedParentScope();
 
       if (_parentScope != null) {
-        if (ZenConfig.enableDebugLogs) {
-          ZenLogger.logDebug(
-              '🔗 Found stack-based parent scope: ${_parentScope!.name}');
-        }
+        ZenLogger.logDebug(
+            '🔗 Found stack-based parent scope: ${_parentScope!.name}');
       } else {
         // Step 2: Try widget tree (for nested widgets)
         _parentScope = _ZenScopeProvider.maybeOf(context);
 
         if (_parentScope != null) {
-          if (ZenConfig.enableDebugLogs) {
-            ZenLogger.logDebug(
-                '🔗 Found parent scope from widget tree: ${_parentScope!.name}');
-          }
+          ZenLogger.logDebug(
+              '🔗 Found parent scope from widget tree: ${_parentScope!.name}');
         } else {
           // Step 3: Fallback to most recent persistent scope
           _parentScope = _findMostRecentPersistentScope();
           if (_parentScope != null) {
-            if (ZenConfig.enableDebugLogs) {
-              ZenLogger.logDebug(
-                  '🔗 Found fallback parent scope: ${_parentScope!.name}');
-            }
+            ZenLogger.logDebug(
+                '🔗 Found fallback parent scope: ${_parentScope!.name}');
           }
         }
       }
 
-      if (_parentScope == null && ZenConfig.enableDebugLogs) {
+      if (_parentScope == null) {
         ZenLogger.logWarning(
             '⚠️ useParentScope=true but no suitable parent scope found');
       }
@@ -334,10 +319,8 @@ class _ZenRouteState extends State<ZenRoute> {
       _effectiveAutoDispose = (_parentScope == null);
     }
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug(
-          '🔧 Auto-dispose decision: $_effectiveAutoDispose (parent: ${_parentScope?.name ?? 'none'})');
-    }
+    ZenLogger.logDebug(
+        '🔧 Auto-dispose decision: $_effectiveAutoDispose (parent: ${_parentScope?.name ?? 'none'})');
   }
 
   @override
@@ -352,17 +335,13 @@ class _ZenRouteState extends State<ZenRoute> {
         final newCurrentScope = ZenScopeManager.getScope(newCurrentScopeName);
         if (newCurrentScope != null) {
           Zen.setCurrentScope(newCurrentScope);
-          if (ZenConfig.enableDebugLogs) {
-            ZenLogger.logDebug(
-                '🔙 Updated Zen.currentScope after pop to: ${newCurrentScope.name}');
-          }
+          ZenLogger.logDebug(
+              '🔙 Updated Zen.currentScope after pop to: ${newCurrentScope.name}');
         }
       } else {
         // Stack is empty, reset to root scope
         Zen.resetCurrentScope();
-        if (ZenConfig.enableDebugLogs) {
-          ZenLogger.logDebug('🔙 Reset Zen.currentScope to root (stack empty)');
-        }
+        ZenLogger.logDebug('🔙 Reset Zen.currentScope to root (stack empty)');
       }
     }
 
@@ -402,10 +381,8 @@ class _ZenRouteState extends State<ZenRoute> {
     // Ensure Zen.currentScope stays synchronized on every build
     if (_scope != null && Zen.currentScope != _scope) {
       Zen.setCurrentScope(_scope!);
-      if (ZenConfig.enableDebugLogs) {
-        ZenLogger.logDebug(
-            '🔄 Re-synchronized Zen.currentScope to: ${_scope!.name}');
-      }
+      ZenLogger.logDebug(
+          '🔄 Re-synchronized Zen.currentScope to: ${_scope!.name}');
     }
 
     // Success state - provide scope to child widget
@@ -440,7 +417,7 @@ class _ZenRouteState extends State<ZenRoute> {
               ),
             ),
           // Show scope stack for debugging
-          if (ZenConfig.enableDebugLogs &&
+          if (ZenConfig.logLevel.index >= ZenLogLevel.debug.index &&
               ZenScopeStackTracker.getCurrentStack().isNotEmpty)
             Text(
               'Stack: ${ZenScopeStackTracker.getCurrentStack().join(' -> ')}',

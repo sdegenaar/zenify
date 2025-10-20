@@ -19,9 +19,7 @@ class EffectDemoController extends ZenController {
     // Now it's safe to access the service - module is fully initialized
     _demoService = Zen.find<DemoService>();
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('EffectDemoController initialized');
-    }
+    ZenLogger.logDebug('EffectDemoController initialized');
   }
 
   // Updated methods to use the getter
@@ -92,9 +90,7 @@ class EffectDemoController extends ZenController {
 
   @override
   void onClose() {
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('EffectDemoController disposed');
-    }
+    ZenLogger.logDebug('EffectDemoController disposed');
     super.onClose();
   }
 }

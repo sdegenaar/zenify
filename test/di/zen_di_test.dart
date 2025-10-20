@@ -58,7 +58,7 @@ void main() {
     setUp(() {
       // Initialize Zen for each test
       Zen.init();
-      ZenConfig.enableDebugLogs = false;
+      ZenConfig.applyEnvironment(ZenEnvironment.test);
     });
 
     tearDown(() {

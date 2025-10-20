@@ -36,9 +36,7 @@ class ZenBuilderDemoController extends ZenController {
     // Initialize with some items
     _items.addAll(['Initial Item 1', 'Initial Item 2']);
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('ZenBuilderDemoController initialized');
-    }
+    ZenLogger.logDebug('ZenBuilderDemoController initialized');
   }
 
   // Counter methods
@@ -46,27 +44,21 @@ class ZenBuilderDemoController extends ZenController {
     _counter++;
     update(); // Manual UI update trigger
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('Counter incremented to: $_counter');
-    }
+    ZenLogger.logDebug('Counter incremented to: $_counter');
   }
 
   void decrement() {
     _counter--;
     update(); // Manual UI update trigger
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('Counter decremented to: $_counter');
-    }
+    ZenLogger.logDebug('Counter decremented to: $_counter');
   }
 
   void reset() {
     _counter = 0;
     update(); // Manual UI update trigger
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('Counter reset to: $_counter');
-    }
+    ZenLogger.logDebug('Counter reset to: $_counter');
   }
 
   // Message methods
@@ -76,9 +68,7 @@ class ZenBuilderDemoController extends ZenController {
     _message = _messages[nextIndex];
     update(); // Manual UI update trigger
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('Message updated to: $_message');
-    }
+    ZenLogger.logDebug('Message updated to: $_message');
   }
 
   void setMessage(String newMessage) {
@@ -93,9 +83,7 @@ class ZenBuilderDemoController extends ZenController {
     _items.add(newItem);
     update(); // Manual UI update trigger
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('Item added: $newItem, total items: ${_items.length}');
-    }
+    ZenLogger.logDebug('Item added: $newItem, total items: ${_items.length}');
   }
 
   void removeItem(String item) {
@@ -103,10 +91,8 @@ class ZenBuilderDemoController extends ZenController {
     if (removed) {
       update(); // Manual UI update trigger
 
-      if (ZenConfig.enableDebugLogs) {
-        ZenLogger.logDebug(
-            'Item removed: $item, remaining items: ${_items.length}');
-      }
+      ZenLogger.logDebug(
+          'Item removed: $item, remaining items: ${_items.length}');
     }
   }
 
@@ -114,9 +100,7 @@ class ZenBuilderDemoController extends ZenController {
     _items.clear();
     update(); // Manual UI update trigger
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('All items cleared');
-    }
+    ZenLogger.logDebug('All items cleared');
   }
 
   // Feature toggle methods
@@ -124,18 +108,14 @@ class ZenBuilderDemoController extends ZenController {
     _featureA = !_featureA;
     update(); // Manual UI update trigger
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('Feature A toggled to: $_featureA');
-    }
+    ZenLogger.logDebug('Feature A toggled to: $_featureA');
   }
 
   void toggleFeatureB() {
     _featureB = !_featureB;
     update(); // Manual UI update trigger
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('Feature B toggled to: $_featureB');
-    }
+    ZenLogger.logDebug('Feature B toggled to: $_featureB');
   }
 
   void setBothFeatures(bool value) {
@@ -143,9 +123,7 @@ class ZenBuilderDemoController extends ZenController {
     _featureB = value;
     update(); // Manual UI update trigger
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('Both features set to: $value');
-    }
+    ZenLogger.logDebug('Both features set to: $value');
   }
 
   // Demonstration of selective updates
@@ -153,9 +131,7 @@ class ZenBuilderDemoController extends ZenController {
     _counter++;
     update(['counter']); // Only update widgets listening to 'counter' ID
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('Counter updated selectively to: $_counter');
-    }
+    ZenLogger.logDebug('Counter updated selectively to: $_counter');
   }
 
   void updateOnlyMessage() {
@@ -174,9 +150,7 @@ class ZenBuilderDemoController extends ZenController {
     // Single update call for multiple state changes
     update();
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('Batch update: counter=$_counter, message=$_message');
-    }
+    ZenLogger.logDebug('Batch update: counter=$_counter, message=$_message');
   }
 
   // Reset all state
@@ -189,16 +163,12 @@ class ZenBuilderDemoController extends ZenController {
 
     update(); // Single update for all changes
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('All state reset');
-    }
+    ZenLogger.logDebug('All state reset');
   }
 
   @override
   void onClose() {
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('ZenBuilderDemoController disposed');
-    }
+    ZenLogger.logDebug('ZenBuilderDemoController disposed');
     super.onClose();
   }
 }

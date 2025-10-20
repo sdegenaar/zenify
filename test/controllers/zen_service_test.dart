@@ -28,7 +28,8 @@ class TestController extends ZenController {
 void main() {
   group('ZenService', () {
     setUp(() {
-      ZenConfig.enableDebugLogs = false; // Reduce test noise
+      ZenConfig.logLevel =
+          ZenLogLevel.error; // Only show errors  Reduce test noise
     });
 
     tearDown(() {

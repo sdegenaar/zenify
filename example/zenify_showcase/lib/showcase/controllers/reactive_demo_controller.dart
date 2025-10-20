@@ -30,15 +30,11 @@ class ReactiveDemoController extends ZenController {
 
     // Set up some reactive workers for demonstration
     ever(counter, (value) {
-      if (ZenConfig.enableDebugLogs) {
-        ZenLogger.logDebug('Counter changed to: $value');
-      }
+      ZenLogger.logDebug('Counter changed to: $value');
     });
 
     ever(items, (list) {
-      if (ZenConfig.enableDebugLogs) {
-        ZenLogger.logDebug('Items list changed, now has ${list.length} items');
-      }
+      ZenLogger.logDebug('Items list changed, now has ${list.length} items');
     });
   }
 
@@ -70,9 +66,7 @@ class ReactiveDemoController extends ZenController {
 
   @override
   void onClose() {
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('ReactiveDemoController disposed');
-    }
+    ZenLogger.logDebug('ReactiveDemoController disposed');
     super.onClose();
   }
 }

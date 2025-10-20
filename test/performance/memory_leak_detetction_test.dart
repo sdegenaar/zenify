@@ -382,21 +382,23 @@ void main() {
     TestWidgetsFlutterBinding.ensureInitialized();
 
     // Enable ZenLogger for tests when needed
-    ZenConfig.enableDebugLogs =
-        const bool.fromEnvironment('TEST_DEBUG', defaultValue: false);
+    ZenConfig.logLevel =
+        const bool.fromEnvironment('TEST_DEBUG', defaultValue: false)
+            ? ZenLogLevel.debug
+            : ZenLogLevel.none;
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logInfo('🔍 STARTING ZENIFY MEMORY LEAK DETECTION TESTS');
-      ZenLogger.logInfo(
-          '════════════════════════════════════════════════════════════');
-    }
+    ZenLogger.logInfo('🔍 STARTING ZENIFY MEMORY LEAK DETECTION TESTS');
+    ZenLogger.logInfo(
+        '════════════════════════════════════════════════════════════');
   });
 
   setUp(() {
     Zen.init();
     // Keep debug logs setting from environment
-    ZenConfig.enableDebugLogs =
-        const bool.fromEnvironment('TEST_DEBUG', defaultValue: false);
+    ZenConfig.logLevel =
+        const bool.fromEnvironment('TEST_DEBUG', defaultValue: false)
+            ? ZenLogLevel.debug
+            : ZenLogLevel.none;
     MemoryLeakDetector.enable();
     ZenResourceTracker.reset();
   });
@@ -971,14 +973,12 @@ void main() {
   });
 
   tearDownAll(() {
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logInfo('');
-      ZenLogger.logInfo('🎉 MEMORY LEAK DETECTION TESTS COMPLETED');
-      ZenLogger.logInfo(
-          '════════════════════════════════════════════════════════════');
-      final finalReport = ZenResourceTracker.getReport();
-      ZenLogger.logInfo('Final resource count: $finalReport');
-      ZenLogger.logInfo('');
-    }
+    ZenLogger.logInfo('');
+    ZenLogger.logInfo('🎉 MEMORY LEAK DETECTION TESTS COMPLETED');
+    ZenLogger.logInfo(
+        '════════════════════════════════════════════════════════════');
+    final finalReport = ZenResourceTracker.getReport();
+    ZenLogger.logInfo('Final resource count: $finalReport');
+    ZenLogger.logInfo('');
   });
 }

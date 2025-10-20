@@ -19,18 +19,18 @@ void main() {
   group('ZenLogger', () {
     // Capture log output
     late List<String> capturedLogs;
-    late bool originalDebugLogsEnabled;
+    late ZenLogLevel originalLogLevel;
 
     setUp(() {
       // Store original state
-      originalDebugLogsEnabled = ZenConfig.enableDebugLogs;
+      originalLogLevel = ZenConfig.logLevel;
 
       // Set the custom log method
       ZenLogger.testMode = true;
       ZenLogger.logFunction = LogCapture.captureLog;
 
-      // Enable debug logs for testing
-      ZenConfig.enableDebugLogs = true;
+      // Enable all logs for testing using new log level system
+      ZenConfig.logLevel = ZenLogLevel.trace;
 
       // Setup log capture
       capturedLogs = [];
@@ -52,22 +52,15 @@ void main() {
     });
 
     tearDown(() {
-      // Reset handlers to null
-      ZenLogger.init(
-        logHandler: null,
-        errorHandler: null,
-      );
+      // Reset handlers
+      ZenLogger.resetHandlers();
 
-      // Reset test mode
-      ZenLogger.testMode = false;
-      ZenLogger.logFunction = null;
-
-      // Restore debug logs setting
-      ZenConfig.enableDebugLogs = originalDebugLogsEnabled;
+      // Restore log level
+      ZenConfig.logLevel = originalLogLevel;
     });
 
     test('should log debug messages when debug logs are enabled', () {
-      ZenConfig.enableDebugLogs = true;
+      ZenConfig.logLevel = ZenLogLevel.trace;
 
       ZenLogger.logDebug('Debug message');
       ZenLogger.logInfo('Info message');
@@ -75,28 +68,29 @@ void main() {
       ZenLogger.logError('Error message');
 
       expect(capturedLogs.length, 4);
-      expect(capturedLogs[0], contains('debug'));
+      expect(capturedLogs[0], contains('LogLevel.debug'));
       expect(capturedLogs[0], contains('Debug message'));
-      expect(capturedLogs[1], contains('info'));
+      expect(capturedLogs[1], contains('LogLevel.info'));
       expect(capturedLogs[1], contains('Info message'));
-      expect(capturedLogs[2], contains('warning'));
+      expect(capturedLogs[2], contains('LogLevel.warning'));
       expect(capturedLogs[2], contains('Warning message'));
       expect(capturedLogs[3], contains('error'));
       expect(capturedLogs[3], contains('Error message'));
     });
 
-    test('should not log debug messages when debug logs are disabled', () {
-      ZenConfig.enableDebugLogs = false;
+    test('should not log debug messages when log level is too low', () {
+      ZenConfig.logLevel = ZenLogLevel.info;
 
       ZenLogger.logDebug('Debug message');
       ZenLogger.logInfo('Info message');
       ZenLogger.logWarning('Warning message');
       ZenLogger.logError('Error message');
 
+      // Debug should not be logged at info level
       expect(capturedLogs.length, 3);
-      expect(capturedLogs[0], contains('info'));
+      expect(capturedLogs[0], contains('LogLevel.info'));
       expect(capturedLogs[0], contains('Info message'));
-      expect(capturedLogs[1], contains('warning'));
+      expect(capturedLogs[1], contains('LogLevel.warning'));
       expect(capturedLogs[1], contains('Warning message'));
       expect(capturedLogs[2], contains('error'));
       expect(capturedLogs[2], contains('Error message'));
@@ -116,15 +110,19 @@ void main() {
 
     test('should fallback to internal logging when no handler is set', () {
       // Remove custom handlers
-      ZenLogger.init(logHandler: null, errorHandler: null);
+      ZenLogger.resetHandlers();
       LogCapture.clear();
+
+      // Re-enable test mode
+      ZenLogger.testMode = true;
+      ZenLogger.logFunction = LogCapture.captureLog;
 
       // Test logging with fallback to internal log function
       ZenLogger.logInfo('Test message');
 
       // Verify log was created with fallback mechanism
       expect(LogCapture.logs.length, 1);
-      expect(LogCapture.logs[0], contains('ZEN INFO: Test message'));
+      expect(LogCapture.logs[0], contains('[Zenify] INFO: Test message'));
     });
 
     test('should handle null values gracefully', () {
@@ -178,12 +176,14 @@ void main() {
       ZenLogger.logWarning('Warning with custom handler');
 
       expect(capturedLogs.length, 2);
-      expect(capturedLogs[0],
-          contains('Custom log handler: [info] Info with custom handler'));
+      expect(
+          capturedLogs[0],
+          contains(
+              'Custom log handler: [LogLevel.info] Info with custom handler'));
       expect(
           capturedLogs[1],
           contains(
-              'Custom log handler: [warning] Warning with custom handler'));
+              'Custom log handler: [LogLevel.warning] Warning with custom handler'));
     });
 
     test(
@@ -206,12 +206,75 @@ void main() {
 
       // Should use log handler for all parts of the error
       expect(capturedLogs.length, 3);
-      expect(capturedLogs[0],
-          contains('Custom log handler: [error] Error with log handler'));
-      expect(capturedLogs[1],
-          contains('Custom log handler: [error] Error: Exception: Test error'));
       expect(
-          capturedLogs[2], contains('Custom log handler: [error] StackTrace:'));
+          capturedLogs[0],
+          contains(
+              'Custom log handler: [LogLevel.error] Error with log handler'));
+      expect(
+          capturedLogs[1],
+          contains(
+              'Custom log handler: [LogLevel.error] Error: Exception: Test error'));
+      expect(capturedLogs[2],
+          contains('Custom log handler: [LogLevel.error] StackTrace:'));
+    });
+
+    test('should respect log levels correctly', () {
+      capturedLogs.clear();
+
+      // Set to warning level
+      ZenConfig.logLevel = ZenLogLevel.warning;
+
+      ZenLogger.logDebug('Debug - should not appear');
+      ZenLogger.logInfo('Info - should not appear');
+      ZenLogger.logWarning('Warning - should appear');
+      ZenLogger.logError('Error - should appear');
+
+      // Only warning and error should be logged
+      expect(capturedLogs.length, 2);
+      expect(capturedLogs[0], contains('Warning'));
+      expect(capturedLogs[1], contains('Error'));
+    });
+
+    test('should handle trace level correctly', () {
+      capturedLogs.clear();
+
+      ZenConfig.logLevel = ZenLogLevel.trace;
+
+      ZenLogger.logTrace('Trace message');
+      ZenLogger.logDebug('Debug message');
+
+      expect(capturedLogs.length, 2);
+      expect(capturedLogs[0], contains('Trace message'));
+      expect(capturedLogs[1], contains('Debug message'));
+    });
+
+    test('should not log anything when level is none', () {
+      capturedLogs.clear();
+
+      ZenConfig.logLevel = ZenLogLevel.none;
+
+      ZenLogger.logError('Error - should not appear');
+      ZenLogger.logWarning('Warning - should not appear');
+      ZenLogger.logInfo('Info - should not appear');
+
+      expect(capturedLogs.length, 0);
+    });
+
+    test('should handle resetHandlers correctly', () {
+      // Set handlers
+      ZenLogger.init(
+        logHandler: (msg, level) {},
+        errorHandler: (msg, [err, stack]) {},
+      );
+      ZenLogger.testMode = true;
+      ZenLogger.logFunction = LogCapture.captureLog;
+
+      // Reset
+      ZenLogger.resetHandlers();
+
+      // Verify all cleared
+      expect(ZenLogger.testMode, false);
+      expect(ZenLogger.logFunction, isNull);
     });
   });
 }

@@ -115,7 +115,7 @@ void main() {
 
       // Initialize Zen
       Zen.init();
-      ZenConfig.enableDebugLogs = true; // Enable for debugging
+      ZenConfig.applyEnvironment(ZenEnvironment.development);
 
       controller = TestController();
     });

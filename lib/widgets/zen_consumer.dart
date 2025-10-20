@@ -43,9 +43,7 @@ class _ZenConsumerState<T> extends State<ZenConsumer<T>> {
       dependency = Zen.findOrNull<T>(tag: widget.tag);
     } catch (e) {
       // Log error but don't throw - allow graceful degradation
-      if (ZenConfig.enableDebugLogs) {
-        ZenLogger.logError('ZenConsumer failed to find dependency $T: $e');
-      }
+      ZenLogger.logError('ZenConsumer failed to find dependency $T: $e');
       dependency = null;
     }
     _hasSearched = true;

@@ -5,8 +5,7 @@ import 'showcase/pages/showcase_home_page.dart';
 
 void main() {
   // Configure Zenify for showcase
-  ZenConfig.enableDebugLogs = true;
-  ZenConfig.enablePerformanceMetrics = true;
+  ZenConfig.applyEnvironment(ZenEnvironment.debug);
 
   // Register all modules globally at startup
   Zen.registerModules([

@@ -5,7 +5,6 @@ import '../controllers/zen_controller.dart';
 import '../controllers/zen_service.dart';
 import '../di/zen_lifecycle.dart';
 import 'zen_logger.dart';
-import 'zen_config.dart';
 
 /// Dependency scoping mechanism for hierarchical access to dependencies
 /// Clean core implementation - debugging utilities moved to debug package
@@ -55,9 +54,7 @@ class ZenScope {
     // Add to parent's child scopes
     parent?._childScopes.add(this);
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('Created scope: $name (id: $id)');
-    }
+    ZenLogger.logDebug('Created scope: $name (id: $id)');
   }
 
   /// Check if scope is disposed
@@ -92,9 +89,7 @@ class ZenScope {
       // Check if we're replacing a dependency
       final oldInstance = _taggedBindings[tag];
       if (oldInstance != null) {
-        if (ZenConfig.enableDebugLogs) {
-          ZenLogger.logWarning('Replacing existing dependency with tag: $tag');
-        }
+        ZenLogger.logWarning('Replacing existing dependency with tag: $tag');
         // Dispose old controller if it's a ZenController
         if (oldInstance is ZenController && !oldInstance.isDisposed) {
           oldInstance.dispose();
@@ -114,9 +109,7 @@ class ZenScope {
       // Check if we're replacing a dependency
       final oldInstance = _typeBindings[T];
       if (oldInstance != null) {
-        if (ZenConfig.enableDebugLogs) {
-          ZenLogger.logWarning('Replacing existing dependency of type: $T');
-        }
+        ZenLogger.logWarning('Replacing existing dependency of type: $T');
         // Dispose old controller if it's a ZenController
         if (oldInstance is ZenController && !oldInstance.isDisposed) {
           oldInstance.dispose();
@@ -131,10 +124,8 @@ class ZenScope {
       _useCount[key] = permanent ? -1 : 0;
     }
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug(
-          'Registered $T${tag != null ? ' with tag $tag' : ''} (${permanent ? 'permanent' : 'temporary'})');
-    }
+    ZenLogger.logDebug(
+        'Registered $T${tag != null ? ' with tag $tag' : ''} (${permanent ? 'permanent' : 'temporary'})');
 
     return instance;
   }
@@ -155,10 +146,8 @@ class ZenScope {
     // Set the use count based on permanence
     _useCount[trackingKey] = isPermanent ? -1 : 0;
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug(
-          'Registered lazy ${isPermanent ? 'permanent' : 'temporary'} singleton for $T${tag != null ? ' with tag $tag' : ''}');
-    }
+    ZenLogger.logDebug(
+        'Registered lazy ${isPermanent ? 'permanent' : 'temporary'} singleton for $T${tag != null ? ' with tag $tag' : ''}');
   }
 
   /// Register a factory that creates new instances each time
@@ -176,10 +165,8 @@ class ZenScope {
     // Mark as a factory in the use count tracking (-2 = factory)
     _useCount[trackingKey] = -2;
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug(
-          'Registered factory for $T${tag != null ? ' with tag $tag' : ''}');
-    }
+    ZenLogger.logDebug(
+        'Registered factory for $T${tag != null ? ' with tag $tag' : ''}');
   }
 
   //
@@ -370,10 +357,8 @@ class ZenScope {
       instanceToDelete.dispose();
     }
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug(
-          'Deleted dependency $T${tag != null ? ' with tag $tag' : ''}');
-    }
+    ZenLogger.logDebug(
+        'Deleted dependency $T${tag != null ? ' with tag $tag' : ''}');
 
     return true;
   }
@@ -485,9 +470,7 @@ class ZenScope {
 
     _disposers.add(disposer);
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('Registered disposer in scope: $name');
-    }
+    ZenLogger.logDebug('Registered disposer in scope: $name');
   }
 
   /// Dispose this scope and all its dependencies
@@ -497,18 +480,14 @@ class ZenScope {
       return;
     }
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('Disposing scope: $name');
-    }
+    ZenLogger.logDebug('Disposing scope: $name');
 
     // Run all registered disposers
     for (final disposer in _disposers) {
       try {
         disposer();
       } catch (e) {
-        if (ZenConfig.enableDebugLogs) {
-          ZenLogger.logWarning('Error executing disposer in scope $name: $e');
-        }
+        ZenLogger.logWarning('Error executing disposer in scope $name: $e');
       }
     }
 
@@ -583,9 +562,7 @@ class ZenScope {
           try {
             instance.dispose();
           } catch (e) {
-            if (ZenConfig.enableDebugLogs) {
-              ZenLogger.logError('Error disposing service during clearAll: $e');
-            }
+            ZenLogger.logError('Error disposing service during clearAll: $e');
           }
         }
       }
@@ -617,18 +594,14 @@ class ZenScope {
           try {
             instance.dispose();
           } catch (e) {
-            if (ZenConfig.enableDebugLogs) {
-              ZenLogger.logError(
-                  'Error disposing controller during clearAll: $e');
-            }
+            ZenLogger.logError(
+                'Error disposing controller during clearAll: $e');
           }
         } else if (instance is ZenService && !instance.isDisposed) {
           try {
             instance.dispose();
           } catch (e) {
-            if (ZenConfig.enableDebugLogs) {
-              ZenLogger.logError('Error disposing service during clearAll: $e');
-            }
+            ZenLogger.logError('Error disposing service during clearAll: $e');
           }
         }
       }
@@ -660,9 +633,7 @@ class ZenScope {
       }
     }
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('Cleared all dependencies from scope: $name');
-    }
+    ZenLogger.logDebug('Cleared all dependencies from scope: $name');
   }
 
   //
@@ -697,9 +668,7 @@ class ZenScope {
     // Don't clear _disposers as they might be needed for cleanup
     // Don't clear _childScopes as they are still valid
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('Force reset scope: ${name ?? id}');
-    }
+    ZenLogger.logDebug('Force reset scope: ${name ?? id}');
   }
 
   /// Get a tag for a specific instance if it exists
@@ -777,17 +746,13 @@ class ZenScope {
   /// Auto-initialize ZenController instances
   void _initializeController(ZenController controller) {
     if (!controller.isInitialized) {
-      if (ZenConfig.enableDebugLogs) {
-        ZenLogger.logDebug(
-            'Auto-initializing ZenController: ${controller.runtimeType}');
-      }
+      ZenLogger.logDebug(
+          'Auto-initializing ZenController: ${controller.runtimeType}');
       controller.onInit();
     }
     if (!controller.isReady) {
-      if (ZenConfig.enableDebugLogs) {
-        ZenLogger.logDebug(
-            'Auto-readying ZenController: ${controller.runtimeType}');
-      }
+      ZenLogger.logDebug(
+          'Auto-readying ZenController: ${controller.runtimeType}');
       controller.onReady();
     }
   }
@@ -843,10 +808,8 @@ class ZenScope {
       _factories.remove(key);
     }
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug(
-          'Created ${isSingleton ? 'lazy' : 'factory'} instance for $T${tag != null ? ' with tag $tag' : ''}');
-    }
+    ZenLogger.logDebug(
+        'Created ${isSingleton ? 'lazy' : 'factory'} instance for $T${tag != null ? ' with tag $tag' : ''}');
 
     return instance;
   }

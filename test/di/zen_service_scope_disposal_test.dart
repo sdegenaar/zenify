@@ -38,7 +38,7 @@ void main() {
     setUp(() {
       TestWidgetsFlutterBinding.ensureInitialized();
       Zen.init();
-      ZenConfig.enableDebugLogs = false;
+      ZenConfig.applyEnvironment(ZenEnvironment.test);
     });
 
     tearDown(() {

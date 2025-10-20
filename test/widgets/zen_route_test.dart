@@ -449,7 +449,8 @@ void main() {
   setUp(() {
     Zen.reset();
     Zen.init();
-    ZenConfig.enableDebugLogs = false;
+    ZenConfig.applyEnvironment(ZenEnvironment.test); // Apply test settings
+    ZenConfig.logLevel = ZenLogLevel.none; // Override to disable all logs
     ZenScopeManager.disposeAll();
     ZenScopeStackTracker.clear();
     CountingController.resetGlobalCount();
@@ -873,7 +874,7 @@ void main() {
     testWidgets(
         'should cleanup scopes via stack tracking when popping back to useParentScope=false route',
         (tester) async {
-      ZenConfig.enableDebugLogs = true; // Enable to see cleanup logs
+      ZenConfig.logLevel = ZenLogLevel.debug; // Enable to see cleanup logs
 
       // Simulate the exact scenario from your logs
       final disposedScopes = <String>[];

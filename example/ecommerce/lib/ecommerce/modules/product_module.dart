@@ -29,20 +29,16 @@ class ProductModule extends ZenModule {
 
   @override
   Future<void> onInit(ZenScope scope) async {
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logInfo('ProductModule initialized');
+    ZenLogger.logInfo('ProductModule initialized');
 
-      // Verify controllers are accessible
-      final homeController = scope.find<HomeController>();
-      ZenLogger.logDebug(
-          'HomeController accessible in scope: ${homeController != null}');
-    }
+    // Verify controllers are accessible
+    final homeController = scope.find<HomeController>();
+    ZenLogger.logDebug(
+        'HomeController accessible in scope: ${homeController != null}');
   }
 
   @override
   Future<void> onDispose(ZenScope scope) async {
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logInfo('ProductModule disposed');
-    }
+    ZenLogger.logInfo('ProductModule disposed');
   }
 }

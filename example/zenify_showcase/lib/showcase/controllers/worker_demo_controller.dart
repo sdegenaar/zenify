@@ -42,18 +42,14 @@ class WorkerDemoController extends ZenController {
     // Initialize with some items
     items.addAll(['Initial Item 1', 'Initial Item 2']);
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('WorkerDemoController initialized with workers');
-    }
+    ZenLogger.logDebug('WorkerDemoController initialized with workers');
   }
 
   void _setupWorkers() {
     // Ever worker - fires on every change
     _everHandle = ever(counter, (value) {
       everCount.value++;
-      if (ZenConfig.enableDebugLogs) {
-        ZenLogger.logDebug('Ever worker fired: counter = $value');
-      }
+      ZenLogger.logDebug('Ever worker fired: counter = $value');
     });
 
     // Debounce worker - waits for inactivity
@@ -61,9 +57,7 @@ class WorkerDemoController extends ZenController {
       counter,
       (value) {
         debounceCount.value++;
-        if (ZenConfig.enableDebugLogs) {
-          ZenLogger.logDebug('Debounce worker fired: counter = $value');
-        }
+        ZenLogger.logDebug('Debounce worker fired: counter = $value');
       },
       const Duration(milliseconds: 500),
     );
@@ -73,9 +67,7 @@ class WorkerDemoController extends ZenController {
       counter,
       (value) {
         throttleCount.value++;
-        if (ZenConfig.enableDebugLogs) {
-          ZenLogger.logDebug('Throttle worker fired: counter = $value');
-        }
+        ZenLogger.logDebug('Throttle worker fired: counter = $value');
       },
       const Duration(milliseconds: 1000),
     );
@@ -83,10 +75,8 @@ class WorkerDemoController extends ZenController {
     // Once worker - fires only once
     _onceHandle = once(counter, (value) {
       onceCount.value++;
-      if (ZenConfig.enableDebugLogs) {
-        ZenLogger.logDebug(
-            'Once worker fired: counter = $value (will not fire again)');
-      }
+      ZenLogger.logDebug(
+          'Once worker fired: counter = $value (will not fire again)');
     });
 
     // Condition worker - fires only when condition is met
@@ -95,10 +85,8 @@ class WorkerDemoController extends ZenController {
       (value) => value.isEven, // Only fire when counter is even
       (value) {
         conditionCount.value++;
-        if (ZenConfig.enableDebugLogs) {
-          ZenLogger.logDebug(
-              'Condition worker fired: counter = $value (even number)');
-        }
+        ZenLogger.logDebug(
+            'Condition worker fired: counter = $value (even number)');
       },
     );
 
@@ -107,9 +95,7 @@ class WorkerDemoController extends ZenController {
       counter,
       (value) {
         intervalCount.value++;
-        if (ZenConfig.enableDebugLogs) {
-          ZenLogger.logDebug('Interval worker fired: counter = $value');
-        }
+        ZenLogger.logDebug('Interval worker fired: counter = $value');
       },
       const Duration(milliseconds: 2000),
     );
@@ -117,17 +103,13 @@ class WorkerDemoController extends ZenController {
     // String worker
     _stringHandle = ever(message, (value) {
       stringWorkerCount.value++;
-      if (ZenConfig.enableDebugLogs) {
-        ZenLogger.logDebug('String worker fired: message = "$value"');
-      }
+      ZenLogger.logDebug('String worker fired: message = "$value"');
     });
 
     // List worker
     _listHandle = ever(items, (list) {
       listWorkerCount.value++;
-      if (ZenConfig.enableDebugLogs) {
-        ZenLogger.logDebug('List worker fired: ${list.length} items');
-      }
+      ZenLogger.logDebug('List worker fired: ${list.length} items');
     });
   }
 
@@ -223,9 +205,7 @@ class WorkerDemoController extends ZenController {
     _stringHandle.dispose();
     _listHandle.dispose();
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('WorkerDemoController disposed with all workers');
-    }
+    ZenLogger.logDebug('WorkerDemoController disposed with all workers');
     super.onClose();
   }
 }

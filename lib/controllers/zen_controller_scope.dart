@@ -5,7 +5,6 @@ import '../di/zen_di.dart';
 import '../widgets/zen_scope_widget.dart';
 import 'zen_controller.dart';
 import '../core/zen_logger.dart';
-import '../core/zen_config.dart';
 
 /// A widget that creates and manages a controller's lifecycle.
 ///
@@ -91,14 +90,10 @@ class _ZenControllerScopeState<T extends ZenController>
       try {
         scopeToUse.delete<T>(tag: widget.tag, force: true);
 
-        if (ZenConfig.enableDebugLogs) {
-          ZenLogger.logDebug(
-              'Disposed controller $T${widget.tag != null ? ' (${widget.tag})' : ''}');
-        }
+        ZenLogger.logDebug(
+            'Disposed controller $T${widget.tag != null ? ' (${widget.tag})' : ''}');
       } catch (e) {
-        if (ZenConfig.enableDebugLogs) {
-          ZenLogger.logError('Error disposing controller $T: $e');
-        }
+        ZenLogger.logError('Error disposing controller $T: $e');
       }
     }
   }
@@ -129,10 +124,8 @@ class _ZenControllerScopeState<T extends ZenController>
     if (existingController != null) {
       controller = existingController;
 
-      if (ZenConfig.enableDebugLogs) {
-        ZenLogger.logDebug(
-            'Using existing controller $T${widget.tag != null ? ' (${widget.tag})' : ''} from scope: ${_effectiveScope.name ?? _effectiveScope.id}');
-      }
+      ZenLogger.logDebug(
+          'Using existing controller $T${widget.tag != null ? ' (${widget.tag})' : ''} from scope: ${_effectiveScope.name ?? _effectiveScope.id}');
     } else {
       // Create and register a new controller
       controller = widget.create();
@@ -154,10 +147,8 @@ class _ZenControllerScopeState<T extends ZenController>
         );
       }
 
-      if (ZenConfig.enableDebugLogs) {
-        ZenLogger.logDebug(
-            'Created and registered controller $T${widget.tag != null ? ' (${widget.tag})' : ''} in scope: ${_effectiveScope.name ?? _effectiveScope.id}');
-      }
+      ZenLogger.logDebug(
+          'Created and registered controller $T${widget.tag != null ? ' (${widget.tag})' : ''} in scope: ${_effectiveScope.name ?? _effectiveScope.id}');
     }
   }
 

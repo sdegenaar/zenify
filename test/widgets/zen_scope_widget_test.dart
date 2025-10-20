@@ -62,7 +62,8 @@ void main() {
   setUp(() {
     // Initialize Zen
     Zen.init();
-    ZenConfig.enableDebugLogs = false;
+    ZenConfig.applyEnvironment(ZenEnvironment.test); // Apply test settings
+    ZenConfig.logLevel = ZenLogLevel.none; // Override to disable all logs
   });
 
   tearDown(() {

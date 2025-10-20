@@ -1,4 +1,3 @@
-import 'package:zenify/core/zen_config.dart';
 import 'package:zenify/core/zen_scope.dart';
 import 'package:zenify/core/zen_scope_stack_tracker.dart';
 import 'zen_logger.dart';
@@ -18,9 +17,7 @@ class ZenScopeManager {
   static ZenScope get rootScope {
     if (_rootScope == null || _rootScope!.isDisposed) {
       _rootScope = ZenScope(name: 'RootScope');
-      if (ZenConfig.enableDebugLogs) {
-        ZenLogger.logDebug('🌱 Created root scope: ${_rootScope!.id}');
-      }
+      ZenLogger.logDebug('🌱 Created root scope: ${_rootScope!.id}');
     }
     return _rootScope!;
   }
@@ -49,15 +46,11 @@ class ZenScopeManager {
       final newParent = parentScope;
 
       if (currentParent != newParent) {
-        if (ZenConfig.enableDebugLogs) {
-          ZenLogger.logDebug(
-              '🔄 Scope $name exists but parent changed. Recreating scope.');
-        }
+        ZenLogger.logDebug(
+            '🔄 Scope $name exists but parent changed. Recreating scope.');
         _disposeScopeAndCleanup(name, existingScope);
       } else {
-        if (ZenConfig.enableDebugLogs) {
-          ZenLogger.logDebug('♻️ Reusing existing scope: $name');
-        }
+        ZenLogger.logDebug('♻️ Reusing existing scope: $name');
         return existingScope;
       }
     } else if (existingScope != null && existingScope.isDisposed) {
@@ -83,10 +76,8 @@ class ZenScopeManager {
       }
     } else {
       effectiveAutoDispose = (effectiveParentName == null);
-      if (ZenConfig.enableDebugLogs) {
-        ZenLogger.logDebug(
-            '🎯 Auto-configured scope "$name" with autoDispose=$effectiveAutoDispose');
-      }
+      ZenLogger.logDebug(
+          '🎯 Auto-configured scope "$name" with autoDispose=$effectiveAutoDispose');
     }
 
     // Create new scope
@@ -101,9 +92,7 @@ class ZenScopeManager {
             .putIfAbsent(effectiveParentName, () => <String>{})
             .add(name);
       }
-      if (ZenConfig.enableDebugLogs) {
-        ZenLogger.logDebug('⚡ Created auto-dispose scope: $name');
-      }
+      ZenLogger.logDebug('⚡ Created auto-dispose scope: $name');
     } else {
       _persistentScopes[name] = newScope;
       if (effectiveParentName != null && effectiveParentName != 'RootScope') {
@@ -112,9 +101,7 @@ class ZenScopeManager {
             .putIfAbsent(effectiveParentName, () => <String>{})
             .add(name);
       }
-      if (ZenConfig.enableDebugLogs) {
-        ZenLogger.logDebug('🔒 Created persistent scope: $name');
-      }
+      ZenLogger.logDebug('🔒 Created persistent scope: $name');
     }
 
     return newScope;
@@ -124,9 +111,7 @@ class ZenScopeManager {
     try {
       if (!scope.isDisposed) {
         scope.dispose();
-        if (ZenConfig.enableDebugLogs) {
-          ZenLogger.logDebug('🗑️ Disposed scope for recreation: $scopeName');
-        }
+        ZenLogger.logDebug('🗑️ Disposed scope for recreation: $scopeName');
       }
     } catch (e, stackTrace) {
       ZenLogger.logError('Error disposing scope $scopeName', e, stackTrace);
@@ -137,9 +122,7 @@ class ZenScopeManager {
   /// Clean up all scopes except the specified one and the root scope
   /// This is called when a route with useParentScope=false is created or popped back to
   static void cleanupAllScopesExcept(String keepScopeName) {
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('🧹 Cleaning up all scopes except: $keepScopeName');
-    }
+    ZenLogger.logDebug('🧹 Cleaning up all scopes except: $keepScopeName');
 
     // Get all scopes to clean up (exclude root scope and the one to keep)
     final scopesToCleanup = <String>[];
@@ -158,9 +141,7 @@ class ZenScopeManager {
       }
     }
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('🧹 Scopes to cleanup: ${scopesToCleanup.join(', ')}');
-    }
+    ZenLogger.logDebug('🧹 Scopes to cleanup: ${scopesToCleanup.join(', ')}');
 
     // Clean up each scope
     for (final scopeName in scopesToCleanup) {
@@ -175,9 +156,7 @@ class ZenScopeManager {
         final scope = persistentScope ?? autoDisposeScope;
         if (scope != null && !scope.isDisposed) {
           scope.dispose();
-          if (ZenConfig.enableDebugLogs) {
-            ZenLogger.logDebug('🗑️ Disposed scope during cleanup: $scopeName');
-          }
+          ZenLogger.logDebug('🗑️ Disposed scope during cleanup: $scopeName');
         }
 
         // Remove from all tracking
@@ -187,10 +166,8 @@ class ZenScopeManager {
       }
     }
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug(
-          '✅ Cleanup complete. Remaining scopes: ${_getAllScopeNames().join(', ')}');
-    }
+    ZenLogger.logDebug(
+        '✅ Cleanup complete. Remaining scopes: ${_getAllScopeNames().join(', ')}');
   }
 
   /// Clean up only scopes that are tracked in the scope stack
@@ -200,7 +177,7 @@ class ZenScopeManager {
     final scopesToCleanup =
         stackScopes.where((scopeName) => scopeName != keepScopeName).toList();
 
-    if (ZenConfig.enableDebugLogs && scopesToCleanup.isNotEmpty) {
+    if (scopesToCleanup.isNotEmpty) {
       ZenLogger.logDebug(
           '🧹 Cleaning up stack-tracked scopes: ${scopesToCleanup.join(', ')}');
     }
@@ -209,9 +186,7 @@ class ZenScopeManager {
       final scope =
           _persistentScopes[scopeName] ?? _autoDisposeScopes[scopeName];
       if (scope != null && !scope.isDisposed) {
-        if (ZenConfig.enableDebugLogs) {
-          ZenLogger.logDebug('🗑️ Disposing stack-tracked scope: $scopeName');
-        }
+        ZenLogger.logDebug('🗑️ Disposing stack-tracked scope: $scopeName');
         scope.dispose();
 
         // Remove from tracking maps ONLY after disposal to preserve hierarchy during disposal
@@ -235,10 +210,8 @@ class ZenScopeManager {
 
   /// Called when widget disposes - handles complete disposal logic
   static void onWidgetDispose(String scopeName, bool autoDispose) {
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug(
-          '📤 Widget disposing: $scopeName (autoDispose: $autoDispose)');
-    }
+    ZenLogger.logDebug(
+        '📤 Widget disposing: $scopeName (autoDispose: $autoDispose)');
 
     if (autoDispose) {
       // Dispose auto-dispose scope completely
@@ -246,9 +219,7 @@ class ZenScopeManager {
       if (scope != null && !scope.isDisposed) {
         try {
           scope.dispose();
-          if (ZenConfig.enableDebugLogs) {
-            ZenLogger.logDebug('🗑️ Disposed auto-dispose scope: $scopeName');
-          }
+          ZenLogger.logDebug('🗑️ Disposed auto-dispose scope: $scopeName');
         } catch (e, stackTrace) {
           ZenLogger.logError(
               'Error disposing auto-dispose scope $scopeName', e, stackTrace);
@@ -264,32 +235,24 @@ class ZenScopeManager {
         if (children.isEmpty) {
           _disposeDirectly(scopeName);
         } else {
-          if (ZenConfig.enableDebugLogs) {
-            ZenLogger.logDebug(
-                '⏳ Keeping scope $scopeName alive (has children: ${children.join(', ')})');
-          }
+          ZenLogger.logDebug(
+              '⏳ Keeping scope $scopeName alive (has children: ${children.join(', ')})');
         }
       } else {
-        if (ZenConfig.enableDebugLogs) {
-          ZenLogger.logDebug(
-              '🔒 Persistent scope widget disposed but scope remains: $scopeName');
-        }
+        ZenLogger.logDebug(
+            '🔒 Persistent scope widget disposed but scope remains: $scopeName');
       }
     }
   }
 
   static void _disposeDirectly(String scopeName) {
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('🗑️ Directly disposing scope: $scopeName');
-    }
+    ZenLogger.logDebug('🗑️ Directly disposing scope: $scopeName');
 
     final scope = _persistentScopes.remove(scopeName);
     if (scope != null && !scope.isDisposed) {
       try {
         scope.dispose();
-        if (ZenConfig.enableDebugLogs) {
-          ZenLogger.logDebug('✅ Disposed scope: $scopeName');
-        }
+        ZenLogger.logDebug('✅ Disposed scope: $scopeName');
       } catch (e, stackTrace) {
         ZenLogger.logError('Error disposing scope $scopeName', e, stackTrace);
       }
@@ -314,9 +277,7 @@ class ZenScopeManager {
   }
 
   static void disposeAll() {
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logInfo('🧹 Disposing all scopes');
-    }
+    ZenLogger.logInfo('🧹 Disposing all scopes');
 
     // Dispose all persistent scopes
     final persistentToDispose = List<String>.from(_persistentScopes.keys);
@@ -364,9 +325,7 @@ class ZenScopeManager {
     }
     _rootScope = null;
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logInfo('✅ All scopes disposed and tracking cleared');
-    }
+    ZenLogger.logInfo('✅ All scopes disposed and tracking cleared');
   }
 
   //
@@ -405,9 +364,7 @@ class ZenScopeManager {
 
     // Skip registration if name is null
     if (name == null) {
-      if (ZenConfig.enableDebugLogs) {
-        ZenLogger.logWarning('Cannot register child scope without a name');
-      }
+      ZenLogger.logWarning('Cannot register child scope without a name');
       return;
     }
 
@@ -425,9 +382,7 @@ class ZenScopeManager {
       }
     }
 
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('📝 Registered child scope: $name');
-    }
+    ZenLogger.logDebug('📝 Registered child scope: $name');
   }
 
   //
@@ -548,9 +503,7 @@ class ZenScopeManager {
 
   /// Remove scope from all tracking maps
   static void _removeScopeFromTracking(String scopeName) {
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('🗑️ Removing scope from tracking: $scopeName');
-    }
+    ZenLogger.logDebug('🗑️ Removing scope from tracking: $scopeName');
 
     // Remove from scope maps
     _persistentScopes.remove(scopeName);
@@ -579,9 +532,7 @@ class ZenScopeManager {
   }
 
   static void forceDispose(String scopeName) {
-    if (ZenConfig.enableDebugLogs) {
-      ZenLogger.logDebug('🔥 Force disposing scope: $scopeName');
-    }
+    ZenLogger.logDebug('🔥 Force disposing scope: $scopeName');
 
     _explicitlyPersistentScopes.remove(scopeName);
     _disposeDirectly(scopeName);

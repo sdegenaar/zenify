@@ -11,8 +11,7 @@ void main() async {
   Zen.init();
 
   // Configure for development with detailed logging
-  ZenConfig.enableDebugLogs = true;
-  ZenConfig.enablePerformanceMetrics = true;
+  ZenConfig.applyEnvironment(ZenEnvironment.development);
 
   // Register the AppModule and AWAIT completion
   await Zen.registerModules([

@@ -63,7 +63,7 @@ void main() {
 
     // Initialize Zen for testing
     Zen.init();
-    ZenConfig.enableDebugLogs = false; // Disable logs for cleaner test output
+    ZenConfig.applyEnvironment(ZenEnvironment.test);
   });
 
   tearDown(() {
@@ -401,8 +401,8 @@ void main() {
       final testScope = Zen.createScope(name: 'multiple-dependencies');
 
       // Temporarily enable debug logs for this test
-      final originalDebugState = ZenConfig.enableDebugLogs;
-      ZenConfig.enableDebugLogs = true;
+      final originalLogLevel = ZenConfig.logLevel;
+      ZenConfig.logLevel = ZenLogLevel.debug;
 
       try {
         // Register multiple services of same type
@@ -430,7 +430,7 @@ void main() {
         expect(allServices, containsAll([serviceA, serviceB, serviceC]));
       } finally {
         // Restore debug state
-        ZenConfig.enableDebugLogs = originalDebugState;
+        ZenConfig.logLevel = originalLogLevel;
 
         // Clean up the test scope
         testScope.dispose();

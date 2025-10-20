@@ -15,6 +15,7 @@ A modern state management library for Flutter that brings true "zen" to your dev
 - **⚡ Flexible Reactivity**: Choose between automatic UI updates or manual control
 - **🔒 Strong Type Safety**: Catch errors at compile-time with enhanced type constraints
 - **✨ Elegant Async Handling**: Built-in effects system for loading, error, and success states
+- **🔍 Production-Safe Logging**: Type-safe, environment-based configuration with granular log levels
 - **🧪 Testing Ready**: Comprehensive testing utilities out of the box
 
 ## What Makes Zenify Different?
@@ -58,14 +59,28 @@ We've also incorporated proven concepts from **Riverpod's** hierarchical scoping
 ### 1. Install
 ```yaml
 dependencies:
-  zenify: ^0.6.0
+  zenify: ^0.6.1
 ```
 
 ### 2. Initialize
 ``` dart
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  ZenConfig.applyEnvironment('dev');
+  // Type-safe configuration (recommended) ✨
+  if (kReleaseMode) {
+    ZenConfig.applyEnvironment(ZenEnvironment.production);
+  } else {
+    ZenConfig.applyEnvironment(ZenEnvironment.development);
+  }
+  
+  //OR
+  
+  // Fine-grained control
+  ZenConfig.configure(
+    level: ZenLogLevel.info,
+    performanceTracking: true,
+  );
+  
   runApp(const MyApp());
 }
 ```
@@ -351,7 +366,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   // Initialize Zenify
-  ZenConfig.applyEnvironment('dev');
+  ZenConfig.applyEnvironment(ZenEnvironment.development);
   
   // Register global modules
   await Zen.registerModules([
