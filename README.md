@@ -66,6 +66,8 @@ dependencies:
 ``` dart
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  Zen.init();
+  
   // Type-safe configuration (recommended) ✨
   if (kReleaseMode) {
     ZenConfig.applyEnvironment(ZenEnvironment.production);
