@@ -29,7 +29,7 @@ class _ObxState extends State<Obx> {
   @override
   void initState() {
     super.initState();
-    ZenLogger.logDebug("Obx widget initialized");
+    ZenLogger.logRxTracking("Obx widget initialized");
   }
 
   @override
@@ -50,7 +50,7 @@ class _ObxState extends State<Obx> {
       // Instead of immediately rebuilding, flag for rebuild
       _needsRebuild = true;
 
-      ZenLogger.logDebug("Obx widget scheduling rebuild");
+      ZenLogger.logRxTracking("Obx widget scheduling rebuild");
 
       setState(() {});
     }
@@ -62,7 +62,7 @@ class _ObxState extends State<Obx> {
       _trackedValues.add(value);
       value.addListener(_onValueChanged);
 
-      ZenLogger.logDebug("Tracking a new value: ${value.runtimeType}");
+      ZenLogger.logRxTracking("Tracking a new value: ${value.runtimeType}");
     }
   }
 
@@ -72,7 +72,7 @@ class _ObxState extends State<Obx> {
       _trackedValues.add(value);
       value.addListener(_onValueChanged);
 
-      ZenLogger.logDebug("Silently tracking value: ${value.runtimeType}");
+      ZenLogger.logRxTracking("Silently tracking value: ${value.runtimeType}");
     }
   }
 

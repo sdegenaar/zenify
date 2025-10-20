@@ -41,6 +41,6 @@ enum ZenLogLevel {
 
   /// Check if this log level should be logged given the configured level
   bool shouldLog(ZenLogLevel configuredLevel) {
-    return level <= configuredLevel.level;
+    return configuredLevel.level >= level;
   }
 }

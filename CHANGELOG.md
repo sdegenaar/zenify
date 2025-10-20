@@ -1,3 +1,17 @@
+## [0.6.2] 
+
+### Fixed
+- **Log Level Filtering**: Fixed inverted logic in `shouldLog()` method that caused logs to appear even when log level was set to suppress them
+- **Rx Tracking Logs**: Rx widget tracking logs now properly respect `ZenConfig.enableRxTracking` flag instead of always showing in debug mode
+    - Changed Obx widget debug logs to use `logRxTracking()` for proper control
+    - Debug mode now shows general debug logs but hides Rx tracking logs as documented
+    - Trace mode shows all logs including Rx tracking logs as documented
+
+### Improved
+- Log level configuration now works correctly across all environments (production, staging, development, debug, trace, test)
+- Better separation between general debug logging and verbose Rx tracking logging
+
+
 ## 0.6.1
 
 ### 🎯 Comprehensive Logging System Enhancement
