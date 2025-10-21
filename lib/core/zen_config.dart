@@ -1,4 +1,3 @@
-
 // lib/core/zen_config.dart
 import 'package:flutter/foundation.dart';
 import 'zen_environment.dart';
@@ -14,7 +13,7 @@ class ZenConfig {
 
   /// Current log level (default: warning for production safety)
   static ZenLogLevel logLevel =
-  kDebugMode ? ZenLogLevel.info : ZenLogLevel.warning;
+      kDebugMode ? ZenLogLevel.info : ZenLogLevel.warning;
 
   /// Enable/disable Rx tracking logs separately (default: false)
   /// ⚠️ WARNING: This creates VERY verbose logs. Only enable when:
@@ -451,10 +450,12 @@ class ZenConfig {
   // ============================================================================
 
   /// Apply development configuration (shorthand)
-  static void configureDevelopment() => applyEnvironment(ZenEnvironment.development);
+  static void configureDevelopment() =>
+      applyEnvironment(ZenEnvironment.development);
 
   /// Apply production configuration (shorthand)
-  static void configureProduction() => applyEnvironment(ZenEnvironment.production);
+  static void configureProduction() =>
+      applyEnvironment(ZenEnvironment.production);
 
   /// Apply test configuration (shorthand)
   static void configureTest() => applyEnvironment(ZenEnvironment.test);

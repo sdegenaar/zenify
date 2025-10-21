@@ -250,7 +250,7 @@ abstract class ZenController with WidgetsBindingObserver {
     if (_checkDisposed('pauseAllWorkers')) return;
 
     _batchWorkerOperation(
-            (worker) => worker.pause(), (group) => group.pauseAll());
+        (worker) => worker.pause(), (group) => group.pauseAll());
 
     ZenLogger.logDebug('Controller $runtimeType: All workers paused');
   }
@@ -260,7 +260,7 @@ abstract class ZenController with WidgetsBindingObserver {
     if (_checkDisposed('resumeAllWorkers')) return;
 
     _batchWorkerOperation(
-            (worker) => worker.resume(), (group) => group.resumeAll());
+        (worker) => worker.resume(), (group) => group.resumeAll());
 
     ZenLogger.logDebug('Controller $runtimeType: All workers resumed');
   }
@@ -283,7 +283,7 @@ abstract class ZenController with WidgetsBindingObserver {
     }
 
     final individualWorkers =
-    _workers.where((w) => !workersInGroups.contains(w));
+        _workers.where((w) => !workersInGroups.contains(w));
     final individualActive =
         individualWorkers.where((w) => !w.isDisposed && w.isActive).length;
     final individualPaused =
@@ -334,20 +334,20 @@ abstract class ZenController with WidgetsBindingObserver {
 
   /// Create workers that auto-dispose with controller
   ZenWorkerHandle watch<T>(
-      ValueNotifier<T> observable,
-      void Function(T) callback, {
-        WorkerType type = WorkerType.ever,
-        Duration? duration,
-        bool Function(T)? condition,
-      }) {
+    ValueNotifier<T> observable,
+    void Function(T) callback, {
+    WorkerType type = WorkerType.ever,
+    Duration? duration,
+    bool Function(T)? condition,
+  }) {
     return _createWorker(
-            () => ZenWorkers.watch<T>(
-          observable,
-          callback,
-          type: type,
-          duration: duration,
-          condition: condition,
-        ),
+        () => ZenWorkers.watch<T>(
+              observable,
+              callback,
+              type: type,
+              duration: duration,
+              condition: condition,
+            ),
         'watch');
   }
 
@@ -361,48 +361,48 @@ abstract class ZenController with WidgetsBindingObserver {
   }
 
   ZenWorkerHandle debounce<T>(
-      ValueNotifier<T> obs,
-      void Function(T) callback,
-      Duration duration,
-      ) {
+    ValueNotifier<T> obs,
+    void Function(T) callback,
+    Duration duration,
+  ) {
     if (duration.isNegative || duration == Duration.zero) {
       throw ArgumentError('Debounce duration must be positive');
     }
     return _createWorker(
-            () => ZenWorkers.debounce<T>(obs, callback, duration), 'debounce');
+        () => ZenWorkers.debounce<T>(obs, callback, duration), 'debounce');
   }
 
   ZenWorkerHandle throttle<T>(
-      ValueNotifier<T> obs,
-      void Function(T) callback,
-      Duration duration,
-      ) {
+    ValueNotifier<T> obs,
+    void Function(T) callback,
+    Duration duration,
+  ) {
     if (duration.isNegative || duration == Duration.zero) {
       throw ArgumentError('Throttle duration must be positive');
     }
     return _createWorker(
-            () => ZenWorkers.throttle<T>(obs, callback, duration), 'throttle');
+        () => ZenWorkers.throttle<T>(obs, callback, duration), 'throttle');
   }
 
   ZenWorkerHandle interval<T>(
-      ValueNotifier<T> obs,
-      void Function(T) callback,
-      Duration duration,
-      ) {
+    ValueNotifier<T> obs,
+    void Function(T) callback,
+    Duration duration,
+  ) {
     if (duration.isNegative || duration == Duration.zero) {
       throw ArgumentError('Interval duration must be positive');
     }
     return _createWorker(
-            () => ZenWorkers.interval<T>(obs, callback, duration), 'interval');
+        () => ZenWorkers.interval<T>(obs, callback, duration), 'interval');
   }
 
   ZenWorkerHandle condition<T>(
-      ValueNotifier<T> obs,
-      bool Function(T) condition,
-      void Function(T) callback,
-      ) {
+    ValueNotifier<T> obs,
+    bool Function(T) condition,
+    void Function(T) callback,
+  ) {
     return _createWorker(
-            () => ZenWorkers.condition<T>(obs, condition, callback), 'condition');
+        () => ZenWorkers.condition<T>(obs, condition, callback), 'condition');
   }
 
   /// Create a managed worker group
@@ -450,7 +450,7 @@ abstract class ZenController with WidgetsBindingObserver {
 
     if (updateIds?.isEmpty ?? true) {
       final allListeners =
-      _updateListeners.values.expand((set) => set).toList();
+          _updateListeners.values.expand((set) => set).toList();
       _notifyListeners(allListeners);
     } else {
       final listenersToNotify = <VoidCallback>[];
@@ -485,7 +485,7 @@ abstract class ZenController with WidgetsBindingObserver {
       'disposers': _disposers.length,
       'update_listeners': _updateListeners.length,
       'total_listener_count':
-      _updateListeners.values.fold<int>(0, (sum, set) => sum + set.length),
+          _updateListeners.values.fold<int>(0, (sum, set) => sum + set.length),
       'update_count': _updateCount,
       'worker_creation_count': _workerCreationCount,
       'memory_overhead_estimate': _estimateMemoryUsage(),
@@ -623,9 +623,9 @@ abstract class ZenController with WidgetsBindingObserver {
 
   /// Batch worker operations for better performance
   void _batchWorkerOperation(
-      void Function(ZenWorkerHandle) workerOp,
-      void Function(ZenWorkerGroup) groupOp,
-      ) {
+    void Function(ZenWorkerHandle) workerOp,
+    void Function(ZenWorkerGroup) groupOp,
+  ) {
     _cleanupDisposedWorkers();
 
     for (final worker in _workers) {
@@ -708,7 +708,7 @@ abstract class ZenController with WidgetsBindingObserver {
         listener();
       } catch (e, stack) {
         final context =
-        updateIds != null ? ' for IDs: ${updateIds.join(', ')}' : '';
+            updateIds != null ? ' for IDs: ${updateIds.join(', ')}' : '';
         ZenLogger.logError('Error in update listener$context', e, stack);
       }
     }
@@ -788,10 +788,10 @@ extension ZenControllerWorkerExtension on ZenController {
 extension ZenControllerAdvancedExtension on ZenController {
   /// Worker that auto-disposes when a condition is met
   ZenWorkerHandle autoDispose<T>(
-      ValueNotifier<T> obs,
-      bool Function(T) disposeCondition,
-      void Function(T) callback,
-      ) {
+    ValueNotifier<T> obs,
+    bool Function(T) disposeCondition,
+    void Function(T) callback,
+  ) {
     late ZenWorkerHandle handle;
     handle = ever<T>(obs, (value) {
       try {
@@ -809,10 +809,10 @@ extension ZenControllerAdvancedExtension on ZenController {
 
   /// Worker that executes a limited number of times
   ZenWorkerHandle limited<T>(
-      ValueNotifier<T> obs,
-      void Function(T) callback,
-      int maxExecutions,
-      ) {
+    ValueNotifier<T> obs,
+    void Function(T) callback,
+    int maxExecutions,
+  ) {
     if (maxExecutions <= 0) {
       throw ArgumentError('maxExecutions must be positive');
     }
