@@ -18,7 +18,20 @@ enum ZenEnvironment {
   /// - Rx Tracking: disabled
   /// - Performance Tracking: disabled
   /// - Strict Mode: disabled
+  /// - Route/Navigation Logging: disabled
   production('production'),
+
+  /// Production verbose environment - errors and warnings with key lifecycle events
+  ///
+  /// Recommended for: Production monitoring, troubleshooting live issues
+  ///
+  /// Configuration:
+  /// - Log Level: warning
+  /// - Rx Tracking: disabled
+  /// - Performance Tracking: enabled
+  /// - Strict Mode: disabled
+  /// - Route/Navigation Logging: disabled
+  productionVerbose('production_verbose'),
 
   /// Staging environment - moderate logging, performance metrics
   ///
@@ -29,6 +42,7 @@ enum ZenEnvironment {
   /// - Rx Tracking: disabled
   /// - Performance Tracking: enabled
   /// - Strict Mode: disabled
+  /// - Route/Navigation Logging: disabled
   staging('staging'),
 
   /// Development environment - detailed logging, all debug features
@@ -40,6 +54,7 @@ enum ZenEnvironment {
   /// - Rx Tracking: disabled (enable manually if needed)
   /// - Performance Tracking: enabled
   /// - Strict Mode: enabled
+  /// - Route/Navigation Logging: enabled
   development('development'),
 
   /// Debug environment - very detailed logging with strict mode
@@ -51,6 +66,7 @@ enum ZenEnvironment {
   /// - Rx Tracking: disabled (enable manually if needed)
   /// - Performance Tracking: enabled
   /// - Strict Mode: enabled
+  /// - Route/Navigation Logging: enabled
   debug('debug'),
 
   /// Trace environment - extreme verbosity including Rx tracking
@@ -64,6 +80,7 @@ enum ZenEnvironment {
   /// - Rx Tracking: enabled
   /// - Performance Tracking: enabled
   /// - Strict Mode: enabled
+  /// - Route/Navigation Logging: enabled
   trace('trace'),
 
   /// Test environment - optimized for unit/widget testing
@@ -76,6 +93,7 @@ enum ZenEnvironment {
   /// - Performance Tracking: disabled
   /// - Auto Dispose: disabled (for test stability)
   /// - Strict Mode: enabled
+  /// - Route/Navigation Logging: disabled
   test('test');
 
   const ZenEnvironment(this.value);
@@ -87,6 +105,7 @@ enum ZenEnvironment {
   ///
   /// Supports aliases:
   /// - 'prod' → production
+  /// - 'prod_verbose' → productionVerbose
   /// - 'stage' → staging
   /// - 'dev' → development
   static ZenEnvironment fromString(String value) {
@@ -96,6 +115,10 @@ enum ZenEnvironment {
       case 'production':
       case 'prod':
         return ZenEnvironment.production;
+
+      case 'production_verbose':
+      case 'prod_verbose':
+        return ZenEnvironment.productionVerbose;
 
       case 'staging':
       case 'stage':
@@ -116,7 +139,7 @@ enum ZenEnvironment {
 
       default:
         throw ArgumentError('Unknown environment: $value. '
-            'Valid values: production, staging, development, debug, trace, test');
+            'Valid values: production, production_verbose, staging, development, debug, trace, test');
     }
   }
 

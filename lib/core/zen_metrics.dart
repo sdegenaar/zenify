@@ -1,9 +1,10 @@
-// lib/zenify/zen_metrics.dart
+
+// lib/core/zen_metrics.dart
 import 'dart:async';
 import 'zen_config.dart';
 import 'zen_logger.dart';
 
-/// Performance and usage metrics for ZenState
+/// Performance and usage metrics for Zenify
 class ZenMetrics {
   ZenMetrics._(); // Private constructor
 
@@ -11,8 +12,7 @@ class ZenMetrics {
   static int activeControllers = 0;
   static int totalControllersCreated = 0;
   static int totalControllersDisposed = 0;
-  static Map<String, int> controllerCreationCount =
-      {}; // Changed Type to String
+  static Map<String, int> controllerCreationCount = {};
 
   /// Reactive state metrics
   static int totalRxValues = 0;
@@ -35,7 +35,7 @@ class ZenMetrics {
 
   /// Record controller creation
   static void recordControllerCreation(Type controllerType) {
-    if (!ZenConfig.enablePerformanceTracking) return;
+    if (!ZenConfig.enablePerformanceMetrics) return;
 
     activeControllers++;
     totalControllersCreated++;
@@ -46,7 +46,7 @@ class ZenMetrics {
 
   /// Record controller disposal
   static void recordControllerDisposal(Type controllerType) {
-    if (!ZenConfig.enablePerformanceTracking) return;
+    if (!ZenConfig.enablePerformanceMetrics) return;
 
     activeControllers--;
     totalControllersDisposed++;
@@ -54,28 +54,28 @@ class ZenMetrics {
 
   /// Record Rx value creation
   static void recordRxCreation() {
-    if (!ZenConfig.enablePerformanceTracking) return;
+    if (!ZenConfig.enablePerformanceMetrics) return;
 
     totalRxValues++;
   }
 
   /// Record state update
   static void recordStateUpdate() {
-    if (!ZenConfig.enablePerformanceTracking) return;
+    if (!ZenConfig.enablePerformanceMetrics) return;
 
     totalStateUpdates++;
   }
 
   /// Record provider creation
   static void recordProviderCreation() {
-    if (!ZenConfig.enablePerformanceTracking) return;
+    if (!ZenConfig.enablePerformanceMetrics) return;
 
     totalProviders++;
   }
 
   /// Record a successful effect execution
   static void recordEffectSuccess(String effectName) {
-    if (!ZenConfig.enablePerformanceTracking) return;
+    if (!ZenConfig.enablePerformanceMetrics) return;
 
     totalEffectRuns++;
     totalEffectSuccesses++;
@@ -85,7 +85,7 @@ class ZenMetrics {
 
   /// Record a failed effect execution
   static void recordEffectFailure(String effectName) {
-    if (!ZenConfig.enablePerformanceTracking) return;
+    if (!ZenConfig.enablePerformanceMetrics) return;
 
     totalEffectRuns++;
     totalEffectFailures++;
@@ -95,21 +95,21 @@ class ZenMetrics {
 
   /// Increment a named counter to track occurrences of an event
   static void incrementCounter(String name) {
-    if (!ZenConfig.enablePerformanceTracking) return;
+    if (!ZenConfig.enablePerformanceMetrics) return;
 
     _counters[name] = (_counters[name] ?? 0) + 1;
   }
 
   /// Record a specific value for a named counter
   static void recordCounterValue(String name, int value) {
-    if (!ZenConfig.enablePerformanceTracking) return;
+    if (!ZenConfig.enablePerformanceMetrics) return;
 
     _counters[name] = value;
   }
 
   /// Start timing an operation
   static void startTiming(String operation) {
-    if (!ZenConfig.enablePerformanceTracking) return;
+    if (!ZenConfig.enablePerformanceMetrics) return;
 
     _stopwatch.reset();
     _stopwatch.start();
@@ -117,7 +117,7 @@ class ZenMetrics {
 
   /// Stop timing an operation and record the result
   static void stopTiming(String operation) {
-    if (!ZenConfig.enablePerformanceTracking || !_stopwatch.isRunning) return;
+    if (!ZenConfig.enablePerformanceMetrics || !_stopwatch.isRunning) return;
 
     _stopwatch.stop();
     final duration = _stopwatch.elapsed;
@@ -210,7 +210,7 @@ class ZenMetrics {
   static void startPeriodicLogging(Duration interval) {
     _metricsTimer?.cancel();
     _metricsTimer = Timer.periodic(interval, (_) {
-      if (ZenConfig.enablePerformanceTracking) {
+      if (ZenConfig.enablePerformanceMetrics) {
         final report = getReport();
         ZenLogger.logInfo('ZenMetrics: ${report.toString()}');
       }

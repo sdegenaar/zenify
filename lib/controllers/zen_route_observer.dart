@@ -1,4 +1,5 @@
-// lib/zenify/zen_route_observer.dart
+
+// lib/controllers/zen_route_observer.dart
 import 'package:flutter/material.dart';
 import '../core/zen_metrics.dart';
 import '../core/zen_logger.dart';
@@ -8,6 +9,32 @@ import '../core/zen_scope.dart';
 
 /// Navigator observer that automatically disposes controllers when routes are popped
 /// and allows for custom route change callbacks
+///
+/// Features:
+/// - Automatic controller disposal when routes are removed
+/// - Route-to-controller mapping with scope support
+/// - Tagged controller support
+/// - Custom route change callbacks
+/// - Performance metrics tracking
+/// - Production-safe logging
+///
+/// Usage:
+/// ```dart
+/// final routeObserver = ZenRouteObserver(
+///   onRouteChanged: (route, previousRoute) {
+///     print('Route changed to: ${route?.settings.name}');
+///   },
+/// );
+///
+/// // Register controllers for routes
+/// routeObserver.registerForRoute('/home', [HomeController]);
+/// routeObserver.registerTaggedForRoute('/profile', ['profile-controller']);
+///
+/// MaterialApp(
+///   navigatorObservers: [routeObserver],
+///   ...
+/// )
+/// ```
 class ZenRouteObserver extends NavigatorObserver {
   /// Map of route names to the controller types they use
   final Map<String, List<Type>> _routeControllers = {};
@@ -28,6 +55,17 @@ class ZenRouteObserver extends NavigatorObserver {
   ZenRouteObserver({this.onRouteChanged});
 
   /// Register controllers for a specific route
+  ///
+  /// Controllers will be automatically disposed when the route is popped or removed.
+  ///
+  /// Example:
+  /// ```dart
+  /// routeObserver.registerForRoute(
+  ///   '/home',
+  ///   [HomeController, NavController],
+  ///   scope: myScope,
+  /// );
+  /// ```
   void registerForRoute(String routeName, List<Type> controllerTypes,
       {ZenScope? scope}) {
     _routeControllers[routeName] = controllerTypes;
@@ -36,11 +74,23 @@ class ZenRouteObserver extends NavigatorObserver {
       _routeScopes[routeName] = scope;
     }
 
-    ZenLogger.logDebug(
+    // Changed from logDebug to logInfo - important configuration event
+    ZenLogger.logInfo(
         'Registered ${controllerTypes.length} controllers for route $routeName${scope != null ? ' in scope ${scope.name ?? scope.id}' : ''}');
   }
 
   /// Register tagged controllers for a specific route
+  ///
+  /// Tagged controllers will be automatically disposed when the route is popped or removed.
+  ///
+  /// Example:
+  /// ```dart
+  /// routeObserver.registerTaggedForRoute(
+  ///   '/profile',
+  ///   ['profile-controller', 'user-data'],
+  ///   scope: profileScope,
+  /// );
+  /// ```
   void registerTaggedForRoute(String routeName, List<String> controllerTags,
       {ZenScope? scope}) {
     _routeControllerTags[routeName] = controllerTags;
@@ -49,7 +99,8 @@ class ZenRouteObserver extends NavigatorObserver {
       _routeScopes[routeName] = scope;
     }
 
-    ZenLogger.logDebug(
+    // Changed from logDebug to logInfo - important configuration event
+    ZenLogger.logInfo(
         'Registered ${controllerTags.length} tagged controllers for route $routeName${scope != null ? ' in scope ${scope.name ?? scope.id}' : ''}');
   }
 
@@ -60,7 +111,12 @@ class ZenRouteObserver extends NavigatorObserver {
     // Notify listener of route change
     onRouteChanged?.call(route, previousRoute);
 
-    ZenLogger.logDebug('Route pushed: ${route.settings.name ?? 'unnamed'}');
+    // Only log if route logging is enabled AND log level permits
+    if (ZenConfig.shouldLogRoutes) {
+      final routeName = route.settings.name ?? 'unnamed';
+      final previousRouteName = previousRoute?.settings.name ?? 'none';
+      ZenLogger.logInfo('Route pushed: $routeName (from: $previousRouteName)');
+    }
   }
 
   @override
@@ -70,8 +126,12 @@ class ZenRouteObserver extends NavigatorObserver {
     // Notify listener of route change
     onRouteChanged?.call(newRoute, oldRoute);
 
-    ZenLogger.logDebug(
-        'Route replaced: ${oldRoute?.settings.name ?? 'unnamed'} -> ${newRoute?.settings.name ?? 'unnamed'}');
+    // Only log if route logging is enabled AND log level permits
+    if (ZenConfig.shouldLogRoutes) {
+      final newRouteName = newRoute?.settings.name ?? 'unnamed';
+      final oldRouteName = oldRoute?.settings.name ?? 'unnamed';
+      ZenLogger.logInfo('Route replaced: $oldRouteName → $newRouteName');
+    }
   }
 
   @override
@@ -81,6 +141,14 @@ class ZenRouteObserver extends NavigatorObserver {
     // Notify listener of route change
     onRouteChanged?.call(previousRoute, route);
 
+    // Only log if route logging is enabled AND log level permits
+    if (ZenConfig.shouldLogRoutes) {
+      final routeName = route.settings.name ?? 'unnamed';
+      final previousRouteName = previousRoute?.settings.name ?? 'none';
+      ZenLogger.logInfo('Route popped: $routeName (to: $previousRouteName)');
+    }
+
+    // Dispose controllers associated with the popped route
     _disposeControllersForRoute(route);
   }
 
@@ -91,7 +159,36 @@ class ZenRouteObserver extends NavigatorObserver {
     // Notify listener of route change
     onRouteChanged?.call(previousRoute, route);
 
+    // Only log if route logging is enabled AND log level permits
+    if (ZenConfig.shouldLogRoutes) {
+      final routeName = route.settings.name ?? 'unnamed';
+      ZenLogger.logInfo('Route removed: $routeName');
+    }
+
+    // Dispose controllers associated with the removed route
     _disposeControllersForRoute(route);
+  }
+
+  @override
+  void didStartUserGesture(
+      Route<dynamic> route, Route<dynamic>? previousRoute) {
+    super.didStartUserGesture(route, previousRoute);
+
+    // Only log if navigation logging is enabled AND log level permits
+    if (ZenConfig.shouldLogNavigation) {
+      final routeName = route.settings.name ?? 'unnamed';
+      ZenLogger.logDebug('Navigation gesture started on: $routeName');
+    }
+  }
+
+  @override
+  void didStopUserGesture() {
+    super.didStopUserGesture();
+
+    // Only log if navigation logging is enabled AND log level permits
+    if (ZenConfig.shouldLogNavigation) {
+      ZenLogger.logDebug('Navigation gesture stopped');
+    }
   }
 
   /// Dispose controllers associated with a route
@@ -115,8 +212,14 @@ class ZenRouteObserver extends NavigatorObserver {
             disposed = Zen.rootScope.deleteByType(controllerType, force: true);
           }
 
-          ZenLogger.logDebug(
-              'Auto-disposing controller $controllerType for route $routeName: ${disposed ? 'success' : 'not found'}');
+          // Changed from logDebug to logInfo - important lifecycle event
+          if (disposed) {
+            ZenLogger.logInfo(
+                'Auto-disposed controller $controllerType for route $routeName');
+          } else {
+            ZenLogger.logDebug(
+                'Controller $controllerType not found for route $routeName (may have been manually disposed)');
+          }
 
           // Track metrics
           if (disposed && ZenConfig.enablePerformanceMetrics) {
@@ -138,8 +241,14 @@ class ZenRouteObserver extends NavigatorObserver {
             disposed = _deleteByTagFromScope(tag, Zen.rootScope);
           }
 
-          ZenLogger.logDebug(
-              'Auto-disposing tagged controller \'$tag\' for route $routeName: ${disposed ? 'success' : 'not found'}');
+          // Changed from logDebug to logInfo - important lifecycle event
+          if (disposed) {
+            ZenLogger.logInfo(
+                'Auto-disposed tagged controller \'$tag\' for route $routeName');
+          } else {
+            ZenLogger.logDebug(
+                'Tagged controller \'$tag\' not found for route $routeName (may have been manually disposed)');
+          }
         }
       }
 
@@ -180,7 +289,8 @@ class ZenRouteObserver extends NavigatorObserver {
         scope.dispose();
         _routeScopes.remove(routeName);
 
-        ZenLogger.logDebug('Disposed empty route scope for $routeName');
+        // Changed from logDebug to logInfo - important lifecycle event
+        ZenLogger.logInfo('Disposed empty route scope for $routeName');
       } else {
         ZenLogger.logDebug(
             'Route scope for $routeName still has ${dependencies.length} dependencies, keeping alive');
@@ -191,21 +301,48 @@ class ZenRouteObserver extends NavigatorObserver {
   }
 
   /// Clear all route registrations
+  ///
+  /// Useful for resetting the observer state during testing or app reconfiguration.
   void clearAllRoutes() {
     _routeControllers.clear();
     _routeControllerTags.clear();
     _routeScopes.clear();
 
-    ZenLogger.logDebug('Cleared all route controller registrations');
+    // Changed from logDebug to logInfo - important configuration event
+    ZenLogger.logInfo('Cleared all route controller registrations');
   }
 
   /// Get debug information about registered routes
+  ///
+  /// Returns a map containing:
+  /// - `routeControllers`: Map of route names to controller types
+  /// - `routeControllerTags`: Map of route names to controller tags
+  /// - `routeScopes`: Map of route names to scope names/IDs
+  ///
+  /// Useful for debugging route configuration issues.
   Map<String, dynamic> getDebugInfo() {
     return {
       'routeControllers': _routeControllers
           .map((k, v) => MapEntry(k, v.map((t) => t.toString()).toList())),
       'routeControllerTags': Map.from(_routeControllerTags),
       'routeScopes': _routeScopes.map((k, v) => MapEntry(k, v.name ?? v.id)),
+      'totalRoutes': _routeControllers.length + _routeControllerTags.length,
     };
+  }
+
+  /// Get all registered route names
+  Set<String> getRegisteredRoutes() {
+    return {..._routeControllers.keys, ..._routeControllerTags.keys};
+  }
+
+  /// Check if a route has registered controllers
+  bool hasControllersForRoute(String routeName) {
+    return _routeControllers.containsKey(routeName) ||
+        _routeControllerTags.containsKey(routeName);
+  }
+
+  /// Get the scope associated with a route (if any)
+  ZenScope? getScopeForRoute(String routeName) {
+    return _routeScopes[routeName];
   }
 }

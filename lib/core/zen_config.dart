@@ -1,6 +1,7 @@
+
 // lib/core/zen_config.dart
 import 'package:flutter/foundation.dart';
-import 'package:zenify/core/zen_environment.dart';
+import 'zen_environment.dart';
 import 'zen_log_level.dart';
 
 /// Configuration settings for Zenify framework
@@ -13,7 +14,7 @@ class ZenConfig {
 
   /// Current log level (default: warning for production safety)
   static ZenLogLevel logLevel =
-      kDebugMode ? ZenLogLevel.info : ZenLogLevel.warning;
+  kDebugMode ? ZenLogLevel.info : ZenLogLevel.warning;
 
   /// Enable/disable Rx tracking logs separately (default: false)
   /// ⚠️ WARNING: This creates VERY verbose logs. Only enable when:
@@ -39,7 +40,7 @@ class ZenConfig {
   // PERFORMANCE & METRICS CONFIGURATION
   // ============================================================================
 
-  /// Enable performance tracking
+  /// Enable performance tracking (primary name)
   static bool enablePerformanceTracking = false;
 
   /// Alias for enablePerformanceTracking to match naming in other areas
@@ -57,8 +58,15 @@ class ZenConfig {
   /// Enable automatic disposal of controllers
   static bool enableAutoDispose = true;
 
+  /// Alias for backward compatibility
+  static bool get autoDispose => enableAutoDispose;
+  static set autoDispose(bool value) => enableAutoDispose = value;
+
   /// How long to cache controllers before disposal
   static Duration controllerCacheExpiry = const Duration(minutes: 10);
+
+  /// Maximum time to wait for async dispose operations (in milliseconds)
+  static int disposeTimeoutMs = 5000;
 
   // ============================================================================
   // DEVELOPMENT & DEBUG FEATURES
@@ -66,6 +74,10 @@ class ZenConfig {
 
   /// Strict mode - throw exceptions for misuse
   static bool strictMode = false;
+
+  /// Alias for consistency
+  static bool get enableStrictMode => strictMode;
+  static set enableStrictMode(bool value) => strictMode = value;
 
   /// Whether to check for circular dependencies
   static bool checkForCircularDependencies = true;
@@ -75,6 +87,18 @@ class ZenConfig {
 
   /// Whether to use Rx tracking for reactive values
   static bool useRxTracking = true;
+
+  // ============================================================================
+  // UTILITY GETTERS
+  // ============================================================================
+
+  /// Check if route/navigation logging should occur
+  /// This respects both the flag AND the log level
+  static bool get shouldLogRoutes =>
+      enableRouteLogging && ZenLogLevel.info.shouldLog(logLevel);
+
+  static bool get shouldLogNavigation =>
+      enableNavigationLogging && ZenLogLevel.info.shouldLog(logLevel);
 
   // ============================================================================
   // CONFIGURATION PRESETS
@@ -95,6 +119,7 @@ class ZenConfig {
     // Lifecycle
     enableAutoDispose = true;
     controllerCacheExpiry = const Duration(minutes: 10);
+    disposeTimeoutMs = 5000;
 
     // Development Features
     strictMode = false;
@@ -103,8 +128,32 @@ class ZenConfig {
     useRxTracking = true;
   }
 
+  /// Get current configuration as a map (for debugging)
+  static Map<String, dynamic> toMap() {
+    return {
+      'logLevel': logLevel.toString(),
+      'enableRxTracking': enableRxTracking,
+      'enableNavigationLogging': enableNavigationLogging,
+      'enableRouteLogging': enableRouteLogging,
+      'enablePerformanceTracking': enablePerformanceTracking,
+      'enablePerformanceMetrics': enablePerformanceMetrics,
+      'enableMetrics': enableMetrics,
+      'enableAutoDispose': enableAutoDispose,
+      'autoDispose': autoDispose,
+      'controllerCacheExpiry': controllerCacheExpiry.toString(),
+      'disposeTimeoutMs': disposeTimeoutMs,
+      'strictMode': strictMode,
+      'enableStrictMode': enableStrictMode,
+      'checkForCircularDependencies': checkForCircularDependencies,
+      'enableDependencyVisualization': enableDependencyVisualization,
+      'useRxTracking': useRxTracking,
+      'shouldLogRoutes': shouldLogRoutes,
+      'shouldLogNavigation': shouldLogNavigation,
+    };
+  }
+
   // ============================================================================
-  // CONFIGURATION PRESETS
+  // ENVIRONMENT CONFIGURATION
   // ============================================================================
 
   /// Apply predefined environment configuration
@@ -134,6 +183,10 @@ class ZenConfig {
     switch (env) {
       case ZenEnvironment.production:
         _applyProductionConfig();
+        break;
+
+      case ZenEnvironment.productionVerbose:
+        _applyProductionVerboseConfig();
         break;
 
       case ZenEnvironment.staging:
@@ -174,10 +227,34 @@ class ZenConfig {
     // Standard lifecycle
     enableAutoDispose = true;
     controllerCacheExpiry = const Duration(minutes: 10);
+    disposeTimeoutMs = 5000;
 
     // No debug features
     strictMode = false;
     checkForCircularDependencies = false;
+    enableDependencyVisualization = false;
+    useRxTracking = true;
+  }
+
+  static void _applyProductionVerboseConfig() {
+    // Moderate logging
+    logLevel = ZenLogLevel.warning;
+    enableRxTracking = false;
+    enableNavigationLogging = false;
+    enableRouteLogging = false;
+
+    // Some metrics for monitoring
+    enablePerformanceTracking = true;
+    enableMetrics = true;
+
+    // Standard lifecycle
+    enableAutoDispose = true;
+    controllerCacheExpiry = const Duration(minutes: 10);
+    disposeTimeoutMs = 5000;
+
+    // Light debug features
+    strictMode = false;
+    checkForCircularDependencies = true;
     enableDependencyVisualization = false;
     useRxTracking = true;
   }
@@ -196,6 +273,7 @@ class ZenConfig {
     // Standard lifecycle
     enableAutoDispose = true;
     controllerCacheExpiry = const Duration(minutes: 10);
+    disposeTimeoutMs = 5000;
 
     // Light debug features
     strictMode = false;
@@ -218,6 +296,7 @@ class ZenConfig {
     // Standard lifecycle
     enableAutoDispose = true;
     controllerCacheExpiry = const Duration(minutes: 10);
+    disposeTimeoutMs = 5000;
 
     // All debug features
     strictMode = true;
@@ -240,6 +319,7 @@ class ZenConfig {
     // Standard lifecycle
     enableAutoDispose = true;
     controllerCacheExpiry = const Duration(minutes: 10);
+    disposeTimeoutMs = 5000;
 
     // All debug features with strict mode
     strictMode = true;
@@ -262,6 +342,7 @@ class ZenConfig {
     // Standard lifecycle
     enableAutoDispose = true;
     controllerCacheExpiry = const Duration(minutes: 10);
+    disposeTimeoutMs = 5000;
 
     // All debug features
     strictMode = true;
@@ -284,6 +365,7 @@ class ZenConfig {
     // Disable auto-dispose for test stability
     enableAutoDispose = false;
     controllerCacheExpiry = const Duration(minutes: 30);
+    disposeTimeoutMs = 10000; // Longer timeout for tests
 
     // Strict mode for catching errors
     strictMode = true;
@@ -297,6 +379,15 @@ class ZenConfig {
   // ============================================================================
 
   /// Apply custom configuration with fine-grained control
+  ///
+  /// Example:
+  /// ```dart
+  /// ZenConfig.configure(
+  ///   level: ZenLogLevel.info,
+  ///   performanceTracking: true,
+  ///   strict: true,
+  /// );
+  /// ```
   static void configure({
     // Logging
     ZenLogLevel? level,
@@ -311,6 +402,7 @@ class ZenConfig {
     // Lifecycle
     bool? autoDispose,
     Duration? cacheExpiry,
+    int? disposeTimeout,
 
     // Development Features
     bool? strict,
@@ -336,6 +428,7 @@ class ZenConfig {
     // Lifecycle
     if (autoDispose != null) enableAutoDispose = autoDispose;
     if (cacheExpiry != null) controllerCacheExpiry = cacheExpiry;
+    if (disposeTimeout != null) disposeTimeoutMs = disposeTimeout;
 
     // Development Features
     if (strict != null) strictMode = strict;
@@ -358,11 +451,11 @@ class ZenConfig {
   // ============================================================================
 
   /// Apply development configuration (shorthand)
-  static void configureDevelopment() => applyEnvironment('dev');
+  static void configureDevelopment() => applyEnvironment(ZenEnvironment.development);
 
   /// Apply production configuration (shorthand)
-  static void configureProduction() => applyEnvironment('prod');
+  static void configureProduction() => applyEnvironment(ZenEnvironment.production);
 
   /// Apply test configuration (shorthand)
-  static void configureTest() => applyEnvironment('test');
+  static void configureTest() => applyEnvironment(ZenEnvironment.test);
 }

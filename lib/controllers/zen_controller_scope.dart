@@ -90,7 +90,8 @@ class _ZenControllerScopeState<T extends ZenController>
       try {
         scopeToUse.delete<T>(tag: widget.tag, force: true);
 
-        ZenLogger.logDebug(
+        // Changed from logDebug to logInfo - important lifecycle event
+        ZenLogger.logInfo(
             'Disposed controller $T${widget.tag != null ? ' (${widget.tag})' : ''}');
       } catch (e) {
         ZenLogger.logError('Error disposing controller $T: $e');
@@ -124,7 +125,8 @@ class _ZenControllerScopeState<T extends ZenController>
     if (existingController != null) {
       controller = existingController;
 
-      ZenLogger.logDebug(
+      // Changed from logDebug to logInfo - important lifecycle event
+      ZenLogger.logInfo(
           'Using existing controller $T${widget.tag != null ? ' (${widget.tag})' : ''} from scope: ${_effectiveScope.name ?? _effectiveScope.id}');
     } else {
       // Create and register a new controller
@@ -147,7 +149,8 @@ class _ZenControllerScopeState<T extends ZenController>
         );
       }
 
-      ZenLogger.logDebug(
+      // Changed from logDebug to logInfo - important lifecycle event
+      ZenLogger.logInfo(
           'Created and registered controller $T${widget.tag != null ? ' (${widget.tag})' : ''} in scope: ${_effectiveScope.name ?? _effectiveScope.id}');
     }
   }

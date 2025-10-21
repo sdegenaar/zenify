@@ -1,3 +1,18 @@
+## 0.6.3
+
+### 🎯 Logging Improvements
+
+#### New Features
+- **New Environment**: `ZenEnvironment.productionVerbose` - warnings + errors with performance metrics
+- **Smart Log Helpers**: `ZenConfig.shouldLogRoutes` and `ZenConfig.shouldLogNavigation`
+- **Better Log Levels**: Controller lifecycle events now use appropriate levels (info vs debug)
+
+#### Improvements
+- Route/navigation logging now properly controlled by environment settings
+- Log levels respect both flags AND global log level configuration
+- Enhanced `toMap()` includes all computed properties for debugging
+- Test environment uses longer disposal timeout (10s) for stability
+
 ## [0.6.2] 
 
 ### Fixed
