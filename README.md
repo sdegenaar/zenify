@@ -624,20 +624,6 @@ showModalBottomSheet(
 );
 ```
 
-### ZenScopeWidget - Custom Scoping
-
-```dart
-// Create scopes at any widget level
-showModalBottomSheet(
-  context: context,
-  builder: (context) => ZenScopeWidget(
-    moduleBuilder: () => FilterModule(),
-    scopeName: 'FilterScope',
-    child: const FilterBottomSheet(),
-  ),
-);
-```
-
 ## 📱 Best Practices
 
 ### 🎯 Widget Selection
