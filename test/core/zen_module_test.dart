@@ -598,7 +598,7 @@ void main() {
     test('should provide debug information', () async {
       await Zen.registerModules([AuthModule()]);
 
-      final modulesDump = Zen.dumpModules();
+      final modulesDump = ZenDebug.dumpModules();
       expect(modulesDump, contains('NetworkModule'));
       expect(modulesDump, contains('AuthModule'));
     });

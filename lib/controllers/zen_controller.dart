@@ -7,7 +7,7 @@ import '../reactive/core/rx_value.dart';
 import '../workers/zen_workers.dart';
 import '../effects/zen_effects.dart';
 
-/// Base controller class with automatic memory leak prevention
+/// Base controller class with automatic memory leak prevention and smart DI
 abstract class ZenController with WidgetsBindingObserver {
   // Internal state tracking
   final DateTime _createdAt = DateTime.now();
@@ -124,7 +124,6 @@ abstract class ZenController with WidgetsBindingObserver {
     if (_initialized) return;
     _initialized = true;
 
-    // Changed from logDebug to logInfo - important lifecycle event
     ZenLogger.logInfo('Controller $runtimeType initialized');
 
     if (ZenConfig.enablePerformanceMetrics) {
@@ -137,7 +136,6 @@ abstract class ZenController with WidgetsBindingObserver {
     if (_ready) return;
     _ready = true;
 
-    // Changed from logDebug to logInfo - important lifecycle event
     ZenLogger.logInfo('Controller $runtimeType ready');
 
     if (ZenConfig.enablePerformanceMetrics) {
@@ -150,7 +148,6 @@ abstract class ZenController with WidgetsBindingObserver {
   void onResume() {
     if (_checkDisposed('onResume')) return;
 
-    // Changed from logDebug to logInfo - important lifecycle event
     ZenLogger.logInfo('Controller $runtimeType resumed');
     resumeAllWorkers();
   }
@@ -160,7 +157,6 @@ abstract class ZenController with WidgetsBindingObserver {
   void onPause() {
     if (_checkDisposed('onPause')) return;
 
-    // Changed from logDebug to logInfo - important lifecycle event
     ZenLogger.logInfo('Controller $runtimeType paused');
     pauseAllWorkers();
   }
@@ -169,7 +165,6 @@ abstract class ZenController with WidgetsBindingObserver {
   @mustCallSuper
   void onInactive() {
     if (_checkDisposed('onInactive')) return;
-
     ZenLogger.logDebug('Controller $runtimeType inactive');
   }
 
@@ -177,7 +172,6 @@ abstract class ZenController with WidgetsBindingObserver {
   @mustCallSuper
   void onDetached() {
     if (_checkDisposed('onDetached')) return;
-
     ZenLogger.logDebug('Controller $runtimeType detached');
   }
 
@@ -185,7 +179,6 @@ abstract class ZenController with WidgetsBindingObserver {
   @mustCallSuper
   void onHidden() {
     if (_checkDisposed('onHidden')) return;
-
     ZenLogger.logDebug('Controller $runtimeType hidden');
   }
 
@@ -250,7 +243,9 @@ abstract class ZenController with WidgetsBindingObserver {
     if (_checkDisposed('pauseAllWorkers')) return;
 
     _batchWorkerOperation(
-        (worker) => worker.pause(), (group) => group.pauseAll());
+      (worker) => worker.pause(),
+      (group) => group.pauseAll(),
+    );
 
     ZenLogger.logDebug('Controller $runtimeType: All workers paused');
   }
@@ -260,7 +255,9 @@ abstract class ZenController with WidgetsBindingObserver {
     if (_checkDisposed('resumeAllWorkers')) return;
 
     _batchWorkerOperation(
-        (worker) => worker.resume(), (group) => group.resumeAll());
+      (worker) => worker.resume(),
+      (group) => group.resumeAll(),
+    );
 
     ZenLogger.logDebug('Controller $runtimeType: All workers resumed');
   }
@@ -270,6 +267,9 @@ abstract class ZenController with WidgetsBindingObserver {
 
   /// Resume workers - convenience method for UI callbacks (no parameters)
   void resumeWorkers() => resumeAllWorkers();
+
+  /// Get count of active watchers (useful for debugging)
+  int get activeWatcherCount => _workers.where((w) => !w.isDisposed).length;
 
   /// Get worker statistics for debugging/monitoring
   Map<String, dynamic> getWorkerStats() {
@@ -290,11 +290,17 @@ abstract class ZenController with WidgetsBindingObserver {
         individualWorkers.where((w) => !w.isDisposed && w.isPaused).length;
 
     final groupActive = _workerGroups.fold<int>(
-        0, (sum, group) => group.isDisposed ? sum : sum + group.activeCount);
+      0,
+      (sum, group) => group.isDisposed ? sum : sum + group.activeCount,
+    );
     final groupPaused = _workerGroups.fold<int>(
-        0, (sum, group) => group.isDisposed ? sum : sum + group.pausedCount);
+      0,
+      (sum, group) => group.isDisposed ? sum : sum + group.pausedCount,
+    );
     final groupTotal = _workerGroups.fold<int>(
-        0, (sum, group) => group.isDisposed ? sum : sum + group.length);
+      0,
+      (sum, group) => group.isDisposed ? sum : sum + group.length,
+    );
 
     return {
       'individual_active': individualActive,
@@ -329,7 +335,7 @@ abstract class ZenController with WidgetsBindingObserver {
   }
 
   //
-  // WORKER CREATION METHODS
+  // LEGACY WORKER CREATION METHODS (Preserved for backward compatibility)
   //
 
   /// Create workers that auto-dispose with controller

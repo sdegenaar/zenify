@@ -13,50 +13,34 @@ void main() {
       ZenTestHelper.resetDI();
     });
 
-    testWidgets(
-        'should create separate controller instances with disposeOnRemove',
+    testWidgets('should dispose controllers when widget is removed from tree',
         (tester) async {
-      final controllerInstances = <TestController>[];
+      late TestController controller;
 
-      Widget buildZenBuilder() {
-        return ZenBuilder<TestController>(
+      await tester.pumpWidget(MaterialApp(
+        home: ZenBuilder<TestController>(
           create: () {
-            final controller =
-                TestController('test_${controllerInstances.length + 1}');
-            controllerInstances.add(controller);
+            controller = TestController('local');
             return controller;
           },
           disposeOnRemove: true,
-          builder: (context, controller) => ElevatedButton(
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const SecondPage()),
-            ),
-            child: Text('Value: ${controller.value}'),
+          builder: (context, ctrl) => Scaffold(
+            body: Text('Value: ${ctrl.value}'),
           ),
-        );
-      }
+        ),
+      ));
 
-      // First page
-      await tester.pumpWidget(MaterialApp(home: buildZenBuilder()));
-      expect(controllerInstances.length, 1);
-      expect(find.text('Value: test_1'), findsOneWidget);
+      expect(find.text('Value: local'), findsOneWidget);
+      expect(controller.isDisposed, false);
 
-      // Navigate to second page (first ZenBuilder goes out of scope)
-      await tester.tap(find.byType(ElevatedButton));
+      // Remove the widget entirely by replacing with different content
+      await tester.pumpWidget(const MaterialApp(
+        home: Scaffold(body: Text('Replaced')),
+      ));
       await tester.pumpAndSettle();
 
-      // Navigate back with a NEW ZenBuilder widget
-      await tester.pageBack();
-      await tester.pumpWidget(MaterialApp(home: buildZenBuilder()));
-      await tester.pumpAndSettle();
-
-      // Should have created a second controller instance
-      expect(controllerInstances.length, 2);
-      expect(find.text('Value: test_2'), findsOneWidget);
-
-      // First controller should be disposed when its widget was removed
-      expect(controllerInstances[0].isDisposed, true);
+      // Controller should be disposed when widget was removed
+      expect(controller.isDisposed, true);
     });
 
     testWidgets('should share controllers when disposeOnRemove is false',

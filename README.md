@@ -1,3 +1,4 @@
+
 # Zenify
 
 [![pub package](https://img.shields.io/pub/v/zenify.svg)](https://pub.dev/packages/zenify)
@@ -26,44 +27,26 @@ Zenify builds on the shoulders of giants, taking inspiration from excellent libr
 - 🏗️ **Native hierarchical scopes** - Dependencies flow naturally from parent to child
 - 🔄 **Automatic cleanup** - No manual disposal needed, prevents memory leaks
 - ✨ **Built-in async effects** - Loading/error states handled automatically
-- 🧪 **Production-validated** - Currently being tested in real-world migration
+- 🎯 **Simplified API** - One obvious way to do each task
 
 ## 🔄 Familiar Patterns, Enhanced Features
 
-If you're familiar with **GetX**, you'll feel right at home! Zenify draws inspiration from Jonny Borges' excellent work, preserving the reactive patterns, keeping the api very similar,
-while adding enhanced capabilities for complex applications.
+If you're familiar with **GetX**, you'll feel right at home! Zenify draws inspiration from Jonny Borges' excellent work, preserving the reactive patterns, keeping the API very similar, while adding enhanced capabilities for complex applications.
 
 We've also incorporated proven concepts from **Riverpod's** hierarchical scoping and **Provider's** context-based inheritance to create a comprehensive solution.
 
-
-## Development Status
-
-> **🚧 Active Development Phase**
->
-> **Progress: Real-world production migration in progress** ⚙️
->
-> Zenify is currently in active development with a **real-world production migration underway**. While the core APIs are stable and thoroughly tested, we're continuously improving based on real production feedback.
->
-> **What this means for you:**
-> - ✅ **Core features are production-ready** - Hierarchical DI, reactive state, and effects system
-> - ✅ **Comprehensive test coverage** - Memory leak detection, lifecycle tests, performance benchmarks
-> - ✅ **Real-world validation** - Currently migrating a production Flutter app to Zenify
-> - ⚠️ **API refinements possible** - Minor breaking changes may occur before v1.0
-> - 📈 **Rapid improvements** - Features and optimizations added based on production usage
->
-> **Perfect for:** New projects, prototypes, and developers who want cutting-edge state management
->
-> **Consider waiting if:** You need absolute API stability for large existing codebases
-
 ## Quick Start (30 seconds)
+
 ### 1. Install
+
 ```yaml
 dependencies:
-  zenify: ^0.6.3
+  zenify: ^1.0.0
 ```
 
 ### 2. Initialize
-``` dart
+
+```dart
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   Zen.init();
@@ -86,8 +69,10 @@ void main() async {
   runApp(const MyApp());
 }
 ```
+
 ### 3. Create Your First Controller
-``` dart
+
+```dart
 class CounterController extends ZenController {
   final count = 0.obs();
   
@@ -95,21 +80,25 @@ class CounterController extends ZenController {
   void decrement() => count.value--;
 }
 ```
-### 4. Optional) Register a Service
-``` dart
-class LoggingService extends ZenService {
-    @override
-    void onInit() {/* setup sinks, files, etc. */}
 
-    @override
-    void onClose() {/* flush and close */}
+### 4. (Optional) Register a Service
+
+```dart
+class LoggingService extends ZenService {
+  @override
+  void onInit() {/* setup sinks, files, etc. */}
+
+  @override
+  void onClose() {/* flush and close */}
 }
 
 // Permanent by default when using Zen.put
 Zen.put<LoggingService>(LoggingService());
 ```
+
 ### 5. Use in Your Page
-``` dart
+
+```dart
 class CounterPage extends ZenView<CounterController> {
   @override
   CounterController createController() => CounterController();
@@ -133,7 +122,9 @@ class CounterPage extends ZenView<CounterController> {
   }
 }
 ```
+
 **That's it!** You have a fully reactive counter with automatic cleanup and type safety.
+
 ## ⚡ Performance Highlights
 - **Minimal Rebuilds**: Only affected widgets update, not entire subtrees
 - **Memory Efficient**: Automatic scope cleanup prevents leaks and dangling references
@@ -142,10 +133,14 @@ class CounterPage extends ZenView<CounterController> {
 - **Production Tested**: Real-world app migration validates performance at scale
 
 _See [Performance Guide](doc/performance_guide.md) for detailed benchmarks_
+
 ## Production-Ready Reactive System
+
 **Beyond basic reactive state** - Zenify includes a comprehensive reactive system designed for production applications:
+
 ### RxFuture - Reactive Async Operations
-``` dart
+
+```dart
 class DataController extends ZenController {
   late final RxFuture<List<User>> usersFuture;
 
@@ -166,18 +161,26 @@ Obx(() {
   return SizedBox.shrink();
 })
 ```
+
 ### RxComputed - Smart Dependency Tracking
-``` dart
+
+```dart
 class ShoppingController extends ZenController {
   final cartItems = <CartItem>[].obs();
   final taxRate = 0.08.obs();
+
+  late final RxComputed<double> subtotal;
+  late final RxComputed<double> tax;
+  late final RxComputed<double> total;
 
   @override
   void onInit() {
     super.onInit();
     
     // These automatically update when dependencies change
-    subtotal = computed(() => cartItems.fold(0.0, (sum, item) => sum + (item.price * item.quantity)));
+    subtotal = computed(() => 
+      cartItems.fold(0.0, (sum, item) => sum + (item.price * item.quantity))
+    );
     tax = computed(() => subtotal.value * taxRate.value);
     total = computed(() => subtotal.value + tax.value);
   }
@@ -192,11 +195,16 @@ Obx(() => Text('Subtotal: \$${controller.subtotal.value.toStringAsFixed(2)}'))
 Obx(() => Text('Tax: \$${controller.tax.value.toStringAsFixed(2)}'))
 Obx(() => Text('Total: \$${controller.total.value.toStringAsFixed(2)}'))
 ```
+
 ### RxResult - Production Error Handling
-``` dart
+
+```dart
 class UserController extends ZenController {
   Future<void> saveUser(User user) async {
-    final result = await RxResult.tryExecuteAsync(() => userService.saveUser(user), 'save user');
+    final result = await RxResult.tryExecuteAsync(
+      () => userService.saveUser(user),
+      'save user'
+    );
     
     result.onSuccess((savedUser) {
       users.add(savedUser);
@@ -215,8 +223,10 @@ class UserController extends ZenController {
   }
 }
 ```
+
 ### Advanced Reactive Patterns
-``` dart
+
+```dart
 class AdvancedController extends ZenController {
   final searchQuery = ''.obs();
   final products = <Product>[].obs();
@@ -231,7 +241,9 @@ class AdvancedController extends ZenController {
       if (query.isEmpty) return products.clear();
 
       isLoading.value = true;
-      final result = await RxResult.tryExecuteAsync(() => productService.search(query));
+      final result = await RxResult.tryExecuteAsync(
+        () => productService.search(query)
+      );
       
       result.onSuccess((results) => products.assignAll(results));
       result.onFailure((error) => showError('Search failed: ${error.message}'));
@@ -241,14 +253,16 @@ class AdvancedController extends ZenController {
   }
 }
 ```
+
 **Benefits:**
 - ✨ **Comprehensive error handling** with graceful degradation
-- **Smart dependency tracking** with automatic cleanup
-- **Type-safe async operations** with built-in loading states
-- **Production-validated** with real-world error scenarios
+- 🎯 **Smart dependency tracking** with automatic cleanup
+- 🔒 **Type-safe async operations** with built-in loading states
+- 🏭 **Production-validated** with real-world error scenarios
 
 ## Handle Async Operations with Effects
-``` dart
+
+```dart
 class UserController extends ZenController {
   late final userEffect = createEffect<User>(name: 'user');
   
@@ -265,16 +279,20 @@ ZenEffectBuilder<User>(
   onError: (error) => ErrorMessage(error),
 )
 ```
+
 **Benefits:**
 - ✨ **Automatic state management** - Loading, success, error handled for you
-- **Retry logic** - Built-in error recovery and retry mechanisms
-- **Type safety** - Full compile-time guarantees for async operations
-- **Testing friendly** - Easy to mock and test different states
+- 🔄 **Retry logic** - Built-in error recovery and retry mechanisms
+- 🔒 **Type safety** - Full compile-time guarantees for async operations
+- 🧪 **Testing friendly** - Easy to mock and test different states
 
 ## Flexible Widget System
+
 Choose the right widget for your needs:
+
 ### ZenConsumer - Efficient Dependency Access
-``` dart
+
+```dart
 // Access services efficiently
 ZenConsumer<CartService>(
   builder: (cartService) => cartService != null
@@ -290,8 +308,10 @@ ZenConsumer<AuthService>(
     : const UpgradePrompt(),
 )
 ```
+
 ### ZenBuilder - Performance Control
-``` dart
+
+```dart
 class PerformanceOptimizedView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -317,7 +337,9 @@ class PerformanceOptimizedView extends StatelessWidget {
           builder: (context, controller) => Expanded(
             child: ListView.builder(
               itemCount: controller.items.length,
-              itemBuilder: (context, index) => ItemWidget(item: controller.items[index]),
+              itemBuilder: (context, index) => ItemWidget(
+                item: controller.items[index]
+              ),
             ),
           ),
         ),
@@ -326,13 +348,13 @@ class PerformanceOptimizedView extends StatelessWidget {
   }
 }
 ```
+
 ### Obx - Reactive Updates
-``` dart
-class ReactiveWidget extends StatelessWidget {
+
+```dart
+class ReactiveWidget extends ZenView<CounterController> {
   @override
   Widget build(BuildContext context) {
-    final controller = Zen.find<CounterController>();
-
     return Column(
       children: [
         // Automatically rebuilds when counter.value changes
@@ -349,6 +371,7 @@ class ReactiveWidget extends StatelessWidget {
   }
 }
 ```
+
 ### Widget Comparison
 
 | Widget | Purpose | Rebuild Trigger | Best For |
@@ -362,12 +385,15 @@ class ReactiveWidget extends StatelessWidget {
 | **ZenControllerScope** | Custom lifecycle | Manual scope control | Explicit lifecycle management |
 
 ## Global Module Registration
+
 Set up your entire app's dependency architecture at startup:
-``` dart
+
+```dart
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   // Initialize Zenify
+  Zen.init();
   ZenConfig.applyEnvironment(ZenEnvironment.development);
   
   // Register global modules
@@ -376,7 +402,6 @@ void main() async {
     CoreModule(),        // Database, storage, logging
     NetworkModule(),     // API clients, connectivity
     AuthModule(),        // Authentication, user management
-   
   ]);
   
   runApp(const MyApp());
@@ -384,11 +409,14 @@ void main() async {
 
 class CoreModule extends ZenModule {
   @override
+  String get name => 'Core';
+
+  @override
   void register(ZenScope scope) {
     // Global services available everywhere
-    Zen.put<DatabaseService>(DatabaseService(), permanent: true);
-    Zen.put<CacheService>(CacheService(), permanent: true);
-    Zen.put<LoggingService>(LoggingService(), permanent: true);
+    scope.put<DatabaseService>(DatabaseService(), isPermanent: true);
+    scope.put<CacheService>(CacheService(), isPermanent: true);
+    scope.put<LoggingService>(LoggingService(), isPermanent: true);
   }
 }
 
@@ -400,13 +428,15 @@ class AnyController extends ZenController {
   final logger = Zen.find<LoggingService>();
 }
 ```
-**Benefits:**
-- ️ **Centralized setup** - Configure your entire app architecture in one place
-- **Hot reload friendly** - Services persist across development iterations
-- **Testing support** - Easy to swap modules for testing
-- **Feature isolation** - Keep related dependencies grouped together
 
-## Services (ZenService) 
+**Benefits:**
+- 🗂️ **Centralized setup** - Configure your entire app architecture in one place
+- 🔥 **Hot reload friendly** - Services persist across development iterations
+- 🧪 **Testing support** - Easy to swap modules for testing
+- 📦 **Feature isolation** - Keep related dependencies grouped together
+
+## Services (ZenService)
+
 Long-lived app-wide services (e.g., auth, logging, cache) with safe lifecycle.
 
 - Lifecycle:
@@ -415,26 +445,25 @@ Long-lived app-wide services (e.g., auth, logging, cache) with safe lifecycle.
     - `isInitialized` is true only after a successful `onInit()`
 - DI behavior:
     - `Zen.put(instance)`: `ZenService` defaults to `isPermanent = true` and initializes via lifecycle manager
-    - `Zen.putLazy(factory)`: permanence is explicit (default `false`); instance is created and initialized on first `Zen.find()`
-    - `Zen.putFactory(factory)`: unchanged; always creates a new instance (no permanence)
-    - `Zen.find()`: auto-initializes a `ZenService` on first access (covers lazy/scoped resolutions)
+    - `Zen.putLazy(factory)`: permanence is explicit; instance is created and initialized on first `Zen.find()`
 
 Example:
-``` dart
+
+```dart
 class AuthService extends ZenService {
-    late final StreamSubscription _tokenSub;
+  late final StreamSubscription _tokenSub;
 
-    @override
-    void onInit() {
-        _tokenSub = tokenStream.listen(_handleToken);
-    }
+  @override
+  void onInit() {
+    _tokenSub = tokenStream.listen(_handleToken);
+  }
 
-    @override
-    void onClose() {
-        _tokenSub.cancel();
-    }
+  @override
+  void onClose() {
+    _tokenSub.cancel();
+  }
 
-    void _handleToken(String token) {/* ... */}
+  void _handleToken(String token) {/* ... */}
 }
 
 // Registration: permanent by default for services
@@ -448,10 +477,15 @@ final auth = Zen.find<AuthService>(); // auto-initializes if needed
 ```
 
 ## Organize with Modules
+
 Scale your app with clean dependency organization:
-``` dart
+
+```dart
 // Define module with controller
 class UserModule extends ZenModule {
+  @override
+  String get name => 'User';
+
   @override
   void register(ZenScope scope) {
     scope.putLazy<UserService>(() => UserService());
@@ -480,24 +514,29 @@ class UserProfilePage extends ZenView<UserController> {
   }
 }
 ```
+
 **Benefits:**
 - 🗂️ **Organized Dependencies** - Group related services together
 - 🔄 **Automatic Cleanup** - Modules dispose when routes change
 - 🏗️ **Hierarchical Inheritance** - Child modules access parent services
 - 🧪 **Testing Friendly** - Swap modules for testing
 
-## ️ Advanced Features
-**For complex applications:**
-- **️ Route-Based Scoping** - Automatic module lifecycle with navigation using `ZenRoute`
-- ** Hierarchical Dependency Injection** - Parent-child scope inheritance with `ZenScopeWidget`
-- ** Tagged Dependencies** - Multiple instances with smart resolution
-- ** Performance Monitoring** - Built-in metrics and leak detection
-- ** Comprehensive Testing** - Mocking, lifecycle, and memory leak tests
-- ** Advanced Lifecycle Hooks** - Module initialization and disposal callbacks
+## 🛠️ Advanced Features
 
-### ZenRoute - Route-Based Module Management
-``` dart
-// Automatic module lifecycle tied to navigation
+**For complex applications:**
+- 🗺️ **Route-Based Scoping** - Automatic module lifecycle with navigation using `ZenRoute`
+- 🏗️ **Hierarchical Dependency Injection** - Parent-child scope inheritance with `ZenScopeWidget`
+- 🏷️ **Tagged Dependencies** - Multiple instances with smart resolution
+- 📊 **Performance Monitoring** - Built-in metrics and leak detection
+- 🧪 **Comprehensive Testing** - Mocking, lifecycle, and memory leak tests
+- 🔄 **Advanced Lifecycle Hooks** - Module initialization and disposal callbacks
+
+### ZenRoute - Works with Any Router
+
+`ZenRoute` works seamlessly with **any Flutter routing solution** - it's just a widget!
+
+```dart
+// ✅ Works with Flutter's built-in Navigator
 class AppRoutes {
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -512,9 +551,68 @@ class AppRoutes {
     }
   }
 }
+
+// ✅ Works with GoRouter
+final router = GoRouter(
+  routes: [
+    GoRoute(
+      path: '/product/:id',
+      builder: (context, state) => ZenRoute(
+        moduleBuilder: () => ProductModule(),
+        page: ProductDetailPage(id: state.pathParameters['id']!),
+        scopeName: 'ProductScope',
+      ),
+    ),
+  ],
+);
+
+// ✅ Works with AutoRoute
+@AutoRouterConfig()
+class AppRouter extends $AppRouter {
+  @override
+  List<AutoRoute> get routes => [
+    AutoRoute(
+      page: ProductRoute.page,
+      path: '/product',
+    ),
+  ];
+}
+
+@RoutePage()
+class ProductRoute extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return ZenRoute(
+      moduleBuilder: () => ProductModule(),
+      page: ProductDetailPage(),
+      scopeName: 'ProductScope',
+    );
+  }
+}
+
+// ✅ Works with any custom routing solution
+Navigator.of(context).push(
+  MaterialPageRoute(
+    builder: (_) => ZenRoute(
+      moduleBuilder: () => SettingsModule(),
+      page: SettingsPage(),
+      scopeName: 'SettingsScope',
+    ),
+  ),
+);
 ```
+
+**Key Benefits:**
+- 🎯 **Router Agnostic** - Works with any routing package or custom solution
+- 🔄 **Automatic Cleanup** - Modules and scopes dispose when route is popped
+- 🏗️ **Hierarchical** - Child routes inherit from parent scopes
+- 🧪 **Testable** - Easy to test without full navigation stack
+
+**Pro Tip:** Use `ZenRoute` for feature-level routes that need dependency isolation. For simple pages, `ZenView` alone is often sufficient!
+
 ### ZenScopeWidget - Custom Scoping
-``` dart
+
+```dart
 // Create scopes at any widget level
 showModalBottomSheet(
   context: context,
@@ -525,6 +623,21 @@ showModalBottomSheet(
   ),
 );
 ```
+
+### ZenScopeWidget - Custom Scoping
+
+```dart
+// Create scopes at any widget level
+showModalBottomSheet(
+  context: context,
+  builder: (context) => ZenScopeWidget(
+    moduleBuilder: () => FilterModule(),
+    scopeName: 'FilterScope',
+    child: const FilterBottomSheet(),
+  ),
+);
+```
+
 ## 📱 Best Practices
 
 ### 🎯 Widget Selection
@@ -564,7 +677,7 @@ showModalBottomSheet(
 ### 🧪 Testing Strategy
 
 1. **Unit Tests**: Test controllers in isolation using dependency injection
-2. **Widget Tests**: Use `ZenTestScope` for component testing
+2. **Widget Tests**: Use `Zen.testMode()` for component testing
 3. **Integration Tests**: Test module interactions and lifecycle
 4. **Mock Dependencies**: Replace services with mocks for testing
 5. **Memory Tests**: Verify proper cleanup and disposal
@@ -598,8 +711,11 @@ Before releasing to production:
 - ✅ Scope hierarchy is clean and purposeful
 
 _Explore [Advanced Guides](doc/) for production patterns and comprehensive examples_
-## Complete Documentation
+
+## 📚 Complete Documentation
+
 **New to Zenify?** Start with the guides that match your needs:
+
 ### Core Guides
 - **[Reactive Core Guide](doc/reactive_core_guide.md)** - Master reactive values, collections, and computed properties
 - **[Effects Usage Guide](doc/effects_usage_guide.md)** - Master async operations with built-in loading/error states
@@ -619,9 +735,11 @@ _Explore [Advanced Guides](doc/) for production patterns and comprehensive examp
 - **Migration Guide** - Moving from other state management solutions
 - **Testing Guide** - Unit and widget testing with Zenify
 
-## Key Features at a Glance
+## 🔑 Key Features at a Glance
+
 ### ZenView - Direct Controller Access
-``` dart
+
+```dart
 class ProductPage extends ZenView<ProductController> {
   @override
   Widget build(BuildContext context) {
@@ -630,16 +748,20 @@ class ProductPage extends ZenView<ProductController> {
   }
 }
 ```
+
 ### Smart Effects System
-``` dart
+
+```dart
 // Automatic state management for async operations
 late final dataEffect = createEffect<List<Item>>(name: 'data');
 
 await dataEffect.run(() => api.fetchData());
 // Loading, success, and error states handled automatically
 ```
+
 ### Hierarchical Dependency Injection
-``` dart
+
+```dart
 // Parent scope provides shared services
 ZenRoute(
   moduleBuilder: () => AppModule(),
@@ -650,8 +772,10 @@ ZenRoute(
 // Child widgets automatically access parent dependencies
 final authService = Zen.find<AuthService>(); // Available everywhere
 ```
+
 ### Flexible Reactivity
-``` dart
+
+```dart
 // Option 1: Automatic reactive updates
 Obx(() => Text('Count: ${controller.count.value}'))
 
@@ -662,21 +786,27 @@ ZenBuilder<Controller>(
 )
 // Only rebuilds when controller.update(['specific-section']) is called
 ```
-## Credits
+
+## 🙏 Credits
+
 Zenify draws inspiration from several excellent state management libraries:
 - **GetX** by Jonny Borges - For the intuitive reactive syntax and dependency injection approach
 - **Provider** by Remi Rousselet - For context-based dependency inheritance concepts
 - **Riverpod** by Remi Rousselet - For improved type safety and testability patterns
 
-## Community & Support
+## 💬 Community & Support
+
 - **Found a bug?** [Open an issue](https://github.com/sdegenaar/zenify/issues)
 - **Have an idea?** [Start a discussion](https://github.com/sdegenaar/zenify/discussions)
 - **Need help?** Check our [comprehensive guides](doc/)
 - **Want to contribute?** See [CONTRIBUTING.md](CONTRIBUTING.md)
 
-## License
+## 📄 License
+
 Zenify is released under the [MIT License](LICENSE).
+
 ## 🚀 Ready to Get Started?
+
 **Choose your path:**
 - 👋 **New to Zenify?** → Start with [Counter Example](example/counter) (5 min)
 - 🏗️ **Building something real?** → See [E-commerce Example](example/ecommerce) (20 min)
@@ -685,7 +815,9 @@ Zenify is released under the [MIT License](LICENSE).
 
 **Questions? We're here to help!**
 - 💬 [Start a Discussion](https://github.com/sdegenaar/zenify/discussions)
+- 💬 [Start a Discussion](https://github.com/sdegenaar/zenify/discussions)
 - 📚 [Browse Documentation](doc/)
 - 🐛 [Report Issues](https://github.com/sdegenaar/zenify/issues)
 
 **Ready to bring zen to your Flutter development?** Start exploring and experience the difference! ✨
+```

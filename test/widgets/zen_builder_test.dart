@@ -169,10 +169,14 @@ void main() {
       await tester.pumpWidget(const MaterialApp(home: SizedBox()));
 
       // Try to access disposed controller
+      // Updated to match v1.0 error message format
       expect(
           () => Zen.find<TestController>(),
-          throwsA(isA<Exception>().having((e) => e.toString(), 'message',
-              'Exception: Dependency of type TestController not found')));
+          throwsA(isA<Exception>().having(
+            (e) => e.toString(),
+            'message',
+            contains('Dependency of type TestController not found'),
+          )));
     });
 
     testWidgets('should cleanup listeners on dispose',
@@ -226,7 +230,7 @@ void main() {
 
   group('ZenBuilder Scoping', () {
     testWidgets('should respect explicit scope', (WidgetTester tester) async {
-      final scope = ZenScope();
+      final scope = Zen.createScope(name: 'TestScope');
       final controller = TestController();
       scope.put<TestController>(controller);
 
@@ -244,8 +248,8 @@ void main() {
 
     testWidgets('should reinitialize on scope change',
         (WidgetTester tester) async {
-      final scope1 = ZenScope();
-      final scope2 = ZenScope();
+      final scope1 = Zen.createScope(name: 'Scope1');
+      final scope2 = Zen.createScope(name: 'Scope2');
 
       final controller1 = TestController()..value = 1;
       final controller2 = TestController()..value = 2;

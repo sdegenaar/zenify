@@ -1,3 +1,77 @@
+## [1.0.0] 
+
+### 🎉 Major Release - API Simplification
+
+Simplified API by 40% while maintaining 100% of the power. **One obvious way to do it.**
+
+### ⚠️ Breaking Changes
+
+#### Unified References
+- **Removed**: `EagerRef`, `LazyRef`, `ControllerRef`, `ZenRef` class
+- **Added**: Single `Ref<T>` for all use cases
+```dart 
+// Before 
+final ref = ZenRef.eager();
+// Now 
+final ref = Ref();
+```
+
+#### Removed Extension Methods
+- **Removed**: `.put()`, `.asRef()`, `.register()` extensions
+- **Use**: `Zen.put()` for all registrations
+```dart 
+// Before 
+myService.put(tag: 'main');
+// Now 
+Zen.put(myService, tag: 'main');
+``` 
+
+#### Simplified API
+- **Removed**: `Zen.putFactory()` - use `Zen.putLazy(..., isPermanent: false)`
+- **Moved**: Debug methods to `ZenDebug` class
+
+```dart
+// Before
+Zen.dumpScopes();
+
+// Now
+ZenDebug.dumpScopes();
+```
+
+### ✨ New Features
+
+- **`Ref<T>`**: Universal reference with `call()` shorthand: `ref()` = `ref.find()`
+- **ZenBuilder**: Proper DI cleanup, ownership tracking, smart disposal defaults
+- **Module System**: Fail-fast with clearer error messages
+- **Barrel Exports**: Clean package structure with logical grouping
+
+### 🔧 Improvements
+
+- Better error messages with scope context
+- `ZenBuilder` removes controllers from DI on disposal
+- Organized exports - internal details hidden
+
+### 🐛 Bug Fixes
+
+- Fixed `ZenBuilder` not removing controllers from DI
+- Fixed module rollback leaving inconsistent state
+- Fixed reactive exports including internals
+- Fixed circular import issues
+
+### 📚 Quick Migration
+
+1. Replace `EagerRef/LazyRef/ControllerRef` → `Ref`
+2. Replace `.put()/.asRef()` → `Zen.put()`
+3. Replace `Zen.putFactory()` → `Zen.putLazy(..., isPermanent: false)`
+4. Replace `Zen.debug*()` → `ZenDebug.*()`
+
+### ✅ What Stays the Same
+
+All core features preserved: hierarchical scopes, lazy loading, tagged dependencies, modules, reactive system, workers, effects, testing, debugging.
+
+---
+
+
 ## 0.6.3
 
 ### 🎯 Logging Improvements

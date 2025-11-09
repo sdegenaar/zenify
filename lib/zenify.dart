@@ -1,47 +1,60 @@
 // lib/zenify.dart
-// Main barrel file for Zenify library
 
+/// Zenify - Modern Flutter state management
+///
+/// Clean, simple, powerful.
 library;
 
-// Core components
-export 'core/core.dart';
+// ===== CORE DI SYSTEM =====
+export 'di/zen_di.dart' show Zen;
+export 'di/zen_refs.dart' show Ref;
+export 'di/zen_lifecycle.dart';
+export 'di/zen_reactive.dart';
 
-// Dependency Injection system
-export 'di/di.dart';
+// ===== CONTROLLERS & SERVICES =====
+export 'controllers/zen_controller.dart';
+export 'controllers/zen_service.dart';
+export 'controllers/zen_controller_scope.dart';
+export 'controllers/zen_route_observer.dart';
 
-// Controllers
-export 'controllers/controllers.dart';
+// ===== SCOPES & MODULES =====
+export 'core/zen_scope.dart';
+export 'core/zen_module.dart';
+export 'core/zen_scope_manager.dart';
+export 'core/zen_scope_stack_tracker.dart';
 
-// Reactive state
+// ===== REACTIVE SYSTEM =====
 export 'reactive/reactive.dart';
 
-// Widgets
-export 'widgets/widgets.dart';
+// ===== WIDGETS =====
+export 'widgets/zen_builder.dart';
+export 'widgets/zen_route.dart';
+export 'widgets/zen_scope_widget.dart';
+export 'widgets/zen_consumer.dart';
+export 'widgets/zen_view.dart';
+export 'widgets/zen_effect_builder.dart';
+export 'widgets/rx_widgets.dart';
 
-// Workers
-export 'workers/workers.dart';
+// ===== WORKERS & EFFECTS =====
+export 'workers/zen_workers.dart';
+export 'effects/zen_effects.dart';
 
-// Effects
-export 'effects/effects.dart';
+// ===== CONFIGURATION =====
+export 'core/zen_config.dart';
+export 'core/zen_environment.dart';
+export 'core/zen_log_level.dart';
+export 'core/zen_logger.dart';
+export 'core/zen_metrics.dart';
 
-// Mixins
-export 'mixins/mixins.dart';
+// ===== UTILITIES =====
+export 'utils/zen_scope_inspector.dart';
 
-// Utils
-export 'utils/utils.dart';
-
-// Testing utilities
+// ===== ERROR HANDLING =====
 export 'testing/testing.dart';
 
-// Re-export key classes for direct import convenience
-export 'controllers/zen_controller.dart' show ZenController;
-export 'di/zen_di.dart' show Zen;
-export 'di/zen_lifecycle.dart';
+// ===== MIXINS =====
+export 'mixins/zen_ticker_provider.dart';
 
-// Re-export worker functions
-export 'workers/zen_workers.dart' show ZenWorkers;
-
-// Widget builders for convenient access
-export 'widgets/rx_widgets.dart' show Obx;
-export 'widgets/zen_builder.dart' show ZenBuilder;
-export 'widgets/zen_scope_widget.dart' show ZenScopeWidget;
+// ===== DEBUG UTILITIES =====
+// Separate namespace - not part of main API
+export 'debug/zen_debug.dart' show ZenDebug;

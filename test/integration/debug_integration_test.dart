@@ -17,9 +17,9 @@ void main() {
       childScope.put<TestController>(TestController('test'));
 
       // Act - Use debug utilities through Zen API
-      final hierarchyInfo = Zen.getHierarchyInfo();
-      final systemStats = Zen.getSystemStats();
-      final allInstances = Zen.findAllInstancesOfType<TestService>();
+      final hierarchyInfo = ZenDebug.getHierarchyInfo();
+      final systemStats = ZenDebug.getSystemStats();
+      final allInstances = ZenDebug.findAllInstancesOfType<TestService>();
 
       // Assert
       expect(hierarchyInfo, isNotNull);
