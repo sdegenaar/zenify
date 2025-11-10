@@ -46,23 +46,18 @@ class ZenTestMode {
   /// Replace a dependency with a factory function
   ///
   /// Useful when you need to create a new instance for each test.
-  ZenTestMode mockLazy<T>(T Function() factory, {String? tag}) {
+  /// By default, creates a singleton on first access.
+  /// Set [alwaysNew] to true to create fresh instance each time.
+  ZenTestMode mockLazy<T>(
+    T Function() factory, {
+    String? tag,
+    bool alwaysNew = false,
+  }) {
     ZenLogger.logDebug(
-        '🧪 Test Mode: Mocking $T${tag != null ? ':$tag' : ''} (lazy)');
+        '🧪 Test Mode: Mocking $T${tag != null ? ':$tag' : ''} (${alwaysNew ? 'always new' : 'lazy singleton'})');
 
     Zen.delete<T>(tag: tag, force: true);
-    Zen.putLazy<T>(factory, tag: tag);
-
-    return this;
-  }
-
-  /// Replace a dependency with a factory that creates new instances
-  ZenTestMode mockFactory<T>(T Function() factory, {String? tag}) {
-    ZenLogger.logDebug(
-        '🧪 Test Mode: Mocking $T${tag != null ? ':$tag' : ''} (factory)');
-
-    Zen.delete<T>(tag: tag, force: true);
-    Zen.putLazy<T>(factory, tag: tag);
+    Zen.putLazy<T>(factory, tag: tag, alwaysNew: alwaysNew);
 
     return this;
   }

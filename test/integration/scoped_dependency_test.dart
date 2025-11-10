@@ -401,8 +401,9 @@ void main() {
           () => ConfigService(environment: "production", isDarkMode: false));
 
       // Register factory counter services (new instance each time)
-      devScope.putFactory<CounterService>(() => CounterService());
-      prodScope.putFactory<CounterService>(() => CounterService());
+      devScope.putLazy<CounterService>(() => CounterService(), alwaysNew: true);
+      prodScope.putLazy<CounterService>(() => CounterService(),
+          alwaysNew: true);
 
       // Access services - lazy should create singleton, factory should create new instances
       final devConfig1 = devScope.find<ConfigService>();

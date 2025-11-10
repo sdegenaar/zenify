@@ -193,10 +193,10 @@ void main() {
       final scope = Zen.createScope(name: 'FactoryScope');
 
       // Register factory
-      scope.putFactory<TestService>(() {
+      scope.putLazy<TestService>(() {
         callCount++;
         return TestService('factory-$callCount');
-      });
+      }, alwaysNew: true);
 
       // First call
       final service1 = scope.find<TestService>();

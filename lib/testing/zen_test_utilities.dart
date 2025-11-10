@@ -44,45 +44,42 @@ class ZenTestContainer {
         'ZenTestContainer created with scope: ${_scope.name} (${_scope.id})');
   }
 
-  /// Register a dependency or controller
-  T register<T>(T Function() factory, {String? tag, bool? permanent}) {
-    ZenLogger.logDebug('Registering $T in test container');
-
-    final instance = factory();
-
-    // Register in the test scope
-    _scope.put<T>(
-      instance,
-      tag: tag,
-      isPermanent: permanent ?? false,
-    );
-
-    return instance;
-  }
-
   /// Register an existing instance
-  T put<T>(T instance, {String? tag, bool? permanent}) {
+  ///
+  /// Use this for eager registration of dependencies.
+  T put<T>(T instance, {String? tag, bool isPermanent = false}) {
     ZenLogger.logDebug('Putting $T instance in test container');
 
     return _scope.put<T>(
       instance,
       tag: tag,
-      isPermanent: permanent ?? false,
+      isPermanent: isPermanent,
     );
   }
 
   /// Register a lazy factory
-  void putLazy<T>(T Function() factory, {String? tag}) {
-    _scope.putLazy<T>(factory, tag: tag);
+  ///
+  /// Creates singleton on first access (default behavior).
+  /// Set [isPermanent] to true to survive scope cleanup.
+  /// Set [alwaysNew] to true to create fresh instance on each find().
+  void putLazy<T>(
+    T Function() factory, {
+    String? tag,
+    bool isPermanent = false,
+    bool alwaysNew = false,
+  }) {
+    _scope.putLazy<T>(
+      factory,
+      tag: tag,
+      isPermanent: isPermanent,
+      alwaysNew: alwaysNew,
+    );
 
-    ZenLogger.logDebug('Registered lazy factory for $T in test container');
-  }
+    final behavior = alwaysNew
+        ? 'factory (always new)'
+        : (isPermanent ? 'permanent' : 'temporary');
 
-  /// Register a factory function
-  void putFactory<T>(T Function() factory, {String? tag}) {
-    _scope.putFactory<T>(factory, tag: tag);
-
-    ZenLogger.logDebug('Registered factory for $T in test container');
+    ZenLogger.logDebug('Registered lazy $behavior for $T in test container');
   }
 
   /// Find a dependency from the test container
@@ -223,12 +220,16 @@ class ZenTestUtils {
   }
 
   /// Create a mock controller for testing
+  ///
+  /// This is a convenience method that creates and registers a controller.
+  /// Equivalent to: container.put(factory(), tag: tag)
   static T createMockController<T extends ZenController>(
     T Function() factory,
     ZenTestContainer container, {
     String? tag,
   }) {
-    final controller = container.register<T>(factory, tag: tag);
+    final controller = factory();
+    container.put<T>(controller, tag: tag);
     return controller;
   }
 

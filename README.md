@@ -41,7 +41,7 @@ We've also incorporated proven concepts from **Riverpod's** hierarchical scoping
 
 ```yaml
 dependencies:
-  zenify: ^1.0.0
+  zenify: ^1.0.1
 ```
 
 ### 2. Initialize
@@ -445,7 +445,7 @@ Long-lived app-wide services (e.g., auth, logging, cache) with safe lifecycle.
     - `isInitialized` is true only after a successful `onInit()`
 - DI behavior:
     - `Zen.put(instance)`: `ZenService` defaults to `isPermanent = true` and initializes via lifecycle manager
-    - `Zen.putLazy(factory)`: permanence is explicit; instance is created and initialized on first `Zen.find()`
+    - `Zen.putLazy(factory)`: permanence is explicit; instance is created and initialized on first `find()`. Use `alwaysNew: true` for factory pattern (new instance each call)
 
 Example:
 
@@ -707,6 +707,7 @@ _Explore [Advanced Guides](doc/) for production patterns and comprehensive examp
 - **[Effects Usage Guide](doc/effects_usage_guide.md)** - Master async operations with built-in loading/error states
 - **[State Management Patterns](doc/state_management_patterns.md)** - Architectural patterns and best practices
 - **[Hierarchical Scopes Guide](doc/hierarchical_scopes_guide.md)** - Advanced dependency injection and scope management
+- **[Testing Guide](doc/testing_guide.md)** - Comprehensive testing with mocks, utilities, and best practices
 
 ### Examples & Learning
 - **[Counter App](example/counter)** - Simple reactive state (5 minutes)

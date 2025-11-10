@@ -357,10 +357,10 @@ class FactoryModule extends ZenModule {
 
   @override
   void register(ZenScope scope) {
-    scope.putFactory<TestService>(() {
+    scope.putLazy<TestService>(() {
       factoryCallCount++;
       return TestService('factory-$factoryCallCount');
-    });
+    }, alwaysNew: true);
   }
 }
 

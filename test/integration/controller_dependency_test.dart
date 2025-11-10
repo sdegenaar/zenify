@@ -315,10 +315,10 @@ void main() {
       int factoryCallCount = 0;
 
       // Register a factory dependency (new instance each time)
-      testScope.putFactory<MockService>(() {
+      testScope.putLazy<MockService>(() {
         factoryCallCount++;
         return MockService();
-      });
+      }, alwaysNew: true);
 
       // First access should create instance
       final service1 = testScope.find<MockService>();

@@ -1,3 +1,19 @@
+## [1.0.1]
+
+### Added
+- Added comprehensive testing guide (`doc/testing_guide.md`) with examples for unit, widget, and integration testing
+
+### Changed
+- Simplified factory pattern API - removed `Zen.putFactory()`, use `Zen.putLazy(..., alwaysNew: true)` instead
+- Enhanced `putLazy()` with `alwaysNew` parameter for factory pattern support
+- Improved logging - route and controller lifecycle events now use `logInfo()` for better visibility
+
+### Fixed
+- Fixed `ZenScope.put()` default parameter handling
+- Fixed factory cleanup logic in scope disposal
+
+---
+
 ## [1.0.0] 
 
 ### 🎉 Major Release - API Simplification

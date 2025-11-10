@@ -157,7 +157,7 @@ class _ZenBuilderState<T extends ZenController> extends State<ZenBuilder<T>> {
       }
 
       // Register listener for controller updates
-      final listenerId = widget.id ?? '_zen_builder_${hashCode}';
+      final listenerId = widget.id ?? '_zen_builder_$hashCode';
       _controller!.addUpdateListener(listenerId, _onControllerUpdate);
 
       _error = null;
@@ -176,7 +176,7 @@ class _ZenBuilderState<T extends ZenController> extends State<ZenBuilder<T>> {
   void _cleanupController() {
     if (_controller != null) {
       // Remove listener
-      final listenerId = widget.id ?? '_zen_builder_${hashCode}';
+      final listenerId = widget.id ?? '_zen_builder_$hashCode';
       _controller!.removeUpdateListener(listenerId, _onControllerUpdate);
 
       // Dispose from DI if we own it and should dispose

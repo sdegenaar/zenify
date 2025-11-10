@@ -35,6 +35,7 @@ class ZenScope {
   final List<ZenScope> _childScopes = [];
 
   // Track use count for dependencies (for auto-disposal)
+  // Values: -1 = permanent, 0 = temporary, -2 = factory (always new)
   final Map<dynamic, int> _useCount = {};
 
   // Store custom disposal functions
@@ -68,13 +69,13 @@ class ZenScope {
   //
 
   /// Register a dependency in this scope
-  T put<T>(T instance, {String? tag, bool? isPermanent}) {
+  T put<T>(T instance, {String? tag, bool isPermanent = false}) {
     if (_disposed) {
       throw Exception('Cannot register in a disposed scope: $name');
     }
 
     // Smart default: ZenService instances default to permanent (same as Zen.put)
-    final permanent = isPermanent ?? (instance is ZenService ? true : false);
+    final permanent = instance is ZenService ? true : isPermanent;
 
     // Auto-initialize ZenController instances
     if (instance is ZenController) {
@@ -130,11 +131,26 @@ class ZenScope {
     return instance;
   }
 
-  /// Register a lazy singleton factory
-  void putLazy<T>(T Function() factory,
-      {String? tag, bool isPermanent = false}) {
+  /// Register a lazy factory
+  ///
+  /// - Set [isPermanent] to true for permanent singletons (survive scope cleanup)
+  /// - Set [isPermanent] to false for temporary singletons (cleaned up with scope)
+  /// - Set [alwaysNew] to true to create fresh instance on each find() call
+  ///
+  /// Note: Cannot set both isPermanent and alwaysNew to true
+  void putLazy<T>(
+    T Function() factory, {
+    String? tag,
+    bool isPermanent = false,
+    bool alwaysNew = false,
+  }) {
     if (_disposed) {
       throw Exception('Cannot register in a disposed scope: $name');
+    }
+
+    if (isPermanent && alwaysNew) {
+      throw ArgumentError('Cannot set both isPermanent and alwaysNew to true. '
+          'A factory that creates new instances cannot be permanent.');
     }
 
     final key = _makeKey<T>(tag);
@@ -143,30 +159,18 @@ class ZenScope {
     // Store the factory for later use
     _factories[key] = factory;
 
-    // Set the use count based on permanence
-    _useCount[trackingKey] = isPermanent ? -1 : 0;
+    // Set the use count based on behavior
+    // -1 = permanent singleton
+    // 0 = temporary singleton
+    // -2 = factory (always creates new)
+    _useCount[trackingKey] = alwaysNew ? -2 : (isPermanent ? -1 : 0);
+
+    final behavior = alwaysNew
+        ? 'factory (always new)'
+        : (isPermanent ? 'permanent singleton' : 'temporary singleton');
 
     ZenLogger.logDebug(
-        'Registered lazy ${isPermanent ? 'permanent' : 'temporary'} singleton for $T${tag != null ? ' with tag $tag' : ''}');
-  }
-
-  /// Register a factory that creates new instances each time
-  void putFactory<T>(T Function() factory, {String? tag}) {
-    if (_disposed) {
-      throw Exception('Cannot register factory in a disposed scope: $name');
-    }
-
-    final key = _makeKey<T>(tag);
-    final trackingKey = _getDependencyKey(T, tag);
-
-    // Store the factory
-    _factories[key] = factory;
-
-    // Mark as a factory in the use count tracking (-2 = factory)
-    _useCount[trackingKey] = -2;
-
-    ZenLogger.logDebug(
-        'Registered factory for $T${tag != null ? ' with tag $tag' : ''}');
+        'Registered lazy $behavior for $T${tag != null ? ' with tag $tag' : ''}');
   }
 
   //
@@ -453,11 +457,8 @@ class ZenScope {
     // Create child scope with proper parent relationship
     final child = ZenScope(name: childName, parent: this);
 
-    // 🔥 ADD THIS LINE: Register the child with ZenScopeManager so it's tracked
+    // Register the child with ZenScopeManager so it's tracked
     ZenScopeManager.registerChildScope(child);
-
-    // Add to this scope's children list
-    //_childScopes.add(child);
 
     return child;
   }
@@ -495,9 +496,7 @@ class ZenScope {
     for (final dep in _typeBindings.values) {
       if (dep is ZenController && !dep.isDisposed) {
         dep.dispose();
-      }
-      // 🆕 Add ZenService disposal
-      else if (dep is ZenService && !dep.isDisposed) {
+      } else if (dep is ZenService && !dep.isDisposed) {
         dep.dispose();
       }
     }
@@ -505,9 +504,7 @@ class ZenScope {
     for (final dep in _taggedBindings.values) {
       if (dep is ZenController && !dep.isDisposed) {
         dep.dispose();
-      }
-      // 🆕 Add ZenService disposal
-      else if (dep is ZenService && !dep.isDisposed) {
+      } else if (dep is ZenService && !dep.isDisposed) {
         dep.dispose();
       }
     }
@@ -557,7 +554,10 @@ class ZenScope {
         if (instance is ZenController && !instance.isDisposed) {
           try {
             instance.dispose();
-          } catch (e) {/* existing error handling */}
+          } catch (e) {
+            ZenLogger.logError(
+                'Error disposing controller during clearAll: $e');
+          }
         } else if (instance is ZenService && !instance.isDisposed) {
           try {
             instance.dispose();
@@ -617,11 +617,10 @@ class ZenScope {
       final factoriesToRemove = <String>[];
       for (final entry in _factories.entries) {
         final factoryKey = entry.key;
-        // Try to parse the factory key to get type and tag info
-        // For simplicity, we'll check the use count map
+        // Check if this factory is non-permanent
         final matchingKeys = _useCount.entries.where((e) =>
-            e.value != -1 &&
-            factoryKey.contains(e.key.toString().split('|')[0]));
+            e.value != -1 && // Not permanent
+            e.value != -2); // Not a factory pattern
 
         if (matchingKeys.isNotEmpty) {
           factoriesToRemove.add(factoryKey);
@@ -791,9 +790,10 @@ class ZenScope {
       _lifecycleManager.initializeService(instance);
     }
 
-    // Check if this is a singleton factory or not
+    // Check if this is a singleton factory or always-new factory
     final trackingKey = _getDependencyKey(T, tag);
-    final isSingleton = _useCount[trackingKey] != -2; // -2 = factory
+    final isSingleton =
+        _useCount[trackingKey] != -2; // -2 = factory (always new)
 
     // For singletons, store the instance and remove the factory
     if (isSingleton) {

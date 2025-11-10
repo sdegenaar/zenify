@@ -149,8 +149,8 @@ void main() {
     test('should register factory dependencies', () {
       var counter = 0;
       // Register factory that creates new instances
-      testScope
-          .putFactory<TestService>(() => TestService('factory-${++counter}'));
+      testScope.putLazy<TestService>(() => TestService('factory-${++counter}'),
+          alwaysNew: true);
 
       // Should create new instances each time
       final found1 = testScope.find<TestService>();

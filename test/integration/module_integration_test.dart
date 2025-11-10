@@ -635,12 +635,12 @@ void main() {
       int networkServiceCount = 0;
 
       // Register factory for network service (new instance each time)
-      testScope.putFactory<NetworkService>(() {
+      testScope.putLazy<NetworkService>(() {
         networkServiceCount++;
         final service = NetworkService();
         service.initialize();
         return service;
-      });
+      }, alwaysNew: true);
 
       // First access
       final networkService1 = testScope.find<NetworkService>();

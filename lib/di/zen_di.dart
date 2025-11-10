@@ -24,7 +24,7 @@ class Zen {
   /// Initialize Zenify - call once at app startup
   static void init() {
     _lifecycleManager.initLifecycleObserver();
-    ZenLogger.logInfo('Zen v1.0.0 initialized');
+    ZenLogger.logInfo('Zen initialized');
   }
 
   //
@@ -84,9 +84,38 @@ class Zen {
   }
 
   /// Register a lazy factory in root scope
-  static void putLazy<T>(T Function() factory,
-      {String? tag, bool isPermanent = false}) {
-    rootScope.putLazy<T>(factory, tag: tag, isPermanent: isPermanent);
+  ///
+  /// Creates a singleton that is instantiated only on first access.
+  ///
+  /// - Set [isPermanent] to true for permanent singletons (survive scope cleanup)
+  /// - Set [isPermanent] to false for temporary singletons (default, cleaned up with scope)
+  /// - Set [alwaysNew] to true to create fresh instance on each find() call (factory pattern)
+  ///
+  /// Note: Cannot set both isPermanent and alwaysNew to true
+  ///
+  /// Example:
+  /// ```dart
+  /// // Lazy singleton (created once, temporary)
+  /// Zen.putLazy(() => HeavyService());
+  ///
+  /// // Permanent lazy singleton
+  /// Zen.putLazy(() => ConfigService(), isPermanent: true);
+  ///
+  /// // Factory pattern (new instance each time)
+  /// Zen.putLazy(() => RequestId.generate(), alwaysNew: true);
+  /// ```
+  static void putLazy<T>(
+    T Function() factory, {
+    String? tag,
+    bool isPermanent = false,
+    bool alwaysNew = false,
+  }) {
+    rootScope.putLazy<T>(
+      factory,
+      tag: tag,
+      isPermanent: isPermanent,
+      alwaysNew: alwaysNew,
+    );
   }
 
   /// Find a dependency in root scope (throws if not found)
