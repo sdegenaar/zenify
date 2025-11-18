@@ -482,6 +482,218 @@ class TodoMutation {
 }
 ``` 
 
+## Scope Integration
+
+### Overview
+
+ZenQuery supports both **global** and **scoped** modes for flexible lifecycle management:
+
+- **Global queries**: Persist across navigation, ideal for app-wide data
+- **Scoped queries**: Auto-dispose with their scope, perfect for feature-specific data
+
+### Global Queries (Default)
+```
+// Global query - managed by cache, persists across navigation
+final userQuery = ZenQuery<User>(
+  queryKey: 'currentUser',
+  fetcher: () => api.getCurrentUser(),
+);
+
+// Access anywhere in your app
+ZenQueryBuilder<User>(
+  query: userQuery,
+  builder: (context, user) => UserAvatar(user),
+);
+```
+
+### Scoped Queries
+```
+// Scoped query - tied to module lifecycle
+class ProductModule extends ZenModule {
+  @override
+  void register(ZenScope scope) {
+    final productQuery = ZenQuery<Product>(
+      queryKey: 'product:$productId',
+      fetcher: () => api.getProduct(productId),
+      scope: scope,           // Tied to scope
+      autoDispose: true,      // Auto-dispose when scope disposes
+    );
+    
+    scope.put(productQuery);
+  }
+}
+``` 
+
+### Use Cases
+
+#### Feature-Specific Data (Scoped)
+```
+class ProductDetailModule extends ZenModule {
+  final String productId;
+  
+  ProductDetailModule(this.productId);
+  
+  @override
+  void register(ZenScope scope) {
+    // Product data - scope-specific
+    scope.putLazy(() => ZenQuery<Product>(
+      queryKey: 'product:$productId',
+      fetcher: () => api.getProduct(productId),
+      scope: scope,
+    ));
+    
+    // Reviews - scope-specific
+    scope.putLazy(() => ZenQuery<List<Review>>(
+      queryKey: 'reviews:$productId',
+      fetcher: () => api.getReviews(productId),
+      scope: scope,
+    ));
+  }
+}
+
+// Queries auto-dispose when route is popped
+ZenRoute(
+  moduleBuilder: () => ProductDetailModule(productId),
+  page: ProductDetailPage(),
+  scopeName: 'ProductScope',
+);
+```
+
+#### Within Controller Creation
+```
+class ProductController extends ZenController {
+  late final productQuery = ZenQuery<Product>(
+    queryKey: 'product:$productId',
+    fetcher: () => api.getProduct(productId),
+    scope: Zen.currentScope,  // ← Implicit scope
+  );
+}
+```
+
+#### App-Wide Data (Global)
+```
+class AppModule extends ZenModule {
+  @override
+  void register(ZenScope scope) {
+    // User data - global, persists across navigation
+    final userQuery = ZenQuery<User>(
+      queryKey: 'currentUser',
+      fetcher: () => api.getCurrentUser(),
+      // No scope parameter = global
+    );
+    
+    scope.put(userQuery, isPermanent: true);
+  }
+}
+```
+
+## When to Use Each Pattern
+
+### Use Global Queries When:
+- Data is app-wide (user profile, settings)
+- Data persists across navigation
+- Multiple features access the same data
+
+### Use Scoped Queries When:
+- Data is feature-specific (product details, post comments)
+- Data should clear on navigation away
+- Module/feature has dedicated queries
+
+### Quick Decision Tree:
+1. Does this data survive navigation? → Global
+2. Is this data shared across features? → Global
+3. Is this data feature-specific? → Scoped
+4. Should this clear when leaving the page? → Scoped
+
+---
+
+### Scope Operations
+#### Invalidate All Queries in Scope
+```
+// Invalidate all queries in a scope (marks as stale)
+ZenQueryCache.instance.invalidateScope(scope.id);
+```
+
+#### Clear Scope Cache
+
+```
+// Remove all queries from a scope
+ZenQueryCache.instance.clearScope(scope.id);
+```
+
+#### Get Scope Statistics
+```
+final stats = ZenQueryCache.instance.getScopeStats(scope.id);
+print('Total queries: ${stats['total']}');
+print('Loading: ${stats['loading']}');
+print('Success: ${stats['success']}');
+print('Error: ${stats['error']}');
+```
+
+### Best Practices
+
+1. **Use scoped queries for feature data** - Auto-cleanup prevents memory leaks
+2. **Use global queries for shared data** - User profile, app config, etc.
+3. **Set `autoDispose: true` for temporary data** - Reviews, comments, etc.
+4. **Set `autoDispose: false` for persistent cache** - Keep data even after scope disposal
+5. **Invalidate scope on data mutations** - Keep related queries in sync
+
+
+#### Example: E-commerce Product Page
+```
+class ProductPageModule extends ZenModule {
+  final String productId;
+  
+  ProductPageModule(this.productId);
+  
+  @override
+  void register(ZenScope scope) {
+    // All product-related queries tied to this scope
+    scope.putLazy(() => ZenQuery<Product>(
+      queryKey: 'product:$productId',
+      fetcher: () => api.getProduct(productId),
+      scope: scope,
+    ));
+    
+    scope.putLazy(() => ZenQuery<List<Review>>(
+      queryKey: 'reviews:$productId',
+      fetcher: () => api.getReviews(productId),
+      scope: scope,
+    ));
+    
+    scope.putLazy(() => ZenQuery<List<Product>>(
+      queryKey: 'related:$productId',
+      fetcher: () => api.getRelatedProducts(productId),
+      scope: scope,
+    ));
+    
+    // Controller for this page
+    scope.putLazy(() => ProductPageController());
+  }
+}
+
+// Route with automatic cleanup
+ZenRoute(
+  moduleBuilder: () => ProductPageModule(productId),
+  page: ProductDetailPage(),
+  scopeName: 'ProductScope',
+);
+
+// When user navigates away:
+// ✅ All queries auto-dispose
+// ✅ Controller auto-disposes
+// ✅ Scope cleans up
+// ✅ No memory leaks!
+```
+
+### Benefits
+
+- ✅ **Automatic cleanup** - No manual disposal needed
+- ✅ **Cache isolation** - Different features don't interfere
+- ✅ **Memory efficient** - Data removed when not needed
+- ✅ **Flexible** - Choose global or scoped based on use case
+- ✅ **Testable** - Easy to mock and isolate for testing
+
 ---
 
 

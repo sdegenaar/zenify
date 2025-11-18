@@ -1,3 +1,35 @@
+## [1.1.1]
+
+### 🚀 Scope-Aware ZenQuery
+**ZenQuery now supports optional scope integration for automatic lifecycle management**
+
+#### New Features
+
+- **Scope Integration**: Tie queries to scopes for automatic disposal
+    - Pass `scope` parameter to bind query to a specific scope
+    - `autoDispose` flag controls automatic cleanup behavior
+    - Queries auto-dispose when their scope disposes (prevents memory leaks)
+
+- **Scope Operations**: Bulk operations on scoped queries
+    - `ZenQueryCache.invalidateScope(scopeId)` - Invalidate all queries in scope
+    - `ZenQueryCache.refetchScope(scopeId)` - Refetch all queries in scope
+    - `ZenQueryCache.clearScope(scopeId)` - Clear all queries from scope
+    - `ZenQueryCache.getScopeQueries(scopeId)` - Get all queries in scope
+    - `ZenQueryCache.getScopeStats(scopeId)` - Get scope query statistics
+
+- **Enhanced Cache Statistics**: Differentiate global vs scoped queries
+    - `global_queries` count
+    - `scoped_queries` count
+    - `active_scopes` count
+
+#### Key Advantages
+
+- ✅ **Automatic cleanup** - Queries dispose with their scope (no memory leaks)
+- ✅ **Cache isolation** - Feature modules have isolated query caches
+- ✅ **Flexible** - Choose global or scoped based on use case
+- ✅ **Backward compatible** - Existing queries work without changes (default to global)
+
+
 ## [1.1.0]
 
 ### 🚀 Major Feature: ZenQuery System
@@ -71,7 +103,7 @@ final ref = Ref();
 #### Removed Extension Methods
 - **Removed**: `.put()`, `.asRef()`, `.register()` extensions
 - **Use**: `Zen.put()` for all registrations
-```dart 
+```
 // Before 
 myService.put(tag: 'main');
 // Now 
@@ -82,7 +114,7 @@ Zen.put(myService, tag: 'main');
 - **Removed**: `Zen.putFactory()` - use `Zen.putLazy(..., isPermanent: false)`
 - **Moved**: Debug methods to `ZenDebug` class
 
-```dart
+```
 // Before
 Zen.dumpScopes();
 

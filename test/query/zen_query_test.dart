@@ -261,8 +261,10 @@ void main() {
 
       final stats = ZenQueryCache.instance.getStats();
 
-      expect(stats['activeQueries'], 1);
-      expect(stats['queries'], contains('test'));
+      // Updated to match new stats format
+      expect(stats['total_queries'], 1);
+      expect(stats['global_queries'], 1);
+      expect(stats['scoped_queries'], 0);
     });
   });
 }

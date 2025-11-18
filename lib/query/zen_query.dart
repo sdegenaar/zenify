@@ -1,6 +1,7 @@
 import 'dart:async';
 import '../controllers/zen_controller.dart';
 import '../core/zen_logger.dart';
+import '../core/zen_scope.dart';
 import '../reactive/reactive.dart';
 import 'zen_query_cache.dart';
 import 'zen_query_config.dart';
@@ -36,6 +37,12 @@ class ZenQuery<T> extends ZenController {
 
   /// Optional initial data
   final T? initialData;
+
+  /// Optional scope - if provided, query will be tied to this scope
+  final ZenScope? scope;
+
+  /// Whether to automatically dispose when scope disposes
+  final bool autoDispose;
 
   /// Current status of the query
   final Rx<ZenQueryStatus> status = Rx(ZenQueryStatus.idle);
@@ -91,6 +98,8 @@ class ZenQuery<T> extends ZenController {
     required this.fetcher,
     ZenQueryConfig? config,
     this.initialData,
+    this.scope,
+    this.autoDispose = true,
   }) : config = ZenQueryConfig.defaults.merge(config) {
     // Set initial data if provided
     if (initialData != null) {
@@ -101,11 +110,42 @@ class ZenQuery<T> extends ZenController {
       _lastFetchTime = null;
     }
 
-    // Register in cache
-    ZenQueryCache.instance.register(this);
+    // Register in cache (scope-aware or global)
+    if (scope != null) {
+      _registerInScope();
+    } else {
+      // Register in global cache (existing behavior)
+      ZenQueryCache.instance.register(this);
+    }
 
     // Setup background refetch if enabled
     _setupBackgroundRefetch();
+  }
+
+  /// Register query in scope with automatic cleanup
+  void _registerInScope() {
+    if (scope == null) return;
+
+    // Register in global cache with scope prefix for tracking
+    final scopedKey = '${scope!.id}:$queryKey';
+    ZenQueryCache.instance.registerScoped(this, scopedKey, scope!.id);
+
+    // Register disposer with scope for automatic cleanup
+    if (autoDispose) {
+      scope!.registerDisposer(() {
+        if (!_isDisposed) {
+          ZenLogger.logDebug(
+            'Auto-disposing scoped query: $queryKey (scope: ${scope!.name})',
+          );
+          dispose();
+        }
+      });
+    }
+
+    ZenLogger.logDebug(
+      'Registered scoped query: $queryKey in scope ${scope!.name} '
+      '(autoDispose: $autoDispose)',
+    );
   }
 
   /// Fetch or refetch data
@@ -258,14 +298,20 @@ class ZenQuery<T> extends ZenController {
   }
 
   @override
+  @override
   void onClose() {
     _isDisposed = true;
     _refetchTimer?.cancel();
     _refetchTimer = null;
     _currentFetch = null;
 
-    // Unregister from cache
-    ZenQueryCache.instance.unregister(queryKey);
+    // Unregister based on how it was registered
+    if (scope != null) {
+      final scopedKey = '${scope!.id}:$queryKey';
+      ZenQueryCache.instance.unregister(scopedKey);
+    } else {
+      ZenQueryCache.instance.unregister(queryKey);
+    }
 
     // Dispose notifiers
     status.dispose();

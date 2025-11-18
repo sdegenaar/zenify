@@ -1,6 +1,7 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
+import '../core/zen_logger.dart';
 import 'zen_query.dart';
+import 'zen_query_config.dart';
 
 /// Cache entry for a query
 class _CacheEntry<T> {
@@ -21,7 +22,10 @@ class _CacheEntry<T> {
   }
 }
 
-/// Global cache manager for ZenQuery
+/// Global cache manager for ZenQuery instances
+///
+/// Supports both global queries and scope-aware queries for flexible
+/// lifecycle management and cache isolation.
 ///
 /// Handles:
 /// - Query deduplication
@@ -33,8 +37,11 @@ class ZenQueryCache {
 
   static final ZenQueryCache instance = ZenQueryCache._();
 
-  /// Active queries by key
+  // Map of query key to query instance
   final Map<String, ZenQuery> _queries = {};
+
+  // Track which queries belong to which scope
+  final Map<String, Set<String>> _scopeQueries = {};
 
   /// Cached data by key
   final Map<String, _CacheEntry> _cache = {};
@@ -53,19 +60,122 @@ class ZenQueryCache {
     _useRealTimers = useRealTimers;
   }
 
-  /// Register a query
+  /// Register a query in the cache
   void register<T>(ZenQuery<T> query) {
-    final existing = _queries[query.queryKey];
-    if (existing != null && existing != query) {
-      debugPrint(
-          'Warning: Query with key "${query.queryKey}" already exists. Using existing instance.');
-    }
     _queries[query.queryKey] = query;
+    ZenLogger.logDebug('Registered global query: ${query.queryKey}');
   }
 
-  /// Unregister a query
+  /// Register a scoped query with automatic scope tracking
+  void registerScoped<T>(ZenQuery<T> query, String scopedKey, String scopeId) {
+    _queries[scopedKey] = query;
+
+    // Track which queries belong to this scope
+    _scopeQueries.putIfAbsent(scopeId, () => <String>{}).add(scopedKey);
+
+    ZenLogger.logDebug(
+      'Registered scoped query: ${query.queryKey} '
+      '(scopedKey: $scopedKey, scopeId: $scopeId)',
+    );
+  }
+
+  /// Unregister a query from the cache
   void unregister(String queryKey) {
-    _queries.remove(queryKey);
+    final query = _queries.remove(queryKey);
+
+    // Remove from scope tracking if it was a scoped query
+    _scopeQueries.forEach((scopeId, keys) {
+      keys.remove(queryKey);
+    });
+
+    // Clean up empty scope entries
+    _scopeQueries.removeWhere((key, value) => value.isEmpty);
+
+    if (query != null) {
+      ZenLogger.logDebug('Unregistered query: $queryKey');
+    }
+  }
+
+  /// Invalidate all queries in a specific scope
+  void invalidateScope(String scopeId) {
+    final scopeQueries = _scopeQueries[scopeId];
+    if (scopeQueries == null) return;
+
+    int invalidatedCount = 0;
+    for (final key in scopeQueries) {
+      final query = _queries[key];
+      if (query != null && !query.isDisposed) {
+        query.invalidate();
+        invalidatedCount++;
+      }
+    }
+
+    ZenLogger.logDebug(
+      'Invalidated $invalidatedCount queries in scope: $scopeId',
+    );
+  }
+
+  /// Refetch all queries in a specific scope
+  Future<void> refetchScope(String scopeId) async {
+    final scopeQueries = _scopeQueries[scopeId];
+    if (scopeQueries == null) return;
+
+    final refetchFutures = <Future>[];
+    for (final key in scopeQueries) {
+      final query = _queries[key];
+      if (query != null && !query.isDisposed) {
+        refetchFutures.add(query.refetch().catchError((e) {
+          ZenLogger.logWarning(
+            'Failed to refetch query $key in scope $scopeId: $e',
+          );
+        }));
+      }
+    }
+
+    await Future.wait(refetchFutures);
+    ZenLogger.logDebug(
+        'Refetched ${refetchFutures.length} queries in scope: $scopeId');
+  }
+
+  /// Clear all queries in a specific scope
+  void clearScope(String scopeId) {
+    final scopeQueries = _scopeQueries[scopeId];
+    if (scopeQueries == null) return;
+
+    final keysToRemove = List<String>.from(scopeQueries);
+    for (final key in keysToRemove) {
+      _queries.remove(key);
+    }
+
+    _scopeQueries.remove(scopeId);
+    ZenLogger.logDebug(
+        'Cleared ${keysToRemove.length} queries from scope: $scopeId');
+  }
+
+  /// Get all queries in a specific scope
+  List<ZenQuery> getScopeQueries(String scopeId) {
+    final scopeQueries = _scopeQueries[scopeId];
+    if (scopeQueries == null) return [];
+
+    return scopeQueries
+        .map((key) => _queries[key])
+        .whereType<ZenQuery>()
+        .toList();
+  }
+
+  /// Get statistics about scope queries
+  Map<String, dynamic> getScopeStats(String scopeId) {
+    final queries = getScopeQueries(scopeId);
+
+    return {
+      'total': queries.length,
+      'loading': queries.where((q) => q.isLoading.value).length,
+      'success':
+          queries.where((q) => q.status.value == ZenQueryStatus.success).length,
+      'error':
+          queries.where((q) => q.status.value == ZenQueryStatus.error).length,
+      'stale': queries.where((q) => q.isStale).length,
+    };
   }
 
   /// Get query by key
@@ -145,7 +255,19 @@ class ZenQueryCache {
     final futures = <Future>[];
     for (final entry in _queries.entries) {
       if (predicate(entry.key)) {
-        futures.add(entry.value.refetch().catchError((_) {}));
+        // Wrap in anonymous function to handle errors properly
+        futures.add(
+          Future(() async {
+            try {
+              await entry.value.refetch();
+            } catch (e) {
+              ZenLogger.logWarning(
+                'Failed to refetch query ${entry.key}: $e',
+              );
+              // Don't rethrow - we want to continue with other queries
+            }
+          }),
+        );
       }
     }
     await Future.wait(futures);
@@ -167,15 +289,41 @@ class ZenQueryCache {
     _cache.clear();
     _queries.clear();
     _pendingFetches.clear();
+    _scopeQueries.clear();
   }
 
-  /// Get cache statistics
+  /// Get comprehensive cache statistics
   Map<String, dynamic> getStats() {
+    int globalQueries = 0;
+    int scopedQueries = 0;
+
+    // Count queries by checking if they're tracked in _scopeQueries
+    final allScopedKeys = <String>{};
+    for (final scopeKeys in _scopeQueries.values) {
+      allScopedKeys.addAll(scopeKeys);
+    }
+
+    for (final key in _queries.keys) {
+      if (allScopedKeys.contains(key)) {
+        scopedQueries++;
+      } else {
+        globalQueries++;
+      }
+    }
+
     return {
-      'activeQueries': _queries.length,
-      'cachedEntries': _cache.length,
-      'pendingFetches': _pendingFetches.length,
-      'queries': _queries.keys.toList(),
+      'total_queries': _queries.length,
+      'global_queries': globalQueries,
+      'scoped_queries': scopedQueries,
+      'active_scopes': _scopeQueries.length,
+      'loading': _queries.values.where((q) => q.isLoading.value).length,
+      'success': _queries.values
+          .where((q) => q.status.value == ZenQueryStatus.success)
+          .length,
+      'error': _queries.values
+          .where((q) => q.status.value == ZenQueryStatus.error)
+          .length,
+      'stale': _queries.values.where((q) => q.isStale).length,
     };
   }
 
