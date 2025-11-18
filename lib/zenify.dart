@@ -39,6 +39,9 @@ export 'widgets/rx_widgets.dart';
 export 'workers/zen_workers.dart';
 export 'effects/zen_effects.dart';
 
+// Query system
+export 'query/query.dart';
+
 // ===== CONFIGURATION =====
 export 'core/zen_config.dart';
 export 'core/zen_environment.dart';

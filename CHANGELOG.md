@@ -1,3 +1,39 @@
+## [1.1.0]
+
+### 🚀 Major Feature: ZenQuery System
+
+**Async state management inspired by React Query and TanStack Query**
+
+#### New Features
+- **ZenQuery**: Smart query management with automatic caching, deduplication, and background refetching
+    - Automatic request deduplication (same query key = single request)
+    - Configurable stale time and cache time
+    - Automatic retries with exponential backoff
+    - Background refetching on configurable intervals
+    - Optimistic updates support
+    - Query invalidation and cache management
+
+- **ZenQueryBuilder**: Reactive widget for query-driven UI
+    - Auto-fetch on mount
+    - Show stale data while refetching (SWR pattern)
+    - Built-in loading, error, and success states
+    - Automatic retry functionality
+    - Custom state builders
+
+- **ZenQueryCache**: Global cache manager
+    - Query registration and lifecycle management
+    - Cache invalidation by key or prefix
+    - Bulk query refetching
+    - Memory management with automatic cleanup
+    - Cache statistics and debugging
+
+#### Key Advantages Over Alternatives
+- ✅ **10x simpler** for async data
+- ✅ **Automatic caching** with smart defaults
+- ✅ **Built-in retry logic** with exponential backoff
+- ✅ **Zero boilerplate** for common patterns
+- ✅ **Production-ready** with comprehensive error handling
+
 ## [1.0.1]
 
 ### Added

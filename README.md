@@ -15,6 +15,7 @@ A modern state management library for Flutter that brings true "zen" to your dev
 - **🔗 Natural Hierarchy**: Nested scopes that automatically inherit from parents
 - **⚡ Flexible Reactivity**: Choose between automatic UI updates or manual control
 - **🔒 Strong Type Safety**: Catch errors at compile-time with enhanced type constraints
+- **🔥 Smart Query System**: React Query-like caching, deduplication, and background refetching
 - **✨ Elegant Async Handling**: Built-in effects system for loading, error, and success states
 - **🔍 Production-Safe Logging**: Type-safe, environment-based configuration with granular log levels
 - **🧪 Testing Ready**: Comprehensive testing utilities out of the box
@@ -41,7 +42,7 @@ We've also incorporated proven concepts from **Riverpod's** hierarchical scoping
 
 ```yaml
 dependencies:
-  zenify: ^1.0.1
+  zenify: ^1.1.0
 ```
 
 ### 2. Initialize
@@ -286,6 +287,37 @@ ZenEffectBuilder<User>(
 - 🔒 **Type safety** - Full compile-time guarantees for async operations
 - 🧪 **Testing friendly** - Easy to mock and test different states
 
+## 🔥 ZenQuery - Smart Async State Management
+
+React Query-like functionality for Flutter with automatic caching, deduplication, and background refetching.
+``` 
+// Create query
+final userQuery = ZenQuery<User>(
+  queryKey: 'user:123',
+  fetcher: () => api.getUser(123),
+);
+
+// Use in widget
+ZenQueryBuilder<User>(
+  query: userQuery,
+  builder: (context, user) => Text(user.name),
+  loading: () => CircularProgressIndicator(),
+  error: (error, retry) => ErrorWidget(error: error, onRetry: retry),
+);
+```
+
+**Features:**
+- ✅ **Automatic caching** - No more manual cache management
+- ✅ **Smart deduplication** - Multiple requests = single API call
+- ✅ **Background refetch** - Keep data fresh automatically
+- ✅ **Optimistic updates** - Instant UI with error rollback
+- ✅ **Retry logic** - Exponential backoff built-in
+- ✅ **SWR pattern** - Show cached data while fetching fresh
+
+**Perfect for:** REST APIs, GraphQL queries, pagination, infinite scroll, and real-time data feeds.
+
+[See ZenQuery Guide](doc/zen_query_guide.md)
+
 ## Flexible Widget System
 
 Choose the right widget for your needs:
@@ -383,6 +415,7 @@ class ReactiveWidget extends ZenView<CounterController> {
 | **Obx** | Reactive updates | Reactive value changes | Simple reactive widgets |
 | **ZenEffectBuilder** | Async operations | Effect state changes | Loading/Error/Success states |
 | **ZenControllerScope** | Custom lifecycle | Manual scope control | Explicit lifecycle management |
+| **ZenQueryBuilder** | Query operations | Query state changes | API calls with caching |
 
 ## Global Module Registration
 
@@ -799,6 +832,7 @@ Zenify is released under the [MIT License](LICENSE).
 - 🏗️ **Building something real?** → See [E-commerce Example](example/ecommerce) (20 min)
 - 🔄 **Migrating from GetX/Provider?** → Check [Migration Guide](doc/migration_guide.md)
 - 🏢 **Enterprise project?** → Review [Hierarchical Scopes Guide](doc/hierarchical_scopes_guide.md)
+- 🚀 **Building an API-driven app?** → Start with [ZenQuery Guide](doc/zen_query_guide.md) (15 min)
 
 **Questions? We're here to help!**
 - 💬 [Start a Discussion](https://github.com/sdegenaar/zenify/discussions)

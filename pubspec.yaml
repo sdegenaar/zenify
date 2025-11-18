@@ -1,7 +1,7 @@
 name: zenify
 description: Modern Flutter state management with hierarchical DI, automatic memory leak prevention, and reactive programming. Bring zen to your development.
 
-version: 1.0.1
+version: 1.1.0
 homepage: https://github.com/sdegenaar/zenify
 repository: https://github.com/sdegenaar/zenify
 issue_tracker: https://github.com/sdegenaar/zenify/issues

@@ -2,6 +2,7 @@
 import '../di/zen_di.dart';
 import '../core/zen_scope.dart';
 import '../core/zen_logger.dart';
+import '../query/zen_query_cache.dart';
 
 /// Test mode utilities for easy mocking and test setup
 ///
@@ -20,7 +21,12 @@ import '../core/zen_logger.dart';
 /// });
 /// ```
 class ZenTestMode {
-  ZenTestMode._();
+  ZenTestMode._() {
+    // Automatically configure cache for testing when test mode is entered
+    ZenQueryCache.instance.configureForTesting(useRealTimers: false);
+    ZenLogger.logDebug(
+        '🧪 Test Mode: Query cache configured (timers disabled)');
+  }
 
   static final ZenTestMode _instance = ZenTestMode._();
 
@@ -107,13 +113,30 @@ class ZenTestMode {
     return this;
   }
 
+  /// Clear query cache (useful between tests)
+  ///
+  /// Example:
+  /// ```dart
+  /// setUp(() {
+  ///   Zen.testMode().clearQueryCache();
+  /// });
+  /// ```
+  ZenTestMode clearQueryCache() {
+    ZenQueryCache.instance.clear();
+    ZenLogger.logDebug('🧪 Test Mode: Query cache cleared');
+    return this;
+  }
+
   /// Reset all mocks and return to normal mode
   ///
   /// This is automatically called by Zen.reset() but can be called
   /// explicitly if needed.
   void reset() {
     ZenLogger.logDebug('🧪 Test Mode: Reset');
-    // Actual reset is handled by Zen.reset()
+    // Clear query cache on reset
+    ZenQueryCache.instance.clear();
+    // Re-enable timers for production use
+    ZenQueryCache.instance.configureForTesting(useRealTimers: true);
   }
 }
 
