@@ -47,7 +47,7 @@ dependencies:
 
 ### 2. Initialize
 
-```dart
+```
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   Zen.init();
@@ -312,7 +312,8 @@ ZenQueryBuilder<User>(
 - ✅ **Background refetch** - Keep data fresh automatically
 - ✅ **Optimistic updates** - Instant UI with error rollback
 - ✅ **Retry logic** - Exponential backoff built-in
-- ✅ **SWR pattern** - Show cached data while fetching fresh
+- ✅ **SWR pattern** - Show cached data while fetching fresh 
+- ✅ **Lifecycle management** Supports both **global** and **scoped** modes for flexible lifecycle management:
 
 **Perfect for:** REST APIs, GraphQL queries, pagination, infinite scroll, and real-time data feeds.
 
