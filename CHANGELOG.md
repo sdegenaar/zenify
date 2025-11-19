@@ -1,3 +1,28 @@
+## [1.1.2]
+
+### 🎯 API Enhancement: Scoped Query Creation
+
+**Simplified pattern for creating scoped queries in modules**
+
+#### New Features
+
+- **ZenScopeQueryExtension**: Added convenient extension methods for scoped query creation
+    - `scope.putQuery<T>()` - Create and register scoped query in one call
+    - `scope.putCachedQuery<T>()` - Create scoped query with common caching defaults
+    - Automatic scope binding and registration
+    - Consistent with existing `scope.put()` / `scope.putLazy()` API pattern
+
+#### Improvements
+
+- Reduced boilerplate when creating scoped queries in modules
+- Eliminated common mistakes (forgetting to set scope, forgetting to register)
+- Enhanced documentation with recommended patterns for scoped queries
+- Updated ZenQuery Guide with `putQuery` examples
+
+#### Documentation
+
+- Comprehensive documentation in `zen_query_guide.md` for both global and scoped patterns
+
 ## [1.1.1]
 
 ### 🚀 Scope-Aware ZenQuery

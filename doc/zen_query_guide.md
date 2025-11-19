@@ -1,3 +1,4 @@
+
 # ZenQuery Guide
 
 **Production-ready async state management for Flutter**
@@ -14,6 +15,11 @@ ZenQuery brings React Query/TanStack Query patterns to Flutter with a clean, int
 4. [Advanced Features](#advanced-features)
 5. [Best Practices](#best-practices)
 6. [API Reference](#api-reference)
+7. [Scope Integration](#scope-integration)
+8. [Examples](#examples)
+9. [Troubleshooting](#troubleshooting)
+10. [Performance Tips](#performance-tips)
+11. [Migration Guide](#migration-guide)
 
 ---
 
@@ -21,6 +27,7 @@ ZenQuery brings React Query/TanStack Query patterns to Flutter with a clean, int
 
 ### Basic Query
 ```
+dart
 // Create a query
 final userQuery = ZenQuery<User>(
   queryKey: 'user:123',
@@ -47,7 +54,8 @@ final userQuery = ZenQuery<User>(
     retryCount: 3,
   ),
 );
-```
+``` 
+
 ---
 
 ## Core Concepts
@@ -58,7 +66,6 @@ Query keys uniquely identify queries and enable:
 - **Deduplication**: Same key = same request
 - **Cache management**: Invalidate by key or pattern
 - **Debugging**: Track queries by identifier
-
 ```
 // Simple key
 queryKey: 'users'
@@ -80,11 +87,11 @@ enum ZenQueryStatus {
   success, // Successfully fetched
   error,   // Failed to fetch
 }
-```
+``` 
 
 ### Stale While Revalidate (SWR)
 
-Show cached data immediately while fetching fresh data in the background
+Show cached data immediately while fetching fresh data in the background:
 ```
 ZenQueryBuilder<User>(
   query: userQuery,
@@ -114,25 +121,24 @@ final query = ZenQuery<User>(
   fetcher: () => api.getUser(123),
   config: myDefaults,
 );
-```
+``` 
 
-### ### Per-Query Configuration
+### Per-Query Configuration
 ```
-final query = ZenQuery<User>(
   queryKey: 'user:123',
   fetcher: () => api.getUser(123),
   config: ZenQueryConfig(
     // Cache configuration
     staleTime: Duration(minutes: 5),
     cacheTime: Duration(hours: 1),
-    
+
     // Refetch behavior
     refetchOnMount: true,
     refetchOnFocus: false,
     refetchOnReconnect: true,
     refetchInterval: Duration(minutes: 10),
     enableBackgroundRefetch: true,
-    
+
     // Error handling
     retryCount: 3,
     retryDelay: Duration(seconds: 1),
@@ -167,10 +173,10 @@ Update UI instantly, rollback on error:
 void updateUser(User newUser) {
   // Save current data for rollback
   final previousUser = userQuery.data.value;
-  
+
   // Optimistic update
   userQuery.setData(newUser);
-  
+
   // Perform actual update
   api.updateUser(newUser).catchError((error) {
     // Rollback on error
@@ -207,7 +213,8 @@ await userQuery.refetch();
 
 // Refetch multiple queries
 await ZenQueryCache.instance.refetchQueries((key) => key.startsWith('user:'));
-```
+
+``` 
 
 ### Query Deduplication
 
@@ -233,7 +240,7 @@ final userQuery = ZenQuery<User>(
 );
 
 // Widget shows initial data immediately, then updates when fetched
-```
+``` 
 
 ### Background Refetching
 
@@ -248,6 +255,7 @@ final liveDataQuery = ZenQuery<StockPrice>(
   ),
 );
 ```
+
 ---
 
 ## Best Practices
@@ -283,24 +291,23 @@ staleTime: Duration(minutes: 5)
 staleTime: Duration(hours: 1)
 ```
 
-### 3. Register Queries in DI
+### 3. Register Queries in Modules (Recommended)
 
-Make queries accessible across your app:
+Make queries accessible and auto-disposable:
 ```
 class UserModule extends ZenModule {
   @override
-  void configure() {
-    final userQuery = ZenQuery<User>(
+  void register(ZenScope scope) {
+    // ✅ Recommended: Scoped query with auto-disposal
+    scope.putQuery<User>(
       queryKey: 'user:$currentUserId',
       fetcher: () => api.getUser(currentUserId),
     );
-    
-    Zen.put(userQuery, tag: 'userQuery');
   }
 }
 
-// Access anywhere
-final userQuery = Zen.find<ZenQuery<User>>(tag: 'userQuery');
+// Access in widgets via ZenView or Zen.find
+final userQuery = Zen.find<ZenQuery<User>>();
 ``` 
 
 ### 4. Handle Loading States Gracefully
@@ -342,6 +349,8 @@ ZenQuery<T>({
   required Future<T> Function() fetcher,
   ZenQueryConfig? config,
   T? initialData,
+  ZenScope? scope,
+  bool autoDispose = true,
 })
 ```
 
@@ -394,6 +403,13 @@ invalidateQueries(bool Function(String) predicate)
 // Refetch queries
 refetchQueries(bool Function(String) predicate)
 
+// Scope operations
+invalidateScope(String scopeId)
+refetchScope(String scopeId)
+clearScope(String scopeId)
+getScopeQueries(String scopeId)
+getScopeStats(String scopeId)
+
 // Get query
 getQuery<T>(String key)
 
@@ -402,85 +418,10 @@ clear()
 
 // Get statistics
 getStats()
+
 ```
 
 ---
-
-## Examples
-
-### Pagination
-```
-class PostsQuery extends ZenQuery<List<Post>> {
-  final int page;
-  
-  PostsQuery(this.page) : super(
-    queryKey: 'posts:page:$page',
-    fetcher: () => api.getPosts(page),
-    config: ZenQueryConfig(
-      staleTime: Duration(minutes: 5),
-    ),
-  );
-}
-
-// Use in widget
-ZenQueryBuilder<List<Post>>(
-  query: PostsQuery(currentPage),
-  builder: (context, posts) => PostsList(posts),
-);
-``` 
-
-### Dependent Queries
-```
-// First query: Get user
-final userQuery = ZenQuery<User>(
-  queryKey: 'user:$userId',
-  fetcher: () => api.getUser(userId),
-);
-
-// Second query: Get user's posts (depends on user data)
-final postsQuery = ZenQuery<List<Post>>(
-  queryKey: 'posts:user:$userId',
-  fetcher: () async {
-    final user = await userQuery.fetch();
-    return api.getUserPosts(user.id);
-  },
-);
-```
-
-### Mutations with Optimistic Updates
-```
-class TodoMutation {
-  final ZenQuery<List<Todo>> todosQuery;
-  
-  TodoMutation(this.todosQuery);
-  
-  Future<void> toggleTodo(Todo todo) async {
-    final previousTodos = todosQuery.data.value ?? [];
-    
-    // Optimistic update
-    final updatedTodos = previousTodos.map((t) {
-      if (t.id == todo.id) {
-        return t.copyWith(completed: !t.completed);
-      }
-      return t;
-    }).toList();
-    todosQuery.setData(updatedTodos);
-    
-    try {
-      // Perform mutation
-      await api.toggleTodo(todo.id);
-      
-      // Invalidate to refetch fresh data
-      todosQuery.invalidate();
-      await todosQuery.refetch();
-    } catch (error) {
-      // Rollback on error
-      todosQuery.setData(previousTodos);
-      rethrow;
-    }
-  }
-}
-``` 
 
 ## Scope Integration
 
@@ -493,35 +434,77 @@ ZenQuery supports both **global** and **scoped** modes for flexible lifecycle ma
 
 ### Global Queries (Default)
 ```
-// Global query - managed by cache, persists across navigation
-final userQuery = ZenQuery<User>(
-  queryKey: 'currentUser',
-  fetcher: () => api.getCurrentUser(),
-);
+// Get cache instance
+ZenQueryCache.instance
 
-// Access anywhere in your app
-ZenQueryBuilder<User>(
-  query: userQuery,
-  builder: (context, user) => UserAvatar(user),
-);
-```
+// Invalidate queries
+invalidateQuery(String key)
+invalidateQueriesWithPrefix(String prefix)
+invalidateQueries(bool Function(String) predicate)
 
-### Scoped Queries
+// Refetch queries
+refetchQueries(bool Function(String) predicate)
+
+// Scope operations
+invalidateScope(String scopeId)
+refetchScope(String scopeId)
+clearScope(String scopeId)
+getScopeQueries(String scopeId)
+getScopeStats(String scopeId)
+
+// Get query
+getQuery<T>(String key)
+
+// Clear cache
+clear()
+
+// Get statistics
+getStats()
+
+``` 
+
+### Scoped Queries (Recommended Pattern)
 ```
-// Scoped query - tied to module lifecycle
 class ProductModule extends ZenModule {
+  final String productId;
+
+  ProductModule(this.productId);
+
   @override
   void register(ZenScope scope) {
-    final productQuery = ZenQuery<Product>(
+    // ✅ Recommended: Use putQuery for scoped queries
+    scope.putQuery<Product>(
       queryKey: 'product:$productId',
       fetcher: () => api.getProduct(productId),
-      scope: scope,           // Tied to scope
-      autoDispose: true,      // Auto-dispose when scope disposes
+      config: ZenQueryConfig(staleTime: Duration(minutes: 5)),
     );
-    
-    scope.put(productQuery);
+
+    scope.putQuery<List<Review>>(
+      queryKey: 'reviews:$productId',
+      fetcher: () => api.getReviews(productId),
+    );
   }
 }
+
+// Queries auto-dispose when route is popped
+ZenRoute(
+  moduleBuilder: () => ProductModule(productId),
+  page: ProductDetailPage(),
+  scopeName: 'ProductScope',
+);
+
+```
+
+### Manual Scoped Queries (Alternative)
+```
+// Still valid if you need more control
+final query = ZenQuery<Product>(
+  queryKey: 'product:$productId',
+  fetcher: () => api.getProduct(productId),
+  scope: scope,
+  autoDispose: false, // Custom lifecycle control
+);
+scope.put(query);
 ``` 
 
 ### Use Cases
@@ -530,24 +513,22 @@ class ProductModule extends ZenModule {
 ```
 class ProductDetailModule extends ZenModule {
   final String productId;
-  
+
   ProductDetailModule(this.productId);
-  
+
   @override
   void register(ZenScope scope) {
     // Product data - scope-specific
-    scope.putLazy(() => ZenQuery<Product>(
+    scope.putQuery<Product>(
       queryKey: 'product:$productId',
       fetcher: () => api.getProduct(productId),
-      scope: scope,
-    ));
-    
+    );
+
     // Reviews - scope-specific
-    scope.putLazy(() => ZenQuery<List<Review>>(
+    scope.putQuery<List<Review>>(
       queryKey: 'reviews:$productId',
       fetcher: () => api.getReviews(productId),
-      scope: scope,
-    ));
+    );
   }
 }
 
@@ -557,18 +538,23 @@ ZenRoute(
   page: ProductDetailPage(),
   scopeName: 'ProductScope',
 );
+
 ```
 
 #### Within Controller Creation
 ```
 class ProductController extends ZenController {
+  final String productId;
+
+  ProductController(this.productId);
+
   late final productQuery = ZenQuery<Product>(
     queryKey: 'product:$productId',
     fetcher: () => api.getProduct(productId),
-    scope: Zen.currentScope,  // ← Implicit scope
+    scope: Zen.currentScope, // ← Implicit scope
   );
 }
-```
+``` 
 
 #### App-Wide Data (Global)
 ```
@@ -581,45 +567,49 @@ class AppModule extends ZenModule {
       fetcher: () => api.getCurrentUser(),
       // No scope parameter = global
     );
-    
+
     scope.put(userQuery, isPermanent: true);
   }
 }
 ```
 
-## When to Use Each Pattern
+### When to Use Each Pattern
 
-### Use Global Queries When:
+**Use Global Queries When:**
 - Data is app-wide (user profile, settings)
 - Data persists across navigation
 - Multiple features access the same data
 
-### Use Scoped Queries When:
+**Use Scoped Queries When:**
 - Data is feature-specific (product details, post comments)
 - Data should clear on navigation away
 - Module/feature has dedicated queries
 
-### Quick Decision Tree:
+**Quick Decision Tree:**
 1. Does this data survive navigation? → Global
 2. Is this data shared across features? → Global
 3. Is this data feature-specific? → Scoped
 4. Should this clear when leaving the page? → Scoped
 
----
-
 ### Scope Operations
+
 #### Invalidate All Queries in Scope
 ```
 // Invalidate all queries in a scope (marks as stale)
 ZenQueryCache.instance.invalidateScope(scope.id);
+``` 
+
+#### Refetch All Queries in Scope
+```
+// Refetch all queries in a scope
+await ZenQueryCache.instance.refetchScope(scope.id);
 ```
 
 #### Clear Scope Cache
-
 ```
 // Remove all queries from a scope
 ZenQueryCache.instance.clearScope(scope.id);
-```
+``` 
 
 #### Get Scope Statistics
 ```
@@ -628,45 +618,43 @@ print('Total queries: ${stats['total']}');
 print('Loading: ${stats['loading']}');
 print('Success: ${stats['success']}');
 print('Error: ${stats['error']}');
+print('Stale: ${stats['stale']}');
 ```
 
-### Best Practices
+### Best Practices for Scoped Queries
 
 1. **Use scoped queries for feature data** - Auto-cleanup prevents memory leaks
 2. **Use global queries for shared data** - User profile, app config, etc.
-3. **Set `autoDispose: true` for temporary data** - Reviews, comments, etc.
-4. **Set `autoDispose: false` for persistent cache** - Keep data even after scope disposal
-5. **Invalidate scope on data mutations** - Keep related queries in sync
-
+3. **Use `putQuery` in modules** - Simplest and most consistent pattern
+4. **Set `autoDispose: true` for temporary data** - Reviews, comments, etc. (default)
+5. **Set `autoDispose: false` for persistent cache** - Keep data even after scope disposal
+6. **Invalidate scope on data mutations** - Keep related queries in sync
 
 #### Example: E-commerce Product Page
 ```
 class ProductPageModule extends ZenModule {
   final String productId;
-  
+
   ProductPageModule(this.productId);
-  
+
   @override
   void register(ZenScope scope) {
     // All product-related queries tied to this scope
-    scope.putLazy(() => ZenQuery<Product>(
+    scope.putQuery<Product>(
       queryKey: 'product:$productId',
       fetcher: () => api.getProduct(productId),
-      scope: scope,
-    ));
-    
-    scope.putLazy(() => ZenQuery<List<Review>>(
+    );
+
+    scope.putQuery<List<Review>>(
       queryKey: 'reviews:$productId',
       fetcher: () => api.getReviews(productId),
-      scope: scope,
-    ));
-    
-    scope.putLazy(() => ZenQuery<List<Product>>(
+    );
+
+    scope.putQuery<List<Product>>(
       queryKey: 'related:$productId',
       fetcher: () => api.getRelatedProducts(productId),
-      scope: scope,
-    ));
-    
+    );
+
     // Controller for this page
     scope.putLazy(() => ProductPageController());
   }
@@ -684,7 +672,8 @@ ZenRoute(
 // ✅ Controller auto-disposes
 // ✅ Scope cleans up
 // ✅ No memory leaks!
-```
+
+``` 
 
 ### Benefits
 
@@ -696,6 +685,83 @@ ZenRoute(
 
 ---
 
+## Examples
+
+### Pagination
+```
+class PostsQuery extends ZenQuery<List<Post>> {
+  final int page;
+
+  PostsQuery(this.page) : super(
+    queryKey: 'posts:page:$page',
+    fetcher: () => api.getPosts(page),
+    config: ZenQueryConfig(
+      staleTime: Duration(minutes: 5),
+    ),
+  );
+}
+
+// Use in widget
+ZenQueryBuilder<List<Post>>(
+  query: PostsQuery(currentPage),
+  builder: (context, posts) => PostsList(posts),
+);
+```
+
+### Dependent Queries
+```
+// First query: Get user
+final userQuery = ZenQuery<User>(
+  queryKey: 'user:$userId',
+  fetcher: () => api.getUser(userId),
+);
+
+// Second query: Get user's posts (depends on user data)
+final postsQuery = ZenQuery<List<Post>>(
+  queryKey: 'posts:user:$userId',
+  fetcher: () async {
+    final user = await userQuery.fetch();
+    return api.getUserPosts(user.id);
+  },
+);
+``` 
+
+### Mutations with Optimistic Updates
+```
+class TodoMutation {
+  final ZenQuery<List<Todo>> todosQuery;
+
+  TodoMutation(this.todosQuery);
+
+  Future<void> toggleTodo(Todo todo) async {
+    final previousTodos = todosQuery.data.value ?? [];
+
+    // Optimistic update
+    final updatedTodos = previousTodos.map((t) {
+      if (t.id == todo.id) {
+        return t.copyWith(completed: !t.completed);
+      }
+      return t;
+    }).toList();
+    todosQuery.setData(updatedTodos);
+
+    try {
+      // Perform mutation
+      await api.toggleTodo(todo.id);
+
+      // Invalidate to refetch fresh data
+      todosQuery.invalidate();
+      await todosQuery.refetch();
+    } catch (error) {
+      // Rollback on error
+      todosQuery.setData(previousTodos);
+      rethrow;
+    }
+  }
+}
+```
+
+---
 
 ## Troubleshooting
 
@@ -707,7 +773,7 @@ print(query.isStale); // Should be true for refetch
 
 // Force invalidation
 query.invalidate();
-```
+``` 
 
 ### Memory leaks
 
@@ -719,7 +785,7 @@ void dispose() {
   myQuery.dispose();
   super.dispose();
 }
-``` 
+```
 
 ### Concurrent request issues
 
@@ -728,7 +794,8 @@ ZenQuery automatically deduplicates requests with the same key. If you need sepa
 // These will be treated as different queries
 final query1 = ZenQuery(queryKey: 'user:123:v1', ...);
 final query2 = ZenQuery(queryKey: 'user:123:v2', ...);
-```
+
+``` 
 
 ---
 
@@ -739,6 +806,7 @@ final query2 = ZenQuery(queryKey: 'user:123:v2', ...);
 3. **Enable background refetch for critical data**: Keep data fresh without user action
 4. **Use initial data**: Avoid loading states for cached data
 5. **Implement optimistic updates**: Improve perceived performance
+6. **Use scoped queries**: Automatic cleanup prevents memory accumulation
 
 ---
 
@@ -750,11 +818,11 @@ final query2 = ZenQuery(queryKey: 'user:123:v2', ...);
 class UserProvider extends ChangeNotifier {
   User? _user;
   bool _isLoading = false;
-  
+
   Future<void> fetchUser(String id) async {
     _isLoading = true;
     notifyListeners();
-    
+
     _user = await api.getUser(id);
     _isLoading = false;
     notifyListeners();
@@ -766,7 +834,7 @@ final userQuery = ZenQuery<User>(
   queryKey: 'user:$id',
   fetcher: () => api.getUser(id),
 );
-``` 
+```
 
 ### From BLoC
 ```
@@ -790,4 +858,22 @@ final userQuery = ZenQuery<User>(
   queryKey: 'user:$id',
   fetcher: () => api.getUser(id),
 );
+``` 
+
+---
+
+## Summary
+
+**ZenQuery provides:**
+- ✅ Automatic caching and deduplication
+- ✅ Smart background refetching
+- ✅ Built-in retry logic with exponential backoff
+- ✅ Optimistic updates with rollback
+- ✅ Scope-aware lifecycle management
+- ✅ SWR (Stale-While-Revalidate) pattern
+- ✅ Zero boilerplate for common patterns
+
+**Perfect for:** REST APIs, GraphQL queries, pagination, infinite scroll, and real-time data feeds.
+
+Ready to simplify your async state management? Start with the [Quick Start](#quick-start) section!
 ```

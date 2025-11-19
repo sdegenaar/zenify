@@ -42,7 +42,7 @@ We've also incorporated proven concepts from **Riverpod's** hierarchical scoping
 
 ```yaml
 dependencies:
-  zenify: ^1.1.1
+  zenify: ^1.1.2
 ```
 
 ### 2. Initialize
@@ -310,10 +310,11 @@ ZenQueryBuilder<User>(
 - ✅ **Automatic caching** - No more manual cache management
 - ✅ **Smart deduplication** - Multiple requests = single API call
 - ✅ **Background refetch** - Keep data fresh automatically
+- ✅ **Pagination support** - Built-in patterns for paginated data
 - ✅ **Optimistic updates** - Instant UI with error rollback
 - ✅ **Retry logic** - Exponential backoff built-in
-- ✅ **SWR pattern** - Show cached data while fetching fresh 
-- ✅ **Lifecycle management** Supports both **global** and **scoped** modes for flexible lifecycle management:
+- ✅ **SWR pattern** - Show cached data while fetching fresh
+- ✅ **Scoped lifecycle** - Automatic cleanup with modules
 
 **Perfect for:** REST APIs, GraphQL queries, pagination, infinite scroll, and real-time data feeds.
 

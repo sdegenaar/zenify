@@ -58,6 +58,9 @@ export 'testing/testing.dart';
 // ===== MIXINS =====
 export 'mixins/zen_ticker_provider.dart';
 
+// ===== EXTENSIONS =====
+export 'query/zen_scope_query_extension.dart';
+
 // ===== DEBUG UTILITIES =====
 // Separate namespace - not part of main API
 export 'debug/zen_debug.dart' show ZenDebug;
