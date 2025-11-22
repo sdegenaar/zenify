@@ -60,22 +60,26 @@ final userQuery = ZenQuery<User>(
 
 ## Core Concepts
 
-### Query Keys
+    ### Query Keys
 
-Query keys uniquely identify queries and enable:
-- **Deduplication**: Same key = same request
-- **Cache management**: Invalidate by key or pattern
-- **Debugging**: Track queries by identifier
-```dart
-// Simple key
-queryKey: 'users'
+    Query keys uniquely identify queries and enable:
+    - **Deduplication**: Same key = same request
+    - **Cache management**: Invalidate by key or pattern
+    - **Debugging**: Track queries by identifier
 
-// Parameterized key
-queryKey: 'user:$userId'
+    You can use a simple string or a list of values (which will be normalized automatically):
 
-// Hierarchical key
-queryKey: 'users:$userId:posts:$postId'
-```
+    ```dart
+    // Simple key
+    queryKey: 'users'
+
+    // Parameterized key (String interpolation) - Prone to typos!
+    queryKey: 'user:$userId'
+
+    // List Key (Recommended) - Type safe & cleaner
+    queryKey: ['user', userId, 'details'] 
+    // -> Normalized internally to "['user', 123, 'details']"
+    ```
 
 ### Query States
 
@@ -201,10 +205,60 @@ final addPostMutation = ZenMutation<Post, String>(
   mutationFn: (content) => api.createPost(content),
   onSettled: (_, __, ___) {
     // Mark 'posts' as stale. Any active UI showing posts will immediately refetch.
-    ZenQueryCache.instance.invalidateQuery('posts');
+    ZenQueryCache.instance.invalidateQuery(['posts', 'feed']);
   }
 );
 ```
+
+---
+
+## Infinite Queries (Pagination)
+
+Use `ZenInfiniteQuery` for lists that load more data as you scroll.
+
+```dart
+final postsQuery = ZenInfiniteQuery<Page>(
+  // Use a list key for complex identifiers
+  queryKey: ['posts', 'feed', category], 
+  
+  // Fetcher receives the page param (null for first page)
+  infiniteFetcher: (pageParam) => api.getPosts(page: pageParam ?? 1),
+  
+  // Calculate next page param from response. Return null if no more pages.
+  getNextPageParam: (lastPage, allPages) {
+    return lastPage.hasMore ? lastPage.nextPage : null;
+  },
+);
+```
+
+### Using in UI
+
+```dart
+ZenQueryBuilder<List<Page>>(
+  query: postsQuery,
+  builder: (context, pages) {
+    // Flatten pages into items
+    final allPosts = pages.expand((page) => page.posts).toList();
+    
+    return ListView.builder(
+      itemCount: allPosts.length + 1,
+      itemBuilder: (context, index) {
+        if (index == allPosts.length) {
+          // Loading indicator at bottom
+          if (postsQuery.hasNextPage.value) {
+            postsQuery.fetchNextPage();
+            return CircularProgressIndicator();
+          }
+          return SizedBox();
+        }
+        return PostTile(allPosts[index]);
+      },
+    );
+  }
+);
+```
+
+---
 
 ---
 

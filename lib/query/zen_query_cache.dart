@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:zenify/query/query_key.dart';
+
 import '../core/zen_logger.dart';
 import 'zen_query.dart';
 import 'zen_query_config.dart';
@@ -179,8 +181,10 @@ class ZenQueryCache {
   }
 
   /// Get query by key
-  ZenQuery<T>? getQuery<T>(String queryKey) {
-    return _queries[queryKey] as ZenQuery<T>?;
+  ZenQuery<T>? getQuery<T>(Object queryKey) {
+    // Changed to Object
+    final normalizedKey = QueryKey.normalize(queryKey);
+    return _queries[normalizedKey] as ZenQuery<T>?;
   }
 
   /// Get all queries
@@ -212,8 +216,10 @@ class ZenQueryCache {
   }
 
   /// Get cached data for a query
-  T? getCachedData<T>(String queryKey) {
-    final entry = _cache[queryKey];
+  T? getCachedData<T>(Object queryKey) {
+    // Changed to Object
+    final normalizedKey = QueryKey.normalize(queryKey);
+    final entry = _cache[normalizedKey];
     if (entry == null || entry.isExpired) {
       return null;
     }
@@ -221,8 +227,10 @@ class ZenQueryCache {
   }
 
   /// Invalidate query (mark as stale)
-  void invalidateQuery(String queryKey) {
-    final query = _queries[queryKey];
+  void invalidateQuery(Object queryKey) {
+    // Changed to Object
+    final normalizedKey = QueryKey.normalize(queryKey);
+    final query = _queries[normalizedKey];
     if (query != null) {
       query.invalidate();
     }
@@ -274,11 +282,13 @@ class ZenQueryCache {
   }
 
   /// Remove query from cache
-  void removeQuery(String queryKey) {
-    _cache[queryKey]?.expiryTimer?.cancel();
-    _cache.remove(queryKey);
-    _queries.remove(queryKey);
-    _pendingFetches.remove(queryKey);
+  void removeQuery(Object queryKey) {
+    // Changed to Object
+    final normalizedKey = QueryKey.normalize(queryKey);
+    _cache[normalizedKey]?.expiryTimer?.cancel();
+    _cache.remove(normalizedKey);
+    _queries.remove(normalizedKey);
+    _pendingFetches.remove(normalizedKey);
   }
 
   /// Clear all queries and cache

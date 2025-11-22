@@ -70,7 +70,7 @@ extension ZenScopeQueryExtension on ZenScope {
   /// - [putCachedQuery] for common caching patterns
   /// - [ZenQuery] for full query documentation
   ZenQuery<T> putQuery<T>({
-    required String queryKey,
+    required Object queryKey,
     required Future<T> Function() fetcher,
     ZenQueryConfig? config,
     T? initialData,
@@ -128,7 +128,7 @@ extension ZenScopeQueryExtension on ZenScope {
   ///
   /// See also: [putQuery] for full configuration options
   ZenQuery<T> putCachedQuery<T>({
-    required String queryKey,
+    required Object queryKey,
     required Future<T> Function() fetcher,
     Duration staleTime = const Duration(minutes: 5),
     T? initialData,

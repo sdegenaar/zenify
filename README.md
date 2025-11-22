@@ -42,7 +42,7 @@ We've also incorporated proven concepts from **Riverpod's** hierarchical scoping
 
 ```yaml
 dependencies:
-  zenify: ^1.1.3
+  zenify: ^1.1.4
 ```
 
 ### 2. Initialize
@@ -327,6 +327,22 @@ ZenQueryBuilder<User>(
         child: Text('Login'),
       );
     })
+    ```
+
+### ♾️ ZenInfiniteQuery - Pagination Made Easy
+
+    Handle infinite scroll lists with automatic page management.
+
+    ```dart
+    final postsQuery = ZenInfiniteQuery<Page>(
+      queryKey: ['posts', 'feed'], // Typed keys supported!
+      getNextPageParam: (lastPage, allPages) => lastPage.nextCursor,
+      infiniteFetcher: (cursor) => api.getPosts(cursor),
+    );
+
+    // In UI:
+    // postsQuery.fetchNextPage();
+    // postsQuery.hasNextPage.value;
     ```
 
 **Features:**

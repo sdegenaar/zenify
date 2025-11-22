@@ -211,6 +211,21 @@ void main() {
       final cached = ZenQueryCache.instance.getQuery<String>('test');
       expect(cached, null);
     });
+
+    test('supports list keys', () {
+      final query = ZenQuery<String>(
+        queryKey: ['user', 123, 'details'],
+        fetcher: () async => 'data',
+      );
+
+      expect(query.queryKey, "['user', 123, 'details']");
+
+      final cached =
+          ZenQueryCache.instance.getQuery<String>(['user', 123, 'details']);
+      expect(cached, query);
+
+      query.dispose();
+    });
   });
 
   group('ZenQueryCache', () {

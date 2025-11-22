@@ -1,3 +1,28 @@
+## [1.1.4]
+
+### ♾️ ZenInfiniteQuery & Type-Safe Keys
+
+**Major enhancements to the ZenQuery system including first-class pagination support and type-safe keys.**
+
+#### New Features
+
+- **ZenInfiniteQuery**: Specialized query for handling paginated lists and infinite scrolling.
+    - **Automatic Pagination**: Handles page concatenation, cursor management, and loading states.
+    - **Smart Fetching**: `getNextPageParam` determines when and how to fetch the next page.
+    - **Helpers**: `fetchNextPage()`, `hasNextPage`, `isFetchingNextPage` built-in.
+    - **UI Ready**: Returns `List<T>` containing all loaded pages, ready for rendering.
+
+- **Typed Query Keys**: Enhanced safety for cache keys.
+    - `queryKey` now accepts `Object` instead of just `String`.
+    - Support for **List Keys**: `['posts', 'user', 123]` is automatically normalized to a stable key.
+    - Eliminates string interpolation bugs (e.g., `user:123` vs `user-123`).
+    - Backward compatible with existing string keys.
+
+#### Improvements
+
+- **ZenQueryCache**: Updated internal storage to support normalized object keys.
+- **ZenScopeQueryExtension**: Updated `putQuery` and `putCachedQuery` to accept `Object` keys.
+
 ## [1.1.3]
 
 ### ⚡ Complete Data Lifecycle with ZenMutation

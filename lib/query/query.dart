@@ -9,3 +9,5 @@ export 'zen_query_cache.dart';
 export 'zen_query_builder.dart';
 export 'zen_query_config.dart';
 export 'zen_mutation.dart';
+export 'zen_infinite_query.dart';
+export 'query_key.dart';

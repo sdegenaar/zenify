@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:zenify/query/query_key.dart';
+
 import '../controllers/zen_controller.dart';
 import '../core/zen_logger.dart';
 import '../core/zen_scope.dart';
@@ -94,13 +96,14 @@ class ZenQuery<T> extends ZenController {
   Timer? _refetchTimer;
 
   ZenQuery({
-    required this.queryKey,
+    required Object queryKey,
     required this.fetcher,
     ZenQueryConfig? config,
     this.initialData,
     this.scope,
     this.autoDispose = true,
-  }) : config = ZenQueryConfig.defaults.merge(config) {
+  })  : queryKey = QueryKey.normalize(queryKey), // Normalize on init
+        config = ZenQueryConfig.defaults.merge(config) {
     // Set initial data if provided
     if (initialData != null) {
       data.value = initialData;
