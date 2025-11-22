@@ -1,3 +1,34 @@
+## [1.1.6]
+
+### 🚀 Dependent Queries & Prefetching
+
+**Added powerful tools for complex data flows and performance optimization.**
+
+#### New Features
+
+- **Dependent Queries (`enabled`)**: Control when a query should start fetching.
+  - Added `enabled` parameter to `ZenQuery` constructor.
+  - Added reactive `RxBool enabled` property to dynamically toggle fetching.
+  - Automatically triggers fetch when `enabled` becomes `true` (if data is stale).
+  - Prevents fetching when `enabled` is `false`.
+
+    ```dart
+    // Only fetch posts when user is loaded
+    final postsQuery = ZenQuery(
+      queryKey: ['posts', userId],
+      fetcher: () => api.getPosts(userId),
+      enabled: false, // Start disabled
+    );
+    
+    // Enable later (e.g. in onInit)
+    postsQuery.enabled.value = true;
+    ```
+
+- **Data Prefetching**: Pre-load data without creating listeners.
+    - `ZenQueryCache.instance.prefetch()`: Fetches and caches data if stale.
+    - Useful for `onHover` actions, route guards, or background sync.
+
+  
 ## [1.1.5]
 
 ### 🎯 Granular Reactivity for ZenQuery

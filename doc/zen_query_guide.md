@@ -285,6 +285,63 @@ ZenQueryBuilder<bool>(
 - 🎯 **Focus**: Separate data fetching from view-specific logic.
 - 🔄 **Lifecycle**: Derived queries share the parent's lifecycle and state automatically.
 
+### Dependent Queries
+
+Execute queries sequentially by using the `enabled` parameter. This allows you to wait for one query to complete before starting another.
+
+```dart
+// 1. Fetch User
+final userQuery = ZenQuery<User>(
+  queryKey: 'user',
+  fetcher: () => api.getUser(),
+);
+
+// 2. Fetch Posts (depends on User ID)
+final postsQuery = ZenQuery<List<Post>>(
+  queryKey: ['posts', 'user-posts'], 
+  fetcher: () => api.getPosts(userQuery.data.value!.id),
+  
+  // Start disabled
+  enabled: false, 
+);
+
+// 3. Wire them up in onInit()
+@override
+void onInit() {
+  // Automatically enable/disable posts query based on user data
+  ZenWorkers.ever(userQuery.data, (user) {
+    postsQuery.enabled.value = user != null;
+  });
+}
+```
+
+**How it works:**
+1. `postsQuery` starts in `idle` state because `enabled` is false.
+2. `userQuery` fetches data.
+3. Worker updates `postsQuery.enabled` to `true`.
+4. `postsQuery` automatically triggers `fetch()` because it became enabled and was idle.
+
+
+### Data Prefetching
+
+Improve perceived performance by pre-loading data before the user needs it (e.g., on button hover or during onboarding).
+
+```dart
+// In a service or controller
+void onHoverUser(String userId) {
+  ZenQueryCache.instance.prefetch(
+    queryKey: ['user', userId],
+    fetcher: () => api.getUser(userId),
+    staleTime: Duration(minutes: 5), // Only fetch if stale
+  );
+}
+```
+
+**How it works:**
+- Checks cache first. If fresh data exists, does nothing.
+- If stale/missing, fetches in background and updates cache.
+- When the user navigates to the page, `ZenQuery` will find the fresh data immediately!
+
 ### Optimistic Updates
 
 Update UI instantly, rollback on error:

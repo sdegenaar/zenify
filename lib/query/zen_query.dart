@@ -47,6 +47,9 @@ class ZenQuery<T> extends ZenController {
   /// Whether to automatically dispose when scope disposes
   final bool autoDispose;
 
+  /// Whether the query is enabled to fetch data
+  final RxBool enabled;
+
   /// Current status of the query
   final Rx<ZenQueryStatus> status = Rx(ZenQueryStatus.idle);
 
@@ -107,9 +110,11 @@ class ZenQuery<T> extends ZenController {
     this.scope,
     this.autoDispose = true,
     bool registerInCache = true,
+    bool enabled = true,
   })  : queryKey = QueryKey.normalize(queryKey), // Normalize on init
         config = ZenQueryConfig.defaults.merge(config),
-        _registerInCache = registerInCache {
+        _registerInCache = registerInCache,
+        enabled = RxBool(enabled) {
     // Set initial data if provided
     if (initialData != null) {
       data.value = initialData;
@@ -131,6 +136,20 @@ class ZenQuery<T> extends ZenController {
 
     // Setup background refetch if enabled
     _setupBackgroundRefetch();
+
+    // Setup enabled listener
+    // Use a weak listener or ensure disposal.
+    // Since `enabled` is a field of `ZenQuery`, we can just listen.
+    // ZenWorkers.ever handles logic.
+    ZenWorkers.ever(this.enabled, (isEnabled) {
+      if (isEnabled && !_isDisposed) {
+        // When re-enabled, fetch if stale or idle
+        if (isStale || status.value == ZenQueryStatus.idle) {
+          // Use .then(..., onError: ...) to correctly handle the future without returning T
+          fetch().then((_) {}, onError: (_) {});
+        }
+      }
+    });
   }
 
   /// Register query in scope with automatic cleanup
@@ -164,6 +183,12 @@ class ZenQuery<T> extends ZenController {
   /// Returns cached data immediately if available and not stale,
   /// otherwise fetches fresh data
   Future<T> fetch({bool force = false}) async {
+    // Check enabled state
+    if (!enabled.value && !force) {
+      if (hasData) return data.value!;
+      return Future.error('Query is disabled');
+    }
+
     // Return cached data if available and not stale
     if (!force && hasData && !isStale) {
       return data.value!;
@@ -355,6 +380,7 @@ class ZenQuery<T> extends ZenController {
     status.dispose();
     data.dispose();
     error.dispose();
+    enabled.dispose();
     _isLoadingNotifier?.dispose();
 
     super.onClose();
@@ -382,17 +408,22 @@ class _SelectedZenQuery<T, R> extends ZenQuery<R> {
           scope: source.scope,
           autoDispose: source.autoDispose,
           registerInCache: false,
+          enabled: source.enabled.value,
         ) {
     _bindToSource();
   }
 
   void _bindToSource() {
-    // Unified state update logic
     void update(_) => _computeState();
 
     _workers.add(ZenWorkers.ever(source.status, update));
     _workers.add(ZenWorkers.ever(source.data, update));
     _workers.add(ZenWorkers.ever(source.error, update));
+
+    // Sync enabled state
+    _workers.add(ZenWorkers.ever(source.enabled, (e) {
+      if (enabled.value != e) enabled.value = e;
+    }));
 
     // Initial state computation
     _computeState();

@@ -65,7 +65,7 @@ class _ZenQueryBuilderState<T> extends State<ZenQueryBuilder<T>> {
     // Auto-fetch on mount if enabled
     if (widget.autoFetch) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && !widget.query.isDisposed) {
+        if (mounted && !widget.query.isDisposed && widget.query.enabled.value) {
           widget.query.fetch().then(
             (_) {
               // Success - no action needed
@@ -105,19 +105,21 @@ class _ZenQueryBuilderState<T> extends State<ZenQueryBuilder<T>> {
 
       // Auto-fetch for new query
       if (widget.autoFetch) {
-        widget.query.fetch().then(
-          (_) {
-            // Success - no action needed
-          },
-          onError: (error, stackTrace) {
-            ZenLogger.logError(
-              'ZenQueryBuilder auto-fetch failed for updated query: ${widget.query.queryKey}',
-              error,
-              stackTrace,
-            );
-            // Error is handled by the query's error state
-          },
-        );
+        if (widget.query.enabled.value) {
+          widget.query.fetch().then(
+            (_) {
+              // Success - no action needed
+            },
+            onError: (error, stackTrace) {
+              ZenLogger.logError(
+                'ZenQueryBuilder auto-fetch failed for updated query: ${widget.query.queryKey}',
+                error,
+                stackTrace,
+              );
+              // Error is handled by the query's error state
+            },
+          );
+        }
       }
     }
   }

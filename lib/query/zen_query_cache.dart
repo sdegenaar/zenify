@@ -193,26 +193,69 @@ class ZenQueryCache {
   /// Update cache for a query
   void updateCache<T>(String queryKey, T data, DateTime timestamp) {
     final query = _queries[queryKey];
-    if (query == null) return;
+    // Allow caching even without a query instance (e.g. prefetch)
+    // Default to 5 minutes if no query/config available
+    final cacheTime = query?.config.cacheTime ?? const Duration(minutes: 5);
 
+    _setCacheEntry(queryKey, data, timestamp, cacheTime);
+  }
+
+  void _setCacheEntry<T>(
+      String key, T data, DateTime timestamp, Duration? cacheTime) {
     // Cancel existing expiry timer
-    _cache[queryKey]?.expiryTimer?.cancel();
+    _cache[key]?.expiryTimer?.cancel();
 
     // Create new cache entry
     final entry = _CacheEntry<T>(
       data: data,
       timestamp: timestamp,
-      cacheTime: query.config.cacheTime,
+      cacheTime: cacheTime,
     );
 
     // Setup expiry timer if cacheTime is set AND we're using real timers
     if (entry.cacheTime != null && _useRealTimers) {
       entry.expiryTimer = Timer(entry.cacheTime!, () {
-        _cache.remove(queryKey);
+        _cache.remove(key);
       });
     }
 
-    _cache[queryKey] = entry;
+    _cache[key] = entry;
+  }
+
+  /// Prefetch data and store it in the cache if it's not already fresh.
+  Future<void> prefetch<T>({
+    required Object queryKey,
+    required Future<T> Function() fetcher,
+    Duration? staleTime,
+    Duration? cacheTime,
+  }) async {
+    final normalizedKey = QueryKey.normalize(queryKey);
+
+    if (_isDataFresh(normalizedKey, staleTime)) return;
+
+    try {
+      final data = await deduplicateFetch(normalizedKey, fetcher);
+
+      // Determine cache time
+      final query = _queries[normalizedKey];
+      final effectiveCacheTime =
+          cacheTime ?? query?.config.cacheTime ?? const Duration(minutes: 5);
+
+      _setCacheEntry(normalizedKey, data, DateTime.now(), effectiveCacheTime);
+    } catch (e) {
+      ZenLogger.logWarning('Prefetch failed for $normalizedKey: $e');
+    }
+  }
+
+  bool _isDataFresh(String key, Duration? overrideStaleTime) {
+    final entry = _cache[key];
+    if (entry == null || entry.isExpired) return false;
+
+    final query = _queries[key];
+    final staleDuration =
+        overrideStaleTime ?? query?.config.staleTime ?? Duration.zero;
+
+    return DateTime.now().difference(entry.timestamp) <= staleDuration;
   }
 
   /// Get cached data for a query
