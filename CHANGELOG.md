@@ -1,3 +1,23 @@
+## [1.1.3]
+
+### ⚡ Complete Data Lifecycle with ZenMutation
+
+**Added support for reactive write operations to complement ZenQuery**
+
+#### New Features
+
+- **ZenMutation**: A new reactive primitive for handling side effects (create, update, delete operations)
+    - Separates Command (Write) from Query (Read) responsibilities
+    - **Lifecycle Hooks**: `onMutate` (for optimistic updates), `onSuccess`, `onError`, and `onSettled`
+    - **Reactive State**: Built-in `isLoading`, `isSuccess`, `isError`, and `data` state
+    - **Cache Integration**: Designed to easily trigger `ZenQueryCache.invalidateQuery` for data consistency
+
+#### Documentation
+
+- Added complete **Mutations** section to `zen_query_guide.md`
+- Added quick-start example for ZenMutation in `README.md`
+- Documented optimistic update patterns and cache invalidation strategies
+
 ## [1.1.2]
 
 ### 🎯 API Enhancement: Scoped Query Creation

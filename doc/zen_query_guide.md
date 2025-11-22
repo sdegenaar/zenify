@@ -12,22 +12,22 @@ ZenQuery brings React Query/TanStack Query patterns to Flutter with a clean, int
 1. [Quick Start](#quick-start)
 2. [Core Concepts](#core-concepts)
 3. [Configuration](#configuration)
-4. [Advanced Features](#advanced-features)
-5. [Best Practices](#best-practices)
-6. [API Reference](#api-reference)
-7. [Scope Integration](#scope-integration)
-8. [Examples](#examples)
-9. [Troubleshooting](#troubleshooting)
-10. [Performance Tips](#performance-tips)
-11. [Migration Guide](#migration-guide)
+4. [Mutations](#mutations)
+5. [Advanced Features](#advanced-features)
+6. [Best Practices](#best-practices)
+7. [API Reference](#api-reference)
+8. [Scope Integration](#scope-integration)
+9. [Examples](#examples)
+10. [Troubleshooting](#troubleshooting)
+11. [Performance Tips](#performance-tips)
+12. [Migration Guide](#migration-guide)
 
 ---
 
 ## Quick Start
 
 ### Basic Query
-```
-dart
+```dart
 // Create a query
 final userQuery = ZenQuery<User>(
   queryKey: 'user:123',
@@ -44,7 +44,7 @@ ZenQueryBuilder<User>(
 ```
 
 ### With Configuration
-```
+```dart
 final userQuery = ZenQuery<User>(
   queryKey: 'user:123',
   fetcher: () => api.getUser(123),
@@ -66,7 +66,7 @@ Query keys uniquely identify queries and enable:
 - **Deduplication**: Same key = same request
 - **Cache management**: Invalidate by key or pattern
 - **Debugging**: Track queries by identifier
-```
+```dart
 // Simple key
 queryKey: 'users'
 
@@ -80,7 +80,7 @@ queryKey: 'users:$userId:posts:$postId'
 ### Query States
 
 Queries have four states:
-```
+```dart
 enum ZenQueryStatus {
   idle,    // Not fetched yet
   loading, // Currently fetching
@@ -92,7 +92,7 @@ enum ZenQueryStatus {
 ### Stale While Revalidate (SWR)
 
 Show cached data immediately while fetching fresh data in the background:
-```
+```dart
 ZenQueryBuilder<User>(
   query: userQuery,
   showStaleData: true, // Default: true
@@ -107,7 +107,7 @@ ZenQueryBuilder<User>(
 ### Global Defaults
 
 Set defaults for all queries:
-```
+```dart
 // Define custom defaults
 const myDefaults = ZenQueryConfig(
   staleTime: Duration(minutes: 5),
@@ -124,7 +124,8 @@ final query = ZenQuery<User>(
 ``` 
 
 ### Per-Query Configuration
-```
+```dart
+final query = ZenQuery<User>(
   queryKey: 'user:123',
   fetcher: () => api.getUser(123),
   config: ZenQueryConfig(
@@ -164,12 +165,55 @@ final query = ZenQuery<User>(
 
 ---
 
+## Mutations
+
+While `ZenQuery` handles fetching data (reads), `ZenMutation` handles changing data (writes).
+
+```dart
+final loginMutation = ZenMutation<User, LoginArgs>(
+  mutationFn: (args) => api.login(args.username, args.password),
+  onSuccess: (user, args) {
+    // Navigate or show success
+  },
+  onError: (error, args) {
+    // Show error snackbar
+  }
+);
+
+// Trigger
+loginMutation.mutate(LoginArgs('user', 'pass'));
+```
+
+### Reactive State
+Mutations provide reactive state for your UI:
+```dart
+Obx(() {
+  if (mutation.isLoading.value) return CircularProgressIndicator();
+  return ElevatedButton(onPressed: () => mutation.mutate(args), ...);
+})
+```
+
+### Side Effects & Invalidation
+The power of mutations comes from `onSettled`, which runs after success or error. Use it to invalidate queries so they automatically refetch fresh data.
+
+```dart
+final addPostMutation = ZenMutation<Post, String>(
+  mutationFn: (content) => api.createPost(content),
+  onSettled: (_, __, ___) {
+    // Mark 'posts' as stale. Any active UI showing posts will immediately refetch.
+    ZenQueryCache.instance.invalidateQuery('posts');
+  }
+);
+```
+
+---
+
 ## Advanced Features
 
 ### Optimistic Updates
 
 Update UI instantly, rollback on error:
-```
+```dart
 void updateUser(User newUser) {
   // Save current data for rollback
   final previousUser = userQuery.data.value;
@@ -190,7 +234,7 @@ void updateUser(User newUser) {
 ### Cache Invalidation
 
 Mark data as stale to trigger refetch:
-```
+```dart
 // Invalidate single query
 ZenQueryCache.instance.invalidateQuery('user:123');
 
@@ -207,7 +251,7 @@ userQuery.invalidate();
 ### Manual Refetching
 
 Force refresh regardless of stale state:
-```
+```dart
 // Refetch single query
 await userQuery.refetch();
 
@@ -219,7 +263,7 @@ await ZenQueryCache.instance.refetchQueries((key) => key.startsWith('user:'));
 ### Query Deduplication
 
 Automatic - concurrent requests with the same key share a single fetch:
-```
+```dart
 // All three will trigger only ONE API call
 final future1 = userQuery.fetch();
 final future2 = userQuery.fetch();
@@ -232,7 +276,7 @@ await Future.wait([future1, future2, future3]);
 ### Initial Data
 
 Provide initial data to avoid loading state:
-```
+```dart
 final userQuery = ZenQuery<User>(
   queryKey: 'user:123',
   fetcher: () => api.getUser(123),
@@ -245,7 +289,7 @@ final userQuery = ZenQuery<User>(
 ### Background Refetching
 
 Keep data fresh automatically:
-```
+```dart
 final liveDataQuery = ZenQuery<StockPrice>(
   queryKey: 'stock:AAPL',
   fetcher: () => api.getStockPrice('AAPL'),
@@ -263,7 +307,7 @@ final liveDataQuery = ZenQuery<StockPrice>(
 ### 1. Use Hierarchical Keys
 
 Organize keys in a hierarchy for easier invalidation:
-```
+```dart
 // Good ✅
 'users'
 'users:123'
@@ -277,7 +321,7 @@ ZenQueryCache.instance.invalidateQueriesWithPrefix('users:123:');
 ### 2. Set Appropriate Stale Times
 
 Balance freshness vs performance:
-```
+```dart
 // Real-time data (stock prices, chat messages)
 staleTime: Duration(seconds: 5)
 
@@ -294,7 +338,7 @@ staleTime: Duration(hours: 1)
 ### 3. Register Queries in Modules (Recommended)
 
 Make queries accessible and auto-disposable:
-```
+```dart
 class UserModule extends ZenModule {
   @override
   void register(ZenScope scope) {
@@ -313,7 +357,7 @@ final userQuery = Zen.find<ZenQuery<User>>();
 ### 4. Handle Loading States Gracefully
 
 Show stale data during refetch:
-```
+```dart
 ZenQueryBuilder<User>(
   query: userQuery,
   showStaleData: true,
@@ -325,7 +369,7 @@ ZenQueryBuilder<User>(
 ### 5. Dispose Queries Properly
 
 ZenQuery extends ZenController, so it manages its lifecycle automatically when used with dependency injection. Manual disposal is only needed if you create queries outside of the DI system:
-```
+```dart
 // If created manually, dispose when done
 final query = ZenQuery<User>(
   queryKey: 'user:123',
@@ -343,7 +387,7 @@ query.dispose();
 ### ZenQuery
 
 #### Constructor
-```
+```dart
 ZenQuery<T>({
   required String queryKey,
   required Future<T> Function() fetcher,
@@ -374,8 +418,29 @@ ZenQuery<T>({
 - `invalidate()`: Mark data as stale
 - `reset()`: Reset to initial state
 
-### ZenQueryBuilder
+### ZenMutation
+
+#### Constructor
+```dart
+ZenMutation<TData, TVariables>({
+  required Future<TData> Function(TVariables) mutationFn,
+  FutureOr<void> Function(TVariables)? onMutate,
+  void Function(TData, TVariables)? onSuccess,
+  void Function(Object, TVariables)? onError,
+  void Function(TData?, Object?, TVariables)? onSettled,
+})
 ```
+
+#### Properties
+- `mutate(variables)`: Triggers the mutation
+- `isLoading`: Reactive boolean
+- `isSuccess`: Boolean status check
+- `isError`: Boolean status check
+- `data`: The result data (Rx)
+- `error`: The error object (Rx)
+
+### ZenQueryBuilder
+```dart
 ZenQueryBuilder<T>({
   required ZenQuery<T> query,
   required Widget Function(BuildContext, T) builder,
@@ -391,7 +456,7 @@ ZenQueryBuilder<T>({
 ### ZenQueryCache
 
 Singleton for managing multiple queries:
-```
+```dart
 // Get cache instance
 ZenQueryCache.instance
 
@@ -433,7 +498,7 @@ ZenQuery supports both **global** and **scoped** modes for flexible lifecycle ma
 - **Scoped queries**: Auto-dispose with their scope, perfect for feature-specific data
 
 ### Global Queries (Default)
-```
+```dart
 // Get cache instance
 ZenQueryCache.instance
 
@@ -464,7 +529,7 @@ getStats()
 ``` 
 
 ### Scoped Queries (Recommended Pattern)
-```
+```dart
 class ProductModule extends ZenModule {
   final String productId;
 
@@ -496,7 +561,7 @@ ZenRoute(
 ```
 
 ### Manual Scoped Queries (Alternative)
-```
+```dart
 // Still valid if you need more control
 final query = ZenQuery<Product>(
   queryKey: 'product:$productId',
@@ -510,7 +575,7 @@ scope.put(query);
 ### Use Cases
 
 #### Feature-Specific Data (Scoped)
-```
+```dart
 class ProductDetailModule extends ZenModule {
   final String productId;
 
@@ -542,7 +607,7 @@ ZenRoute(
 ```
 
 #### Within Controller Creation
-```
+```dart
 class ProductController extends ZenController {
   final String productId;
 
@@ -557,7 +622,7 @@ class ProductController extends ZenController {
 ``` 
 
 #### App-Wide Data (Global)
-```
+```dart
 class AppModule extends ZenModule {
   @override
   void register(ZenScope scope) {
@@ -594,25 +659,25 @@ class AppModule extends ZenModule {
 ### Scope Operations
 
 #### Invalidate All Queries in Scope
-```
+```dart
 // Invalidate all queries in a scope (marks as stale)
 ZenQueryCache.instance.invalidateScope(scope.id);
 ``` 
 
 #### Refetch All Queries in Scope
-```
+```dart
 // Refetch all queries in a scope
 await ZenQueryCache.instance.refetchScope(scope.id);
 ```
 
 #### Clear Scope Cache
-```
+```dart
 // Remove all queries from a scope
 ZenQueryCache.instance.clearScope(scope.id);
 ``` 
 
 #### Get Scope Statistics
-```
+```dart
 final stats = ZenQueryCache.instance.getScopeStats(scope.id);
 print('Total queries: ${stats['total']}');
 print('Loading: ${stats['loading']}');
@@ -631,7 +696,7 @@ print('Stale: ${stats['stale']}');
 6. **Invalidate scope on data mutations** - Keep related queries in sync
 
 #### Example: E-commerce Product Page
-```
+```dart
 class ProductPageModule extends ZenModule {
   final String productId;
 
@@ -688,7 +753,7 @@ ZenRoute(
 ## Examples
 
 ### Pagination
-```
+```dart
 class PostsQuery extends ZenQuery<List<Post>> {
   final int page;
 
@@ -709,7 +774,7 @@ ZenQueryBuilder<List<Post>>(
 ```
 
 ### Dependent Queries
-```
+```dart
 // First query: Get user
 final userQuery = ZenQuery<User>(
   queryKey: 'user:$userId',
@@ -727,38 +792,58 @@ final postsQuery = ZenQuery<List<Post>>(
 ``` 
 
 ### Mutations with Optimistic Updates
-```
-class TodoMutation {
-  final ZenQuery<List<Todo>> todosQuery;
 
-  TodoMutation(this.todosQuery);
+Use `ZenMutation` for create/update/delete operations. This separates "reads" from "writes" and provides cleaner lifecycle hooks.
 
-  Future<void> toggleTodo(Todo todo) async {
-    final previousTodos = todosQuery.data.value ?? [];
+```dart
+class TodoController extends ZenController {
+   // Define the mutation
+   late final toggleMutation = ZenMutation<Todo, Todo>(
+     mutationFn: (todo) => api.toggleTodo(todo.id),
+ 
+     // 1. Optimistic Update: Update UI before server responds
+     onMutate: (todo) async {
+        // Cancel any outgoing refetches so they don't overwrite our optimistic update
+        // (Not implemented yet, but good practice in future)
+    
+        // Update the cache immediately
+        final todosQuery = Zen.find<ZenQuery<List<Todo>>>();
+        final currentList = todosQuery.data.value ?? [];
+    
+        final optimisticList = currentList.map((t) {
+           return t.id == todo.id ? t.copyWith(completed: !t.completed) : t;
+        }).toList();
+    
+        todosQuery.setData(optimisticList);
+     },
+ 
+     // 2. On Error: Rollback automatically? 
+     // (Currently you must implement rollback logic manually in onError if complex)
+     onError: (error, todo) {
+        ZenLogger.logError('Failed to toggle todo', error);
+        // Trigger a refetch to ensure consistency
+        ZenQueryCache.instance.invalidateQuery('todos'); 
+     },
 
-    // Optimistic update
-    final updatedTodos = previousTodos.map((t) {
-      if (t.id == todo.id) {
-        return t.copyWith(completed: !t.completed);
-      }
-      return t;
-    }).toList();
-    todosQuery.setData(updatedTodos);
+     // 3. On Settled: Always refetch to ensure server consistency
+     onSettled: (data, error, todo) {
+        ZenQueryCache.instance.invalidateQuery('todos');
+     }
+   );
 
-    try {
-      // Perform mutation
-      await api.toggleTodo(todo.id);
-
-      // Invalidate to refetch fresh data
-      todosQuery.invalidate();
-      await todosQuery.refetch();
-    } catch (error) {
-      // Rollback on error
-      todosQuery.setData(previousTodos);
-      rethrow;
-    }
-  }
+   // Use it
+   void toggle(Todo todo) {
+     toggleMutation.mutate(todo);
+   }
 }
+```
+
+Bind to UI easily:
+```dart
+Obx(() => MyButton(
+  isLoading: controller.toggleMutation.isLoading.value,
+  onPressed: () => controller.toggle(item),
+));
 ```
 
 ---
@@ -768,7 +853,7 @@ class TodoMutation {
 ### Query not refetching
 
 Check if data is marked as stale:
-```
+```dart
 print(query.isStale); // Should be true for refetch
 
 // Force invalidation
@@ -778,7 +863,7 @@ query.invalidate();
 ### Memory leaks
 
 Ensure queries are disposed properly:
-```
+```dart
 // When using manually created queries
 @override
 void dispose() {
@@ -790,7 +875,7 @@ void dispose() {
 ### Concurrent request issues
 
 ZenQuery automatically deduplicates requests with the same key. If you need separate instances, use different keys:
-```
+```dart
 // These will be treated as different queries
 final query1 = ZenQuery(queryKey: 'user:123:v1', ...);
 final query2 = ZenQuery(queryKey: 'user:123:v2', ...);
@@ -813,7 +898,7 @@ final query2 = ZenQuery(queryKey: 'user:123:v2', ...);
 ## Migration Guide
 
 ### From Provider
-```
+```dart
 // Before (Provider)
 class UserProvider extends ChangeNotifier {
   User? _user;
@@ -837,7 +922,7 @@ final userQuery = ZenQuery<User>(
 ```
 
 ### From BLoC
-```
+```dart
 // Before (BLoC)
 class UserBloc extends Bloc<UserEvent, UserState> {
   UserBloc() : super(UserInitial()) {
@@ -876,4 +961,3 @@ final userQuery = ZenQuery<User>(
 **Perfect for:** REST APIs, GraphQL queries, pagination, infinite scroll, and real-time data feeds.
 
 Ready to simplify your async state management? Start with the [Quick Start](#quick-start) section!
-```

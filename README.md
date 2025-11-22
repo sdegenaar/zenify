@@ -42,7 +42,7 @@ We've also incorporated proven concepts from **Riverpod's** hierarchical scoping
 
 ```yaml
 dependencies:
-  zenify: ^1.1.2
+  zenify: ^1.1.3
 ```
 
 ### 2. Initialize
@@ -305,6 +305,29 @@ ZenQueryBuilder<User>(
   error: (error, retry) => ErrorWidget(error: error, onRetry: retry),
 );
 ```
+
+### ⚡ ZenMutation - Reactive Writes
+
+    Handle creates, updates, and deletes with automatic lifecycle management.
+
+    ```dart
+    // Define a mutation
+    final loginMutation = ZenMutation<User, LoginArgs>(
+      mutationFn: (args) => api.login(args.username, args.password),
+      onSuccess: (user, args) => router.go('/home'),
+      onError: (error, args) => showSnackbar(error.message),
+    );
+
+    // Bind to UI
+    Obx(() {
+      if (loginMutation.isLoading.value) return CircularProgressIndicator();
+      
+      return ElevatedButton(
+        onPressed: () => loginMutation.mutate(LoginArgs('user', 'pass')),
+        child: Text('Login'),
+      );
+    })
+    ```
 
 **Features:**
 - ✅ **Automatic caching** - No more manual cache management
