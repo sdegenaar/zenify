@@ -308,42 +308,42 @@ ZenQueryBuilder<User>(
 
 ### ⚡ ZenMutation - Reactive Writes
 
-    Handle creates, updates, and deletes with automatic lifecycle management.
+Handle creates, updates, and deletes with automatic lifecycle management.
 
-    ```dart
-    // Define a mutation
-    final loginMutation = ZenMutation<User, LoginArgs>(
-      mutationFn: (args) => api.login(args.username, args.password),
-      onSuccess: (user, args) => router.go('/home'),
-      onError: (error, args) => showSnackbar(error.message),
-    );
+```dart
+// Define a mutation
+final loginMutation = ZenMutation<User, LoginArgs>(
+  mutationFn: (args) => api.login(args.username, args.password),
+  onSuccess: (user, args) => router.go('/home'),
+  onError: (error, args) => showSnackbar(error.message),
+);
 
-    // Bind to UI
-    Obx(() {
-      if (loginMutation.isLoading.value) return CircularProgressIndicator();
-      
-      return ElevatedButton(
-        onPressed: () => loginMutation.mutate(LoginArgs('user', 'pass')),
-        child: Text('Login'),
-      );
-    })
-    ```
+// Bind to UI
+Obx(() {
+  if (loginMutation.isLoading.value) return CircularProgressIndicator();
+  
+  return ElevatedButton(
+    onPressed: () => loginMutation.mutate(LoginArgs('user', 'pass')),
+    child: Text('Login'),
+  );
+})
+```
 
 ### ♾️ ZenInfiniteQuery - Pagination Made Easy
 
-    Handle infinite scroll lists with automatic page management.
+Handle infinite scroll lists with automatic page management.
 
-    ```dart
-    final postsQuery = ZenInfiniteQuery<Page>(
-      queryKey: ['posts', 'feed'], // Typed keys supported!
-      getNextPageParam: (lastPage, allPages) => lastPage.nextCursor,
-      infiniteFetcher: (cursor) => api.getPosts(cursor),
-    );
+```dart
+final postsQuery = ZenInfiniteQuery<Page>(
+  queryKey: ['posts', 'feed'], // Typed keys supported!
+  getNextPageParam: (lastPage, allPages) => lastPage.nextCursor,
+  infiniteFetcher: (cursor) => api.getPosts(cursor),
+);
 
-    // In UI:
-    // postsQuery.fetchNextPage();
-    // postsQuery.hasNextPage.value;
-    ```
+// In UI:
+// postsQuery.fetchNextPage();
+// postsQuery.hasNextPage.value;
+```
 
 **Features:**
 - ✅ **Automatic caching** - No more manual cache management
