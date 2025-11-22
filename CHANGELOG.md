@@ -1,3 +1,24 @@
+## [1.1.5]
+
+### 🎯 Granular Reactivity for ZenQuery
+
+**Introduced fine-grained state management for ZenQuery to optimize performance and prevent unnecessary rebuilds.**
+
+#### New Features
+
+- **`ZenQuery.select()`**: Create derived queries that only update when specific data changes.
+- **Performance**: Prevents widget rebuilds when unrelated fields in a large object update.
+- **Composition**: Derived queries share the parent's lifecycle and state automatically.
+- **Integration**: Works seamlessly with `ZenQueryBuilder` and `ZenWorkers`.
+
+  ```dart
+  // Only rebuilds when isOnline changes
+  ZenQueryBuilder<bool>(
+    query: userQuery.select((user) => user.isOnline),
+    builder: (context, isOnline) => OnlineBadge(isOnline),
+  );
+  ```
+  
 ## [1.1.4]
 
 ### ♾️ ZenInfiniteQuery & Type-Safe Keys

@@ -42,7 +42,7 @@ We've also incorporated proven concepts from **Riverpod's** hierarchical scoping
 
 ```yaml
 dependencies:
-  zenify: ^1.1.4
+  zenify: ^1.1.5
 ```
 
 ### 2. Initialize
@@ -343,6 +343,18 @@ final postsQuery = ZenInfiniteQuery<Page>(
 // In UI:
 // postsQuery.fetchNextPage();
 // postsQuery.hasNextPage.value;
+```
+
+### 🎯 Granular Rebuilds with Select
+
+Optimize performance by listening only to specific parts of your data.
+
+```dart
+// Only rebuilds when 'isOnline' changes, ignoring other field updates
+ZenQueryBuilder<bool>(
+  query: userQuery.select((user) => user.isOnline),
+  builder: (context, isOnline) => OnlineBadge(isOnline),
+);
 ```
 
 **Features:**

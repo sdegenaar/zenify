@@ -264,6 +264,27 @@ ZenQueryBuilder<List<Page>>(
 
 ## Advanced Features
 
+### Granular Rebuilds (Select)
+
+Optimize performance by listening only to specific parts of your data. This is crucial when fetching large objects but displaying only a small piece of information.
+
+```dart
+// Derived query - only updates when 'isOnline' changes
+// Ignores changes to other user fields (name, email, etc.)
+final isOnlineQuery = userQuery.select((user) => user.isOnline);
+
+// Use in widget
+ZenQueryBuilder<bool>(
+  query: isOnlineQuery,
+  builder: (context, isOnline) => OnlineBadge(isOnline),
+);
+```
+
+**Key Benefits:**
+- ⚡ **Performance**: Widgets only rebuild when the *selected* value changes.
+- 🎯 **Focus**: Separate data fetching from view-specific logic.
+- 🔄 **Lifecycle**: Derived queries share the parent's lifecycle and state automatically.
+
 ### Optimistic Updates
 
 Update UI instantly, rollback on error:

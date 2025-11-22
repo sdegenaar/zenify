@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:zenify/query/query_key.dart';
+import 'package:zenify/workers/zen_workers.dart';
 
 import '../controllers/zen_controller.dart';
 import '../core/zen_logger.dart';
@@ -95,6 +96,9 @@ class ZenQuery<T> extends ZenController {
   /// Timer for background refetching
   Timer? _refetchTimer;
 
+  /// Whether to register this query in the cache
+  final bool _registerInCache;
+
   ZenQuery({
     required Object queryKey,
     required this.fetcher,
@@ -102,8 +106,10 @@ class ZenQuery<T> extends ZenController {
     this.initialData,
     this.scope,
     this.autoDispose = true,
+    bool registerInCache = true,
   })  : queryKey = QueryKey.normalize(queryKey), // Normalize on init
-        config = ZenQueryConfig.defaults.merge(config) {
+        config = ZenQueryConfig.defaults.merge(config),
+        _registerInCache = registerInCache {
     // Set initial data if provided
     if (initialData != null) {
       data.value = initialData;
@@ -114,11 +120,13 @@ class ZenQuery<T> extends ZenController {
     }
 
     // Register in cache (scope-aware or global)
-    if (scope != null) {
-      _registerInScope();
-    } else {
-      // Register in global cache (existing behavior)
-      ZenQueryCache.instance.register(this);
+    if (_registerInCache) {
+      if (scope != null) {
+        _registerInScope();
+      } else {
+        // Register in global cache (existing behavior)
+        ZenQueryCache.instance.register(this);
+      }
     }
 
     // Setup background refetch if enabled
@@ -211,8 +219,10 @@ class ZenQuery<T> extends ZenController {
       _retryAttempt = 0;
       update();
 
-      // Cache the result
-      ZenQueryCache.instance.updateCache(queryKey, result, _lastFetchTime!);
+      // Cache the result if caching is enabled
+      if (_registerInCache) {
+        ZenQueryCache.instance.updateCache(queryKey, result, _lastFetchTime!);
+      }
 
       return result;
     } catch (e) {
@@ -300,7 +310,30 @@ class ZenQuery<T> extends ZenController {
     }
   }
 
-  @override
+  /// Creates a derived query that selects a subset of data.
+  ///
+  /// The derived query shares the lifecycle and state of this query,
+  /// but only updates its data when the selected value changes.
+  ///
+  /// **Important:** The returned query listens to the source query.
+  /// You should dispose it when no longer needed to prevent memory leaks,
+  /// especially if created inside a build method.
+  ///
+  /// Example:
+  /// ```dart
+  /// // In a controller
+  /// late final nameQuery = userQuery.select((user) => user.name);
+  ///
+  /// @override
+  /// void onClose() {
+  ///   nameQuery.dispose();
+  ///   super.onClose();
+  /// }
+  /// ```
+  ZenQuery<R> select<R>(R Function(T data) selector) {
+    return _SelectedZenQuery<T, R>(this, selector);
+  }
+
   @override
   void onClose() {
     _isDisposed = true;
@@ -309,11 +342,13 @@ class ZenQuery<T> extends ZenController {
     _currentFetch = null;
 
     // Unregister based on how it was registered
-    if (scope != null) {
-      final scopedKey = '${scope!.id}:$queryKey';
-      ZenQueryCache.instance.unregister(scopedKey);
-    } else {
-      ZenQueryCache.instance.unregister(queryKey);
+    if (_registerInCache) {
+      if (scope != null) {
+        final scopedKey = '${scope!.id}:$queryKey';
+        ZenQueryCache.instance.unregister(scopedKey);
+      } else {
+        ZenQueryCache.instance.unregister(queryKey);
+      }
     }
 
     // Dispose notifiers
@@ -328,5 +363,110 @@ class ZenQuery<T> extends ZenController {
   @override
   String toString() {
     return 'ZenQuery<$T>(key: $queryKey, status: ${status.value}, hasData: $hasData, hasError: $hasError)';
+  }
+}
+
+/// A specialized query that selects a subset of data from a source query.
+class _SelectedZenQuery<T, R> extends ZenQuery<R> {
+  final ZenQuery<T> source;
+  final R Function(T) selector;
+  final _workers = ZenWorkerGroup();
+
+  _SelectedZenQuery(this.source, this.selector)
+      : super(
+          // Use a composite key to avoid collisions but keep traceability
+          queryKey: '${source.queryKey}-select-${identityHashCode(selector)}',
+          // Fetcher delegates to source
+          fetcher: () async => selector(await source.fetch()),
+          config: source.config,
+          scope: source.scope,
+          autoDispose: source.autoDispose,
+          registerInCache: false,
+        ) {
+    _bindToSource();
+  }
+
+  void _bindToSource() {
+    // Unified state update logic
+    void update(_) => _computeState();
+
+    _workers.add(ZenWorkers.ever(source.status, update));
+    _workers.add(ZenWorkers.ever(source.data, update));
+    _workers.add(ZenWorkers.ever(source.error, update));
+
+    // Initial state computation
+    _computeState();
+  }
+
+  void _computeState() {
+    // 1. Propagate Loading (via status)
+    if (source.status.value == ZenQueryStatus.loading) {
+      if (status.value != ZenQueryStatus.loading) {
+        status.value = ZenQueryStatus.loading;
+      }
+      return;
+    }
+
+    // 2. Propagate Error from parent
+    if (source.status.value == ZenQueryStatus.error) {
+      status.value = ZenQueryStatus.error;
+      error.value = source.error.value;
+      return;
+    }
+
+    // 3. Handle Success/Data
+    if (source.data.value != null) {
+      try {
+        final selected = selector(source.data.value as T);
+
+        // Only update if data actually changed (value equality)
+        if (data.value != selected) {
+          data.value = selected;
+        }
+
+        // Clear error if we recovered
+        if (error.value != null) error.value = null;
+
+        // Set success status
+        if (status.value != ZenQueryStatus.success) {
+          status.value = ZenQueryStatus.success;
+        }
+      } catch (e) {
+        // Derivation error
+        error.value = e;
+        status.value = ZenQueryStatus.error;
+      }
+    } else {
+      // No data (Idle or Success with null)
+      if (status.value != source.status.value) {
+        status.value = source.status.value;
+      }
+    }
+  }
+
+  @override
+  RxBool get isLoading => source.isLoading;
+
+  @override
+  Future<R> fetch({bool force = false}) async {
+    final parentData = await source.fetch(force: force);
+    return selector(parentData);
+  }
+
+  @override
+  Future<R> refetch() async {
+    final parentData = await source.refetch();
+    return selector(parentData);
+  }
+
+  @override
+  void invalidate() {
+    source.invalidate();
+  }
+
+  @override
+  void onClose() {
+    _workers.dispose();
+    super.onClose();
   }
 }
