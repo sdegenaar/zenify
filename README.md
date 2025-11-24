@@ -42,7 +42,7 @@ We've also incorporated proven concepts from **Riverpod's** hierarchical scoping
 
 ```yaml
 dependencies:
-  zenify: ^1.1.8
+  zenify: ^1.1.9
 ```
 
 ### 2. Initialize
