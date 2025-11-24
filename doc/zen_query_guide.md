@@ -60,26 +60,26 @@ final userQuery = ZenQuery<User>(
 
 ## Core Concepts
 
-    ### Query Keys
+### Query Keys
 
-    Query keys uniquely identify queries and enable:
-    - **Deduplication**: Same key = same request
-    - **Cache management**: Invalidate by key or pattern
-    - **Debugging**: Track queries by identifier
+Query keys uniquely identify queries and enable:
+- **Deduplication**: Same key = same request
+- **Cache management**: Invalidate by key or pattern
+- **Debugging**: Track queries by identifier
 
-    You can use a simple string or a list of values (which will be normalized automatically):
+You can use a simple string or a list of values (which will be normalized automatically):
 
-    ```dart
-    // Simple key
-    queryKey: 'users'
+```dart
+// Simple key
+queryKey: 'users'
 
-    // Parameterized key (String interpolation) - Prone to typos!
-    queryKey: 'user:$userId'
+// Parameterized key (String interpolation) - Prone to typos!
+queryKey: 'user:$userId'
 
-    // List Key (Recommended) - Type safe & cleaner
-    queryKey: ['user', userId, 'details'] 
-    // -> Normalized internally to "['user', 123, 'details']"
-    ```
+// List Key (Recommended) - Type safe & cleaner
+queryKey: ['user', userId, 'details'] 
+// -> Normalized internally to "['user', 123, 'details']"
+```
 
 ### Query States
 
@@ -362,6 +362,34 @@ void updateUser(User newUser) {
   });
 }
 ``` 
+
+### Smart Refetching (Focus & Network)
+
+Make your app feel alive by automatically updating data when the user returns to the app or network recovers.
+
+**1. Refetch on Window Focus**
+Enabled by default in `ZenQueryConfig`. Triggers a refetch when the app enters the `resumed` state (foreground).
+
+**2. Refetch on Reconnect**
+Enabled by default, but requires setup. You must provide a connectivity stream to Zenify at startup.
+
+```dart
+// main.dart
+import 'package:connectivity_plus/connectivity_plus.dart';
+
+void main() {
+  Zen.init();
+  
+  // Hook up connectivity (using connectivity_plus package)
+  Zen.setNetworkStream(
+    Connectivity().onConnectivityChanged.map(
+      (results) => !results.contains(ConnectivityResult.none)
+    )
+  );
+  
+  runApp(MyApp());
+}
+```
 
 ### Cache Invalidation
 

@@ -1,3 +1,30 @@
+## [1.1.7]
+
+### 🧠 Smart Refetching Engine
+
+**Added lifecycle and network awareness to ZenQuery for a more robust experience.**
+
+#### New Features
+
+- **Smart Refetching**: Automatically keeps data fresh based on app state.
+    - **Window Focus**: Refetches stale queries when the app resumes (foreground).
+    - **Network Reconnect**: Refetches stale/failed queries when the device goes online.
+    - **Configuration**: Controlled via `ZenQueryConfig.refetchOnFocus` and `refetchOnReconnect`.
+
+    ```dart
+    // Setup connectivity (e.g. in main.dart)
+    Zen.setNetworkStream(
+      Connectivity().onConnectivityChanged.map((res) => 
+        !res.contains(ConnectivityResult.none))
+    );
+    ```
+
+### ♻️ Architecture Improvements
+
+- **Centralized Lifecycle Management**: Moved app lifecycle observation (pause/resume) from individual controllers to `ZenLifecycleManager`.
+    - improved performance by having a single observer.
+    - **Note for testing**: Controllers must now be registered via `Zen.put()` or within a `ZenScope` to receive lifecycle events (onPause, onResume, etc.). Standalone controllers in unit tests will not receive these events unless registered.
+  
 ## [1.1.6]
 
 ### 🚀 Dependent Queries & Prefetching

@@ -17,6 +17,9 @@ class ZenLifecycleManager {
   // App lifecycle observer
   _ZenAppLifecycleObserver? _lifecycleObserver;
 
+  // Generic lifecycle listeners
+  final List<void Function(AppLifecycleState)> _lifecycleListeners = [];
+
   /// Initialize a controller with lifecycle hooks
   void initializeController(ZenController controller) {
     try {
@@ -48,6 +51,16 @@ class ZenLifecycleManager {
 
       ZenLogger.logDebug('Zen lifecycle observer initialized');
     }
+  }
+
+  /// Add a listener for app lifecycle changes
+  void addLifecycleListener(void Function(AppLifecycleState) listener) {
+    _lifecycleListeners.add(listener);
+  }
+
+  /// Remove a listener for app lifecycle changes
+  void removeLifecycleListener(void Function(AppLifecycleState) listener) {
+    _lifecycleListeners.remove(listener);
   }
 
   /// Get all controllers from all scopes
@@ -95,6 +108,7 @@ class ZenLifecycleManager {
       WidgetsBinding.instance.removeObserver(_lifecycleObserver!);
       _lifecycleObserver = null;
     }
+    _lifecycleListeners.clear();
   }
 }
 
@@ -102,6 +116,16 @@ class ZenLifecycleManager {
 class _ZenAppLifecycleObserver extends WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    // 1. Notify generic listeners (like ZenQueryCache)
+    for (final listener in ZenLifecycleManager.instance._lifecycleListeners) {
+      try {
+        listener(state);
+      } catch (e, stack) {
+        ZenLogger.logError('Error in lifecycle listener', e, stack);
+      }
+    }
+
+    // 2. Notify controllers
     // Get all controllers from lifecycle manager
     final allControllers = ZenLifecycleManager.instance._getAllControllers();
 

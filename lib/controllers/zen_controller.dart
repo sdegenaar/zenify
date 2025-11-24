@@ -8,13 +8,12 @@ import '../workers/zen_workers.dart';
 import '../effects/zen_effects.dart';
 
 /// Base controller class with automatic memory leak prevention and smart DI
-abstract class ZenController with WidgetsBindingObserver {
+abstract class ZenController {
   // Internal state tracking
   final DateTime _createdAt = DateTime.now();
   bool _disposed = false;
   bool _initialized = false;
   bool _ready = false;
-  bool _observingAppLifecycle = false;
 
   // MEMORY LEAK PREVENTION: Auto-track reactive objects
   final List<Rx> _reactiveObjects = [];
@@ -192,27 +191,12 @@ abstract class ZenController with WidgetsBindingObserver {
   // APP LIFECYCLE MANAGEMENT
   //
 
-  /// Start observing app lifecycle events
-  void startObservingAppLifecycle() {
-    if (!_observingAppLifecycle && !_disposed) {
-      WidgetsBinding.instance.addObserver(this);
-      _observingAppLifecycle = true;
-    }
-  }
-
-  /// Stop observing app lifecycle events
-  void stopObservingAppLifecycle() {
-    if (_observingAppLifecycle) {
-      WidgetsBinding.instance.removeObserver(this);
-      _observingAppLifecycle = false;
-    }
-  }
+  // NOTE: These methods are called automatically by ZenLifecycleManager
+  // You do not need to manually add observers.
 
   /// Override from WidgetsBindingObserver to handle app lifecycle
-  @override
+  @mustCallSuper
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    super.didChangeAppLifecycleState(state);
-
     if (_disposed) return;
 
     switch (state) {
@@ -498,21 +482,42 @@ abstract class ZenController with WidgetsBindingObserver {
       'is_disposed': _disposed,
       'is_initialized': _initialized,
       'is_ready': _ready,
-      'is_observing_lifecycle': _observingAppLifecycle,
       'uptime_seconds': DateTime.now().difference(_createdAt).inSeconds,
     };
   }
 
   /// Estimate memory usage in bytes (rough approximation)
   int _estimateMemoryUsage() {
-    return (_reactiveObjects.length * 100) +
-        (_workers.length * 100) +
-        (_workerGroups.length * 200) +
-        (_effects.length * 150) +
-        (_disposers.length * 50) +
-        (_updateListeners.length * 100) +
-        (_updateListeners.values.fold<int>(0, (sum, set) => sum + set.length) *
-            50);
+    // 1. Tracked Reactive Objects (~100 bytes each)
+    final reactiveSize = _reactiveObjects.length * 100;
+
+    // 2. Workers (~100 bytes each)
+    final workersSize = _workers.length * 100;
+
+    // 3. Worker Groups (~200 bytes for structure)
+    final groupsSize = _workerGroups.length * 200;
+
+    // 4. Effects (~150 bytes each)
+    final effectsSize = _effects.length * 150;
+
+    // 5. Disposers (~50 bytes per closure)
+    final disposersSize = _disposers.length * 50;
+
+    // 6. Update Listeners Map (~100 bytes per entry key + structure)
+    final mapStructureSize = _updateListeners.length * 100;
+
+    // 7. Actual Listener Callbacks (~50 bytes each)
+    final totalListenersCount =
+        _updateListeners.values.fold<int>(0, (sum, set) => sum + set.length);
+    final listenersSize = totalListenersCount * 50;
+
+    return reactiveSize +
+        workersSize +
+        groupsSize +
+        effectsSize +
+        disposersSize +
+        mapStructureSize +
+        listenersSize;
   }
 
   //
@@ -570,9 +575,6 @@ abstract class ZenController with WidgetsBindingObserver {
 
     // Mark as disposed early to prevent new operations
     _disposed = true;
-
-    // Stop observing app lifecycle if we were
-    stopObservingAppLifecycle();
 
     // ⭐ CRITICAL: Dispose all reactive objects first - PREVENTS MEMORY LEAKS
     _disposeReactiveObjects();

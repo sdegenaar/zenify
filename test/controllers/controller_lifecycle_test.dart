@@ -336,9 +336,6 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      // Controller should start observing lifecycle when initialized
-      lifecycleController.startObservingAppLifecycle();
-
       // Simulate app lifecycle events
       final binding = tester.binding;
 
@@ -366,9 +363,6 @@ void main() {
       binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
       await tester.pump();
       expect(lifecycleController.hasEvent('onHidden'), isTrue);
-
-      // Stop observing to clean up
-      lifecycleController.stopObservingAppLifecycle();
     });
 
     test('should track controller lifecycle events correctly', () async {

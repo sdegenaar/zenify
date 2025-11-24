@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'package:flutter/widgets.dart';
 import 'package:zenify/query/query_key.dart';
 
 import '../core/zen_logger.dart';
+import '../di/zen_lifecycle.dart';
 import 'zen_query.dart';
 import 'zen_query_config.dart';
 
@@ -34,8 +36,12 @@ class _CacheEntry<T> {
 /// - Cache invalidation
 /// - Memory management
 /// - Query coordination
+/// - Smart refetching (Focus/Reconnect)
 class ZenQueryCache {
-  ZenQueryCache._();
+  ZenQueryCache._() {
+    // Start observing app lifecycle via ZenLifecycleManager
+    ZenLifecycleManager.instance.addLifecycleListener(_onLifecycleChanged);
+  }
 
   static final ZenQueryCache instance = ZenQueryCache._();
 
@@ -54,12 +60,73 @@ class ZenQueryCache {
   /// Whether to use real timers (false in tests to avoid pending timer issues)
   bool _useRealTimers = true;
 
+  /// Network status subscription
+  StreamSubscription<bool>? _networkSubscription;
+  bool _isOnline = true;
+
   /// Configure timer behavior for testing
   ///
   /// Set [useRealTimers] to false in tests to prevent pending timer errors.
   /// This is automatically called by ZenTestMode.
   void configureForTesting({bool useRealTimers = false}) {
     _useRealTimers = useRealTimers;
+  }
+
+  /// Set the network connectivity stream
+  void setNetworkStream(Stream<bool> stream) {
+    _networkSubscription?.cancel();
+    _networkSubscription = stream.listen((isOnline) {
+      final wasOffline = !_isOnline;
+      _isOnline = isOnline;
+
+      if (wasOffline && isOnline) {
+        ZenLogger.logDebug(
+            'Network reconnected. Refetching eligible queries...');
+        _refetchOnReconnect();
+      }
+    });
+  }
+
+  void _onLifecycleChanged(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      ZenLogger.logDebug('App resumed. Refetching eligible queries...');
+      _refetchOnFocus();
+    }
+  }
+
+  /// Manually trigger a lifecycle change for testing purposes.
+  /// Use this instead of [didChangeAppLifecycleState] in tests.
+  @visibleForTesting
+  void simulateLifecycleState(AppLifecycleState state) {
+    _onLifecycleChanged(state);
+  }
+
+  void _refetchOnFocus() {
+    for (final query in _queries.values.toList()) {
+      if (query.isDisposed) continue;
+
+      if (query.config.refetchOnFocus &&
+          (query.isStale || query.hasError) &&
+          !query.isLoading.value) {
+        if (query.enabled.value) {
+          query.refetch().then((_) {}, onError: (_) {});
+        }
+      }
+    }
+  }
+
+  void _refetchOnReconnect() {
+    for (final query in _queries.values.toList()) {
+      if (query.isDisposed) continue;
+
+      if (query.config.refetchOnReconnect &&
+          (query.isStale || query.hasError) &&
+          !query.isLoading.value) {
+        if (query.enabled.value) {
+          query.refetch().then((_) {}, onError: (_) {});
+        }
+      }
+    }
   }
 
   /// Register a query in the cache

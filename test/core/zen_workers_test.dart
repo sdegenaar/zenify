@@ -519,9 +519,6 @@ void main() {
           calls.add(value);
         });
 
-        // Start observing app lifecycle
-        controller.startObservingAppLifecycle();
-
         // Normal execution
         controller.count.value = 1;
         await Future.delayed(Duration.zero);
@@ -542,8 +539,6 @@ void main() {
         controller.count.value = 3;
         await Future.delayed(Duration.zero);
         expect(calls, [1, 3]);
-
-        controller.stopObservingAppLifecycle();
       });
     });
 

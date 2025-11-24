@@ -353,8 +353,8 @@ void main() {
     });
 
     test('should call application lifecycle methods', () {
-      // Start observing app lifecycle events
-      controller.startObservingAppLifecycle();
+      // Register controller so ZenLifecycleManager knows about it and can propagate events
+      Zen.put(controller);
 
       // Simulate app lifecycle events
       WidgetsBinding.instance
@@ -384,9 +384,6 @@ void main() {
       WidgetsBinding.instance
           .handleAppLifecycleStateChanged(AppLifecycleState.hidden);
       expect(controller.onHiddenCalled, isTrue);
-
-      // Clean up
-      controller.stopObservingAppLifecycle();
     });
 
     test('should not throw when disposing controller twice', () {

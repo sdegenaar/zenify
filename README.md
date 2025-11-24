@@ -15,7 +15,7 @@ A modern state management library for Flutter that brings true "zen" to your dev
 - **🔗 Natural Hierarchy**: Nested scopes that automatically inherit from parents
 - **⚡ Flexible Reactivity**: Choose between automatic UI updates or manual control
 - **🔒 Strong Type Safety**: Catch errors at compile-time with enhanced type constraints
-- **🔥 ZenQuery System**: React Query-inspired async state management with intelligent caching, automatic deduplication, background refetching, and scope-aware lifecycle management
+- **🔥 ZenQuery System**: React Query-inspired async state management (Queries, Mutations, Infinite Scroll) with intelligent caching, deduplication, smart refetching (focus/reconnect), and scope-aware lifecycle management
 - **✨ Elegant Async Handling**: Built-in effects system for loading, error, and success states
 - **🔍 Production-Safe Logging**: Type-safe, environment-based configuration with granular log levels
 - **🧪 Testing Ready**: Comprehensive testing utilities out of the box
@@ -42,7 +42,7 @@ We've also incorporated proven concepts from **Riverpod's** hierarchical scoping
 
 ```yaml
 dependencies:
-  zenify: ^1.1.6
+  zenify: ^1.1.7
 ```
 
 ### 2. Initialize
@@ -360,6 +360,7 @@ ZenQueryBuilder<bool>(
 **Features:**
 - ✅ **Automatic caching** - No more manual cache management
 - ✅ **Smart deduplication** - Multiple requests = single API call
+- ✅ **Smart Refetching** - Auto-update on window focus and network reconnect
 - ✅ **Background refetch** - Keep data fresh automatically
 - ✅ **Pagination support** - Built-in patterns for paginated data
 - ✅ **Optimistic updates** - Instant UI with error rollback

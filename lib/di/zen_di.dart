@@ -5,6 +5,7 @@ import '../core/zen_scope.dart';
 import '../core/zen_module.dart';
 import '../controllers/zen_controller.dart';
 import '../core/zen_scope_manager.dart';
+import '../query/zen_query_cache.dart';
 import '../testing/zen_test_mode.dart';
 import 'zen_lifecycle.dart';
 import 'zen_reactive.dart';
@@ -32,10 +33,12 @@ class Zen {
   //
 
   /// Create a new scope for isolated dependencies
+  ///
+  /// If [parent] is not provided, it defaults to [rootScope].
   static ZenScope createScope({String? name, ZenScope? parent}) {
     return ZenScopeManager.getOrCreateScope(
       name: name ?? 'Scope_${DateTime.now().millisecondsSinceEpoch}',
-      parentScope: parent,
+      parentScope: parent ?? rootScope, // CHANGED: Default to rootScope
       autoDispose: false,
     );
   }
@@ -184,6 +187,23 @@ class Zen {
   /// Get all registered modules
   static Map<String, ZenModule> getAllModules() {
     return ZenModuleRegistry.getAllModules();
+  }
+
+  /// Set a stream to monitor network connectivity status.
+  ///
+  /// [ZenQuery] will listen to this stream and automatically refetch
+  /// stale queries when connectivity is restored (if configured).
+  ///
+  /// Example with connectivity_plus:
+  /// ```dart
+  /// Zen.setNetworkStream(
+  ///   Connectivity().onConnectivityChanged.map(
+  ///     (results) => !results.contains(ConnectivityResult.none)
+  ///   )
+  /// );
+  /// ```
+  static void setNetworkStream(Stream<bool> stream) {
+    ZenQueryCache.instance.setNetworkStream(stream);
   }
 
   //
