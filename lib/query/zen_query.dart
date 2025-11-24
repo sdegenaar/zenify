@@ -1,31 +1,30 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:zenify/query/query_key.dart';
+import 'package:zenify/query/zen_cancel_token.dart';
 import 'package:zenify/workers/zen_workers.dart';
 
 import '../controllers/zen_controller.dart';
 import '../core/zen_logger.dart';
 import '../core/zen_scope.dart';
-import '../reactive/reactive.dart';
+import '../reactive/core/rx_value.dart';
 import 'zen_query_cache.dart';
 import 'zen_query_config.dart';
 
-/// A reactive query that manages async data fetching with caching
+/// Function signature for data fetching with cancellation support
+typedef ZenQueryFetcher<T> = Future<T> Function(ZenCancelToken cancelToken);
+
+/// A reactive query that manages async data fetching with caching and cancellation
 ///
 /// Example:
 /// ```dart
 /// final userQuery = ZenQuery<User>(
 ///   queryKey: 'user:123',
-///   fetcher: () => api.getUser(123),
+///   fetcher: (token) => api.getUser(123, cancelToken: token),
 ///   config: ZenQueryConfig(
 ///     staleTime: Duration(minutes: 5),
 ///     retryCount: 3,
 ///   ),
-/// );
-///
-/// // In widget
-/// ZenQueryBuilder<User>(
-///   query: userQuery,
-///   builder: (context, data) => Text(data.name),
 /// );
 /// ```
 class ZenQuery<T> extends ZenController {
@@ -33,7 +32,7 @@ class ZenQuery<T> extends ZenController {
   final String queryKey;
 
   /// Function that fetches the data
-  final Future<T> Function() fetcher;
+  final ZenQueryFetcher<T> fetcher;
 
   /// Configuration for this query
   final ZenQueryConfig config;
@@ -102,6 +101,9 @@ class ZenQuery<T> extends ZenController {
   /// Whether to register this query in the cache
   final bool _registerInCache;
 
+  /// Current cancellation token for the active request
+  ZenCancelToken? _currentCancelToken;
+
   ZenQuery({
     required Object queryKey,
     required this.fetcher,
@@ -111,7 +113,7 @@ class ZenQuery<T> extends ZenController {
     this.autoDispose = true,
     bool registerInCache = true,
     bool enabled = true,
-  })  : queryKey = QueryKey.normalize(queryKey), // Normalize on init
+  })  : queryKey = QueryKey.normalize(queryKey),
         config = ZenQueryConfig.defaults.merge(config),
         _registerInCache = registerInCache,
         enabled = RxBool(enabled) {
@@ -129,7 +131,6 @@ class ZenQuery<T> extends ZenController {
       if (scope != null) {
         _registerInScope();
       } else {
-        // Register in global cache (existing behavior)
         ZenQueryCache.instance.register(this);
       }
     }
@@ -138,14 +139,10 @@ class ZenQuery<T> extends ZenController {
     _setupBackgroundRefetch();
 
     // Setup enabled listener
-    // Use a weak listener or ensure disposal.
-    // Since `enabled` is a field of `ZenQuery`, we can just listen.
-    // ZenWorkers.ever handles logic.
     ZenWorkers.ever(this.enabled, (isEnabled) {
       if (isEnabled && !_isDisposed) {
         // When re-enabled, fetch if stale or idle
         if (isStale || status.value == ZenQueryStatus.idle) {
-          // Use .then(..., onError: ...) to correctly handle the future without returning T
           fetch().then((_) {}, onError: (_) {});
         }
       }
@@ -156,11 +153,9 @@ class ZenQuery<T> extends ZenController {
   void _registerInScope() {
     if (scope == null) return;
 
-    // Register in global cache with scope prefix for tracking
     final scopedKey = '${scope!.id}:$queryKey';
     ZenQueryCache.instance.registerScoped(this, scopedKey, scope!.id);
 
-    // Register disposer with scope for automatic cleanup
     if (autoDispose) {
       scope!.registerDisposer(() {
         if (!_isDisposed) {
@@ -179,9 +174,6 @@ class ZenQuery<T> extends ZenController {
   }
 
   /// Fetch or refetch data
-  ///
-  /// Returns cached data immediately if available and not stale,
-  /// otherwise fetches fresh data
   Future<T> fetch({bool force = false}) async {
     // Check enabled state
     if (!enabled.value && !force) {
@@ -200,7 +192,7 @@ class ZenQuery<T> extends ZenController {
     }
 
     // Start fetch operation
-    _currentFetch = _performFetch();
+    _currentFetch = performFetch();
 
     try {
       final result = await _currentFetch!;
@@ -210,8 +202,13 @@ class ZenQuery<T> extends ZenController {
     }
   }
 
-  /// Perform the actual fetch with retry logic
-  Future<T> _performFetch() async {
+  /// Perform the actual fetch with retry logic.
+  /// Intended to be overridden by subclasses like ZenInfiniteQuery.
+  @protected
+  Future<T> performFetch() async {
+    // Cancel previous pending request if any
+    _cancelPendingRequest();
+
     _retryAttempt = 0;
     return _fetchWithRetry();
   }
@@ -221,6 +218,10 @@ class ZenQuery<T> extends ZenController {
       throw StateError('Query has been disposed');
     }
 
+    // Create new token for this attempt
+    final token = ZenCancelToken('Refetching $queryKey');
+    _currentCancelToken = token;
+
     // Update status to loading
     status.value = ZenQueryStatus.loading;
     _isLoadingNotifier?.value = true;
@@ -228,8 +229,14 @@ class ZenQuery<T> extends ZenController {
     update();
 
     try {
-      // Execute fetcher
-      final result = await fetcher();
+      // Execute fetcher with cancellation token
+      final result = await fetcher(token);
+
+      // If cancelled during await, don't update state
+      if (token.isCancelled) {
+        if (hasData) return data.value!;
+        throw ZenCancellationException('Request cancelled');
+      }
 
       if (_isDisposed) {
         throw StateError('Query was disposed during fetch');
@@ -250,7 +257,13 @@ class ZenQuery<T> extends ZenController {
       }
 
       return result;
-    } catch (e) {
+    } catch (e, s) {
+      if (token.isCancelled || e is ZenCancellationException) {
+        // If cancelled, we generally don't treat it as an error state
+        if (hasData) return data.value!;
+        rethrow;
+      }
+
       if (_isDisposed) {
         throw StateError('Query was disposed during fetch');
       }
@@ -259,7 +272,10 @@ class ZenQuery<T> extends ZenController {
       if (_retryAttempt < config.retryCount) {
         _retryAttempt++;
 
-        // Calculate retry delay with exponential backoff
+        ZenLogger.logDebug(
+            'Query $queryKey failed, retrying ($_retryAttempt/${config.retryCount})');
+
+        // Calculate retry delay
         final delay = config.exponentialBackoff
             ? config.retryDelay * _retryAttempt
             : config.retryDelay;
@@ -271,12 +287,25 @@ class ZenQuery<T> extends ZenController {
       }
 
       // No more retries, update with error
+      ZenLogger.logError('Query failed: $queryKey', e, s);
       error.value = e;
       status.value = ZenQueryStatus.error;
       _isLoadingNotifier?.value = false;
       update();
 
       rethrow;
+    } finally {
+      if (_currentCancelToken == token) {
+        _currentCancelToken = null;
+      }
+    }
+  }
+
+  void _cancelPendingRequest() {
+    if (_currentCancelToken != null && !_currentCancelToken!.isCancelled) {
+      ZenLogger.logDebug('Cancelling pending request for $queryKey');
+      _currentCancelToken!.cancel('Query disposed or new fetch started');
+      _currentCancelToken = null;
     }
   }
 
@@ -305,6 +334,7 @@ class ZenQuery<T> extends ZenController {
     _isLoadingNotifier?.value = false;
     _lastFetchTime = initialData != null ? DateTime.now() : null;
     _retryAttempt = 0;
+    _cancelPendingRequest();
     update();
   }
 
@@ -319,15 +349,11 @@ class ZenQuery<T> extends ZenController {
       _refetchTimer = Timer.periodic(interval, (_) {
         if (hasData && !isLoading.value && !_isDisposed) {
           fetch(force: true).then(
-            (_) {
-              // Background refetch successful
-            },
+            (_) {},
             onError: (error, stackTrace) {
               ZenLogger.logWarning(
                 'ZenQuery background refetch failed for query: $queryKey',
               );
-              // Don't log full error details for background refetch - it's not critical
-              // The query still has cached data that users can see
             },
           );
         }
@@ -339,24 +365,19 @@ class ZenQuery<T> extends ZenController {
   ///
   /// The derived query shares the lifecycle and state of this query,
   /// but only updates its data when the selected value changes.
-  ///
-  /// **Important:** The returned query listens to the source query.
-  /// You should dispose it when no longer needed to prevent memory leaks,
-  /// especially if created inside a build method.
-  ///
-  /// Example:
-  /// ```dart
-  /// // In a controller
-  /// late final nameQuery = userQuery.select((user) => user.name);
-  ///
-  /// @override
-  /// void onClose() {
-  ///   nameQuery.dispose();
-  ///   super.onClose();
-  /// }
-  /// ```
   ZenQuery<R> select<R>(R Function(T data) selector) {
     return _SelectedZenQuery<T, R>(this, selector);
+  }
+
+  @override
+  void onInit() {
+    super.onInit();
+    // Auto-fetch on mount if enabled and stale/idle
+    if (config.refetchOnMount && enabled.value) {
+      if (isStale) {
+        fetch().then((_) {}, onError: (_) {});
+      }
+    }
   }
 
   @override
@@ -365,6 +386,9 @@ class ZenQuery<T> extends ZenController {
     _refetchTimer?.cancel();
     _refetchTimer = null;
     _currentFetch = null;
+
+    // Cancel any pending request to prevent network waste
+    _cancelPendingRequest();
 
     // Unregister based on how it was registered
     if (_registerInCache) {
@@ -403,7 +427,12 @@ class _SelectedZenQuery<T, R> extends ZenQuery<R> {
           // Use a composite key to avoid collisions but keep traceability
           queryKey: '${source.queryKey}-select-${identityHashCode(selector)}',
           // Fetcher delegates to source
-          fetcher: () async => selector(await source.fetch()),
+          fetcher: (token) async {
+            // We can't easily pass token to parent fetcher as it might be running.
+            // But we can await the parent result.
+            final parentData = await source.fetch();
+            return selector(parentData);
+          },
           config: source.config,
           scope: source.scope,
           autoDispose: source.autoDispose,

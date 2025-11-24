@@ -19,7 +19,7 @@ void main() {
       int fetchCount = 0;
       final query = ZenQuery<String>(
         queryKey: 'focus-test',
-        fetcher: () async {
+        fetcher: (_) async {
           fetchCount++;
           return 'data';
         },
@@ -52,7 +52,7 @@ void main() {
       int fetchCount = 0;
       final query = ZenQuery<String>(
         queryKey: 'network-test',
-        fetcher: () async {
+        fetcher: (_) async {
           fetchCount++;
           return 'data';
         },
@@ -88,7 +88,7 @@ void main() {
       int fetchCount = 0;
       final query = ZenQuery<String>(
         queryKey: 'disabled-test',
-        fetcher: () async {
+        fetcher: (_) async {
           fetchCount++;
           return 'data';
         },

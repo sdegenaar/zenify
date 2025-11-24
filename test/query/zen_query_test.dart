@@ -17,7 +17,7 @@ void main() {
     test('initial state is idle', () {
       query = ZenQuery<String>(
         queryKey: 'test',
-        fetcher: () async => 'data',
+        fetcher: (_) async => 'data',
       );
 
       expect(query.status.value, ZenQueryStatus.idle);
@@ -28,7 +28,7 @@ void main() {
     test('fetches data successfully', () async {
       query = ZenQuery<String>(
         queryKey: 'test',
-        fetcher: () async => 'test data',
+        fetcher: (_) async => 'test data',
       );
 
       final result = await query.fetch();
@@ -42,7 +42,7 @@ void main() {
     test('handles errors correctly', () async {
       query = ZenQuery<String>(
         queryKey: 'test',
-        fetcher: () async => throw Exception('Test error'),
+        fetcher: (_) async => throw Exception('Test error'),
         config: const ZenQueryConfig(retryCount: 0),
       );
 
@@ -61,7 +61,7 @@ void main() {
       int attempts = 0;
       query = ZenQuery<String>(
         queryKey: 'test',
-        fetcher: () async {
+        fetcher: (_) async {
           attempts++;
           if (attempts < 3) {
             throw Exception('Retry me');
@@ -84,7 +84,7 @@ void main() {
       int fetchCount = 0;
       query = ZenQuery<String>(
         queryKey: 'test',
-        fetcher: () async {
+        fetcher: (_) async {
           fetchCount++;
           return 'data $fetchCount';
         },
@@ -104,7 +104,7 @@ void main() {
       int fetchCount = 0;
       query = ZenQuery<String>(
         queryKey: 'test',
-        fetcher: () async {
+        fetcher: (_) async {
           fetchCount++;
           return 'data $fetchCount';
         },
@@ -126,7 +126,7 @@ void main() {
     test('supports optimistic updates', () async {
       query = ZenQuery<String>(
         queryKey: 'test',
-        fetcher: () async => 'original',
+        fetcher: (_) async => 'original',
       );
 
       await query.fetch();
@@ -140,7 +140,7 @@ void main() {
     test('invalidate marks data as stale', () async {
       query = ZenQuery<String>(
         queryKey: 'test',
-        fetcher: () async => 'data',
+        fetcher: (_) async => 'data',
         config: const ZenQueryConfig(staleTime: Duration(hours: 1)),
       );
 
@@ -154,7 +154,7 @@ void main() {
     test('reset returns to initial state', () async {
       query = ZenQuery<String>(
         queryKey: 'test',
-        fetcher: () async => 'data',
+        fetcher: (_) async => 'data',
         initialData: 'initial',
       );
 
@@ -170,7 +170,7 @@ void main() {
       int fetchCount = 0;
       query = ZenQuery<String>(
         queryKey: 'test',
-        fetcher: () async {
+        fetcher: (_) async {
           fetchCount++;
           await Future.delayed(const Duration(milliseconds: 100));
           return 'data';
@@ -193,7 +193,7 @@ void main() {
     test('registers with cache on creation', () {
       query = ZenQuery<String>(
         queryKey: 'test',
-        fetcher: () async => 'data',
+        fetcher: (_) async => 'data',
       );
 
       final cached = ZenQueryCache.instance.getQuery<String>('test');
@@ -203,7 +203,7 @@ void main() {
     test('unregisters from cache on disposal', () {
       query = ZenQuery<String>(
         queryKey: 'test',
-        fetcher: () async => 'data',
+        fetcher: (_) async => 'data',
       );
 
       query.dispose();
@@ -215,7 +215,7 @@ void main() {
     test('supports list keys', () {
       final query = ZenQuery<String>(
         queryKey: ['user', 123, 'details'],
-        fetcher: () async => 'data',
+        fetcher: (_) async => 'data',
       );
 
       expect(query.queryKey, "['user', 123, 'details']");
@@ -232,7 +232,7 @@ void main() {
     test('invalidates query by key', () async {
       query = ZenQuery<String>(
         queryKey: 'test',
-        fetcher: () async => 'data',
+        fetcher: (_) async => 'data',
         config: const ZenQueryConfig(staleTime: Duration(hours: 1)),
       );
 
@@ -246,13 +246,13 @@ void main() {
     test('invalidates queries with prefix', () async {
       final query1 = ZenQuery<String>(
         queryKey: 'user:1',
-        fetcher: () async => 'user1',
+        fetcher: (_) async => 'user1',
         config: const ZenQueryConfig(staleTime: Duration(hours: 1)),
       );
 
       final query2 = ZenQuery<String>(
         queryKey: 'user:2',
-        fetcher: () async => 'user2',
+        fetcher: (_) async => 'user2',
         config: const ZenQueryConfig(staleTime: Duration(hours: 1)),
       );
 
@@ -271,7 +271,7 @@ void main() {
     test('provides cache statistics', () {
       query = ZenQuery<String>(
         queryKey: 'test',
-        fetcher: () async => 'data',
+        fetcher: (_) async => 'data',
       );
 
       final stats = ZenQueryCache.instance.getStats();

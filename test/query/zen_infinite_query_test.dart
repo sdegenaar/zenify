@@ -19,7 +19,10 @@ void main() {
       final query = ZenInfiniteQuery<String>(
         queryKey: 'infinite',
         initialPageParam: 1,
-        infiniteFetcher: (page) async => 'page-$page',
+        infiniteFetcher: (param, token) async {
+          // Accepts token
+          return 'page-$param';
+        },
         getNextPageParam: (lastPage, allPages) => null,
       );
 
@@ -33,7 +36,7 @@ void main() {
       final query = ZenInfiniteQuery<String>(
         queryKey: 'infinite',
         initialPageParam: 1,
-        infiniteFetcher: (page) async {
+        infiniteFetcher: (page, token) async {
           return 'page-$page';
         },
         getNextPageParam: (lastPage, allPages) {
@@ -66,7 +69,7 @@ void main() {
       final query = ZenInfiniteQuery<String>(
         queryKey: 'infinite',
         initialPageParam: 1,
-        infiniteFetcher: (page) async => 'page-$page',
+        infiniteFetcher: (page, token) async => 'page-$page',
         // Fix: Use allPages.length to calculate the next page index
         getNextPageParam: (lastPage, allPages) => allPages.length + 1,
       );
@@ -88,7 +91,7 @@ void main() {
       final query = ZenInfiniteQuery<String>(
         queryKey: 'infinite-error',
         initialPageParam: 1,
-        infiniteFetcher: (page) async {
+        infiniteFetcher: (page, token) async {
           if (page == 2) throw Exception('Network error');
           return 'page-$page';
         },
@@ -119,7 +122,7 @@ void main() {
       final query = ZenInfiniteQuery<String>(
         queryKey: 'infinite-loading',
         initialPageParam: 1,
-        infiniteFetcher: (page) async {
+        infiniteFetcher: (page, token) async {
           if (page == 1) return 'page-1';
           return completer.future;
         },

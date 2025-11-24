@@ -31,7 +31,7 @@ ZenQuery brings React Query/TanStack Query patterns to Flutter with a clean, int
 // Create a query
 final userQuery = ZenQuery<User>(
   queryKey: 'user:123',
-  fetcher: () => api.getUser(123),
+  fetcher: (_) => api.getUser(123),
 );
 
 // Use in widget
@@ -47,7 +47,7 @@ ZenQueryBuilder<User>(
 ```dart
 final userQuery = ZenQuery<User>(
   queryKey: 'user:123',
-  fetcher: () => api.getUser(123),
+  fetcher: (_) => api.getUser(123),
   config: ZenQueryConfig(
     staleTime: Duration(minutes: 5),
     cacheTime: Duration(hours: 1),
@@ -103,6 +103,54 @@ ZenQueryBuilder<User>(
   builder: (context, data) => UserProfile(data),
 );
 ```
+---
+
+## Network Cancellation (Network Waste Gap)
+
+ZenQuery automatically handles request cancellation to prevent bandwidth waste and battery drain.
+
+### How it works
+1. **Race Conditions**: If a user triggers a refetch while one is already in progress, the old request is cancelled.
+2. **Lifecycle**: If a user leaves a screen (disposing the query), the pending request is cancelled.
+
+### Implementing in Fetcher
+Your fetcher function receives a `ZenCancelToken`. Pass this to your HTTP client.
+
+**Using Dio:**
+```dart
+ZenQuery(
+  queryKey: 'users',
+  fetcher: (token) async {
+    // Convert ZenCancelToken to Dio CancelToken
+    // (You can make a simple extension for this)
+    final dioToken = CancelToken();
+    token.onCancel(() => dioToken.cancel());
+    
+    final response = await dio.get('/users', cancelToken: dioToken);
+    return User.fromJson(response.data);
+  }
+)
+```
+
+**Using Http:**
+```dart
+ZenQuery(
+  queryKey: 'users',
+  fetcher: (token) async {
+    final client = http.Client();
+    
+    // Register cancellation callback
+    token.onCancel(() => client.close());
+    
+    try {
+      final response = await client.get(Uri.parse('...'));
+      return User.fromJson(jsonDecode(response.body));
+    } finally {
+      // Clean up is handled by client.close() on cancel
+    }
+  }
+)
+```
 
 ---
 
@@ -122,7 +170,7 @@ const myDefaults = ZenQueryConfig(
 // Use in queries
 final query = ZenQuery<User>(
   queryKey: 'user:123',
-  fetcher: () => api.getUser(123),
+  fetcher: (_) => api.getUser(123),
   config: myDefaults,
 );
 ``` 
@@ -131,7 +179,7 @@ final query = ZenQuery<User>(
 ```dart
 final query = ZenQuery<User>(
   queryKey: 'user:123',
-  fetcher: () => api.getUser(123),
+  fetcher: (_) => api.getUser(123),
   config: ZenQueryConfig(
     // Cache configuration
     staleTime: Duration(minutes: 5),
@@ -293,13 +341,13 @@ Execute queries sequentially by using the `enabled` parameter. This allows you t
 // 1. Fetch User
 final userQuery = ZenQuery<User>(
   queryKey: 'user',
-  fetcher: () => api.getUser(),
+  fetcher: (_) => api.getUser(),
 );
 
 // 2. Fetch Posts (depends on User ID)
 final postsQuery = ZenQuery<List<Post>>(
   queryKey: ['posts', 'user-posts'], 
-  fetcher: () => api.getPosts(userQuery.data.value!.id),
+  fetcher: (_) => api.getPosts(userQuery.data.value!.id),
   
   // Start disabled
   enabled: false, 
@@ -331,7 +379,7 @@ Improve perceived performance by pre-loading data before the user needs it (e.g.
 void onHoverUser(String userId) {
   ZenQueryCache.instance.prefetch(
     queryKey: ['user', userId],
-    fetcher: () => api.getUser(userId),
+    fetcher: (_) => api.getUser(userId),
     staleTime: Duration(minutes: 5), // Only fetch if stale
   );
 }
@@ -439,7 +487,7 @@ Provide initial data to avoid loading state:
 ```dart
 final userQuery = ZenQuery<User>(
   queryKey: 'user:123',
-  fetcher: () => api.getUser(123),
+  fetcher: (_) => api.getUser(123),
   initialData: User(id: 123, name: 'Loading...'),
 );
 
@@ -452,7 +500,7 @@ Keep data fresh automatically:
 ```dart
 final liveDataQuery = ZenQuery<StockPrice>(
   queryKey: 'stock:AAPL',
-  fetcher: () => api.getStockPrice('AAPL'),
+  fetcher: (_) => api.getStockPrice('AAPL'),
   config: ZenQueryConfig(
     refetchInterval: Duration(seconds: 30),
     enableBackgroundRefetch: true,
@@ -505,7 +553,7 @@ class UserModule extends ZenModule {
     // ✅ Recommended: Scoped query with auto-disposal
     scope.putQuery<User>(
       queryKey: 'user:$currentUserId',
-      fetcher: () => api.getUser(currentUserId),
+      fetcher: (_) => api.getUser(currentUserId),
     );
   }
 }
@@ -533,7 +581,7 @@ ZenQuery extends ZenController, so it manages its lifecycle automatically when u
 // If created manually, dispose when done
 final query = ZenQuery<User>(
   queryKey: 'user:123',
-  fetcher: () => api.getUser(123),
+  fetcher: (_) => api.getUser(123),
 );
 
 // Later...
@@ -700,13 +748,13 @@ class ProductModule extends ZenModule {
     // ✅ Recommended: Use putQuery for scoped queries
     scope.putQuery<Product>(
       queryKey: 'product:$productId',
-      fetcher: () => api.getProduct(productId),
+      fetcher: (_) => api.getProduct(productId),
       config: ZenQueryConfig(staleTime: Duration(minutes: 5)),
     );
 
     scope.putQuery<List<Review>>(
       queryKey: 'reviews:$productId',
-      fetcher: () => api.getReviews(productId),
+      fetcher: (_) => api.getReviews(productId),
     );
   }
 }
@@ -725,7 +773,7 @@ ZenRoute(
 // Still valid if you need more control
 final query = ZenQuery<Product>(
   queryKey: 'product:$productId',
-  fetcher: () => api.getProduct(productId),
+  fetcher: (_) => api.getProduct(productId),
   scope: scope,
   autoDispose: false, // Custom lifecycle control
 );
@@ -746,13 +794,13 @@ class ProductDetailModule extends ZenModule {
     // Product data - scope-specific
     scope.putQuery<Product>(
       queryKey: 'product:$productId',
-      fetcher: () => api.getProduct(productId),
+      fetcher: (_) => api.getProduct(productId),
     );
 
     // Reviews - scope-specific
     scope.putQuery<List<Review>>(
       queryKey: 'reviews:$productId',
-      fetcher: () => api.getReviews(productId),
+      fetcher: (_) => api.getReviews(productId),
     );
   }
 }
@@ -775,7 +823,7 @@ class ProductController extends ZenController {
 
   late final productQuery = ZenQuery<Product>(
     queryKey: 'product:$productId',
-    fetcher: () => api.getProduct(productId),
+    fetcher: (_) => api.getProduct(productId),
     scope: Zen.currentScope, // ← Implicit scope
   );
 }
@@ -789,7 +837,7 @@ class AppModule extends ZenModule {
     // User data - global, persists across navigation
     final userQuery = ZenQuery<User>(
       queryKey: 'currentUser',
-      fetcher: () => api.getCurrentUser(),
+      fetcher: (_) => api.getCurrentUser(),
       // No scope parameter = global
     );
 
@@ -867,17 +915,17 @@ class ProductPageModule extends ZenModule {
     // All product-related queries tied to this scope
     scope.putQuery<Product>(
       queryKey: 'product:$productId',
-      fetcher: () => api.getProduct(productId),
+      fetcher: (_) => api.getProduct(productId),
     );
 
     scope.putQuery<List<Review>>(
       queryKey: 'reviews:$productId',
-      fetcher: () => api.getReviews(productId),
+      fetcher: (_) => api.getReviews(productId),
     );
 
     scope.putQuery<List<Product>>(
       queryKey: 'related:$productId',
-      fetcher: () => api.getRelatedProducts(productId),
+      fetcher: (_) => api.getRelatedProducts(productId),
     );
 
     // Controller for this page
@@ -919,7 +967,7 @@ class PostsQuery extends ZenQuery<List<Post>> {
 
   PostsQuery(this.page) : super(
     queryKey: 'posts:page:$page',
-    fetcher: () => api.getPosts(page),
+    fetcher: (_) => api.getPosts(page),
     config: ZenQueryConfig(
       staleTime: Duration(minutes: 5),
     ),
@@ -938,13 +986,13 @@ ZenQueryBuilder<List<Post>>(
 // First query: Get user
 final userQuery = ZenQuery<User>(
   queryKey: 'user:$userId',
-  fetcher: () => api.getUser(userId),
+  fetcher: (_) => api.getUser(userId),
 );
 
 // Second query: Get user's posts (depends on user data)
 final postsQuery = ZenQuery<List<Post>>(
   queryKey: 'posts:user:$userId',
-  fetcher: () async {
+  fetcher: (_) async {
     final user = await userQuery.fetch();
     return api.getUserPosts(user.id);
   },
@@ -1077,7 +1125,7 @@ class UserProvider extends ChangeNotifier {
 // After (ZenQuery)
 final userQuery = ZenQuery<User>(
   queryKey: 'user:$id',
-  fetcher: () => api.getUser(id),
+  fetcher: (_) => api.getUser(id),
 );
 ```
 
@@ -1101,7 +1149,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
 // After (ZenQuery)
 final userQuery = ZenQuery<User>(
   queryKey: 'user:$id',
-  fetcher: () => api.getUser(id),
+  fetcher: (_) => api.getUser(id),
 );
 ``` 
 

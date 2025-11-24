@@ -36,7 +36,7 @@ void main() {
     test('should derive data from parent query', () async {
       final userQuery = ZenQuery<User>(
         queryKey: 'user:1',
-        fetcher: () async => User(1, 'Alice', 25),
+        fetcher: (_) async => User(1, 'Alice', 25),
       );
 
       final nameQuery = userQuery.select((user) => user.name);
@@ -55,7 +55,7 @@ void main() {
     test('should only update when selected value changes', () async {
       final userQuery = ZenQuery<User>(
         queryKey: 'user:2',
-        fetcher: () async => User(2, 'Bob', 30),
+        fetcher: (_) async => User(2, 'Bob', 30),
       );
 
       final ageQuery = userQuery.select((user) => user.age);
@@ -91,7 +91,7 @@ void main() {
     test('derived query should sync loading and error states', () async {
       final userQuery = ZenQuery<User>(
         queryKey: 'user:3',
-        fetcher: () async {
+        fetcher: (_) async {
           await Future.delayed(const Duration(milliseconds: 50));
           throw Exception('Network Error');
         },
@@ -122,7 +122,7 @@ void main() {
     test('derived query should handle selector errors gracefully', () async {
       final userQuery = ZenQuery<User>(
         queryKey: 'user:4',
-        fetcher: () async => User(4, 'Dave', 40),
+        fetcher: (_) async => User(4, 'Dave', 40),
       );
 
       // Selector that throws
@@ -140,7 +140,7 @@ void main() {
     test('lifecycle: derived query disposal cleans up listeners', () async {
       final userQuery = ZenQuery<User>(
         queryKey: 'user:5',
-        fetcher: () async => User(5, 'Eve', 50),
+        fetcher: (_) async => User(5, 'Eve', 50),
       );
 
       final nameQuery = userQuery.select((user) => user.name);
@@ -161,7 +161,7 @@ void main() {
     test('scope integration: derived query is not cached globally', () async {
       final userQuery = ZenQuery<User>(
         queryKey: 'user:6',
-        fetcher: () async => User(6, 'Frank', 60),
+        fetcher: (_) async => User(6, 'Frank', 60),
       );
 
       // Derived query
@@ -185,7 +185,7 @@ void main() {
 
       final userQuery = ZenQuery<User>(
         queryKey: 'user:scoped',
-        fetcher: () async => User(7, 'Grace', 70),
+        fetcher: (_) async => User(7, 'Grace', 70),
         scope: scope,
       );
 

@@ -17,7 +17,7 @@ void main() {
       int fetchCount = 0;
       final query = ZenQuery<String>(
         queryKey: 'test',
-        fetcher: () async {
+        fetcher: (_) async {
           fetchCount++;
           return 'data';
         },
@@ -44,7 +44,7 @@ void main() {
       int fetchCount = 0;
       final query = ZenQuery<String>(
         queryKey: 'test',
-        fetcher: () async {
+        fetcher: (_) async {
           fetchCount++;
           return 'data';
         },
@@ -83,7 +83,7 @@ void main() {
       int fetchCount = 0;
       final query = ZenQuery<String>(
         queryKey: 'test',
-        fetcher: () async {
+        fetcher: (_) async {
           fetchCount++;
           return 'data';
         },
@@ -110,14 +110,14 @@ void main() {
       // 1. User Query
       final userQuery = ZenQuery<String>(
         queryKey: 'user',
-        fetcher: () async => 'user_id_123',
+        fetcher: (_) async => 'user_id_123',
       );
 
       // 2. Posts Query (dependent)
       int postsFetchCount = 0;
       final postsQuery = ZenQuery<String>(
         queryKey: ['posts', 'dependent'], // Static key for test
-        fetcher: () async {
+        fetcher: (_) async {
           postsFetchCount++;
           return 'posts for ${userQuery.data.value}';
         },

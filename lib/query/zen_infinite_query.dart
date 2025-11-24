@@ -1,8 +1,9 @@
 import 'dart:async';
-import '../reactive/reactive.dart';
+import 'package:zenify/query/zen_cancel_token.dart';
+import '../reactive/core/rx_value.dart';
 import 'zen_query.dart';
-import 'zen_query_config.dart';
 import 'zen_query_cache.dart';
+import 'zen_query_config.dart';
 
 /// A specialized query for infinite scrolling / pagination.
 ///
@@ -15,8 +16,9 @@ class ZenInfiniteQuery<T> extends ZenQuery<List<T>> {
   /// Return null if there are no more pages.
   final dynamic Function(T lastPage, List<T> allPages) getNextPageParam;
 
-  /// The actual fetcher that takes a page param.
-  final Future<T> Function(dynamic pageParam) infiniteFetcher;
+  /// The actual fetcher that takes a page param and a cancel token.
+  final Future<T> Function(dynamic pageParam, ZenCancelToken cancelToken)
+      infiniteFetcher;
 
   /// The initial page parameter to use for the first page.
   final dynamic initialPageParam;
@@ -30,6 +32,9 @@ class ZenInfiniteQuery<T> extends ZenQuery<List<T>> {
   // Stores the next page param to be used
   dynamic _nextPageParam;
 
+  /// Token for the current "next page" fetch to allow specific cancellation
+  ZenCancelToken? _nextPageCancelToken;
+
   ZenInfiniteQuery({
     required super.queryKey,
     required this.infiniteFetcher,
@@ -41,8 +46,10 @@ class ZenInfiniteQuery<T> extends ZenQuery<List<T>> {
     super.autoDispose,
   })  : _nextPageParam = initialPageParam,
         super(
-          fetcher: () async {
-            final firstPage = await infiniteFetcher(initialPageParam);
+          // The main fetcher (for initial load/refetch)
+          fetcher: (token) async {
+            // Pass the token to the infinite fetcher
+            final firstPage = await infiniteFetcher(initialPageParam, token);
             return [firstPage];
           },
         );
@@ -58,11 +65,16 @@ class ZenInfiniteQuery<T> extends ZenQuery<List<T>> {
     isFetchingNextPage.value = true;
     update(); // Update UI to show loading footer
 
+    // Create token for this specific operation
+    _nextPageCancelToken?.cancel('New next page fetch started');
+    final token = ZenCancelToken('Fetching next page');
+    _nextPageCancelToken = token;
+
     try {
       // 1. Fetch the new page using the stored param
-      final newPage = await infiniteFetcher(_nextPageParam);
+      final newPage = await infiniteFetcher(_nextPageParam, token);
 
-      if (isDisposed) return;
+      if (isDisposed || token.isCancelled) return;
 
       // 2. Append to existing pages
       final currentPages = data.value ?? [];
@@ -88,7 +100,7 @@ class ZenInfiniteQuery<T> extends ZenQuery<List<T>> {
       // Clear any previous errors since this succeeded
       error.value = null;
     } catch (e) {
-      if (!isDisposed) {
+      if (!isDisposed && !token.isCancelled) {
         // We generally set the error state but keep the old data
         error.value = e;
         // Note: We do NOT set status to ZenQueryStatus.error because
@@ -98,6 +110,9 @@ class ZenInfiniteQuery<T> extends ZenQuery<List<T>> {
     } finally {
       if (!isDisposed) {
         isFetchingNextPage.value = false;
+        if (_nextPageCancelToken == token) {
+          _nextPageCancelToken = null;
+        }
         update();
       }
     }
@@ -110,6 +125,9 @@ class ZenInfiniteQuery<T> extends ZenQuery<List<T>> {
       _nextPageParam = initialPageParam;
       hasNextPage.value = true;
       isFetchingNextPage.value = false;
+      // Cancel any ongoing "next page" fetch
+      _nextPageCancelToken?.cancel('Full refresh triggered');
+      _nextPageCancelToken = null;
     }
 
     final result = await super.fetch(force: force);
@@ -126,6 +144,7 @@ class ZenInfiniteQuery<T> extends ZenQuery<List<T>> {
 
   @override
   void onClose() {
+    _nextPageCancelToken?.cancel('Query disposed');
     isFetchingNextPage.dispose();
     hasNextPage.dispose();
     super.onClose();

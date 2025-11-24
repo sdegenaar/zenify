@@ -1,3 +1,49 @@
+## [1.1.8]
+
+### 🛑 Smart Cancellation & Network Efficiency
+
+**Introduced `ZenCancelToken` to prevent network waste and handle query cancellation gracefully.**
+
+#### ⚠️ Breaking Changes
+
+- **Fetcher Signature Update**:
+    - `ZenQuery.fetcher` now requires a `ZenCancelToken` parameter: `(token) => ...`.
+    - `ZenInfiniteQuery.infiniteFetcher` now requires a `ZenCancelToken` parameter: `(pageParam, token) => ...`.
+    - **Migration**: Update your fetcher functions to accept the token argument (you can use `_` if unused).
+      ```dart
+      // Before
+      fetcher: () => api.getData()
+      
+      // After
+      fetcher: (_) => api.getData()
+      
+      ```
+
+#### New Features
+
+- **ZenCancelToken**: A platform-agnostic token for cancelling async operations.
+    - **Universal Compatibility**: Works with `http`, `dio`, or any async library.
+    - **Automatic Cleanup**: Queries automatically cancel pending requests when disposed or re-triggered.
+    - **Race Condition Handling**: Prevents "old" data from overwriting "new" data if multiple fetches occur rapidly.
+
+    ```dart
+    ZenQuery(
+      queryKey: 'search',
+      fetcher: (token) async {
+        final client = http.Client();
+        // Auto-close connection if user types fast or leaves page
+        token.onCancel(() => client.close()); 
+        
+        return api.search(term);
+      },
+    );
+    ```
+
+#### Improvements
+
+- **ZenInfiniteQuery**: Enhanced cancellation support for pagination.
+    - `fetchNextPage()` now correctly cancels any in-flight "next page" requests if called again.
+    - Full refreshes cancel any pending pagination requests.
 ## [1.1.7]
 
 ### 🧠 Smart Refetching Engine

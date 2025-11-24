@@ -17,7 +17,7 @@ void main() {
   testWidgets('should render loading state initially', (tester) async {
     final query = ZenQuery<String>(
       queryKey: 'test',
-      fetcher: () async {
+      fetcher: (_) async {
         await Future.delayed(const Duration(milliseconds: 100));
         return 'data';
       },
@@ -48,7 +48,7 @@ void main() {
   testWidgets('should render success state with data', (tester) async {
     final query = ZenQuery<String>(
       queryKey: 'test',
-      fetcher: () async => 'success',
+      fetcher: (_) async => 'success',
     );
 
     await tester.pumpWidget(
@@ -70,7 +70,7 @@ void main() {
   testWidgets('should render error state on failure', (tester) async {
     final query = ZenQuery<String>(
       queryKey: 'test',
-      fetcher: () async => throw Exception('Test error'),
+      fetcher: (_) async => throw Exception('Test error'),
       config: const ZenQueryConfig(retryCount: 0),
     );
 
@@ -95,7 +95,7 @@ void main() {
     int fetchCount = 0;
     final query = ZenQuery<String>(
       queryKey: 'test',
-      fetcher: () async {
+      fetcher: (_) async {
         fetchCount++;
         await Future.delayed(const Duration(milliseconds: 50));
         return 'data-$fetchCount';

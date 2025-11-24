@@ -17,7 +17,7 @@ void main() {
     test('query without scope registers globally', () async {
       final query = ZenQuery<String>(
         queryKey: 'test-global',
-        fetcher: () async => 'global-data',
+        fetcher: (_) async => 'global-data',
       );
 
       await query.fetch();
@@ -37,7 +37,7 @@ void main() {
 
       final query = ZenQuery<String>(
         queryKey: 'test-scoped',
-        fetcher: () async => 'scoped-data',
+        fetcher: (_) async => 'scoped-data',
         scope: scope,
       );
 
@@ -58,7 +58,7 @@ void main() {
 
       final query = ZenQuery<String>(
         queryKey: 'test-auto-dispose',
-        fetcher: () async => 'data',
+        fetcher: (_) async => 'data',
         scope: scope,
         autoDispose: true,
       );
@@ -79,7 +79,7 @@ void main() {
 
       final query = ZenQuery<String>(
         queryKey: 'test-no-auto-dispose',
-        fetcher: () async => 'data',
+        fetcher: (_) async => 'data',
         scope: scope,
         autoDispose: false,
       );
@@ -102,14 +102,14 @@ void main() {
 
       final query1 = ZenQuery<String>(
         queryKey: 'query1',
-        fetcher: () async => 'data1',
+        fetcher: (_) async => 'data1',
         scope: scope,
         config: ZenQueryConfig(staleTime: const Duration(hours: 1)),
       );
 
       final query2 = ZenQuery<String>(
         queryKey: 'query2',
-        fetcher: () async => 'data2',
+        fetcher: (_) async => 'data2',
         scope: scope,
         config: ZenQueryConfig(staleTime: const Duration(hours: 1)),
       );
@@ -133,13 +133,13 @@ void main() {
 
       final query1 = ZenQuery<String>(
         queryKey: 'query1',
-        fetcher: () async => 'data1',
+        fetcher: (_) async => 'data1',
         scope: scope,
       );
 
       final query2 = ZenQuery<String>(
         queryKey: 'query2',
-        fetcher: () async => 'data2',
+        fetcher: (_) async => 'data2',
         scope: scope,
       );
 
@@ -162,13 +162,13 @@ void main() {
 
       final query1 = ZenQuery<String>(
         queryKey: 'query1',
-        fetcher: () async => 'data1',
+        fetcher: (_) async => 'data1',
         scope: scope,
       );
 
       final query2 = ZenQuery<String>(
         queryKey: 'query2',
-        fetcher: () async => throw Exception('error'),
+        fetcher: (_) async => throw Exception('error'),
         scope: scope,
       );
 
@@ -196,7 +196,7 @@ void main() {
       // Simulate module registration
       final productQuery = ZenQuery<String>(
         queryKey: 'product:123',
-        fetcher: () async => 'Product 123',
+        fetcher: (_) async => 'Product 123',
         scope: scope,
       );
 
@@ -220,7 +220,7 @@ void main() {
 
       final query1 = ZenQuery<String>(
         queryKey: 'query1',
-        fetcher: () async {
+        fetcher: (_) async {
           await Future.delayed(const Duration(milliseconds: 10));
           fetchCount1++;
           return 'data1-$fetchCount1';
@@ -230,7 +230,7 @@ void main() {
 
       final query2 = ZenQuery<String>(
         queryKey: 'query2',
-        fetcher: () async {
+        fetcher: (_) async {
           await Future.delayed(const Duration(milliseconds: 10));
           fetchCount2++;
           return 'data2-$fetchCount2';
@@ -265,13 +265,13 @@ void main() {
 
       final parentQuery = ZenQuery<String>(
         queryKey: 'parent-query',
-        fetcher: () async => 'parent-data',
+        fetcher: (_) async => 'parent-data',
         scope: parentScope,
       );
 
       final childQuery = ZenQuery<String>(
         queryKey: 'child-query',
-        fetcher: () async => 'child-data',
+        fetcher: (_) async => 'child-data',
         scope: childScope,
       );
 
@@ -301,13 +301,13 @@ void main() {
       // Global query
       final globalQuery = ZenQuery<String>(
         queryKey: 'global',
-        fetcher: () async => 'global-data',
+        fetcher: (_) async => 'global-data',
       );
 
       // Scoped query
       final scopedQuery = ZenQuery<String>(
         queryKey: 'scoped',
-        fetcher: () async => 'scoped-data',
+        fetcher: (_) async => 'scoped-data',
         scope: scope,
       );
 
@@ -332,7 +332,7 @@ void main() {
       // Use the extension method
       final query = scope.putQuery<String>(
         queryKey: 'test-query',
-        fetcher: () async => 'test-data',
+        fetcher: (_) async => 'test-data',
       );
 
       // Verify query was created and registered
@@ -358,7 +358,7 @@ void main() {
 
       final query = scope.putQuery<String>(
         queryKey: 'configured-query',
-        fetcher: () async => 'data',
+        fetcher: (_) async => 'data',
         config: ZenQueryConfig(
           staleTime: Duration(hours: 1),
           retryCount: 5,
@@ -376,8 +376,11 @@ void main() {
 
       final query = scope.putQuery<String>(
         queryKey: 'initial-data-query',
-        fetcher: () async => 'fetched-data',
+        fetcher: (_) async => 'fetched-data',
         initialData: 'initial-data',
+        // Disable refetchOnMount to prevent immediate loading state transition
+        // This ensures we are testing strictly the "initial" state application
+        config: ZenQueryConfig(refetchOnMount: false),
       );
 
       expect(query.data.value, 'initial-data');
@@ -392,7 +395,7 @@ void main() {
 
       final query = scope.putCachedQuery<String>(
         queryKey: 'cached-query',
-        fetcher: () async => 'cached-data',
+        fetcher: (_) async => 'cached-data',
       );
 
       // Verify default staleTime is applied
@@ -409,7 +412,7 @@ void main() {
 
       final query = scope.putCachedQuery<String>(
         queryKey: 'custom-cached-query',
-        fetcher: () async => 'data',
+        fetcher: (_) async => 'data',
         staleTime: Duration(minutes: 10),
       );
 
@@ -423,7 +426,7 @@ void main() {
 
       final query = scope.putQuery<String>(
         queryKey: 'auto-dispose-query',
-        fetcher: () async => 'data',
+        fetcher: (_) async => 'data',
       );
 
       await query.fetch();
@@ -442,17 +445,17 @@ void main() {
 
       final query1 = scope.putQuery<String>(
         queryKey: 'query1',
-        fetcher: () async => 'data1',
+        fetcher: (_) async => 'data1',
       );
 
       final query2 = scope.putQuery<int>(
         queryKey: 'query2',
-        fetcher: () async => 42,
+        fetcher: (_) async => 42,
       );
 
       final query3 = scope.putCachedQuery<bool>(
         queryKey: 'query3',
-        fetcher: () async => true,
+        fetcher: (_) async => true,
       );
 
       await Future.wait([
@@ -477,7 +480,7 @@ void main() {
 
       final query = scope.putQuery<String>(
         queryKey: 'customizable-query',
-        fetcher: () async => 'original',
+        fetcher: (_) async => 'original',
       );
 
       // Can use returned query for operations

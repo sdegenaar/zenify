@@ -14,7 +14,7 @@ void main() {
     test('should register and retrieve queries', () {
       final query = ZenQuery<String>(
         queryKey: 'test',
-        fetcher: () async => 'data',
+        fetcher: (_) async => 'data',
       );
 
       final retrieved = ZenQueryCache.instance.getQuery<String>('test');
@@ -24,7 +24,7 @@ void main() {
     test('should cache query results', () async {
       final query = ZenQuery<String>(
         queryKey: 'test',
-        fetcher: () async => 'cached-data',
+        fetcher: (_) async => 'cached-data',
       );
 
       await query.fetch();
@@ -36,7 +36,7 @@ void main() {
     test('should invalidate cached queries', () async {
       final query = ZenQuery<String>(
         queryKey: 'test',
-        fetcher: () async => 'data',
+        fetcher: (_) async => 'data',
         config: const ZenQueryConfig(staleTime: Duration(hours: 1)),
       );
 
@@ -50,12 +50,12 @@ void main() {
     test('should clear all queries and cache', () {
       final query1 = ZenQuery<String>(
         queryKey: 'test1',
-        fetcher: () async => 'data1',
+        fetcher: (_) async => 'data1',
       );
 
       final query2 = ZenQuery<String>(
         queryKey: 'test2',
-        fetcher: () async => 'data2',
+        fetcher: (_) async => 'data2',
       );
 
       expect(ZenQueryCache.instance.queries.length, 2);

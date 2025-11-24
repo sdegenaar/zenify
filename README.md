@@ -42,7 +42,7 @@ We've also incorporated proven concepts from **Riverpod's** hierarchical scoping
 
 ```yaml
 dependencies:
-  zenify: ^1.1.7
+  zenify: ^1.1.8
 ```
 
 ### 2. Initialize
@@ -294,7 +294,7 @@ React Query-like functionality for Flutter with automatic caching, deduplication
 // Create query
 final userQuery = ZenQuery<User>(
   queryKey: 'user:123',
-  fetcher: () => api.getUser(123),
+  fetcher: (_) => api.getUser(123),
 );
 
 // Use in widget
@@ -337,7 +337,7 @@ Handle infinite scroll lists with automatic page management.
 final postsQuery = ZenInfiniteQuery<Page>(
   queryKey: ['posts', 'feed'], // Typed keys supported!
   getNextPageParam: (lastPage, allPages) => lastPage.nextCursor,
-  infiniteFetcher: (cursor) => api.getPosts(cursor),
+  infiniteFetcher: (cursor, token) => api.getPosts(cursor),
 );
 
 // In UI:
@@ -362,6 +362,7 @@ ZenQueryBuilder<bool>(
 - ✅ **Smart deduplication** - Multiple requests = single API call
 - ✅ **Smart Refetching** - Auto-update on window focus and network reconnect
 - ✅ **Background refetch** - Keep data fresh automatically
+- ✅ **Smart cancellation** - Auto-cancel outdated or disposed queries
 - ✅ **Pagination support** - Built-in patterns for paginated data
 - ✅ **Optimistic updates** - Instant UI with error rollback
 - ✅ **Retry logic** - Exponential backoff built-in

@@ -21,13 +21,13 @@ import 'zen_query_config.dart';
 ///     // Register scoped query - auto-disposes when scope disposes
 ///     scope.putQuery<Product>(
 ///       queryKey: 'product:$productId',
-///       fetcher: () => api.getProduct(productId),
+///       fetcher: (_) => api.getProduct(productId), // Updated signature
 ///     );
 ///
 ///     // Or use the cached variant with sensible defaults
 ///     scope.putCachedQuery<List<Review>>(
 ///       queryKey: 'reviews:$productId',
-///       fetcher: () => api.getReviews(productId),
+///       fetcher: (_) => api.getReviews(productId), // Updated signature
 ///       staleTime: Duration(minutes: 10), // Optional: override default
 ///     );
 ///   }
@@ -42,7 +42,7 @@ extension ZenScopeQueryExtension on ZenScope {
   ///
   /// **Parameters:**
   /// - [queryKey]: Unique identifier for the query (used for caching and deduplication)
-  /// - [fetcher]: Async function that fetches the data
+  /// - [fetcher]: Async function that fetches the data (receives cancel token)
   /// - [config]: Optional configuration for cache behavior, retries, etc.
   /// - [initialData]: Optional initial data to show before first fetch
   ///
@@ -52,7 +52,7 @@ extension ZenScopeQueryExtension on ZenScope {
   /// ```dart
   /// final query = scope.putQuery<User>(
   ///   queryKey: 'user:123',
-  ///   fetcher: () => api.getUser(123),
+  ///   fetcher: (token) => api.getUser(123, cancelToken: token),
   ///   config: ZenQueryConfig(
   ///     staleTime: Duration(minutes: 5),
   ///     retryCount: 3,
@@ -71,7 +71,8 @@ extension ZenScopeQueryExtension on ZenScope {
   /// - [ZenQuery] for full query documentation
   ZenQuery<T> putQuery<T>({
     required Object queryKey,
-    required Future<T> Function() fetcher,
+    // CHANGED: Now accepts a ZenQueryFetcher (takes cancelToken)
+    required ZenQueryFetcher<T> fetcher,
     ZenQueryConfig? config,
     T? initialData,
   }) {
@@ -105,13 +106,13 @@ extension ZenScopeQueryExtension on ZenScope {
   /// // Data stays fresh for 5 minutes (default)
   /// scope.putCachedQuery<Product>(
   ///   queryKey: 'product:$id',
-  ///   fetcher: () => api.getProduct(id),
+  ///   fetcher: (_) => api.getProduct(id),
   /// );
   ///
   /// // Custom stale time for real-time data
   /// scope.putCachedQuery<StockPrice>(
   ///   queryKey: 'stock:AAPL',
-  ///   fetcher: () => api.getStockPrice('AAPL'),
+  ///   fetcher: (_) => api.getStockPrice('AAPL'),
   ///   staleTime: Duration(seconds: 30), // Refresh more frequently
   /// );
   /// ```
@@ -129,7 +130,8 @@ extension ZenScopeQueryExtension on ZenScope {
   /// See also: [putQuery] for full configuration options
   ZenQuery<T> putCachedQuery<T>({
     required Object queryKey,
-    required Future<T> Function() fetcher,
+    // CHANGED: Now accepts a ZenQueryFetcher (takes cancelToken)
+    required ZenQueryFetcher<T> fetcher,
     Duration staleTime = const Duration(minutes: 5),
     T? initialData,
   }) {

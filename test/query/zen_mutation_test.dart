@@ -102,7 +102,7 @@ void main() {
       // Setup a query with initial data
       final query = ZenQuery<List<String>>(
         queryKey: 'todos',
-        fetcher: () async => ['item1'],
+        fetcher: (_) async => ['item1'],
         initialData: ['item1'],
       );
 
@@ -144,7 +144,7 @@ void main() {
       int fetchCount = 0;
       final query = ZenQuery<String>(
         queryKey: 'user-data',
-        fetcher: () async {
+        fetcher: (_) async {
           fetchCount++;
           return 'data-$fetchCount';
         },

@@ -67,7 +67,7 @@ class QueryController extends ZenController {
       // Create user query with caching and auto-refetch
       _userQuery = ZenQuery<User>(
         queryKey: 'user:1',
-        fetcher: () => ApiService.getUser(1),
+        fetcher: (token) => ApiService.getUser(1),
         config: const ZenQueryConfig(
           staleTime: Duration(seconds: 30),
           cacheTime: Duration(minutes: 5),
@@ -79,7 +79,7 @@ class QueryController extends ZenController {
       // Create posts query
       _postsQuery = ZenQuery<List<String>>(
         queryKey: 'posts:1',
-        fetcher: () => ApiService.getPosts(1),
+        fetcher: (token) => ApiService.getPosts(1),
         config: const ZenQueryConfig(
           staleTime: Duration(seconds: 20),
         ),
