@@ -363,6 +363,7 @@ ZenQueryBuilder<bool>(
 - ✅ **Smart Refetching** - Auto-update on window focus and network reconnect
 - ✅ **Background refetch** - Keep data fresh automatically
 - ✅ **Smart cancellation** - Auto-cancel outdated or disposed queries
+- ✅ **Offline Persistence** - Hydrate state from storage across restarts
 - ✅ **Pagination support** - Built-in patterns for paginated data
 - ✅ **Optimistic updates** - Instant UI with error rollback
 - ✅ **Retry logic** - Exponential backoff built-in

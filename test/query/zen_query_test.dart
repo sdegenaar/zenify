@@ -18,6 +18,7 @@ void main() {
       query = ZenQuery<String>(
         queryKey: 'test',
         fetcher: (_) async => 'data',
+        config: ZenQueryConfig(refetchOnMount: false),
       );
 
       expect(query.status.value, ZenQueryStatus.idle);

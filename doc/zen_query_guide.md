@@ -308,7 +308,71 @@ ZenQueryBuilder<List<Page>>(
 
 ---
 
+## Persistence (Offline Support)
+
+Zenify provides an architecture for persisting query data across app restarts. You provide the storage implementation, and Zenify handles the rest (hydration, serialization, expiration).
+
+### 1. Implement Storage
+Create a class that implements `ZenStorage`. This allows you to use any backend you prefer (SharedPreferences, Hive, SQLite, etc.).
+
+```dart
+class MyStorage implements ZenStorage {
+  final SharedPreferences prefs;
+  MyStorage(this.prefs);
+
+  @override
+  Future<void> write(String key, Map<String, dynamic> json) async {
+    await prefs.setString(key, jsonEncode(json));
+  }
+
+  @override
+  Future<Map<String, dynamic>?> read(String key) async {
+    final str = prefs.getString(key);
+    return str != null ? jsonDecode(str) : null;
+  }
+
+  @override
+  Future<void> delete(String key) async {
+    await prefs.remove(key);
+  }
+}
+```
+
+### 2. Configure Global Storage
+Set your storage instance at app startup.
+
+```dart
+void main() async {
+  final prefs = await SharedPreferences.getInstance();
+  ZenQueryCache.instance.setStorage(MyStorage(prefs));
+  
+  runApp(MyApp());
+}
+```
+
+### 3. Enable Persistence on Query
+Add `persist`, `toJson`, and `fromJson` to your config.
+
+```dart
+final userQuery = ZenQuery<User>(
+  queryKey: 'user:profile',
+  fetcher: (_) => api.getUser(),
+  config: ZenQueryConfig(
+    persist: true,
+    cacheTime: Duration(days: 7), // Keep on disk for 7 days
+    fromJson: (json) => User.fromJson(json),
+    toJson: (user) => user.toJson(),
+  ),
+);
+```
+
+**How it works:**
+1. **Hydration**: On initialization, `ZenQuery` checks storage. If valid data exists, it's loaded immediately.
+2. **Background Fetch**: It typically still triggers a background fetch to update stale data (SWR pattern).
+3. **Persist**: When a fetch succeeds, the new data is automatically written to storage.
+
 ---
+
 
 ## Advanced Features
 

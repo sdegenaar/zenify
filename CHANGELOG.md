@@ -1,3 +1,27 @@
+## [1.1.9]
+
+### 💾 Offline Persistence Architecture
+
+**Added foundation for persisting query state across app restarts.**
+
+#### New Features
+
+- **ZenStorage Interface**: Define your own storage backend (SharedPreferences, Hive, etc.) for persisting query data.
+    - Implement `ZenStorage` and inject via `ZenQueryCache.instance.setStorage()`.
+- **Persistence Configuration**:
+    - Added `persist`, `fromJson`, `toJson`, and `storage` options to `ZenQueryConfig`.
+    - `ZenQuery` now automatically hydrates from storage on initialization if configured.
+    - Data is automatically persisted to storage on successful fetches.
+
+    ```dart
+    // Enable persistence
+    ZenQueryConfig(
+      persist: true,
+      fromJson: User.fromJson,
+      toJson: (user) => user.toJson(),
+    )
+    ```
+
 ## [1.1.8]
 
 ### 🛑 Smart Cancellation & Network Efficiency

@@ -12,3 +12,4 @@ export 'zen_mutation.dart';
 export 'zen_infinite_query.dart';
 export 'query_key.dart';
 export 'zen_cancel_token.dart';
+export 'zen_storage.dart';

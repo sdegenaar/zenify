@@ -35,7 +35,7 @@ class ZenQuery<T> extends ZenController {
   final ZenQueryFetcher<T> fetcher;
 
   /// Configuration for this query
-  final ZenQueryConfig config;
+  final ZenQueryConfig<T> config;
 
   /// Optional initial data
   final T? initialData;
@@ -114,7 +114,7 @@ class ZenQuery<T> extends ZenController {
     bool registerInCache = true,
     bool enabled = true,
   })  : queryKey = QueryKey.normalize(queryKey),
-        config = ZenQueryConfig.defaults.merge(config),
+        config = ZenQueryConfig.defaults.merge(config).cast<T>(),
         _registerInCache = registerInCache,
         enabled = RxBool(enabled) {
     // Set initial data if provided
@@ -147,6 +147,8 @@ class ZenQuery<T> extends ZenController {
         }
       }
     });
+
+    _initData();
   }
 
   /// Register query in scope with automatic cleanup
@@ -369,12 +371,40 @@ class ZenQuery<T> extends ZenController {
     return _SelectedZenQuery<T, R>(this, selector);
   }
 
-  @override
-  void onInit() {
-    super.onInit();
-    // Auto-fetch on mount if enabled and stale/idle
+  Future<void> _initData() async {
+    // 1. Check memory cache (sync)
+    if (_registerInCache && data.value == null) {
+      final cachedData = ZenQueryCache.instance.getCachedData<T>(queryKey);
+      if (cachedData != null) {
+        data.value = cachedData;
+        status.value = ZenQueryStatus.success;
+      }
+    }
+
+    // 2. Try Hydration (async) if no data
+    if (config.persist && data.value == null) {
+      try {
+        final hydratedData = await ZenQueryCache.instance.hydrate<T>(
+          queryKey,
+          config,
+        );
+
+        if (hydratedData != null && !_isDisposed) {
+          data.value = hydratedData;
+          status.value = ZenQueryStatus.success;
+        }
+      } catch (e) {
+        ZenLogger.logWarning('Hydration failed for $queryKey: $e');
+      }
+    }
+
+    // 3. Auto-fetch on mount if enabled and stale/idle
     if (config.refetchOnMount && enabled.value) {
-      if (isStale) {
+      if (hasData) {
+        if (isStale) {
+          fetch().then((_) {}, onError: (_) {});
+        }
+      } else {
         fetch().then((_) {}, onError: (_) {});
       }
     }

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:zenify/query/query_key.dart';
+import 'package:zenify/query/zen_storage.dart';
 
 import '../core/zen_logger.dart';
 import '../di/zen_lifecycle.dart';
@@ -63,6 +64,14 @@ class ZenQueryCache {
   /// Network status subscription
   StreamSubscription<bool>? _networkSubscription;
   bool _isOnline = true;
+
+  /// Global storage implementation
+  ZenStorage? _storage;
+
+  /// Set the global storage implementation for persistence
+  void setStorage(ZenStorage storage) {
+    _storage = storage;
+  }
 
   /// Configure timer behavior for testing
   ///
@@ -265,6 +274,81 @@ class ZenQueryCache {
     final cacheTime = query?.config.cacheTime ?? const Duration(minutes: 5);
 
     _setCacheEntry(queryKey, data, timestamp, cacheTime);
+
+    // Persist if enabled
+    if (query != null && query.config.persist) {
+      _persistQuery(
+          queryKey, data, timestamp, query.config as ZenQueryConfig<T>);
+    }
+  }
+
+  Future<void> _persistQuery<T>(
+    String key,
+    T data,
+    DateTime timestamp,
+    ZenQueryConfig<T> config,
+  ) async {
+    final storage = config.storage ?? _storage;
+    if (storage == null) {
+      ZenLogger.logWarning(
+          'Query $key is marked for persistence but no storage is configured.');
+      return;
+    }
+
+    if (config.toJson == null) {
+      ZenLogger.logWarning(
+          'Query $key is marked for persistence but toJson is not provided.');
+      return;
+    }
+
+    try {
+      final jsonData = config.toJson!(data);
+      final entry = {
+        'data': jsonData,
+        'timestamp': timestamp.millisecondsSinceEpoch,
+        'version': 1,
+      };
+      await storage.write(key, entry);
+      ZenLogger.logDebug('Persisted query: $key');
+    } catch (e, stack) {
+      ZenLogger.logError('Failed to persist query $key', e, stack);
+    }
+  }
+
+  /// Try to hydrate a query from storage
+  Future<T?> hydrate<T>(
+    String key,
+    ZenQueryConfig<T> config,
+  ) async {
+    final storage = config.storage ?? _storage;
+    if (storage == null) return null;
+    if (config.fromJson == null) return null;
+
+    try {
+      final entry = await storage.read(key);
+      if (entry == null) return null;
+
+      final timestamp =
+          DateTime.fromMillisecondsSinceEpoch(entry['timestamp'] as int);
+
+      // Check if expired based on cacheTime
+      final cacheTime = config.cacheTime ?? const Duration(minutes: 5);
+      if (DateTime.now().difference(timestamp) > cacheTime) {
+        await storage.delete(key);
+        return null;
+      }
+
+      final data = config.fromJson!(entry['data'] as Map<String, dynamic>);
+
+      // Update memory cache
+      updateCache(key, data, timestamp);
+
+      ZenLogger.logDebug('Hydrated query: $key');
+      return data;
+    } catch (e, stack) {
+      ZenLogger.logError('Failed to hydrate query $key', e, stack);
+      return null;
+    }
   }
 
   void _setCacheEntry<T>(
