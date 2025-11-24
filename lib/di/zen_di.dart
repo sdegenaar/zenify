@@ -5,7 +5,7 @@ import '../core/zen_scope.dart';
 import '../core/zen_module.dart';
 import '../controllers/zen_controller.dart';
 import '../core/zen_scope_manager.dart';
-import '../query/zen_query_cache.dart';
+import '../query/core/zen_query_cache.dart';
 import '../testing/zen_test_mode.dart';
 import 'zen_lifecycle.dart';
 import 'zen_reactive.dart';

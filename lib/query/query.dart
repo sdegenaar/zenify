@@ -4,12 +4,14 @@
 /// deduplication, and background refetching.
 library;
 
-export 'zen_query.dart';
-export 'zen_query_cache.dart';
-export 'zen_query_builder.dart';
-export 'zen_query_config.dart';
-export 'zen_mutation.dart';
-export 'zen_infinite_query.dart';
-export 'query_key.dart';
-export 'zen_cancel_token.dart';
-export 'zen_storage.dart';
+export 'logic/zen_query.dart';
+export 'core/zen_query_cache.dart';
+export '../widgets/builders/zen_query_builder.dart';
+export 'core/zen_query_config.dart';
+export 'logic/zen_mutation.dart';
+export 'logic/zen_infinite_query.dart';
+export 'core/query_key.dart';
+export 'core/zen_cancel_token.dart';
+export 'core/zen_storage.dart';
+export 'logic/zen_stream_query.dart';
+export '../widgets/builders/zen_stream_query_builder.dart';

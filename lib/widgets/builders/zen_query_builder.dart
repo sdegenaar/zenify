@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../core/zen_logger.dart';
-import 'zen_query.dart';
-import 'zen_query_config.dart';
+import '../../core/zen_logger.dart';
+import '../../query/logic/zen_query.dart';
+import '../../query/core/zen_query_config.dart';
 
 /// Widget that builds UI based on ZenQuery state
 ///

@@ -1,6 +1,6 @@
 import 'dart:async';
-import '../controllers/zen_controller.dart';
-import '../reactive/reactive.dart';
+import '../../controllers/zen_controller.dart';
+import '../../reactive/reactive.dart';
 
 /// Status of a mutation
 enum ZenMutationStatus {

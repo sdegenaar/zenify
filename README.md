@@ -42,7 +42,7 @@ We've also incorporated proven concepts from **Riverpod's** hierarchical scoping
 
 ```yaml
 dependencies:
-  zenify: ^1.1.9
+  zenify: ^1.2.0
 ```
 
 ### 2. Initialize
@@ -344,6 +344,21 @@ final postsQuery = ZenInfiniteQuery<Page>(
 // postsQuery.fetchNextPage();
 // postsQuery.hasNextPage.value;
 ```
+### 🌊 ZenStreamQuery - Real-time Data
+
+Handle WebSockets, Firebase streams, and other real-time sources with the same robust API.
+
+```dart
+final chatQuery = ZenStreamQuery(
+  queryKey: 'chat-messages',
+  streamFn: () => chatService.messagesStream,
+);
+
+ZenStreamQueryBuilder<List<Message>>(
+  query: chatQuery,
+  builder: (context, messages) => ChatList(messages),
+);
+```
 
 ### 🎯 Granular Rebuilds with Select
 
@@ -363,6 +378,7 @@ ZenQueryBuilder<bool>(
 - ✅ **Smart Refetching** - Auto-update on window focus and network reconnect
 - ✅ **Background refetch** - Keep data fresh automatically
 - ✅ **Smart cancellation** - Auto-cancel outdated or disposed queries
+- ✅ **Real-time Streams** - First-class support for Streams and WebSockets
 - ✅ **Offline Persistence** - Hydrate state from storage across restarts
 - ✅ **Pagination support** - Built-in patterns for paginated data
 - ✅ **Optimistic updates** - Instant UI with error rollback
@@ -472,6 +488,8 @@ class ReactiveWidget extends ZenView<CounterController> {
 | **ZenEffectBuilder** | Async operations | Effect state changes | Loading/Error/Success states |
 | **ZenControllerScope** | Custom lifecycle | Manual scope control | Explicit lifecycle management |
 | **ZenQueryBuilder** | Query operations | Query state changes | API calls with caching |
+| **ZenStreamQueryBuilder** | Stream operations | Stream events | Real-time data streams |
+
 
 ## Global Module Registration
 

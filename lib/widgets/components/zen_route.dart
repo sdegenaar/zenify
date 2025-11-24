@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../core/core.dart';
-import '../di/zen_di.dart';
+import '../../core/core.dart';
+import '../../di/zen_di.dart';
 
 /// A stateful widget that creates a ZenScope, initializes a ZenModule,
 /// and provides the scope to its child widget tree.

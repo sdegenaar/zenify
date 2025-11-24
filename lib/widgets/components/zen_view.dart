@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:zenify/widgets/widgets.dart';
-import '../controllers/zen_controller.dart';
-import '../core/zen_scope.dart';
-import '../di/zen_di.dart';
+import '../../controllers/zen_controller.dart';
+import '../../core/zen_scope.dart';
+import '../../di/zen_di.dart';
 
 /// Base class for views with automatic controller binding.
 abstract class ZenView<T extends ZenController> extends StatefulWidget {

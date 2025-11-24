@@ -2,7 +2,7 @@
 import '../di/zen_di.dart';
 import '../core/zen_scope.dart';
 import '../core/zen_logger.dart';
-import '../query/zen_query_cache.dart';
+import '../query/core/zen_query_cache.dart';
 
 /// Test mode utilities for easy mocking and test setup
 ///

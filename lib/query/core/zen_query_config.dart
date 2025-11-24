@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-import 'package:zenify/query/zen_storage.dart';
+import 'package:zenify/query/core/zen_storage.dart';
 
 /// Status of a ZenQuery
 enum ZenQueryStatus {

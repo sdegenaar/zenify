@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'package:flutter/widgets.dart';
-import 'package:zenify/query/query_key.dart';
-import 'package:zenify/query/zen_storage.dart';
+import 'package:zenify/query/core/query_key.dart';
+import 'package:zenify/query/core/zen_storage.dart';
 
-import '../core/zen_logger.dart';
-import '../di/zen_lifecycle.dart';
-import 'zen_query.dart';
+import '../../core/zen_logger.dart';
+import '../../di/zen_lifecycle.dart';
+import '../logic/zen_query.dart';
 import 'zen_query_config.dart';
 
 /// Cache entry for a query

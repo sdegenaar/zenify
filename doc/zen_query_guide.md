@@ -305,6 +305,23 @@ ZenQueryBuilder<List<Page>>(
   }
 );
 ```
+ ---
+
+## Stream Queries (Real-time Data)
+
+Handle WebSockets, Firebase streams, and other real-time sources with the same robust API.
+
+```dart
+final chatQuery = ZenStreamQuery(
+  queryKey: 'chat-messages',
+  streamFn: () => chatService.messagesStream,
+);
+
+ZenStreamQueryBuilder<List<Message>>(
+  query: chatQuery,
+  builder: (context, messages) => ChatList(messages),
+);
+```
 
 ---
 

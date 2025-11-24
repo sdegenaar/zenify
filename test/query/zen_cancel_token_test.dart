@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zenify/query/zen_cancel_token.dart';
+import 'package:zenify/query/core/zen_cancel_token.dart';
 
 void main() {
   group('ZenCancelToken', () {

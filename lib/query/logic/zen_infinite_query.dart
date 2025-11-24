@@ -1,9 +1,9 @@
 import 'dart:async';
-import 'package:zenify/query/zen_cancel_token.dart';
-import '../reactive/core/rx_value.dart';
+import 'package:zenify/query/core/zen_cancel_token.dart';
+import '../../reactive/core/rx_value.dart';
 import 'zen_query.dart';
-import 'zen_query_cache.dart';
-import 'zen_query_config.dart';
+import '../core/zen_query_cache.dart';
+import '../core/zen_query_config.dart';
 
 /// A specialized query for infinite scrolling / pagination.
 ///

@@ -27,13 +27,13 @@ export 'core/zen_scope_stack_tracker.dart';
 export 'reactive/reactive.dart';
 
 // ===== WIDGETS =====
-export 'widgets/zen_builder.dart';
-export 'widgets/zen_route.dart';
-export 'widgets/zen_scope_widget.dart';
-export 'widgets/zen_consumer.dart';
-export 'widgets/zen_view.dart';
-export 'widgets/zen_effect_builder.dart';
-export 'widgets/rx_widgets.dart';
+export 'widgets/builders/zen_builder.dart';
+export 'widgets/components/zen_route.dart';
+export 'widgets/scope/zen_scope_widget.dart';
+export 'widgets/scope/zen_consumer.dart';
+export 'widgets/components/zen_view.dart';
+export 'widgets/builders/zen_effect_builder.dart';
+export 'widgets/components/rx_widgets.dart';
 
 // ===== WORKERS & EFFECTS =====
 export 'workers/zen_workers.dart';
@@ -59,7 +59,7 @@ export 'testing/testing.dart';
 export 'mixins/zen_ticker_provider.dart';
 
 // ===== EXTENSIONS =====
-export 'query/zen_scope_query_extension.dart';
+export 'query/extensions/zen_scope_query_extension.dart';
 
 // ===== DEBUG UTILITIES =====
 // Separate namespace - not part of main API

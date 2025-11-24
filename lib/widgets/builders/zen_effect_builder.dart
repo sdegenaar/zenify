@@ -1,6 +1,6 @@
 // lib/widgets/zen_effect_builder.dart
 import 'package:flutter/material.dart';
-import '../effects/zen_effects.dart';
+import '../../effects/zen_effects.dart';
 
 /// A widget that responds to different states of a [ZenEffect].
 ///

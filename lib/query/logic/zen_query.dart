@@ -1,15 +1,15 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
-import 'package:zenify/query/query_key.dart';
-import 'package:zenify/query/zen_cancel_token.dart';
+import 'package:zenify/query/core/query_key.dart';
+import 'package:zenify/query/core/zen_cancel_token.dart';
 import 'package:zenify/workers/zen_workers.dart';
 
-import '../controllers/zen_controller.dart';
-import '../core/zen_logger.dart';
-import '../core/zen_scope.dart';
-import '../reactive/core/rx_value.dart';
-import 'zen_query_cache.dart';
-import 'zen_query_config.dart';
+import '../../controllers/zen_controller.dart';
+import '../../core/zen_logger.dart';
+import '../../core/zen_scope.dart';
+import '../../reactive/core/rx_value.dart';
+import '../core/zen_query_cache.dart';
+import '../core/zen_query_config.dart';
 
 /// Function signature for data fetching with cancellation support
 typedef ZenQueryFetcher<T> = Future<T> Function(ZenCancelToken cancelToken);

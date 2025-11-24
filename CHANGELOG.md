@@ -1,3 +1,45 @@
+## [1.2.0]
+
+### 🌊 ZenStreamQuery & Project Restructuring
+
+**Added first-class support for Streams and reorganized the project structure for better scalability.**
+
+#### New Features
+
+- **ZenStreamQuery**: A reactive wrapper for Streams with the same powerful API as `ZenQuery`.
+    - **Real-time Data**: tailored for WebSockets, Firebase, or any `Stream<T>`.
+    - **Lifecycle Management**: Automatically pauses subscriptions when the app is paused (if configured).
+    - **Optimistic Updates**: Support for `setData` to manually update the stream state while waiting for events.
+    - **Safe**: Handles errors and subscription cleanup automatically.
+
+    ```dart
+    final chatQuery = ZenStreamQuery(
+      queryKey: 'chat-messages',
+      streamFn: () => chatService.messagesStream,
+    );
+    ```
+
+- **ZenStreamQueryBuilder**: A dedicated widget for handling stream states.
+    - Handles `loading` (initial connection), `data` (stream events), and `error` states.
+    - Smartly keeps showing data while reconnecting if available.
+
+    ```dart
+    ZenStreamQueryBuilder<List<Message>>(
+      query: chatQuery,
+      builder: (context, messages) => ChatList(messages),
+      loading: () => const Spinner(),
+      error: (err) => ErrorBanner(err),
+    );
+    ```
+
+#### ♻️ Refactoring & Improvements
+
+- **Folder Restructuring**:
+    - Separated UI components from core logic for better maintainability.
+    - Moved builders to `lib/widgets/builders/` (`ZenQueryBuilder`, `ZenStreamQueryBuilder`, etc.).
+    - Reorganized `lib/query/` into `core/`, `logic/`, and `extensions/`.
+    - **Note**: If you import specific files instead of the main package file, you may need to update your imports. Using `import 'package:zenify/zenify.dart';` remains the recommended way and requires no changes.
+
 ## [1.1.9]
 
 ### 💾 Offline Persistence Architecture

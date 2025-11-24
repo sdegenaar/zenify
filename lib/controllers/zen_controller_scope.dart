@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import '../core/zen_scope.dart';
 import '../di/zen_di.dart';
-import '../widgets/zen_scope_widget.dart';
+import '../widgets/scope/zen_scope_widget.dart';
 import 'zen_controller.dart';
 import '../core/zen_logger.dart';
 

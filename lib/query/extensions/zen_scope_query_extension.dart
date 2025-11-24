@@ -1,7 +1,7 @@
-import 'package:zenify/query/zen_query.dart';
+import 'package:zenify/query/logic/zen_query.dart';
 
-import '../core/zen_scope.dart';
-import 'zen_query_config.dart';
+import '../../core/zen_scope.dart';
+import '../core/zen_query_config.dart';
 
 /// Extension methods for ZenScope to simplify scoped query registration.
 ///

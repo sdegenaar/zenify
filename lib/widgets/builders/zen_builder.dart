@@ -1,8 +1,8 @@
 import 'package:flutter/widgets.dart';
-import '../controllers/zen_controller.dart';
-import '../core/zen_scope.dart';
-import '../di/zen_di.dart';
-import 'zen_route.dart';
+import '../../controllers/zen_controller.dart';
+import '../../core/zen_scope.dart';
+import '../../di/zen_di.dart';
+import '../components/zen_route.dart';
 
 /// Widget that automatically manages a ZenController's lifecycle
 ///
