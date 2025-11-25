@@ -64,6 +64,10 @@ class ZenQueryConfig<T> {
   /// Custom storage implementation (defaults to global storage if null)
   final ZenStorage? storage;
 
+  /// Placeholder data to show while the query is loading.
+  /// This does not persist to cache.
+  final T? placeholderData;
+
   const ZenQueryConfig({
     this.staleTime = const Duration(seconds: 30),
     this.cacheTime = const Duration(minutes: 5),
@@ -79,6 +83,7 @@ class ZenQueryConfig<T> {
     this.fromJson,
     this.toJson,
     this.storage,
+    this.placeholderData,
   });
 
   /// Default configuration
@@ -103,6 +108,7 @@ class ZenQueryConfig<T> {
       fromJson: other.fromJson ?? fromJson,
       toJson: other.toJson ?? toJson,
       storage: other.storage ?? storage,
+      placeholderData: other.placeholderData ?? placeholderData,
     );
   }
 
@@ -126,6 +132,7 @@ class ZenQueryConfig<T> {
       fromJson: fromJson != null ? (json) => fromJson!(json) as R : null,
       toJson: toJson != null ? (data) => toJson!(data as T) : null,
       storage: storage,
+      placeholderData: placeholderData as R?,
     );
   }
 }

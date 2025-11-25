@@ -60,6 +60,9 @@ class ZenQuery<T> extends ZenController {
 
   bool _isDisposed = false;
 
+  /// Whether the current data is placeholder data
+  final RxBool isPlaceholderData = RxBool(false);
+
   /// Whether the query is currently loading
   RxBool get isLoading =>
       _isLoadingNotifier ??= RxBool(status.value == ZenQueryStatus.loading);
@@ -124,6 +127,10 @@ class ZenQuery<T> extends ZenController {
       // Don't set _lastFetchTime here - initial data should be considered stale
       // so that the first fetch() actually fetches fresh data
       _lastFetchTime = null;
+    } else if (this.config.placeholderData != null) {
+      data.value = this.config.placeholderData;
+      status.value = ZenQueryStatus.success;
+      isPlaceholderData.value = true;
     }
 
     // Register in cache (scope-aware or global)
@@ -225,9 +232,14 @@ class ZenQuery<T> extends ZenController {
     _currentCancelToken = token;
 
     // Update status to loading
-    status.value = ZenQueryStatus.loading;
+    // Only set loading status if we don't have data (real or placeholder) to show
+    if (!hasData && !isPlaceholderData.value) {
+      status.value = ZenQueryStatus.loading;
+    }
     _isLoadingNotifier?.value = true;
     error.value = null;
+    // Note: We do NOT clear isPlaceholderData here yet,
+    // because if we have placeholder data, we want to keep showing it while loading
     update();
 
     try {
@@ -247,6 +259,7 @@ class ZenQuery<T> extends ZenController {
       // Update with success
       data.value = result;
       status.value = ZenQueryStatus.success;
+      isPlaceholderData.value = false; // Real data arrived
       _isLoadingNotifier?.value = false;
       error.value = null;
       _lastFetchTime = DateTime.now();
@@ -314,6 +327,7 @@ class ZenQuery<T> extends ZenController {
   /// Manually set data (for optimistic updates)
   void setData(T newData) {
     data.value = newData;
+    isPlaceholderData.value = false; // Manual set implies real data
     if (status.value == ZenQueryStatus.idle) {
       status.value = ZenQueryStatus.success;
     }
@@ -330,6 +344,7 @@ class ZenQuery<T> extends ZenController {
   /// Reset query to idle state
   void reset() {
     data.value = initialData;
+    isPlaceholderData.value = false;
     error.value = null;
     status.value =
         initialData != null ? ZenQueryStatus.success : ZenQueryStatus.idle;
@@ -378,7 +393,17 @@ class ZenQuery<T> extends ZenController {
       if (cachedData != null) {
         data.value = cachedData;
         status.value = ZenQueryStatus.success;
+        isPlaceholderData.value = false;
+        return; // Done
       }
+    }
+
+    // 1.5 Check Placeholder Data
+    if (data.value == null && config.placeholderData != null) {
+      data.value = config.placeholderData;
+      status.value = ZenQueryStatus.success; // Treat as success so UI renders
+      isPlaceholderData.value = true;
+      // We still continue to step 2/3 to fetch real data
     }
 
     // 2. Try Hydration (async) if no data
@@ -392,6 +417,9 @@ class ZenQuery<T> extends ZenController {
         if (hydratedData != null && !_isDisposed) {
           data.value = hydratedData;
           status.value = ZenQueryStatus.success;
+          isPlaceholderData.value = false;
+          // If we found hydrated data, we might still want to fetch if stale,
+          // but we shouldn't overwrite it with placeholder data.
         }
       } catch (e) {
         ZenLogger.logWarning('Hydration failed for $queryKey: $e');
@@ -400,8 +428,9 @@ class ZenQuery<T> extends ZenController {
 
     // 3. Auto-fetch on mount if enabled and stale/idle
     if (config.refetchOnMount && enabled.value) {
+      // If we have placeholder data, we definitely want to fetch real data
       if (hasData) {
-        if (isStale) {
+        if (isStale || isPlaceholderData.value) {
           fetch().then((_) {}, onError: (_) {});
         }
       } else {
@@ -435,6 +464,7 @@ class ZenQuery<T> extends ZenController {
     data.dispose();
     error.dispose();
     enabled.dispose();
+    isPlaceholderData.dispose();
     _isLoadingNotifier?.dispose();
 
     super.onClose();

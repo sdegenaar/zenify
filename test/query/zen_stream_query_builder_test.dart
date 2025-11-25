@@ -123,4 +123,67 @@ void main() {
       controller.close();
     });
   });
+
+  testWidgets('keepPreviousData maintains old stream data during switch',
+      (tester) async {
+    final controller1 = StreamController<String>.broadcast();
+
+    final query1 = ZenStreamQuery<String>(
+      queryKey: 's1',
+      streamFn: () => controller1.stream,
+      initialData: 'Stream 1',
+    );
+
+    final queryNotifier = ValueNotifier<ZenStreamQuery<String>>(query1);
+
+    // Build widget tree ONCE with ValueNotifier
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: ValueListenableBuilder<ZenStreamQuery<String>>(
+          valueListenable: queryNotifier,
+          builder: (context, query, child) {
+            return ZenStreamQueryBuilder<String>(
+              key: const GlobalObjectKey('stream-builder'),
+              query: query,
+              keepPreviousData: true,
+              builder: (context, data) => Text(data),
+              loading: () => const Text('Loading...'),
+            );
+          },
+        ),
+      ),
+    ));
+
+    expect(find.text('Stream 1'), findsOneWidget);
+
+    // Create query2 AFTER query1 is shown
+    final controller2 = StreamController<String>.broadcast();
+    final query2 = ZenStreamQuery<String>(
+      queryKey: 's2',
+      streamFn: () => controller2.stream,
+      // No initial data, so it starts loading
+    );
+
+    // Switch to Query 2
+    queryNotifier.value = query2;
+    await tester.pump(); // Trigger rebuild
+
+    // Should still show Stream 1 data
+    expect(find.text('Stream 1'), findsOneWidget);
+    expect(find.text('Loading...'), findsNothing);
+
+    // Emit data on Stream 2
+    controller2.add('Stream 2');
+    await tester.pumpAndSettle();
+
+    // Now shows Stream 2 data
+    expect(find.text('Stream 2'), findsOneWidget);
+
+    // Cleanup
+    await tester.pumpWidget(const SizedBox());
+    query1.dispose();
+    query2.dispose();
+    controller1.close();
+    controller2.close();
+  });
 }

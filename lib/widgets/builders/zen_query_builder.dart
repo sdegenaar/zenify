@@ -3,9 +3,12 @@ import '../../core/zen_logger.dart';
 import '../../query/logic/zen_query.dart';
 import '../../query/core/zen_query_config.dart';
 
-/// Widget that builds UI based on ZenQuery state
+/// A widget that builds itself based on the state of a [ZenQuery].
 ///
-/// Automatically fetches data on mount and rebuilds on state changes.
+/// It handles the main states:
+/// - [loading]: Query is fetching and no data exists yet.
+/// - [error]: Query failed.
+/// - [builder]: Query has data (or placeholder data).
 ///
 /// Example:
 /// ```dart
@@ -38,6 +41,12 @@ class ZenQueryBuilder<T> extends StatefulWidget {
   /// Whether to show stale data while refetching
   final bool showStaleData;
 
+  /// If true, keeps showing the data from the previous query instance
+  /// (if available) while the new query is loading.
+  ///
+  /// Useful for pagination to prevent "flash of loading" when key changes.
+  final bool keepPreviousData;
+
   /// Custom wrapper for all states
   final Widget Function(BuildContext context, Widget child)? wrapper;
 
@@ -50,6 +59,7 @@ class ZenQueryBuilder<T> extends StatefulWidget {
     this.idle,
     this.autoFetch = true,
     this.showStaleData = true,
+    this.keepPreviousData = false,
     this.wrapper,
   });
 
@@ -58,9 +68,17 @@ class ZenQueryBuilder<T> extends StatefulWidget {
 }
 
 class _ZenQueryBuilderState<T> extends State<ZenQueryBuilder<T>> {
+  T? _previousData;
+  bool _showingPreviousData = false;
+
   @override
   void initState() {
     super.initState();
+
+    // Store initial data for previous data logic if we have it
+    if (widget.query.hasData) {
+      _previousData = widget.query.data.value;
+    }
 
     // Auto-fetch on mount if enabled
     if (widget.autoFetch) {
@@ -84,56 +102,92 @@ class _ZenQueryBuilderState<T> extends State<ZenQueryBuilder<T>> {
     }
 
     // Listen to query state changes
-    widget.query.status.addListener(_onQueryStateChange);
-    widget.query.data.addListener(_onQueryStateChange);
-    widget.query.error.addListener(_onQueryStateChange);
+    _attachListeners(widget.query);
+  }
+
+  void _attachListeners(ZenQuery<T> query) {
+    query.status.addListener(_onQueryStateChange);
+    query.data.addListener(_onQueryStateChange);
+    query.error.addListener(_onQueryStateChange);
+  }
+
+  void _detachListeners(ZenQuery<T> query) {
+    query.status.removeListener(_onQueryStateChange);
+    query.data.removeListener(_onQueryStateChange);
+    query.error.removeListener(_onQueryStateChange);
   }
 
   @override
   void didUpdateWidget(ZenQueryBuilder<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    // Update listeners if query changed
+    // Query instance changed - handle transition
     if (oldWidget.query != widget.query) {
-      oldWidget.query.status.removeListener(_onQueryStateChange);
-      oldWidget.query.data.removeListener(_onQueryStateChange);
-      oldWidget.query.error.removeListener(_onQueryStateChange);
+      // Update listeners
+      _detachListeners(oldWidget.query);
+      _attachListeners(widget.query);
 
-      widget.query.status.addListener(_onQueryStateChange);
-      widget.query.data.addListener(_onQueryStateChange);
-      widget.query.error.addListener(_onQueryStateChange);
-
-      // Auto-fetch for new query
-      if (widget.autoFetch) {
-        if (widget.query.enabled.value) {
-          widget.query.fetch().then(
-            (_) {
-              // Success - no action needed
-            },
-            onError: (error, stackTrace) {
-              ZenLogger.logError(
-                'ZenQueryBuilder auto-fetch failed for updated query: ${widget.query.queryKey}',
-                error,
-                stackTrace,
-              );
-              // Error is handled by the query's error state
-            },
-          );
+      // Transition Strategy: Determine what data to show during the switch
+      if (widget.query.hasData) {
+        // New query already has data - use it immediately
+        _previousData = widget.query.data.value;
+        _showingPreviousData = false;
+      } else if (widget.keepPreviousData && oldWidget.query.hasData) {
+        // New query has no data - keep showing old data if keepPreviousData is enabled
+        _previousData = oldWidget.query.data.value;
+        _showingPreviousData = true;
+      } else {
+        // No previous data strategy - reset
+        _showingPreviousData = false;
+        if (!widget.keepPreviousData) {
+          _previousData = null;
         }
       }
+
+      // Auto-fetch new query if needed
+      if (widget.autoFetch &&
+          widget.query.enabled.value &&
+          !widget.query.isDisposed) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && !widget.query.isDisposed) {
+            widget.query.fetch().then(
+              (_) {},
+              onError: (error, stackTrace) {
+                ZenLogger.logError(
+                  'ZenQueryBuilder auto-fetch failed for updated query: ${widget.query.queryKey}',
+                  error,
+                  stackTrace,
+                );
+              },
+            );
+          }
+        });
+      }
+    }
+    // Same query instance - just update buffer if data refreshed
+    else if (widget.query.hasData) {
+      _previousData = widget.query.data.value;
+      _showingPreviousData = false;
     }
   }
 
   @override
   void dispose() {
-    widget.query.status.removeListener(_onQueryStateChange);
-    widget.query.data.removeListener(_onQueryStateChange);
-    widget.query.error.removeListener(_onQueryStateChange);
+    _detachListeners(widget.query);
     super.dispose();
   }
 
   void _onQueryStateChange() {
     if (mounted) {
+      // Update buffer and state when query data changes
+      if (widget.query.hasData) {
+        _previousData = widget.query.data.value;
+        // Stop showing previous data once new data arrives
+        if (_showingPreviousData) {
+          _showingPreviousData = false;
+        }
+      }
+
       setState(() {});
     }
   }
@@ -163,20 +217,33 @@ class _ZenQueryBuilderState<T> extends State<ZenQueryBuilder<T>> {
     final error = widget.query.error.value;
     final isRefetching = widget.query.isRefetching;
 
-    // Show stale data while refetching (if enabled)
-    if (widget.showStaleData && isRefetching && data != null) {
-      child = widget.builder(context, data);
+    // 1. Show Current Data (Priority)
+    // If we have valid data, show it.
+    // Exception: If user explicitly disabled showStaleData and we are refetching.
+    bool shouldShowCurrentData = data != null;
+    if (!widget.showStaleData && isRefetching) {
+      shouldShowCurrentData = false;
     }
-    // Handle states based on priority: loading > error > success > idle
-    else if (status == ZenQueryStatus.loading && data == null) {
+
+    if (shouldShowCurrentData) {
+      child = widget.builder(context, data as T);
+    }
+    // 2. Show Previous Data (KeepPreviousData)
+    // If current data is missing, but we have previous data and flag is on.
+    else if (_showingPreviousData && _previousData != null) {
+      child = widget.builder(context, _previousData as T);
+    }
+    // 3. Loading
+    else if (status == ZenQueryStatus.loading) {
       child = widget.loading?.call() ??
           const Center(child: CircularProgressIndicator());
-    } else if (status == ZenQueryStatus.error && error != null) {
+    }
+    // 4. Error
+    else if (status == ZenQueryStatus.error && error != null) {
       child = widget.error?.call(error, _retry) ?? _buildDefaultError(error);
-    } else if (status == ZenQueryStatus.success && data != null) {
-      child = widget.builder(context, data);
-    } else {
-      // Idle state
+    }
+    // 5. Idle
+    else {
       child = widget.idle?.call() ?? const SizedBox.shrink();
     }
 
@@ -217,10 +284,13 @@ class _ZenQueryBuilderState<T> extends State<ZenQueryBuilder<T>> {
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
-          Text(
-            error.toString(),
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 12, color: Color(0xFF757575)),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              error.toString(),
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 12, color: Color(0xFF757575)),
+            ),
           ),
           const SizedBox(height: 16),
           GestureDetector(

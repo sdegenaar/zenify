@@ -64,21 +64,53 @@ void main() {
       expect(mutation.isError, true);
     });
 
-    test('callbacks are executed in order', () async {
+    test('callbacks are executed in order (definition time)', () async {
       final log = <String>[];
       final mutation = ZenMutation<String, int>(
         mutationFn: (val) async {
           log.add('execute');
           return 'success';
         },
-        onMutate: (val) => log.add('onMutate'),
-        onSuccess: (data, val) => log.add('onSuccess'),
-        onSettled: (data, error, val) => log.add('onSettled'),
+        onMutate: (val) {
+          log.add('onMutate');
+          return 'context';
+        },
+        onSuccess: (data, val, context) {
+          log.add('onSuccess:$context');
+        },
+        onSettled: (data, error, val, context) {
+          log.add('onSettled:$context');
+        },
       );
 
       await mutation.mutate(1);
 
-      expect(log, ['onMutate', 'execute', 'onSuccess', 'onSettled']);
+      expect(log,
+          ['onMutate', 'execute', 'onSuccess:context', 'onSettled:context']);
+    });
+
+    test('call-time callbacks are executed after definition-time callbacks',
+        () async {
+      final log = <String>[];
+      final mutation = ZenMutation<String, int>(
+        mutationFn: (val) async => 'success',
+        onSuccess: (data, val, context) => log.add('def:onSuccess'),
+        onSettled: (data, error, val, context) => log.add('def:onSettled'),
+        onError: (error, val, context) => log.add('def:onError'),
+      );
+
+      await mutation.mutate(
+        1,
+        onSuccess: (data, val) => log.add('call:onSuccess'),
+        onSettled: (data, error, val) => log.add('call:onSettled'),
+      );
+
+      expect(log, [
+        'def:onSuccess',
+        'call:onSuccess',
+        'def:onSettled',
+        'call:onSettled'
+      ]);
     });
 
     test('callbacks executed on error', () async {
@@ -88,14 +120,22 @@ void main() {
           log.add('execute');
           throw Exception('fail');
         },
-        onMutate: (val) => log.add('onMutate'),
-        onError: (error, val) => log.add('onError'),
-        onSettled: (data, error, val) => log.add('onSettled'),
+        onMutate: (val) {
+          log.add('onMutate');
+          return 'errContext';
+        },
+        onError: (error, val, context) => log.add('onError:$context'),
+        onSettled: (data, error, val, context) => log.add('onSettled:$context'),
       );
 
       await mutation.mutate(1);
 
-      expect(log, ['onMutate', 'execute', 'onError', 'onSettled']);
+      expect(log, [
+        'onMutate',
+        'execute',
+        'onError:errContext',
+        'onSettled:errContext'
+      ]);
     });
 
     test('optimistic updates and rollback simulation', () async {
@@ -116,11 +156,13 @@ void main() {
           // Optimistically add item
           final current = query.data.value ?? [];
           query.setData([...current, newItem]);
+          return current; // Return old list as context for rollback
         },
-        onError: (error, newItem) {
-          // Rollback: remove the optimistically added item
-          final current = query.data.value ?? [];
-          query.setData(current.where((item) => item != newItem).toList());
+        onError: (error, newItem, context) {
+          // Rollback: restore the old list from context
+          if (context is List<String>) {
+            query.setData(context);
+          }
         },
       );
 
@@ -158,7 +200,7 @@ void main() {
 
       final mutation = ZenMutation<void, void>(
         mutationFn: (_) async {},
-        onSettled: (_, __, ___) {
+        onSettled: (_, __, ___, ____) {
           ZenQueryCache.instance.invalidateQuery('user-data');
         },
       );
@@ -212,6 +254,7 @@ void main() {
         onMutate: (val) async {
           await Future.delayed(const Duration(milliseconds: 10));
           log.add('asyncOnMutate');
+          return null;
         },
       );
 

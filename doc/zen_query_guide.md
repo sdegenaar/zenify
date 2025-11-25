@@ -214,6 +214,8 @@ final query = ZenQuery<User>(
 | `retryCount` | 3 | Number of retry attempts |
 | `retryDelay` | 1s | Base delay between retries |
 | `exponentialBackoff` | true | Increase delay exponentially |
+| `placeholderData` | null | Data to show while initial fetch is pending |
+
 
 ---
 
@@ -224,20 +226,39 @@ While `ZenQuery` handles fetching data (reads), `ZenMutation` handles changing d
 ```dart
 final loginMutation = ZenMutation<User, LoginArgs>(
   mutationFn: (args) => api.login(args.username, args.password),
-  onSuccess: (user, args) {
-    // Navigate or show success
+  
+  // Lifecycle hooks
+  onMutate: (args) async {
+    // Optional: Return a context object (e.g. for rollback)
+    return {'startTime': DateTime.now()};
   },
-  onError: (error, args) {
+  
+  onSuccess: (user, args, context) {
+    // Access context returned from onMutate
+    final startTime = (context as Map)['startTime'];
+    print('Login took ${DateTime.now().difference(startTime)}');
+  },
+  
+  onError: (error, args, context) {
     // Show error snackbar
+  },
+  
+  onSettled: (data, error, args, context) {
+    // Always runs (success or error)
   }
 );
 
 // Trigger
-loginMutation.mutate(LoginArgs('user', 'pass'));
+loginMutation.mutate(
+  LoginArgs('user', 'pass'),
+  // Optional call-time callbacks (run after the definition callbacks)
+  onSuccess: (user, args) => Navigator.pop(context),
+);
 ```
 
 ### Reactive State
 Mutations provide reactive state for your UI:
+
 ```dart
 Obx(() {
   if (mutation.isLoading.value) return CircularProgressIndicator();
@@ -268,13 +289,18 @@ Use `ZenInfiniteQuery` for lists that load more data as you scroll.
 final postsQuery = ZenInfiniteQuery<Page>(
   // Use a list key for complex identifiers
   queryKey: ['posts', 'feed', category], 
-  
-  // Fetcher receives the page param (null for first page)
-  infiniteFetcher: (pageParam) => api.getPosts(page: pageParam ?? 1),
-  
+
+  // Fetcher receives the page param (null for first page) AND cancel token
+  infiniteFetcher: (pageParam, token) => api.getPosts(page: pageParam ?? 1, cancelToken: token),
+
   // Calculate next page param from response. Return null if no more pages.
   getNextPageParam: (lastPage, allPages) {
     return lastPage.hasMore ? lastPage.nextPage : null;
+  },
+
+  // Optional: Bidirectional pagination
+  getPreviousPageParam: (firstPage, allPages) {
+     return firstPage.hasPrevious ? firstPage.prevPage : null;
   },
 );
 ```
@@ -284,10 +310,12 @@ final postsQuery = ZenInfiniteQuery<Page>(
 ```dart
 ZenQueryBuilder<List<Page>>(
   query: postsQuery,
+  // Keep showing old data while loading the next page prevents "flash"
+  keepPreviousData: true, 
   builder: (context, pages) {
     // Flatten pages into items
     final allPosts = pages.expand((page) => page.posts).toList();
-    
+
     return ListView.builder(
       itemCount: allPosts.length + 1,
       itemBuilder: (context, index) {
@@ -713,15 +741,15 @@ ZenQuery<T>({
 ```dart
 ZenMutation<TData, TVariables>({
   required Future<TData> Function(TVariables) mutationFn,
-  FutureOr<void> Function(TVariables)? onMutate,
-  void Function(TData, TVariables)? onSuccess,
-  void Function(Object, TVariables)? onError,
-  void Function(TData?, Object?, TVariables)? onSettled,
+  FutureOr<Object?> Function(TVariables)? onMutate,
+  void Function(TData, TVariables, Object?)? onSuccess,
+  void Function(Object, TVariables, Object?)? onError,
+  void Function(TData?, Object?, TVariables, Object?)? onSettled,
 })
 ```
 
 #### Properties
-- `mutate(variables)`: Triggers the mutation
+- `mutate(variables, {onSuccess, onError, onSettled})`: Triggers the mutation
 - `isLoading`: Reactive boolean
 - `isSuccess`: Boolean status check
 - `isError`: Boolean status check
@@ -738,6 +766,7 @@ ZenQueryBuilder<T>({
   Widget Function()? idle,
   bool autoFetch = true,
   bool showStaleData = true,
+  bool keepPreviousData = false,
   Widget Function(BuildContext, Widget)? wrapper,
 })
 ``` 

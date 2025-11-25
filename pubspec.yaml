@@ -1,7 +1,7 @@
 name: zenify
-description: Modern Flutter state management with hierarchical DI, automatic memory leak prevention, and reactive programming. Bring zen to your development.
+description: React Query for Flutter with smart async state management, automatic caching, hierarchical DI, and zero-boilerplate reactivity. Best of all worlds.
 
-version: 1.2.0
+version: 1.2.1
 homepage: https://github.com/sdegenaar/zenify
 repository: https://github.com/sdegenaar/zenify
 issue_tracker: https://github.com/sdegenaar/zenify/issues
@@ -9,10 +9,10 @@ documentation: https://github.com/sdegenaar/zenify/tree/main/doc
 
 topics:
   - state-management
+  - react-query
+  - async-state
   - hierarchical-di
-  - dependency-injection
-  - flutter
-  - memory-management
+  - reactive
 
 platforms:
   android:

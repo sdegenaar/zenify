@@ -27,14 +27,17 @@ class ZenMutation<TData, TVariables> extends ZenController {
   /// Function that performs the mutation
   final Future<TData> Function(TVariables variables) mutationFn;
 
-  /// Callback before mutation executes (useful for optimistic updates)
-  final FutureOr<void> Function(TVariables variables)? onMutate;
+  /// Callback before mutation executes (useful for optimistic updates).
+  /// Returns a context object that is passed to onError and onSettled.
+  final FutureOr<Object?> Function(TVariables variables)? onMutate;
 
   /// Callback on success
-  final void Function(TData data, TVariables variables)? onSuccess;
+  final void Function(TData data, TVariables variables, Object? context)?
+      onSuccess;
 
   /// Callback on error
-  final void Function(Object error, TVariables variables)? onError;
+  final void Function(Object error, TVariables variables, Object? context)?
+      onError;
 
   /// Callback when mutation is finished (success or error)
   /// Useful for invalidating queries
@@ -42,6 +45,7 @@ class ZenMutation<TData, TVariables> extends ZenController {
     TData? data,
     Object? error,
     TVariables variables,
+    Object? context,
   )? onSettled;
 
   /// Current status of the mutation
@@ -72,8 +76,16 @@ class ZenMutation<TData, TVariables> extends ZenController {
     this.onSettled,
   });
 
-  /// Execute the mutation
-  Future<TData?> mutate(TVariables variables) async {
+  /// Execute the mutation.
+  ///
+  /// You can provide call-time callbacks [onSuccess], [onError], and [onSettled]
+  /// which will run *after* the mutation-level callbacks defined in the constructor.
+  Future<TData?> mutate(
+    TVariables variables, {
+    void Function(TData data, TVariables variables)? onSuccess,
+    void Function(Object error, TVariables variables)? onError,
+    void Function(TData? data, Object? error, TVariables variables)? onSettled,
+  }) async {
     if (isDisposed) {
       throw StateError('Mutation has been disposed');
     }
@@ -84,10 +96,12 @@ class ZenMutation<TData, TVariables> extends ZenController {
     error.value = null;
     update();
 
+    Object? context;
+
     try {
       // Lifecycle: onMutate
       if (onMutate != null) {
-        await onMutate!(variables);
+        context = await onMutate!(variables);
       }
 
       // Execute mutation
@@ -101,9 +115,14 @@ class ZenMutation<TData, TVariables> extends ZenController {
       _isLoadingNotifier?.value = false;
       update();
 
-      // Lifecycle: onSuccess
+      // Lifecycle: onSuccess (Definition)
+      this.onSuccess?.call(result, variables, context);
+      // Lifecycle: onSuccess (Call-time)
       onSuccess?.call(result, variables);
-      // Lifecycle: onSettled
+
+      // Lifecycle: onSettled (Definition)
+      this.onSettled?.call(result, null, variables, context);
+      // Lifecycle: onSettled (Call-time)
       onSettled?.call(result, null, variables);
 
       return result;
@@ -116,9 +135,14 @@ class ZenMutation<TData, TVariables> extends ZenController {
       _isLoadingNotifier?.value = false;
       update();
 
-      // Lifecycle: onError
+      // Lifecycle: onError (Definition)
+      this.onError?.call(e, variables, context);
+      // Lifecycle: onError (Call-time)
       onError?.call(e, variables);
-      // Lifecycle: onSettled
+
+      // Lifecycle: onSettled (Definition)
+      this.onSettled?.call(null, e, variables, context);
+      // Lifecycle: onSettled (Call-time)
       onSettled?.call(null, e, variables);
 
       // We generally don't rethrow here to prevent breaking UI event handlers,

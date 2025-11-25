@@ -30,6 +30,7 @@ void main() {
 
       expect(query.data.value, ['page-1']);
       expect(query.hasNextPage.value, false);
+      expect(query.hasPreviousPage.value, false);
     });
 
     test('fetchNextPage appends data', () async {
@@ -65,6 +66,32 @@ void main() {
       expect(query.data.value, ['page-1', 'page-2', 'page-3']);
     });
 
+    test('fetchPreviousPage prepends data', () async {
+      final query = ZenInfiniteQuery<String>(
+        queryKey: 'infinite-bi',
+        initialPageParam: 2, // Start at page 2
+        infiniteFetcher: (page, token) async {
+          return 'page-$page';
+        },
+        getNextPageParam: (lastPage, allPages) => null,
+        getPreviousPageParam: (firstPage, allPages) {
+          // Logic: extract page number and subtract 1
+          final pageNum = int.parse(firstPage.split('-')[1]);
+          return pageNum > 1 ? pageNum - 1 : null;
+        },
+      );
+
+      // Initial: Page 2
+      await query.fetch();
+      expect(query.data.value, ['page-2']);
+      expect(query.hasPreviousPage.value, true);
+
+      // Prepend Page 1
+      await query.fetchPreviousPage();
+      expect(query.data.value, ['page-1', 'page-2']);
+      expect(query.hasPreviousPage.value, false); // No page 0
+    });
+
     test('refresh resets pagination', () async {
       final query = ZenInfiniteQuery<String>(
         queryKey: 'infinite',
@@ -85,6 +112,7 @@ void main() {
       expect(query.data.value, ['page-1']);
       // Should reset next page availability
       expect(query.hasNextPage.value, true);
+      expect(query.isFetchingPreviousPage.value, false);
     });
 
     test('handles fetchNextPage error without clearing data', () async {

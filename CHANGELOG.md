@@ -1,3 +1,36 @@
+## [1.2.1]
+
+### 🔄 Bidirectional Pagination & Mutation Context
+
+**Enhanced Infinite Query, smarter Mutations, and better UX controls.**
+
+#### New Features
+
+- **Bidirectional Infinite Query**: Added support for fetching *previous* pages.
+    - `ZenInfiniteQuery` now supports `getPreviousPageParam` and `fetchPreviousPage()`.
+    - Perfect for chat applications (scroll up to load history) or bidirectional lists.
+    - Added `hasPreviousPage` and `isFetchingPreviousPage` reactive properties.
+
+    ```dart
+    ZenInfiniteQuery(
+      queryKey: 'chat',
+      infiniteFetcher: (pageParam, token) => api.getMessages(pageParam),
+      getNextPageParam: (lastPage, _) => lastPage.nextCursor,
+      getPreviousPageParam: (firstPage, _) => firstPage.prevCursor, // New!
+    );
+    ```
+
+- **Mutation Context & Callbacks**:
+    - `onMutate` can now return a context object that is passed to `onError` and `onSettled` (useful for rolling back optimistic updates).
+    - **Call-Time Callbacks**: `mutate()` now accepts `onSuccess`, `onError`, and `onSettled` for one-off logic (e.g. navigation or snackbars) alongside the global definition.
+
+- **Placeholder Data**:
+    - Added `placeholderData` to `ZenQueryConfig` to show initial data while the real fetch is happening.
+    - Unlike `initialData`, this does not persist to cache and is treated as temporary.
+
+- **Builder Improvements**:
+    - **`keepPreviousData`**: `ZenQueryBuilder` and `ZenStreamQueryBuilder` can now keep showing data from a previous query instance while the new one loads. This prevents "flash of loading" when changing query keys (e.g. pagination or filters).
+
 ## [1.2.0]
 
 ### 🌊 ZenStreamQuery & Project Restructuring
