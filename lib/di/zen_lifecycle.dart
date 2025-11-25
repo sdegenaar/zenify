@@ -23,7 +23,9 @@ class ZenLifecycleManager {
   /// Initialize a controller with lifecycle hooks
   void initializeController(ZenController controller) {
     try {
-      controller.onInit();
+      if (!controller.isInitialized) {
+        controller.onInit();
+      }
 
       // Schedule onReady to be called after the current frame
       WidgetsBinding.instance.addPostFrameCallback((_) {

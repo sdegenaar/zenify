@@ -1,3 +1,9 @@
+## [1.2.2]
+
+### 📱 Example App Improvements
+
+**Expanded the zen_query app with all features.**
+
 ## [1.2.1]
 
 ### 🔄 Bidirectional Pagination & Mutation Context

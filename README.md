@@ -51,7 +51,7 @@ GetX-like reactivity with `.obs()` and `Obx()`. Write less, accomplish more, kee
 
 ```yaml
 dependencies:
-  zenify: ^1.2.1
+  zenify: ^1.2.2
 ```
 
 ### 2. Initialize
@@ -530,6 +530,7 @@ test('user service test', () {
 - [Todo App](example/todo) - CRUD operations
 - [E-commerce](example/ecommerce) - Real-world patterns
 - [Hierarchical Scopes Demo](example/hierarchical_scopes) - Advanced DI
+- [ZenQuery Demo](example/zenify_query) - Async state management
 - [Showcase](example/zenify_showcase) - All features
 
 ---

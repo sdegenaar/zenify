@@ -59,7 +59,7 @@ class FeaturePage extends StatelessWidget {
   }
 }
 ```
-```
+
 > **See it in action**: Check out the complete [hierarchical_scopes example app](../examples/hierarchical_scopes) that demonstrates a real-world navigation scenario with deep scope hierarchies.
 > 
 
