@@ -1,3 +1,15 @@
+## [1.2.3]
+
+### 🐛 Bug Fixes & Improvements
+
+**Fixed Stream Query lifecycle behavior on Web and improved debugging visibility.**
+
+#### Improvements
+
+- **Web Lifecycle Fix**: `ZenStreamQuery` now correctly pauses subscriptions when the app becomes `inactive` (e.g., switching tabs on Web) or `hidden`, not just `paused`.
+- **Lifecycle Propagation**: `ZenStreamQuery` now correctly triggers `onPause`, `onResume`, and other lifecycle methods even if the query instance isn't directly registered in the DI system (e.g., when used as a class member).
+- **Better Logging**: Added explicit info-level logs for `inactive` and `hidden` states to make debugging stream lifecycles easier.
+
 ## [1.2.2]
 
 ### 📱 Example App Improvements

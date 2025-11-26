@@ -20,19 +20,18 @@ class ZenLifecycleManager {
   // Generic lifecycle listeners
   final List<void Function(AppLifecycleState)> _lifecycleListeners = [];
 
-  /// Initialize a controller with lifecycle hooks
   void initializeController(ZenController controller) {
     try {
       if (!controller.isInitialized) {
         controller.onInit();
-      }
 
-      // Schedule onReady to be called after the current frame
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!controller.isDisposed) {
-          controller.onReady();
-        }
-      });
+        // Schedule onReady to be called after the current frame
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!controller.isDisposed) {
+            controller.onReady();
+          }
+        });
+      }
     } catch (e, stack) {
       ZenLogger.logError(
           'Error initializing controller ${controller.runtimeType}', e, stack);

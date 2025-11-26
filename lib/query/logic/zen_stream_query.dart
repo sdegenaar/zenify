@@ -122,14 +122,48 @@ class ZenStreamQuery<T> extends ZenController {
   }
 
   void _handleLifecycleChange(AppLifecycleState state) {
-    if (!config.refetchOnFocus) return;
+    // 1. Handle Stream Subscription
+    // If background execution is enabled, we ignore the pause state
+    if (!config.enableBackgroundRefetch) {
+      // Pause on any non-resumed state (paused, inactive, hidden, detached)
+      if (state != AppLifecycleState.resumed) {
+        if (!_isPaused) {
+          _subscription?.pause();
+          _isPaused = true;
+        }
+      } else {
+        // Resume only if we were previously paused
+        if (_isPaused) {
+          _subscription?.resume();
+          _isPaused = false;
+        }
+      }
+    }
 
-    if (state == AppLifecycleState.paused) {
-      _subscription?.pause();
-      _isPaused = true;
-    } else if (state == AppLifecycleState.resumed && _isPaused) {
-      _subscription?.resume();
-      _isPaused = false;
+    // 2. Propagate to ZenController lifecycle
+    // This ensures logging and worker management works even if the
+    // query is not registered in the global scope.
+    switch (state) {
+      case AppLifecycleState.resumed:
+        onResume();
+        break;
+      case AppLifecycleState.paused:
+        // Using onPause directly, which uses logInfo
+        onPause();
+        break;
+      case AppLifecycleState.inactive:
+        // Override standard behavior to ensure visibility
+        ZenLogger.logInfo('StreamQuery $queryKey inactive');
+        onInactive();
+        break;
+      case AppLifecycleState.detached:
+        onDetached();
+        break;
+      case AppLifecycleState.hidden:
+        // Override standard behavior to ensure visibility
+        ZenLogger.logInfo('StreamQuery $queryKey hidden');
+        onHidden();
+        break;
     }
   }
 
