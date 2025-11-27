@@ -147,7 +147,7 @@ ZenQueryBuilder<User>(
 
 ### 2. Hierarchical DI with Auto-Cleanup
 
-Organize dependencies naturally with parent-child scopes. When you navigate away, everything cleans up automatically.
+Organize dependencies naturally with **feature-based modules** and parent-child scopes. When you navigate away, everything cleans up automatically.
 
 ```dart
 // App-level services (persistent)
