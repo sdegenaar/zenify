@@ -1,4 +1,5 @@
 // lib/debug/zen_hierarchy_debug.dart
+import 'zen_debug.dart';
 import 'package:zenify/core/core.dart';
 
 import '../di/zen_di.dart';
@@ -21,7 +22,7 @@ class ZenHierarchyDebug {
   /// Get comprehensive hierarchy information
   static Map<String, dynamic> getCompleteHierarchyInfo() {
     final rootScope = Zen.rootScope;
-    final allScopes = ZenScopeManager.getAllScopes();
+    final allScopes = ZenDebug.allScopes;
 
     return {
       'currentScope': ZenScopeInspector.toDebugMap(Zen.currentScope),

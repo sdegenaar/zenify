@@ -1,24 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:zenify/zenify.dart';
 
-/// A widget that provides a [ZenScope] to its descendants.
+/// Widget-scoped dependency injection provider
 ///
-/// This widget makes a [ZenScope] available to its subtree, allowing descendant
-/// widgets to access controllers and services registered in that scope.
+/// ZenScopeWidget provides a [ZenScope] to its descendants via InheritedWidget.
+/// It's the foundational widget for hierarchical dependency injection in Zenify.
 ///
-/// There are two ways to use this widget:
-/// 1. Provide an existing scope using the [scope] parameter
-/// 2. Create a new scope from a module using the [moduleBuilder] parameter
+/// Architecture:
+/// - Automatic parent scope discovery from widget tree
+/// - Supports both direct scope provision and module-based creation
+/// - Clean lifecycle management (widget disposal = scope disposal)
+/// - No global state - pure widget tree-based
 ///
-/// Example using an existing scope:
+/// Usage patterns:
+///
+/// **Pattern 1: Provide an existing scope**
 /// ```dart
+/// final myScope = ZenScope(name: 'MyScope');
+/// myScope.put<MyService>(MyService());
+///
 /// ZenScopeWidget(
-///   scope: ZenScope(name: 'MyScope'),
+///   scope: myScope,
 ///   child: MyWidget(),
 /// )
 /// ```
 ///
-/// Example using a module:
+/// **Pattern 2: Create scope from module**
 /// ```dart
 /// ZenScopeWidget(
 ///   moduleBuilder: () => MyFeatureModule(),
@@ -26,8 +33,11 @@ import 'package:zenify/zenify.dart';
 ///   child: MyFeatureScreen(),
 /// )
 /// ```
+///
+/// The scope is automatically disposed when this widget is removed from the tree
+/// (only if created by this widget, not if provided externally).
 class ZenScopeWidget extends StatefulWidget {
-  /// The child widget to which the scope will be provided.
+  /// The child widget to which the scope will be provided
   final Widget child;
 
   /// An existing scope to provide to descendants.
@@ -64,7 +74,7 @@ class ZenScopeWidget extends StatefulWidget {
         context.dependOnInheritedWidgetOfExactType<_ZenScopeProvider>();
     if (provider == null) {
       throw Exception('No ZenScope found in the widget tree. '
-          'Make sure to wrap your widget with a ZenScopeWidget.');
+          'Make sure to wrap your widget with a ZenScopeWidget or ZenRoute.');
     }
     return provider.scope;
   }
@@ -84,7 +94,7 @@ class ZenScopeWidget extends StatefulWidget {
 
 class _ZenScopeWidgetState extends State<ZenScopeWidget> {
   late ZenScope _scope;
-  late bool _isOwner;
+  late bool _isOwner; // Track if we created the scope (and should dispose it)
   bool _isInitialized = false;
 
   @override
@@ -109,7 +119,7 @@ class _ZenScopeWidgetState extends State<ZenScopeWidget> {
   }
 
   void _initializeScope() {
-    // Get parent scope if available
+    // Auto-discover parent scope from widget tree
     ZenScope? parentScope;
     try {
       if (context.mounted) {
@@ -117,6 +127,10 @@ class _ZenScopeWidgetState extends State<ZenScopeWidget> {
       }
     } catch (_) {
       // Ignore errors in getting parent scope
+    }
+
+    if (parentScope != null) {
+      ZenLogger.logDebug('🔗 Found parent scope: ${parentScope.name}');
     }
 
     // Create a new scope from the module, with parent if available
@@ -129,16 +143,22 @@ class _ZenScopeWidgetState extends State<ZenScopeWidget> {
     // Mark as owner since we created it
     _isOwner = true;
 
-    // First register all dependencies from all dependency modules
+    ZenLogger.logDebug(
+        '✨ Created scope from module: $scopeName (parent: ${parentScope?.name ?? 'none'})');
+
+    // Register all dependency modules first
     for (final dependency in module.dependencies) {
+      ZenLogger.logDebug(
+          '📦 Registering dependency module: ${dependency.name}');
       dependency.register(_scope);
     }
 
     // Then register the main module
     module.register(_scope);
+    ZenLogger.logDebug('📦 Registered module: ${module.name}');
 
-    // Run async initialization if the module supports it
-    // This happens after registration so dependencies are available
+    // Run async initialization in the background
+    // Dependencies are already registered, so this is for async setup tasks
     _runAsyncInitialization(module);
 
     _isInitialized = true;
@@ -146,18 +166,18 @@ class _ZenScopeWidgetState extends State<ZenScopeWidget> {
 
   void _runAsyncInitialization(ZenModule module) {
     // Run async initialization in the background
-    // Dependencies are already registered, so this is for setup tasks
     (() async {
       try {
         // Initialize dependency modules first
         for (final dependency in module.dependencies) {
           await dependency.onInit(_scope);
+          ZenLogger.logDebug(
+              '✅ Initialized dependency module: ${dependency.name}');
         }
 
         // Then initialize the main module
         await module.onInit(_scope);
-
-        ZenLogger.logInfo('Module ${module.name} fully initialized');
+        ZenLogger.logInfo('✅ Module ${module.name} fully initialized');
       } catch (e, stack) {
         ZenLogger.logError(
             'Module initialization failed for ${module.name}', e, stack);
@@ -173,8 +193,9 @@ class _ZenScopeWidgetState extends State<ZenScopeWidget> {
     if (widget.scope != oldWidget.scope ||
         widget.moduleBuilder != oldWidget.moduleBuilder) {
       // Dispose the old scope if we own it
-      if (_isOwner) {
+      if (_isOwner && !_scope.isDisposed) {
         _scope.dispose();
+        ZenLogger.logDebug('🗑️ Disposed old scope: ${_scope.name}');
       }
 
       // Reset initialization state
@@ -194,8 +215,9 @@ class _ZenScopeWidgetState extends State<ZenScopeWidget> {
   @override
   void dispose() {
     // Only dispose the scope if we created it
-    if (_isOwner) {
+    if (_isOwner && !_scope.isDisposed) {
       _scope.dispose();
+      ZenLogger.logDebug('🗑️ Scope disposed: ${_scope.name}');
     }
     super.dispose();
   }
@@ -203,9 +225,8 @@ class _ZenScopeWidgetState extends State<ZenScopeWidget> {
   @override
   Widget build(BuildContext context) {
     // For moduleBuilder, ensure we wait for initialization
+    // This should be instant since registration is synchronous
     if (widget.moduleBuilder != null && !_isInitialized) {
-      // Return an empty container while initializing
-      // This should be very brief since initialization is mostly synchronous
       return const SizedBox.shrink();
     }
 
@@ -216,7 +237,11 @@ class _ZenScopeWidgetState extends State<ZenScopeWidget> {
   }
 }
 
-/// Internal provider that makes the scope available to the widget tree.
+/// Internal InheritedWidget that provides ZenScope to the widget tree.
+///
+/// This is the core mechanism for hierarchical scope discovery.
+/// Widgets can access their nearest ancestor scope using:
+/// `context.dependOnInheritedWidgetOfExactType<_ZenScopeProvider>()`.
 class _ZenScopeProvider extends InheritedWidget {
   final ZenScope scope;
 
@@ -227,6 +252,7 @@ class _ZenScopeProvider extends InheritedWidget {
 
   @override
   bool updateShouldNotify(_ZenScopeProvider oldWidget) {
+    // Only notify if the scope instance changed
     return scope != oldWidget.scope;
   }
 }

@@ -66,7 +66,7 @@ void main() {
       final grandChild = child1.createChild(name: 'collect-grandchild');
 
       // Act
-      final allScopes = ZenScopeManager.getAllScopes();
+      final allScopes = ZenDebug.allScopes;
 
       // Assert
       expect(allScopes.length, greaterThanOrEqualTo(4)); // root + 3 created

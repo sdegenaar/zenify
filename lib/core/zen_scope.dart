@@ -1,13 +1,33 @@
 // lib/core/zen_scope.dart
 import 'package:flutter/foundation.dart';
-import 'package:zenify/core/zen_scope_manager.dart' show ZenScopeManager;
 import '../controllers/zen_controller.dart';
 import '../controllers/zen_service.dart';
 import '../di/zen_lifecycle.dart';
 import 'zen_logger.dart';
 
-/// Dependency scoping mechanism for hierarchical access to dependencies
-/// Clean core implementation - debugging utilities moved to debug package
+/// Hierarchical dependency injection scope
+///
+/// ZenScope is a pure dependency container that manages:
+/// - Type-based and tag-based dependency registration
+/// - Lazy initialization with factories
+/// - Hierarchical lookup (searches parent scopes)
+/// - Automatic lifecycle management (init/dispose)
+/// - Child scope tracking
+///
+/// Architecture:
+/// - No global state - scopes are independent objects
+/// - Parent-child relationships managed via object references
+/// - Widget tree integration handled by ZenScopeWidget
+/// - Automatic disposal when owner widget is disposed
+///
+/// Example:
+/// ```dart
+/// final parentScope = ZenScope(name: 'Parent');
+/// final childScope = ZenScope(name: 'Child', parent: parentScope);
+///
+/// childScope.put<MyService>(MyService());
+/// final service = childScope.find<MyService>(); // Found in child
+/// ```
 class ZenScope {
   // Parent scope for hierarchical lookup
   final ZenScope? parent;
@@ -451,14 +471,15 @@ class ZenScope {
   //
 
   /// Create a child scope from this scope
+  ///
+  /// Child scopes automatically inherit dependencies from their parent
+  /// and are automatically disposed when the parent is disposed.
   ZenScope createChild({String? name}) {
     final childName = name ?? 'Child-${DateTime.now().microsecondsSinceEpoch}';
 
     // Create child scope with proper parent relationship
+    // Parent tracking is automatic via constructor
     final child = ZenScope(name: childName, parent: this);
-
-    // Register the child with ZenScopeManager so it's tracked
-    ZenScopeManager.registerChildScope(child);
 
     return child;
   }

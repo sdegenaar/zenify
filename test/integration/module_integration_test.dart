@@ -782,11 +782,9 @@ void main() {
           home: ZenRoute(
             moduleBuilder: () => MockDepartmentsModule(),
             scopeName: 'DepartmentsScope',
-            useParentScope: true, // Should inherit root services
             page: ZenRoute(
               moduleBuilder: () => MockDepartmentDetailModule(),
               scopeName: 'DepartmentDetailScope',
-              useParentScope: true, // Should inherit from DepartmentsScope
               page: Builder(
                 builder: (context) {
                   departmentDetailScope = context.zenScope;

@@ -51,7 +51,7 @@ GetX-like reactivity with `.obs()` and `Obx()`. Write less, accomplish more, kee
 
 ```yaml
 dependencies:
-  zenify: ^1.2.3
+  zenify: ^1.3.0
 ```
 
 ### 2. Initialize

@@ -1,4 +1,5 @@
 // lib/debug/zen_system_stats.dart
+import 'zen_debug.dart';
 import 'package:zenify/core/core.dart';
 import 'package:zenify/debug/zen_hierarchy_debug.dart';
 import '../utils/zen_scope_inspector.dart';
@@ -8,7 +9,7 @@ class ZenSystemStats {
   /// Get detailed statistics about the entire Zen system
   /// Useful for monitoring and performance analysis
   static Map<String, dynamic> getSystemStats() {
-    final allScopes = ZenScopeManager.getAllScopes();
+    final allScopes = ZenDebug.allScopes;
     var totalDependencies = 0;
     var totalControllers = 0;
     var totalServices = 0;
@@ -53,7 +54,7 @@ class ZenSystemStats {
     final results = <T>[];
     final seen = <dynamic>{};
 
-    for (final scope in ZenScopeManager.getAllScopes()) {
+    for (final scope in ZenDebug.allScopes) {
       if (scope.isDisposed) continue; // Skip disposed scopes
 
       // Get all instances from this specific scope
@@ -74,7 +75,7 @@ class ZenSystemStats {
   /// Find which scope contains a specific instance
   /// Returns the first scope found that contains the instance
   static ZenScope? findScopeContaining(dynamic instance) {
-    for (final scope in ZenScopeManager.getAllScopes()) {
+    for (final scope in ZenDebug.allScopes) {
       if (scope.isDisposed) continue; // Skip disposed scopes
 
       // Check if this scope contains the instance

@@ -20,8 +20,6 @@ export 'controllers/zen_route_observer.dart';
 // ===== SCOPES & MODULES =====
 export 'core/zen_scope.dart';
 export 'core/zen_module.dart';
-export 'core/zen_scope_manager.dart';
-export 'core/zen_scope_stack_tracker.dart';
 
 // ===== REACTIVE SYSTEM =====
 export 'reactive/reactive.dart';
