@@ -39,8 +39,8 @@ class AppRoutes {
             moduleBuilder: () => DepartmentsModule(),
             page: const DepartmentsPage(),
             scopeName: 'DepartmentsScope',
-            useParentScope:
-                true, // 🔥 Inherits: ApiService, CacheService, NavigationService
+            // 🔥 Automatically inherits parent scope via widget tree!
+            // Inherits: ApiService, CacheService, NavigationService
             // Registers: DepartmentService, EmployeeService (shared business logic)
           ),
         );
@@ -55,7 +55,7 @@ class AppRoutes {
                 DepartmentDetailModule(departmentId: departmentId),
             page: DepartmentDetailPage(departmentId: departmentId),
             scopeName: 'DepartmentDetailScope',
-            useParentScope: true,
+            // 🔥 Automatically inherits from DepartmentsScope!
           ),
         );
 
@@ -73,8 +73,7 @@ class AppRoutes {
               departmentId: departmentId,
             ),
             scopeName: 'EmployeeProfileScope',
-            useParentScope:
-                true, // 🔥 Deepest level - inherits ALL shared services!
+            // 🔥 Deepest level - automatically inherits ALL shared services!
             // Has access to: ApiService, CacheService, DepartmentService, EmployeeService
             // Plus any controllers from department detail scope
           ),

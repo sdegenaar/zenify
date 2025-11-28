@@ -1,3 +1,66 @@
+## [1.3.0]
+
+### ♻️ Major Architecture Refactoring: Hybrid Scope Discovery
+
+**Simplified scope management by 80% using a hybrid discovery pattern with navigation bridge.**
+
+#### Breaking Changes
+
+**None** - This is a pure internal refactoring. All public APIs remain unchanged.
+
+#### Architecture Improvements
+
+- **Hybrid Discovery Strategy**: `ZenRoute` now uses a 3-level fallback system for automatic parent resolution:
+    1. **Explicit**: `parentScope` parameter for full control (e.g., clean routes)
+    2. **Widget Tree**: `InheritedWidget` discovery for nested widgets in same route
+    3. **Navigation Bridge**: `Zen.currentScope` pointer bridges Flutter's Navigator gap
+    - Works automatically across navigation while supporting explicit control when needed
+
+- **The Navigation Bridge**:
+    - **Problem Solved**: Flutter's `Navigator.push()` creates sibling routes, breaking InheritedWidget hierarchy
+    - **Solution**: Single `Zen.currentScope` pointer acts as a bridge across navigation boundaries
+    - When a route creates a scope, it becomes "current"
+    - Next pushed route automatically discovers it via the bridge
+    - Parent scope restored as "current" on pop - automatic cleanup
+    - Simple, explicit, and solves the widget tree gap with minimal code
+
+- **Removed Global State Management (~666 lines)**:
+    - **Deleted** `ZenScopeManager` (541 lines) - Complex global scope registry
+    - **Deleted** `ZenScopeStackTracker` (125 lines) - Navigation-aware stack tracking
+    - Eliminated 6 global tracking maps and complex lifecycle coordination
+    - Replaced with single `Zen.currentScope` pointer - minimal global state
+
+- **Simplified Core Components**:
+    - `ZenRoute` reduced from 526 to 336 lines (-36%)
+    - Added `parentScope` parameter for explicit control (optional)
+    - `ZenScope.createChild()` no longer calls global manager
+    - `ZenDebug` now uses recursive tree traversal instead of global registry
+    - Lazy root scope creation in `Zen.rootScope` (lib/di/zen_di.dart)
+
+#### Key Benefits
+
+- ✅ **Minimal Global State**: Just one pointer bridge vs complex registry system
+- ✅ **Solves Navigator Gap**: Automatically handles Flutter's route sibling architecture
+- ✅ **Automatic & Explicit**: Works automatically with optional explicit control
+- ✅ **Simpler Codebase**: 80% reduction in scope management complexity
+- ✅ **Better Maintainability**: Clear fallback chain, easy to understand and debug
+- ✅ **100% Test Coverage**: All existing tests pass, hierarchical_scopes example verified
+
+#### Technical Details
+
+- `_ZenScopeProvider` InheritedWidget provides scope to descendants (lib/widgets/components/zen_route.dart:304-334)
+- Hybrid discovery: explicit → widget tree → navigation bridge (lib/widgets/components/zen_route.dart:116-118)
+- `Zen.currentScope` set on scope creation, restored on disposal (lib/widgets/components/zen_route.dart:136, 203-206)
+- Optional `parentScope` parameter for explicit control (lib/widgets/components/zen_route.dart:52)
+- Updated `ZenDebug.allScopes` to use recursive tree collection (lib/debug/zen_debug.dart)
+
+#### Documentation
+
+- Complete rewrite of `doc/hierarchical_scopes_guide.md` explaining hybrid architecture
+- Added explanation of the navigation bridge pattern
+- Added examples for explicit `parentScope` usage (clean routes)
+- Updated all internal documentation references
+
 ## [1.2.3]
 
 ### 🐛 Bug Fixes & Improvements

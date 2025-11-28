@@ -4,18 +4,25 @@ import '../core/zen_logger.dart';
 import '../core/zen_scope.dart';
 import '../core/zen_module.dart';
 import '../controllers/zen_controller.dart';
-import '../core/zen_scope_manager.dart';
 import '../query/core/zen_query_cache.dart';
 import '../testing/zen_test_mode.dart';
 import 'zen_lifecycle.dart';
 import 'zen_reactive.dart';
 
 /// Main Zenify API for dependency injection
+///
+/// Provides a clean, simple API for global dependency management.
+/// For hierarchical scopes, use ZenRoute or ZenScopeWidget directly.
 class Zen {
   Zen._(); // Private constructor
 
   static final ZenLifecycleManager _lifecycleManager =
       ZenLifecycleManager.instance;
+
+  // Root scope singleton for global dependencies
+  static ZenScope? _rootScope;
+
+  // Current scope tracking (for backward compatibility)
   static ZenScope? _currentScope;
 
   //
@@ -35,21 +42,38 @@ class Zen {
   /// Create a new scope for isolated dependencies
   ///
   /// If [parent] is not provided, it defaults to [rootScope].
+  ///
+  /// Note: For widget-based scopes, use [ZenRoute] or [ZenScopeWidget] instead.
+  /// This method is for programmatic scope creation outside the widget tree.
   static ZenScope createScope({String? name, ZenScope? parent}) {
-    return ZenScopeManager.getOrCreateScope(
-      name: name ?? 'Scope_${DateTime.now().millisecondsSinceEpoch}',
-      parentScope: parent ?? rootScope, // CHANGED: Default to rootScope
-      autoDispose: false,
+    final scopeName = name ?? 'Scope_${DateTime.now().millisecondsSinceEpoch}';
+    return ZenScope(
+      name: scopeName,
+      parent: parent ?? rootScope,
     );
   }
 
   /// Get the root scope for global dependencies
-  static ZenScope get rootScope => ZenScopeManager.rootScope;
+  ///
+  /// The root scope is created lazily on first access and persists
+  /// for the lifetime of the application (until [reset] is called).
+  static ZenScope get rootScope {
+    if (_rootScope == null || _rootScope!.isDisposed) {
+      _rootScope = ZenScope(name: 'RootScope');
+      ZenLogger.logDebug('✨ Created root scope');
+    }
+    return _rootScope!;
+  }
 
   /// Get the current active scope (for internal use)
+  ///
+  /// Falls back to rootScope if no current scope is set.
   static ZenScope get currentScope => _currentScope ?? rootScope;
 
   /// Set current scope (used by routing/navigation)
+  ///
+  /// This is maintained for backward compatibility. In the new architecture,
+  /// scopes are managed via the widget tree.
   static void setCurrentScope(ZenScope scope) {
     _currentScope = scope;
     ZenLogger.logDebug('Current scope: ${scope.name}');
@@ -221,17 +245,37 @@ class Zen {
   static ZenTestMode testMode() => ZenTestMode();
 
   /// Complete reset - clear everything (for testing)
+  ///
+  /// Disposes all dependencies and resets Zenify to initial state.
+  /// Call this in tearDown() of your tests.
   static void reset() {
     ZenModuleRegistry.clear();
     ZenReactiveSystem.instance.clearListeners();
     _lifecycleManager.dispose();
     _currentScope = null;
-    ZenScopeManager.disposeAll();
+
+    // Dispose root scope if it exists
+    if (_rootScope != null && !_rootScope!.isDisposed) {
+      _rootScope!.dispose();
+    }
+    _rootScope = null;
+
     ZenLogger.logInfo('🔄 Zen reset complete');
   }
 
-  /// Delete all dependencies from all scopes
+  /// Delete all dependencies from root scope
+  ///
+  /// This clears all dependencies from the root scope but keeps the scope itself.
+  /// For a complete reset (including scope disposal), use [reset()].
   static void deleteAll({bool force = false}) {
-    ZenScopeManager.disposeAll();
+    rootScope.clearAll(force: force);
+  }
+
+  /// Clear the query cache
+  ///
+  /// Useful for testing or when you want to force refetch all queries.
+  static void clearQueryCache() {
+    ZenQueryCache.instance.clear();
+    ZenLogger.logInfo('🗑️ Query cache cleared');
   }
 }

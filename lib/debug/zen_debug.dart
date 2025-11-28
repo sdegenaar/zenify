@@ -1,6 +1,5 @@
 // lib/debug/zen_debug.dart
 import '../core/zen_scope.dart';
-import '../core/zen_scope_manager.dart';
 import '../di/zen_di.dart';
 import 'debug.dart';
 
@@ -10,8 +9,27 @@ import 'debug.dart';
 class ZenDebug {
   ZenDebug._();
 
-  /// Get all active scopes in the system
-  static List<ZenScope> get allScopes => ZenScopeManager.getAllScopes();
+  /// Get all active scopes starting from root
+  ///
+  /// This recursively collects all scopes in the hierarchy starting
+  /// from the root scope. Scopes created outside the root hierarchy
+  /// (standalone scopes) won't be included.
+  static List<ZenScope> get allScopes {
+    final scopes = <ZenScope>[];
+    _collectScopesRecursively(Zen.rootScope, scopes);
+    return scopes;
+  }
+
+  /// Helper to recursively collect all scopes
+  static void _collectScopesRecursively(
+      ZenScope scope, List<ZenScope> collection) {
+    if (!collection.contains(scope)) {
+      collection.add(scope);
+      for (final child in scope.childScopes) {
+        _collectScopesRecursively(child, collection);
+      }
+    }
+  }
 
   /// Get comprehensive hierarchy information
   static Map<String, dynamic> getHierarchyInfo() =>
