@@ -494,4 +494,217 @@ void main() {
       scope.dispose();
     });
   });
+
+  group('Shared Query Pattern - Module-based Registration', () {
+    test('should share query across multiple controllers via Zen.find',
+        () async {
+      final scope = ZenScope(name: 'FeatureScope');
+
+      // Simulate module registration pattern
+      final sharedQuery = scope.putQuery<String>(
+        queryKey: 'shared-user-data',
+        fetcher: (_) async => 'Shared User',
+        config: ZenQueryConfig(staleTime: Duration(minutes: 5)),
+      );
+
+      // Fetch initial data
+      await sharedQuery.fetch();
+      expect(sharedQuery.data.value, 'Shared User');
+
+      // Register query in DI so controllers can find it
+      scope.put<ZenQuery<String>>(sharedQuery, tag: 'user-query');
+
+      // Simulate Controller 1 accessing the shared query
+      final controller1Query = scope.find<ZenQuery<String>>(tag: 'user-query');
+      expect(controller1Query, same(sharedQuery));
+      expect(controller1Query?.data.value, 'Shared User');
+
+      // Simulate Controller 2 accessing the same query
+      final controller2Query = scope.find<ZenQuery<String>>(tag: 'user-query');
+      expect(controller2Query, same(sharedQuery));
+      expect(controller2Query, same(controller1Query));
+
+      // All controllers share the same query instance
+      expect(controller2Query?.data.value, 'Shared User');
+
+      // Dispose scope - shared query should be disposed
+      scope.dispose();
+      expect(sharedQuery.isDisposed, isTrue);
+    });
+
+    test('should dispose shared query when scope disposes', () async {
+      final scope = ZenScope(name: 'FeatureScope');
+
+      // Create shared query via module pattern
+      final sharedQuery = scope.putQuery<Map<String, dynamic>>(
+        queryKey: 'shared-config',
+        fetcher: (_) async => {'theme': 'dark', 'language': 'en'},
+      );
+
+      await sharedQuery.fetch();
+
+      // putQuery already registers it, so we can access it directly
+      // Multiple controllers would use sharedQuery directly or find it via scope
+      expect(sharedQuery.isDisposed, isFalse);
+
+      // Dispose scope
+      scope.dispose();
+
+      // Shared query should be disposed
+      expect(sharedQuery.isDisposed, isTrue);
+    });
+
+    test('should handle multiple shared queries in module', () async {
+      final scope = ZenScope(name: 'FeatureModule');
+
+      // Module registers multiple shared queries
+      final userQuery = scope.putQuery<String>(
+        queryKey: 'module:user',
+        fetcher: (_) async => 'Module User',
+      );
+
+      final settingsQuery = scope.putQuery<Map<String, dynamic>>(
+        queryKey: 'module:settings',
+        fetcher: (_) async => {'setting1': 'value1'},
+      );
+
+      final postsQuery = scope.putQuery<List<String>>(
+        queryKey: 'module:posts',
+        fetcher: (_) async => ['Post 1', 'Post 2'],
+      );
+
+      // Register all in DI
+      scope.put<ZenQuery<String>>(userQuery, tag: 'user');
+      scope.put<ZenQuery<Map<String, dynamic>>>(settingsQuery, tag: 'settings');
+      scope.put<ZenQuery<List<String>>>(postsQuery, tag: 'posts');
+
+      // Fetch all
+      await Future.wait([
+        userQuery.fetch(),
+        settingsQuery.fetch(),
+        postsQuery.fetch(),
+      ]);
+
+      // Controllers can access all shared queries
+      final foundUser = scope.find<ZenQuery<String>>(tag: 'user');
+      final foundSettings =
+          scope.find<ZenQuery<Map<String, dynamic>>>(tag: 'settings');
+      final foundPosts = scope.find<ZenQuery<List<String>>>(tag: 'posts');
+
+      expect(foundUser, same(userQuery));
+      expect(foundSettings, same(settingsQuery));
+      expect(foundPosts, same(postsQuery));
+
+      // All queries alive
+      expect(userQuery.isDisposed, isFalse);
+      expect(settingsQuery.isDisposed, isFalse);
+      expect(postsQuery.isDisposed, isFalse);
+
+      // Dispose scope
+      scope.dispose();
+
+      // All queries should be disposed
+      expect(userQuery.isDisposed, isTrue);
+      expect(settingsQuery.isDisposed, isTrue);
+      expect(postsQuery.isDisposed, isTrue);
+    });
+
+    test('should support hierarchical module pattern with shared queries',
+        () async {
+      final appScope = ZenScope(name: 'AppScope');
+      final featureScope = appScope.createChild(name: 'FeatureScope');
+
+      // App-level shared query
+      final appQuery = appScope.putQuery<String>(
+        queryKey: 'app:user',
+        fetcher: (_) async => 'App User',
+      );
+      appScope.put<ZenQuery<String>>(appQuery, tag: 'app-user');
+
+      // Feature-level shared query
+      final featureQuery = featureScope.putQuery<String>(
+        queryKey: 'feature:data',
+        fetcher: (_) async => 'Feature Data',
+      );
+      featureScope.put<ZenQuery<String>>(featureQuery, tag: 'feature-data');
+
+      await Future.wait([appQuery.fetch(), featureQuery.fetch()]);
+
+      // Feature scope can access both queries (hierarchical lookup)
+      final foundApp = featureScope.find<ZenQuery<String>>(tag: 'app-user');
+      final foundFeature =
+          featureScope.find<ZenQuery<String>>(tag: 'feature-data');
+
+      expect(foundApp, same(appQuery));
+      expect(foundFeature, same(featureQuery));
+
+      // Dispose only feature scope
+      featureScope.dispose();
+
+      // Feature query disposed, app query still alive
+      expect(featureQuery.isDisposed, isTrue);
+      expect(appQuery.isDisposed, isFalse);
+
+      // Clean up
+      appScope.dispose();
+      expect(appQuery.isDisposed, isTrue);
+    });
+
+    test('should handle controllers and shared queries together', () async {
+      final scope = ZenScope(name: 'FeatureScope');
+
+      // Module registers shared query
+      final sharedQuery = scope.putQuery<String>(
+        queryKey: 'shared:data',
+        fetcher: (_) async => 'Shared Data',
+      );
+      scope.put<ZenQuery<String>>(sharedQuery, tag: 'shared');
+
+      // Create controllers that use the shared query
+      final controller1 = _TestControllerUsingSharedQuery(scope, 'shared');
+      final controller2 = _TestControllerUsingSharedQuery(scope, 'shared');
+
+      scope.put(controller1, tag: 'controller1');
+      scope.put(controller2, tag: 'controller2');
+
+      controller1.onInit();
+      controller2.onInit();
+
+      // Both controllers should reference the same query
+      expect(controller1.sharedQuery, same(sharedQuery));
+      expect(controller2.sharedQuery, same(sharedQuery));
+      expect(controller1.sharedQuery, same(controller2.sharedQuery));
+
+      // Dispose scope
+      scope.dispose();
+
+      // Controllers and shared query should all be disposed
+      expect(controller1.isDisposed, isTrue);
+      expect(controller2.isDisposed, isTrue);
+      expect(sharedQuery.isDisposed, isTrue);
+    });
+  });
+}
+
+// Test controller that uses a shared query
+class _TestControllerUsingSharedQuery extends ZenController {
+  final ZenScope scope;
+  final String queryTag;
+  ZenQuery<String>? sharedQuery;
+  bool isDisposed = false;
+
+  _TestControllerUsingSharedQuery(this.scope, this.queryTag);
+
+  @override
+  void onInit() {
+    super.onInit();
+    // Access the shared query from scope
+    sharedQuery = scope.find<ZenQuery<String>>(tag: queryTag);
+  }
+
+  @override
+  void onClose() {
+    isDisposed = true;
+    super.onClose();
+  }
 }

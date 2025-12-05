@@ -387,4 +387,193 @@ void main() {
       expect(tag, 'tagged'); // Should return the first tag found
     });
   });
+
+  group('ZenScope - ZenQuery Disposal', () {
+    setUp(() {
+      Zen.testMode().clearQueryCache();
+    });
+
+    test('should dispose queries when scope is disposed', () async {
+      final scope = Zen.createScope(name: 'QueryScope');
+
+      // Create and register queries in the scope
+      final query1 = ZenQuery<String>(
+        queryKey: 'query1',
+        fetcher: (_) async => 'data1',
+        scope: scope,
+        autoDispose: true,
+      );
+
+      final query2 = ZenQuery<String>(
+        queryKey: 'query2',
+        fetcher: (_) async => 'data2',
+        scope: scope,
+        autoDispose: true,
+      );
+
+      // Fetch data
+      await Future.wait([query1.fetch(), query2.fetch()]);
+
+      // Verify queries are alive
+      expect(query1.isDisposed, isFalse);
+      expect(query2.isDisposed, isFalse);
+      expect(query1.data.value, 'data1');
+      expect(query2.data.value, 'data2');
+
+      // Dispose the scope
+      scope.dispose();
+
+      // Verify queries are automatically disposed
+      expect(query1.isDisposed, isTrue);
+      expect(query2.isDisposed, isTrue);
+    });
+
+    test('should dispose queries in child scopes when parent is disposed',
+        () async {
+      final parentScope = Zen.createScope(name: 'ParentScope');
+      final childScope =
+          Zen.createScope(name: 'ChildScope', parent: parentScope);
+
+      // Create queries in both scopes
+      final parentQuery = ZenQuery<String>(
+        queryKey: 'parent-query',
+        fetcher: (_) async => 'parent-data',
+        scope: parentScope,
+        autoDispose: true,
+      );
+
+      final childQuery = ZenQuery<String>(
+        queryKey: 'child-query',
+        fetcher: (_) async => 'child-data',
+        scope: childScope,
+        autoDispose: true,
+      );
+
+      await Future.wait([parentQuery.fetch(), childQuery.fetch()]);
+
+      // Verify both queries are alive
+      expect(parentQuery.isDisposed, isFalse);
+      expect(childQuery.isDisposed, isFalse);
+
+      // Dispose parent scope
+      parentScope.dispose();
+
+      // Both queries should be disposed
+      expect(parentQuery.isDisposed, isTrue);
+      expect(childQuery.isDisposed, isTrue);
+    });
+
+    test('should not dispose queries with autoDispose=false', () async {
+      final scope = Zen.createScope(name: 'QueryScope');
+
+      final query = ZenQuery<String>(
+        queryKey: 'persistent-query',
+        fetcher: (_) async => 'data',
+        scope: scope,
+        autoDispose: false,
+      );
+
+      await query.fetch();
+      expect(query.isDisposed, isFalse);
+
+      // Dispose scope
+      scope.dispose();
+
+      // Query should still be alive
+      expect(query.isDisposed, isFalse);
+
+      // Manual cleanup
+      query.dispose();
+      expect(query.isDisposed, isTrue);
+    });
+
+    test('should dispose mix of queries and controllers in scope', () async {
+      final scope = Zen.createScope(name: 'MixedScope');
+
+      // Create a query
+      final query = ZenQuery<String>(
+        queryKey: 'test-query',
+        fetcher: (_) async => 'query-data',
+        scope: scope,
+        autoDispose: true,
+      );
+
+      // Create and register a controller
+      final controller = TestController();
+      scope.put(controller);
+
+      await query.fetch();
+
+      // Verify both are alive
+      expect(query.isDisposed, isFalse);
+      expect(controller.isDisposed, isFalse);
+
+      // Dispose scope
+      scope.dispose();
+
+      // Both should be disposed
+      expect(query.isDisposed, isTrue);
+      expect(controller.isDisposed, isTrue);
+    });
+
+    test('should handle queries registered via scope.put()', () async {
+      final scope = Zen.createScope(name: 'QueryScope');
+
+      // Create query and register it in scope
+      final query = ZenQuery<String>(
+        queryKey: 'registered-query',
+        fetcher: (_) async => 'data',
+        scope: scope,
+        autoDispose: true,
+      );
+
+      // Also register in DI container
+      scope.put(query);
+
+      await query.fetch();
+      expect(query.isDisposed, isFalse);
+
+      // Should be findable
+      final found = scope.find<ZenQuery<String>>();
+      expect(found, same(query));
+
+      // Dispose scope
+      scope.dispose();
+
+      // Query should be disposed
+      expect(query.isDisposed, isTrue);
+    });
+
+    test('should dispose queries registered via putQuery extension', () async {
+      final scope = Zen.createScope(name: 'QueryScope');
+
+      // Use putQuery extension
+      final query = scope.putQuery<String>(
+        queryKey: 'extension-query',
+        fetcher: (_) async => 'extension-data',
+      );
+
+      await query.fetch();
+      expect(query.isDisposed, isFalse);
+      expect(query.data.value, 'extension-data');
+
+      // Dispose scope
+      scope.dispose();
+
+      // Query should be disposed
+      expect(query.isDisposed, isTrue);
+    });
+  });
+}
+
+// Test controller for disposal tests
+class TestController extends ZenController {
+  @override
+  bool isDisposed = false;
+
+  @override
+  void onClose() {
+    isDisposed = true;
+    super.onClose();
+  }
 }
