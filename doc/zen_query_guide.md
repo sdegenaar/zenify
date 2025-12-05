@@ -683,17 +683,48 @@ ZenQueryBuilder<User>(
 );
 ```
 
-### 5. Dispose Queries Properly
+### 5. Lifecycle Management
 
-ZenQuery extends ZenController, so it manages its lifecycle automatically when used with dependency injection. Manual disposal is only needed if you create queries outside of the DI system:
+**Automatic (Recommended):** Create queries in `onInit()` for automatic tracking:
 ```dart
-// If created manually, dispose when done
+class MyController extends ZenController {
+  late final userQuery;
+
+  @override
+  void onInit() {
+    super.onInit();
+    // ✅ Automatically tracked and disposed!
+    userQuery = ZenQuery<User>(
+      queryKey: 'user:123',
+      fetcher: (_) => api.getUser(123),
+    );
+  }
+}
+```
+
+**Scope-Owned:** Register in modules for shared access:
+```dart
+class FeatureModule extends ZenModule {
+  @override
+  void register(ZenScope scope) {
+    scope.putQuery<User>(
+      queryKey: 'user',
+      fetcher: (_) => api.getUser(),
+    );
+    // ✅ Automatically disposed when scope disposes!
+  }
+}
+```
+
+**Manual (Rare):** Only needed for standalone queries:
+```dart
+// Created outside controller or module
 final query = ZenQuery<User>(
   queryKey: 'user:123',
   fetcher: (_) => api.getUser(123),
 );
 
-// Later...
+// ⚠️ Must manually dispose
 query.dispose();
 ``` 
 
@@ -814,6 +845,144 @@ ZenQuery supports both **global** and **scoped** modes for flexible lifecycle ma
 
 - **Global queries**: Persist across navigation, ideal for app-wide data
 - **Scoped queries**: Auto-dispose with their scope, perfect for feature-specific data
+- **Controller-owned queries**: Automatically tracked and disposed with the controller
+
+---
+
+## Query Lifecycle Management
+
+### Automatic Tracking (Recommended) ⭐
+
+Queries created in a controller's `onInit()` are **automatically tracked and disposed** - no manual cleanup needed!
+
+```dart
+class UserController extends ZenController {
+  late final userQuery;
+  late final postsQuery;
+
+  @override
+  void onInit() {
+    super.onInit();
+
+    // ✅ Automatically tracked - no wrapper needed!
+    userQuery = ZenQuery<User>(
+      queryKey: 'user:123',
+      fetcher: (_) => api.getUser(123),
+    );
+
+    postsQuery = ZenQuery<List<Post>>(
+      queryKey: 'posts:123',
+      fetcher: (_) => api.getPosts(123),
+    );
+  }
+
+  @override
+  void onClose() {
+    // ✅ Queries automatically disposed - no code needed!
+    super.onClose();
+  }
+}
+```
+
+**How it works:**
+1. When `onInit()` runs, the controller sets itself as the "current parent"
+2. Any query created during `onInit()` automatically registers with the parent controller
+3. When the controller disposes, all tracked queries are automatically disposed
+4. **Zero boilerplate** - impossible to forget cleanup!
+
+**Benefits:**
+- ✅ **Zero boilerplate** - No manual `dispose()` calls
+- ✅ **Memory leak prevention** - Impossible to forget cleanup
+- ✅ **Safe by default** - Works for all query types (`ZenQuery`, `ZenStreamQuery`, `ZenMutation`)
+
+---
+
+### Scope-Owned Queries (Shared Across Controllers)
+
+Queries created in modules are managed by the scope and shared across all controllers in the hierarchy:
+
+```dart
+class FeatureModule extends ZenModule {
+  @override
+  void register(ZenScope scope) {
+    // ✅ Shared query - available to all controllers in this scope
+    scope.putQuery<User>(
+      queryKey: 'shared-user',
+      fetcher: (_) => api.getUser(),
+      config: ZenQueryConfig(staleTime: Duration(minutes: 5)),
+    );
+
+    // Automatically disposed when scope disposes
+  }
+}
+
+// Usage in any controller
+class MyController extends ZenController {
+  late final ZenQuery<User> userQuery;
+
+  @override
+  void onInit() {
+    super.onInit();
+    // Access shared query from scope
+    userQuery = Zen.find<ZenQuery<User>>();
+  }
+
+  // No disposal needed - scope handles it!
+}
+```
+
+**When to use:**
+- ✅ Data shared across multiple controllers in a feature
+- ✅ Feature-specific data that should dispose with the route
+- ✅ Avoiding duplication of queries across controllers
+
+---
+
+### Manual Tracking (Advanced)
+
+For queries created in a controller's constructor (not in `onInit()`), use manual tracking:
+
+```dart
+class MyController extends ZenController {
+  late final userQuery;
+
+  MyController(String userId) {
+    // Created in constructor, not in onInit()
+    userQuery = ZenQuery<User>(
+      queryKey: 'user:$userId',
+      fetcher: (_) => api.getUser(userId),
+    );
+
+    // ⚠️ Manual tracking required since it's outside onInit()
+    trackController(userQuery);
+  }
+
+  @override
+  void onClose() {
+    // ✅ Auto-disposed because we called trackController()
+    super.onClose();
+  }
+}
+```
+
+**When to use:**
+- ⚠️ Only when you must create queries in the constructor
+- ⚠️ Better to use `late final` + `onInit()` pattern instead
+
+---
+
+### Lifecycle Patterns Summary
+
+| **Pattern** | **Code** | **Disposal** | **Use Case** |
+|-------------|----------|--------------|--------------|
+| **Automatic (Recommended)** | `late final query` in `onInit()` | Automatic | Controller-owned queries |
+| **Scope-Owned** | `scope.putQuery()` in module | Scope handles | Shared across controllers |
+| **Manual Tracking** | `trackController(query)` | Automatic via tracking | Constructor-created queries |
+| **Global** | No scope parameter | Manual or permanent | App-wide data |
+
+**Best Practice:** Always use `late final` + `onInit()` for automatic tracking ✅
+
+---
 
 ### Global Queries (Default)
 ```dart
@@ -924,18 +1093,30 @@ ZenRoute(
 
 ```
 
-#### Within Controller Creation
+#### Within Controller (Automatic Tracking) ⭐
 ```dart
 class ProductController extends ZenController {
   final String productId;
+  late final productQuery;
 
   ProductController(this.productId);
 
-  late final productQuery = ZenQuery<Product>(
-    queryKey: 'product:$productId',
-    fetcher: (_) => api.getProduct(productId),
-    scope: Zen.currentScope, // ← Implicit scope
-  );
+  @override
+  void onInit() {
+    super.onInit();
+
+    // ✅ Automatically tracked - no manual disposal needed!
+    productQuery = ZenQuery<Product>(
+      queryKey: 'product:$productId',
+      fetcher: (_) => api.getProduct(productId),
+    );
+  }
+
+  @override
+  void onClose() {
+    // ✅ Query automatically disposed!
+    super.onClose();
+  }
 }
 ``` 
 

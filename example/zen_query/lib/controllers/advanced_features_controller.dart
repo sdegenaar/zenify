@@ -134,12 +134,11 @@ class AdvancedFeaturesController extends ZenController {
 
   @override
   void onClose() {
-    userQuery.dispose();
-    userEmailQuery.dispose();
-    userPostsQuery.dispose();
-    searchQuery.dispose();
-    slowQuery.dispose();
-    dedupeQuery.dispose();
+    // ⭐ NO NEED TO MANUALLY DISPOSE QUERIES ANYMORE!
+    // All queries created in onInit() are automatically tracked and disposed
+    // when this controller is disposed. This prevents memory leaks without boilerplate.
+
+    // Only dispose non-query resources like text controllers
     searchController.dispose();
     super.onClose();
   }

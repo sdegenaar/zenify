@@ -120,6 +120,13 @@ class ZenQuery<T> extends ZenController {
         config = ZenQueryConfig.defaults.merge(config).cast<T>(),
         _registerInCache = registerInCache,
         enabled = RxBool(enabled) {
+    // ⭐ AUTOMATIC CHILD CONTROLLER TRACKING
+    // If a parent controller is currently initializing (onInit is running),
+    // automatically register this query with it for automatic disposal
+    if (ZenController.currentParentController != null) {
+      ZenController.currentParentController!.trackController(this);
+    }
+
     // Set initial data if provided
     if (initialData != null) {
       data.value = initialData;

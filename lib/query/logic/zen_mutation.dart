@@ -74,7 +74,14 @@ class ZenMutation<TData, TVariables> extends ZenController {
     this.onSuccess,
     this.onError,
     this.onSettled,
-  });
+  }) {
+    // AUTOMATIC CHILD CONTROLLER TRACKING
+    // If a parent controller is currently initializing (onInit is running),
+    // automatically register this mutation with it for automatic disposal
+    if (ZenController.currentParentController != null) {
+      ZenController.currentParentController!.trackController(this);
+    }
+  }
 
   /// Execute the mutation.
   ///

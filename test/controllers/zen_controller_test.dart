@@ -410,4 +410,333 @@ void main() {
       expect(updateCount, 1); // still 1, not incremented
     });
   });
+
+  // ============================================================================
+  // AUTOMATIC CHILD CONTROLLER TRACKING TESTS
+  // ============================================================================
+
+  group('ZenController - Automatic Child Tracking', () {
+    setUp(() {
+      WidgetsFlutterBinding.ensureInitialized();
+      Zen.testMode();
+      Zen.clearQueryCache();
+    });
+
+    tearDown(() {
+      Zen.reset();
+    });
+
+    test('should automatically track ZenQuery created in onInit', () {
+      // Controller that creates a query in onInit
+      final controller = _ControllerWithQuery();
+
+      // Manually call onInit to trigger tracking
+      controller.onInit();
+
+      // Verify query was created
+      expect(controller.userQuery, isNotNull);
+      expect(controller.userQuery!.isDisposed, isFalse);
+
+      // Dispose controller
+      controller.dispose();
+
+      // Verify query was automatically disposed
+      expect(controller.userQuery!.isDisposed, isTrue);
+    });
+
+    test('should automatically track multiple queries created in onInit', () {
+      final controller = _ControllerWithMultipleQueries();
+
+      controller.onInit();
+
+      // Verify all queries were created
+      expect(controller.userQuery, isNotNull);
+      expect(controller.postsQuery, isNotNull);
+      expect(controller.commentsQuery, isNotNull);
+
+      // All should be alive
+      expect(controller.userQuery!.isDisposed, isFalse);
+      expect(controller.postsQuery!.isDisposed, isFalse);
+      expect(controller.commentsQuery!.isDisposed, isFalse);
+
+      // Dispose controller
+      controller.dispose();
+
+      // All queries should be disposed
+      expect(controller.userQuery!.isDisposed, isTrue);
+      expect(controller.postsQuery!.isDisposed, isTrue);
+      expect(controller.commentsQuery!.isDisposed, isTrue);
+    });
+
+    test('should automatically track ZenStreamQuery created in onInit', () {
+      final controller = _ControllerWithStreamQuery();
+
+      controller.onInit();
+
+      // Verify stream query was created
+      expect(controller.notificationStream, isNotNull);
+      expect(controller.notificationStream!.isDisposed, isFalse);
+
+      // Dispose controller
+      controller.dispose();
+
+      // Verify stream query was automatically disposed
+      expect(controller.notificationStream!.isDisposed, isTrue);
+    });
+
+    test('should automatically track ZenMutation created in onInit', () {
+      final controller = _ControllerWithMutation();
+
+      controller.onInit();
+
+      // Verify mutation was created
+      expect(controller.updateUserMutation, isNotNull);
+      expect(controller.updateUserMutation!.isDisposed, isFalse);
+
+      // Dispose controller
+      controller.dispose();
+
+      // Verify mutation was automatically disposed
+      expect(controller.updateUserMutation!.isDisposed, isTrue);
+    });
+
+    test('should NOT automatically track queries created in constructor', () {
+      final controller = _ControllerWithConstructorQuery();
+
+      // Query was created in constructor, not in onInit
+      expect(controller.userQuery, isNotNull);
+      expect(controller.userQuery.isDisposed, isFalse);
+
+      // Dispose controller
+      controller.dispose();
+
+      // Query should NOT be automatically disposed (not tracked)
+      expect(controller.userQuery.isDisposed, isFalse);
+
+      // Clean up manually
+      controller.userQuery.dispose();
+    });
+
+    test('should support manual tracking via trackController', () {
+      final controller = _ControllerWithManualTracking();
+
+      // Query was manually tracked in constructor
+      expect(controller.userQuery, isNotNull);
+      expect(controller.userQuery.isDisposed, isFalse);
+
+      // Dispose controller
+      controller.dispose();
+
+      // Query SHOULD be disposed (manually tracked)
+      expect(controller.userQuery.isDisposed, isTrue);
+    });
+
+    test('should track nested child controllers', () {
+      final controller = _ControllerWithNestedController();
+
+      controller.onInit();
+
+      // Verify child controller was created and tracked
+      expect(controller.childController, isNotNull);
+      expect(controller.childController!.isDisposed, isFalse);
+
+      // Verify child's query was created
+      expect(controller.childController!.userQuery, isNotNull);
+      expect(controller.childController!.userQuery!.isDisposed, isFalse);
+
+      // Dispose parent controller
+      controller.dispose();
+
+      // Child controller should be disposed
+      expect(controller.childController!.isDisposed, isTrue);
+
+      // Child's query should also be disposed
+      expect(controller.childController!.userQuery!.isDisposed, isTrue);
+    });
+
+    test('should not double-dispose tracked controllers', () {
+      final controller = _ControllerWithQuery();
+
+      controller.onInit();
+
+      final query = controller.userQuery!;
+      expect(query.isDisposed, isFalse);
+
+      // Dispose controller (should dispose query)
+      controller.dispose();
+      expect(query.isDisposed, isTrue);
+
+      // Dispose query again (should not throw)
+      expect(() => query.dispose(), returnsNormally);
+      expect(query.isDisposed, isTrue);
+    });
+
+    test('should handle mixed automatic and manual tracking', () {
+      final controller = _ControllerWithMixedTracking();
+
+      controller.onInit();
+
+      // Both queries should be alive
+      expect(controller.autoQuery, isNotNull);
+      expect(controller.manualQuery, isNotNull);
+      expect(controller.autoQuery!.isDisposed, isFalse);
+      expect(controller.manualQuery!.isDisposed, isFalse);
+
+      // Dispose controller
+      controller.dispose();
+
+      // Both should be disposed
+      expect(controller.autoQuery!.isDisposed, isTrue);
+      expect(controller.manualQuery!.isDisposed, isTrue);
+    });
+
+    test('should not track queries created outside controller context', () {
+      // Create query outside any controller
+      final standaloneQuery = ZenQuery<String>(
+        queryKey: 'standalone',
+        fetcher: (_) async => 'data',
+      );
+
+      expect(standaloneQuery.isDisposed, isFalse);
+
+      // Creating a controller and disposing it should not affect standalone query
+      final controller = TestController();
+      controller.onInit();
+      controller.dispose();
+
+      // Standalone query should still be alive
+      expect(standaloneQuery.isDisposed, isFalse);
+
+      // Clean up
+      standaloneQuery.dispose();
+    });
+  });
+}
+
+// ============================================================================
+// TEST CONTROLLERS FOR AUTOMATIC TRACKING TESTS
+// ============================================================================
+
+class _ControllerWithQuery extends ZenController {
+  ZenQuery<String>? userQuery;
+
+  @override
+  void onInit() {
+    super.onInit();
+    // This query should be automatically tracked
+    userQuery = ZenQuery<String>(
+      queryKey: 'user:123',
+      fetcher: (_) async => 'John Doe',
+    );
+  }
+}
+
+class _ControllerWithMultipleQueries extends ZenController {
+  ZenQuery<String>? userQuery;
+  ZenQuery<List<String>>? postsQuery;
+  ZenQuery<List<String>>? commentsQuery;
+
+  @override
+  void onInit() {
+    super.onInit();
+    userQuery = ZenQuery<String>(
+      queryKey: 'user',
+      fetcher: (_) async => 'User',
+    );
+    postsQuery = ZenQuery<List<String>>(
+      queryKey: 'posts',
+      fetcher: (_) async => ['Post 1', 'Post 2'],
+    );
+    commentsQuery = ZenQuery<List<String>>(
+      queryKey: 'comments',
+      fetcher: (_) async => ['Comment 1'],
+    );
+  }
+}
+
+class _ControllerWithStreamQuery extends ZenController {
+  ZenStreamQuery<String>? notificationStream;
+
+  @override
+  void onInit() {
+    super.onInit();
+    notificationStream = ZenStreamQuery<String>(
+      queryKey: 'notifications',
+      streamFn: () => Stream.value('notification'),
+      autoSubscribe: false,
+    );
+  }
+}
+
+class _ControllerWithMutation extends ZenController {
+  ZenMutation<String, String>? updateUserMutation;
+
+  @override
+  void onInit() {
+    super.onInit();
+    updateUserMutation = ZenMutation<String, String>(
+      mutationFn: (name) async => 'Updated: $name',
+    );
+  }
+}
+
+class _ControllerWithConstructorQuery extends ZenController {
+  late final ZenQuery<String> userQuery;
+
+  _ControllerWithConstructorQuery() {
+    // Created in constructor - NOT automatically tracked
+    userQuery = ZenQuery<String>(
+      queryKey: 'user',
+      fetcher: (_) async => 'User',
+    );
+  }
+}
+
+class _ControllerWithManualTracking extends ZenController {
+  late final ZenQuery<String> userQuery;
+
+  _ControllerWithManualTracking() {
+    userQuery = ZenQuery<String>(
+      queryKey: 'user',
+      fetcher: (_) async => 'User',
+    );
+    // Manually track it
+    trackController(userQuery);
+  }
+}
+
+class _ControllerWithNestedController extends ZenController {
+  _ControllerWithQuery? childController;
+
+  @override
+  void onInit() {
+    super.onInit();
+    // Create child controller in onInit - should be automatically tracked
+    childController = _ControllerWithQuery();
+    childController!.onInit();
+  }
+}
+
+class _ControllerWithMixedTracking extends ZenController {
+  ZenQuery<String>? autoQuery;
+  ZenQuery<String>? manualQuery;
+
+  _ControllerWithMixedTracking() {
+    // Manual tracking in constructor
+    manualQuery = ZenQuery<String>(
+      queryKey: 'manual',
+      fetcher: (_) async => 'Manual',
+    );
+    trackController(manualQuery!);
+  }
+
+  @override
+  void onInit() {
+    super.onInit();
+    // Automatic tracking in onInit
+    autoQuery = ZenQuery<String>(
+      queryKey: 'auto',
+      fetcher: (_) async => 'Auto',
+    );
+  }
 }

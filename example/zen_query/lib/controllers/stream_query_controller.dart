@@ -15,7 +15,8 @@ class StreamQueryController extends ZenController {
   void onInit() {
     super.onInit();
 
-    // Notification stream
+    // AUTOMATIC TRACKING - No wrapper needed!
+    // Queries created in onInit() are automatically tracked and disposed
     notificationStream = ZenStreamQuery<String>(
       queryKey: 'notifications:live',
       streamFn: () => ApiService.getNotificationStream(),
@@ -29,14 +30,14 @@ class StreamQueryController extends ZenController {
       }
     });
 
-    // Active users stream
+    // Active users stream - automatically tracked!
     activeUsersStream = ZenStreamQuery<int>(
       queryKey: 'users:active',
       streamFn: () => ApiService.getActiveUsersStream(),
       config: const ZenQueryConfig(),
     );
 
-    // Post updates stream
+    // Post updates stream - automatically tracked!
     postUpdatesStream = ZenStreamQuery<Post>(
       queryKey: 'post:1:updates',
       streamFn: () => ApiService.getPostUpdatesStream(1),
@@ -64,9 +65,8 @@ class StreamQueryController extends ZenController {
 
   @override
   void onClose() {
-    notificationStream.dispose();
-    activeUsersStream.dispose();
-    postUpdatesStream.dispose();
+    // NO NEED TO MANUALLY DISPOSE STREAMS ANYMORE!
+    // All streams created in onInit() are automatically tracked and disposed.
     super.onClose();
   }
 }

@@ -47,6 +47,13 @@ class ZenStreamQuery<T> extends ZenController {
     bool autoSubscribe = true,
   })  : config = ZenQueryConfig.defaults.merge(config).cast<T>(),
         data = Rx<T?>(initialData) {
+    // ⭐ AUTOMATIC CHILD CONTROLLER TRACKING
+    // If a parent controller is currently initializing (onInit is running),
+    // automatically register this query with it for automatic disposal
+    if (ZenController.currentParentController != null) {
+      ZenController.currentParentController!.trackController(this);
+    }
+
     if (initialData != null) {
       status.value = ZenQueryStatus.success;
     }

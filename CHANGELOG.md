@@ -1,3 +1,45 @@
+## [1.3.1]
+
+### Automatic Query Tracking - Zero Boilerplate Memory Management
+
+**Queries created in `onInit()` are automatically tracked and disposed - no manual cleanup needed!**
+
+#### What Changed
+
+- **Before**: Developers had to manually dispose each query in `onClose()`:
+  ```dart
+  @override
+  void onClose() {
+    userQuery.dispose();
+    postsQuery.dispose();
+    searchQuery.dispose();
+    super.onClose();
+  }
+  ```
+
+- **After**: Queries automatically register with their parent controller:
+  ```dart
+  @override
+  void onClose() {
+    // Queries automatically disposed! ✨
+    super.onClose();
+  }
+  ```
+
+#### How It Works
+
+- When `onInit()` runs, the controller sets itself as the "current parent"
+- Any `ZenQuery`, `ZenStreamQuery`, or `ZenMutation` created during `onInit()` automatically registers with the parent
+- All tracked queries are automatically disposed when the controller disposes
+- Works for queries created in `onInit()` or directly in the constructor
+
+#### Benefits
+
+- **Zero Boilerplate**: No more wrapping with `trackController()` or manual disposal
+- **Prevents Memory Leaks**: Impossible to forget to dispose a query
+- **Developer Friendly**: Just create queries naturally - automatic cleanup happens
+- **Safe by Default**: All query types (`ZenQuery`, `ZenStreamQuery`, `ZenMutation`) auto-register
+
 ## [1.3.0]
 
 ### ♻️ Major Architecture Refactoring: Hybrid Scope Discovery

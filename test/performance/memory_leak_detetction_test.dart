@@ -972,6 +972,315 @@ void main() {
     });
   });
 
+  group('🔍 Query & Mutation Automatic Tracking Memory Tests', () {
+    test('should automatically dispose ZenQuery created in onInit', () async {
+      ZenLogger.logDebug('Starting ZenQuery auto-dispose test...');
+      Zen.clearQueryCache();
+
+      final initialResourceCount = ZenResourceTracker.totalResourceCount;
+
+      // Create controller with query in onInit
+      final controller = TestController('query-test');
+
+      // Track the query creation
+      late ZenQuery<String> userQuery;
+
+      controller.onInit();
+
+      // Create query during onInit context
+      userQuery = ZenQuery<String>(
+        queryKey: 'user:123',
+        fetcher: (_) async => 'John Doe',
+      );
+
+      // Verify query is created and not disposed
+      expect(userQuery.isDisposed, isFalse);
+
+      ZenLogger.logDebug('Query created, disposing controller...');
+
+      // Dispose controller - should auto-dispose query
+      controller.dispose();
+
+      expect(userQuery.isDisposed, isTrue);
+      expect(
+          ZenResourceTracker.totalResourceCount, equals(initialResourceCount));
+
+      ZenLogger.logDebug('✅ ZenQuery auto-dispose test completed successfully');
+    });
+
+    test('should automatically dispose ZenStreamQuery created in onInit',
+        () async {
+      ZenLogger.logDebug('Starting ZenStreamQuery auto-dispose test...');
+      Zen.clearQueryCache();
+
+      final initialResourceCount = ZenResourceTracker.totalResourceCount;
+
+      // Create controller with stream query in onInit
+      final controller = TestController('stream-query-test');
+      controller.onInit();
+
+      // Create stream query during onInit context
+      final streamQuery = ZenStreamQuery<int>(
+        queryKey: 'stream:counter',
+        streamFn: () =>
+            Stream.periodic(const Duration(milliseconds: 100), (i) => i)
+                .take(5),
+      );
+
+      // Verify stream query is created and not disposed
+      expect(streamQuery.isDisposed, isFalse);
+
+      ZenLogger.logDebug('Stream query created, disposing controller...');
+
+      // Dispose controller - should auto-dispose stream query
+      controller.dispose();
+
+      expect(streamQuery.isDisposed, isTrue);
+      expect(
+          ZenResourceTracker.totalResourceCount, equals(initialResourceCount));
+
+      ZenLogger.logDebug(
+          '✅ ZenStreamQuery auto-dispose test completed successfully');
+    });
+
+    test('should automatically dispose ZenMutation created in onInit',
+        () async {
+      ZenLogger.logDebug('Starting ZenMutation auto-dispose test...');
+      Zen.clearQueryCache();
+
+      final initialResourceCount = ZenResourceTracker.totalResourceCount;
+
+      // Create controller with mutation in onInit
+      final controller = TestController('mutation-test');
+      controller.onInit();
+
+      // Create mutation during onInit context
+      final createUserMutation = ZenMutation<String, Map<String, dynamic>>(
+        mutationFn: (variables) async {
+          await Future.delayed(const Duration(milliseconds: 10));
+          return 'User created: ${variables['name']}';
+        },
+      );
+
+      // Verify mutation is created and not disposed
+      expect(createUserMutation.isDisposed, isFalse);
+
+      ZenLogger.logDebug('Mutation created, disposing controller...');
+
+      // Dispose controller - should auto-dispose mutation
+      controller.dispose();
+
+      expect(createUserMutation.isDisposed, isTrue);
+      expect(
+          ZenResourceTracker.totalResourceCount, equals(initialResourceCount));
+
+      ZenLogger.logDebug(
+          '✅ ZenMutation auto-dispose test completed successfully');
+    });
+
+    test('should automatically dispose multiple queries in one controller',
+        () async {
+      ZenLogger.logDebug('Starting multiple queries auto-dispose test...');
+      Zen.clearQueryCache();
+
+      final initialResourceCount = ZenResourceTracker.totalResourceCount;
+
+      // Create controller
+      final controller = TestController('multi-query-test');
+      controller.onInit();
+
+      // Create multiple queries
+      final userQuery = ZenQuery<String>(
+        queryKey: 'user:456',
+        fetcher: (_) async => 'Jane Doe',
+      );
+
+      final postsQuery = ZenQuery<List<String>>(
+        queryKey: 'posts:456',
+        fetcher: (_) async => ['Post 1', 'Post 2'],
+      );
+
+      final settingsQuery = ZenQuery<Map<String, dynamic>>(
+        queryKey: 'settings:456',
+        fetcher: (_) async => {'theme': 'dark'},
+      );
+
+      // Verify all queries are created
+      expect(userQuery.isDisposed, isFalse);
+      expect(postsQuery.isDisposed, isFalse);
+      expect(settingsQuery.isDisposed, isFalse);
+
+      ZenLogger.logDebug(
+          'Multiple queries created (${controller.childControllerCount}), disposing controller...');
+
+      // Dispose controller - should dispose all queries
+      controller.dispose();
+
+      expect(userQuery.isDisposed, isTrue);
+      expect(postsQuery.isDisposed, isTrue);
+      expect(settingsQuery.isDisposed, isTrue);
+      expect(
+          ZenResourceTracker.totalResourceCount, equals(initialResourceCount));
+
+      ZenLogger.logDebug(
+          '✅ Multiple queries auto-dispose test completed successfully');
+    });
+
+    test('should handle nested controller tracking and disposal', () async {
+      ZenLogger.logDebug('Starting nested controller tracking test...');
+      Zen.clearQueryCache();
+
+      final initialResourceCount = ZenResourceTracker.totalResourceCount;
+
+      // Create parent controller
+      final parentController = TestController('parent');
+      parentController.onInit();
+
+      // Create child controller in parent's onInit context
+      final childController = TestController('child');
+      childController.onInit();
+
+      // Create query in child controller
+      final childQuery = ZenQuery<String>(
+        queryKey: 'child:data',
+        fetcher: (_) async => 'Child data',
+      );
+
+      // Verify setup
+      expect(parentController.isDisposed, isFalse);
+      expect(childController.isDisposed, isFalse);
+      expect(childQuery.isDisposed, isFalse);
+      expect(parentController.childControllerCount, equals(1));
+
+      ZenLogger.logDebug(
+          'Nested controller setup complete, disposing parent...');
+
+      // Dispose parent - should dispose child and child's query
+      parentController.dispose();
+
+      expect(parentController.isDisposed, isTrue);
+      expect(childController.isDisposed, isTrue);
+      expect(childQuery.isDisposed, isTrue);
+      expect(
+          ZenResourceTracker.totalResourceCount, equals(initialResourceCount));
+
+      ZenLogger.logDebug(
+          '✅ Nested controller tracking test completed successfully');
+    });
+
+    test('should detect memory leaks from undisposed queries', () async {
+      ZenLogger.logDebug('Starting query memory leak detection test...');
+      Zen.clearQueryCache();
+
+      // Create a query without tracking it (simulating a leak)
+      MemoryLeakDetector.trackCreation('OrphanQuery');
+
+      final orphanQuery = ZenQuery<String>(
+        queryKey: 'orphan:query',
+        fetcher: (_) async => 'Orphaned data',
+      );
+
+      // Verify query exists
+      expect(orphanQuery.isDisposed, isFalse);
+
+      // Check for leaks
+      final leaks = MemoryLeakDetector.getLeakReport();
+      expect(leaks['OrphanQuery'], equals(1));
+
+      ZenLogger.logDebug('Query memory leak detected correctly');
+
+      // Clean up
+      orphanQuery.dispose();
+      MemoryLeakDetector.trackDisposal('OrphanQuery');
+
+      final cleanReport = MemoryLeakDetector.getLeakReport();
+      expect(cleanReport.containsKey('OrphanQuery'), isFalse);
+
+      ZenLogger.logDebug(
+          '✅ Query memory leak detection test completed successfully');
+    });
+
+    test('should handle mixed query types in single controller', () async {
+      ZenLogger.logDebug('Starting mixed query types test...');
+      Zen.clearQueryCache();
+
+      final initialResourceCount = ZenResourceTracker.totalResourceCount;
+
+      // Create controller
+      final controller = TestController('mixed-queries-test');
+      controller.onInit();
+
+      // Create different query types
+      final regularQuery = ZenQuery<String>(
+        queryKey: 'regular:data',
+        fetcher: (_) async => 'Regular data',
+      );
+
+      final streamQuery = ZenStreamQuery<int>(
+        queryKey: 'stream:data',
+        streamFn: () => Stream.value(42),
+      );
+
+      final mutation = ZenMutation<String, String>(
+        mutationFn: (variables) async => 'Mutated: $variables',
+      );
+
+      // Verify all are tracked
+      expect(regularQuery.isDisposed, isFalse);
+      expect(streamQuery.isDisposed, isFalse);
+      expect(mutation.isDisposed, isFalse);
+      expect(controller.childControllerCount, equals(3));
+
+      ZenLogger.logDebug(
+          'Mixed query types created (${controller.childControllerCount}), disposing controller...');
+
+      // Dispose controller
+      controller.dispose();
+
+      // Verify all disposed
+      expect(regularQuery.isDisposed, isTrue);
+      expect(streamQuery.isDisposed, isTrue);
+      expect(mutation.isDisposed, isTrue);
+      expect(
+          ZenResourceTracker.totalResourceCount, equals(initialResourceCount));
+
+      ZenLogger.logDebug('✅ Mixed query types test completed successfully');
+    });
+
+    test('should prevent double-disposal of tracked queries', () async {
+      ZenLogger.logDebug('Starting query double-disposal prevention test...');
+      Zen.clearQueryCache();
+
+      final initialResourceCount = ZenResourceTracker.totalResourceCount;
+
+      // Create controller
+      final controller = TestController('double-dispose-test');
+      controller.onInit();
+
+      // Create query
+      final query = ZenQuery<String>(
+        queryKey: 'double:dispose',
+        fetcher: (_) async => 'Test data',
+      );
+
+      // Manually dispose query first
+      query.dispose();
+      expect(query.isDisposed, isTrue);
+
+      ZenLogger.logDebug('Query manually disposed, disposing controller...');
+
+      // Dispose controller - should not throw error when trying to dispose already-disposed query
+      expect(() => controller.dispose(), returnsNormally);
+
+      expect(controller.isDisposed, isTrue);
+      expect(
+          ZenResourceTracker.totalResourceCount, equals(initialResourceCount));
+
+      ZenLogger.logDebug(
+          '✅ Query double-disposal prevention test completed successfully');
+    });
+  });
+
   tearDownAll(() {
     ZenLogger.logInfo('');
     ZenLogger.logInfo('🎉 MEMORY LEAK DETECTION TESTS COMPLETED');

@@ -18,6 +18,9 @@ abstract class ZenController {
   // MEMORY LEAK PREVENTION: Auto-track reactive objects
   final List<Rx> _reactiveObjects = [];
 
+  // MEMORY LEAK PREVENTION: Auto-track child controllers (queries, nested controllers)
+  final List<ZenController> _childControllers = [];
+
   // Resource collections with optimized management
   final List<ZenWorkerHandle> _workers = [];
   final List<ZenWorkerGroup> _workerGroups = [];
@@ -104,6 +107,9 @@ abstract class ZenController {
   /// Get count of tracked reactive objects for debugging
   int get reactiveObjectCount => _reactiveObjects.length;
 
+  /// Get count of tracked child controllers for debugging
+  int get childControllerCount => _childControllers.length;
+
   /// Get stats about reactive objects
   Map<String, int> get reactiveStats {
     final stats = <String, int>{};
@@ -114,6 +120,67 @@ abstract class ZenController {
     return stats;
   }
 
+  /// Get stats about child controllers
+  Map<String, int> get childControllerStats {
+    final stats = <String, int>{};
+    for (final controller in _childControllers) {
+      final type = controller.runtimeType.toString();
+      stats[type] = (stats[type] ?? 0) + 1;
+    }
+    return stats;
+  }
+
+  //
+  // CHILD CONTROLLER AUTO-TRACKING
+  //
+
+  /// Static pointer to the currently initializing parent controller
+  /// Used for automatic child controller registration during onInit()
+  ///
+  /// @nodoc - Internal API, do not use directly
+  static ZenController? currentParentController;
+
+  /// Saved parent controller for nested initialization
+  /// @nodoc - Internal state for onInit/onReady coordination
+  ZenController? _savedParent;
+
+  /// Track a child controller (like ZenQuery, ZenStreamQuery) for automatic disposal
+  ///
+  /// This prevents memory leaks by ensuring child controllers are disposed when
+  /// this controller is disposed.
+  ///
+  /// **Note:** You rarely need to call this manually! Child controllers created
+  /// in `onInit()` are automatically tracked.
+  ///
+  /// Example (manual):
+  /// ```dart
+  /// class MyController extends ZenController {
+  ///   late final userQuery = trackController(ZenQuery<User>(
+  ///     queryKey: 'user',
+  ///     fetcher: (_) => api.getUser(),
+  ///   ));
+  /// }
+  /// ```
+  T trackController<T extends ZenController>(T controller) {
+    if (_disposed) {
+      throw StateError('Cannot track controller on disposed controller');
+    }
+
+    if (!_childControllers.contains(controller)) {
+      _childControllers.add(controller);
+      ZenLogger.logDebug(
+          'Controller $runtimeType: Auto-tracking child controller ${controller.runtimeType} (total: ${_childControllers.length})');
+    }
+
+    return controller;
+  }
+
+  /// Internal method called by child controllers to auto-register with parent
+  /// This is called automatically during child controller construction if a parent exists
+  // void _autoRegisterChild(ZenController child) {
+  //   trackController(child);
+  // }
+
   //
   // LIFECYCLE METHODS
   //
@@ -121,6 +188,22 @@ abstract class ZenController {
   @mustCallSuper
   void onInit() {
     if (_initialized) return;
+
+    // Save the current parent (for nested controller support)
+    // This allows proper parent-child tracking even when controllers create other controllers
+    _savedParent = currentParentController;
+
+    // Auto-register with parent if we're being initialized inside another controller's onInit
+    if (_savedParent != null && !_savedParent!.isDisposed) {
+      _savedParent!.trackController(this);
+      ZenLogger.logDebug(
+          'Controller $runtimeType auto-registered with parent ${_savedParent.runtimeType}');
+    }
+
+    // Set this controller as the current parent for auto-tracking child controllers
+    // Any queries/mutations/controllers created during onInit will auto-register with this controller
+    currentParentController = this;
+
     _initialized = true;
 
     ZenLogger.logInfo('Controller $runtimeType initialized');
@@ -134,6 +217,13 @@ abstract class ZenController {
   void onReady() {
     if (_ready) return;
     _ready = true;
+
+    // Restore the previous parent controller after initialization completes
+    // This properly handles nested controller initialization
+    if (currentParentController == this) {
+      currentParentController = _savedParent;
+      _savedParent = null; // Clear saved reference
+    }
 
     ZenLogger.logInfo('Controller $runtimeType ready');
 
@@ -469,6 +559,8 @@ abstract class ZenController {
     return {
       'reactive_objects': _reactiveObjects.length,
       'reactive_types': reactiveStats,
+      'child_controllers': _childControllers.length,
+      'child_controller_types': childControllerStats,
       'workers': _workers.length,
       'worker_groups': _workerGroups.length,
       'effects': _effects.length,
@@ -550,6 +642,34 @@ abstract class ZenController {
     }
   }
 
+  /// Dispose all tracked child controllers (queries, nested controllers) - PREVENTS MEMORY LEAKS
+  void _disposeChildControllers() {
+    if (_childControllers.isNotEmpty) {
+      ZenLogger.logDebug(
+          'Controller $runtimeType: Disposing ${_childControllers.length} child controllers');
+    }
+
+    // Dispose all tracked child controllers
+    for (final controller in _childControllers) {
+      try {
+        if (!controller.isDisposed) {
+          controller.dispose();
+        }
+      } catch (e, stack) {
+        ZenLogger.logError(
+            'Error disposing child controller ${controller.runtimeType}',
+            e,
+            stack);
+      }
+    }
+
+    _childControllers.clear();
+
+    if (ZenConfig.enablePerformanceMetrics) {
+      ZenMetrics.incrementCounter('controller.child_controllers_disposed');
+    }
+  }
+
   //
   // DISPOSAL - MEMORY LEAK SAFE
   //
@@ -562,7 +682,7 @@ abstract class ZenController {
     final stats = getResourceStats();
     // Changed from logDebug to logInfo - important lifecycle event
     ZenLogger.logInfo('Controller $runtimeType disposing... '
-        'Resources: ${stats['reactive_objects']} reactive, ${stats['workers']} workers, '
+        'Resources: ${stats['reactive_objects']} reactive, ${stats['child_controllers']} child controllers, ${stats['workers']} workers, '
         '${stats['effects']} effects, ${stats['disposers']} disposers');
 
     try {
@@ -573,11 +693,20 @@ abstract class ZenController {
           'Error in onDispose for controller $runtimeType', e, stack);
     }
 
+    // Clear currentParentController if it's pointing to this controller
+    // This prevents disposed controllers from being used as parents
+    if (currentParentController == this) {
+      currentParentController = null;
+    }
+
     // Mark as disposed early to prevent new operations
     _disposed = true;
 
-    // ⭐ CRITICAL: Dispose all reactive objects first - PREVENTS MEMORY LEAKS
+    // Dispose all reactive objects first - PREVENTS MEMORY LEAKS
     _disposeReactiveObjects();
+
+    // Dispose all child controllers (queries, etc.) - PREVENTS MEMORY LEAKS
+    _disposeChildControllers();
 
     // Dispose all workers efficiently
     _cleanupAllWorkers();
