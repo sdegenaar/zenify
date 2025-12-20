@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:zenify/zenify.dart';
 
 import '../controllers/home_controller.dart';
-import '../../../shared/widgets/debug_dialog.dart';
 
 /// Home page using ZenView pattern with automatic controller binding
 class HomePage extends ZenView<HomeController> {
@@ -41,21 +40,7 @@ class HomePage extends ZenView<HomeController> {
                   : () => controller.refreshData(),
               tooltip: 'Refresh Data',
             )),
-        // DEBUG BUTTON - Add this to AppBar
-        IconButton(
-          icon: const Icon(Icons.developer_mode),
-          onPressed: () => _showDebugDialog(context),
-          tooltip: 'Debug Info',
-        ),
       ],
-    );
-  }
-
-  // Add this method to show debug info in a dialog
-  void _showDebugDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => const DebugDialog(),
     );
   }
 
@@ -112,7 +97,7 @@ class HomePage extends ZenView<HomeController> {
                       Icon(Icons.developer_mode, color: Colors.purple.shade600),
                       const SizedBox(width: 8),
                       Text(
-                        'Debug Panel Available',
+                        'Zenify Inspector Available',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -124,8 +109,8 @@ class HomePage extends ZenView<HomeController> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Tap the debug button in the app bar (top-right) to open the global debug panel. '
-                    'It shows scope hierarchy, navigation state, and performance metrics across all pages.',
+                    'Tap the floating "Z" button (bottom-right) to open the Zenify Inspector. '
+                    'It shows scope hierarchy, query cache, registered dependencies, and performance stats across all pages.',
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.purple.shade700, // Better contrast
@@ -140,7 +125,7 @@ class HomePage extends ZenView<HomeController> {
                       Chip(
                         avatar: Icon(Icons.account_tree,
                             size: 16, color: Colors.white),
-                        label: const Text('Scope Info',
+                        label: const Text('Scopes',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
@@ -152,9 +137,21 @@ class HomePage extends ZenView<HomeController> {
                         elevation: 2, // Add shadow for depth
                       ),
                       Chip(
-                        avatar: Icon(Icons.navigation,
+                        avatar:
+                            Icon(Icons.cached, size: 16, color: Colors.white),
+                        label: const Text('Queries',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            )),
+                        backgroundColor: Colors.purple.shade600,
+                        elevation: 2,
+                      ),
+                      Chip(
+                        avatar: Icon(Icons.extension,
                             size: 16, color: Colors.white),
-                        label: const Text('Navigation',
+                        label: const Text('Dependencies',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
@@ -164,21 +161,9 @@ class HomePage extends ZenView<HomeController> {
                         elevation: 2,
                       ),
                       Chip(
-                        avatar:
-                            Icon(Icons.speed, size: 16, color: Colors.white),
-                        label: const Text('Performance',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            )),
-                        backgroundColor: Colors.purple.shade600,
-                        elevation: 2,
-                      ),
-                      Chip(
-                        avatar:
-                            Icon(Icons.schema, size: 16, color: Colors.white),
-                        label: const Text('Hierarchy',
+                        avatar: Icon(Icons.analytics,
+                            size: 16, color: Colors.white),
+                        label: const Text('Stats',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
@@ -300,7 +285,7 @@ class HomePage extends ZenView<HomeController> {
                   ),
                   SizedBox(height: 4),
                   Text(
-                    'Use the debug panel to see scope changes in real-time.',
+                    'Use the Zenify Inspector to see scope changes, query cache, and stats in real-time.',
                     style: TextStyle(fontSize: 13),
                   ),
                 ],

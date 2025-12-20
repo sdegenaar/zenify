@@ -51,7 +51,7 @@ GetX-like reactivity with `.obs()` and `Obx()`. Write less, accomplish more, kee
 
 ```yaml
 dependencies:
-  zenify: ^1.3.1
+  zenify: ^1.3.2
 ```
 
 ### 2. Initialize
@@ -512,6 +512,22 @@ test('user service test', () {
 ```
 
 [See Testing Guide →](doc/testing_guide.md)
+
+### Developer Tools
+
+Debug your app with the built-in inspector overlay:
+
+```dart
+void main() {
+  runApp(
+    ZenInspectorOverlay(
+      child: MyApp(),
+    ),
+  );
+}
+```
+
+Tap the floating "Z" button to inspect scopes, query cache, dependencies, and performance in real-time.
 
 ---
 

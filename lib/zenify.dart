@@ -62,3 +62,8 @@ export 'query/extensions/zen_scope_query_extension.dart';
 // ===== DEBUG UTILITIES =====
 // Separate namespace - not part of main API
 export 'debug/zen_debug.dart' show ZenDebug;
+
+// ===== DEVTOOLS =====
+// Inspector overlay and debugging tools
+// Safe for production - automatically disabled in release mode
+export 'devtools/devtools.dart';

@@ -12,10 +12,11 @@ class ZenifyExampleApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return const ZenInspectorOverlay(
+        child: MaterialApp(
       title: 'Zenify Example',
       home: CounterPage(),
-    );
+    ));
   }
 }
 
@@ -23,6 +24,7 @@ class CounterController extends ZenController {
   final count = 0.obs();
 
   void increment() => count.value++;
+
   void decrement() => count.value--;
 }
 

@@ -2,6 +2,7 @@
 import 'zen_debug.dart';
 import 'package:zenify/core/core.dart';
 import 'package:zenify/debug/zen_hierarchy_debug.dart';
+import '../query/core/zen_query_cache.dart';
 import '../utils/zen_scope_inspector.dart';
 
 /// System-wide statistics and analysis utilities
@@ -28,7 +29,57 @@ class ZenSystemStats {
     final activeScopes = allScopes.where((s) => !s.isDisposed).length;
     final disposedScopes = allScopes.where((s) => s.isDisposed).length;
 
+    // Get query count from the query cache
+    final totalQueries = ZenQueryCache.instance.queries.length;
+
+    // Try to get navigation info (if NavigationService is registered)
+    Map<String, dynamic>? navigationInfo;
+    try {
+      // Search all scopes for NavigationService
+      for (final scope in allScopes) {
+        if (scope.isDisposed) continue;
+
+        final instances = ZenScopeInspector.getAllInstances(scope);
+        for (final entry in instances.entries) {
+          final instance = entry.value;
+          if (instance.runtimeType.toString().contains('NavigationService')) {
+            try {
+              final stats =
+                  (instance as dynamic).getStats() as Map<String, dynamic>?;
+              if (stats != null) {
+                navigationInfo = {
+                  'currentRoute': stats['currentPath']?.toString() ?? '/',
+                  'navigationCount':
+                      stats['totalNavigations']?.toString() ?? '0',
+                  'breadcrumbCount':
+                      stats['breadcrumbCount']?.toString() ?? '0',
+                };
+                break;
+              }
+            } catch (e) {
+              // NavigationService doesn't have getStats or different type
+            }
+          }
+        }
+        if (navigationInfo != null) break;
+      }
+    } catch (e) {
+      // Navigation tracking not available
+    }
+
+    // Return flat structure for inspector views
     return {
+      // Flat keys for inspector views
+      'totalScopes': activeScopes,
+      'totalDependencies': totalDependencies,
+      'totalControllers': totalControllers,
+      'totalServices': totalServices,
+      'totalQueries': totalQueries,
+
+      // Navigation info (if available)
+      if (navigationInfo != null) 'navigation': navigationInfo,
+
+      // Nested structure for detailed reporting
       'scopes': {
         'total': allScopes.length,
         'active': activeScopes,

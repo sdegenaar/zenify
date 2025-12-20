@@ -25,7 +25,11 @@ void main() {
     },
   );
 
-  runApp(const CounterApp());
+  runApp(
+    const ZenInspectorOverlay(
+      child: CounterApp(),
+    ),
+  );
 }
 
 class CounterApp extends StatelessWidget {

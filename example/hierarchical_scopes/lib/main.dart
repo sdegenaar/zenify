@@ -39,7 +39,11 @@ Future<void> main() async {
   ]);
 
   // Run the app
-  runApp(const CompanyApp());
+  runApp(
+    const ZenInspectorOverlay(
+      child: CompanyApp(),
+    ),
+  );
 }
 
 /// Main application widget

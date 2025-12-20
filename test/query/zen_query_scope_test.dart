@@ -691,6 +691,7 @@ class _TestControllerUsingSharedQuery extends ZenController {
   final ZenScope scope;
   final String queryTag;
   ZenQuery<String>? sharedQuery;
+  @override
   bool isDisposed = false;
 
   _TestControllerUsingSharedQuery(this.scope, this.queryTag);

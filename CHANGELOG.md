@@ -1,3 +1,9 @@
+## [1.3.2]
+
+### Developer Tools
+
+- **ZenInspectorOverlay**: New in-app debugging overlay with real-time scope hierarchy, query cache inspection, dependency tracking, and performance stats. Wrap your app with `ZenInspectorOverlay` to enable.
+
 ## [1.3.1]
 
 ### Automatic Query Tracking - Zero Boilerplate Memory Management

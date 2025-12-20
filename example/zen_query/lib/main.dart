@@ -35,7 +35,11 @@ Future<void> main() async {
     ZenQueryModule(),
   ]);
 
-  runApp(const ZenQueryApp());
+  runApp(
+    const ZenInspectorOverlay(
+      child: ZenQueryApp(),
+    ),
+  );
 }
 
 class ZenQueryApp extends StatelessWidget {
