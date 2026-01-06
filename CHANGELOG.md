@@ -1,3 +1,10 @@
+## [1.3.3]
+
+### Bug Fixes
+
+- **ZenInspectorOverlay**: Fixed 1-pixel RenderFlex overflow in `DependencyListView` on IOS/Android when no dependencies are present
+- **ZenInspectorOverlay**: Improved overlay positioning by using explicit `Positioned.fill` for main app content instead of implicit Stack alignment, ensuring proper full-screen coverage and preventing layout ambiguity
+
 ## [1.3.2]
 
 ### Developer Tools

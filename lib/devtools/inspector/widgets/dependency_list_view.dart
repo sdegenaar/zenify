@@ -19,6 +19,7 @@ class _DependencyListViewState extends State<DependencyListView> {
     final totalDependencies = stats['totalDependencies'] as int? ?? 0;
 
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         // Search bar
         _buildSearchBar(),
@@ -57,7 +58,7 @@ class _DependencyListViewState extends State<DependencyListView> {
 
   Widget _buildSearchBar() {
     return Container(
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
         border: Border(bottom: BorderSide(color: Colors.grey[800]!)),
       ),

@@ -11,7 +11,7 @@ class HomePage extends ZenView<HomeController> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: _buildAppBar(context, controller),
-      body: _buildBody(controller),
+      body: SafeArea(child: _buildBody(controller)),
       floatingActionButton: _buildFloatingActionButtons(controller),
     );
   }

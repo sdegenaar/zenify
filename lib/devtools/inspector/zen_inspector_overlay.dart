@@ -125,10 +125,11 @@ class _ZenInspectorOverlayState extends State<ZenInspectorOverlay> {
       child: MediaQuery(
         data: const MediaQueryData(),
         child: Stack(
-          alignment: Alignment.topLeft, // Explicit non-directional alignment
           children: [
-            // Main app content
-            widget.child,
+            // Main app content - positioned to fill entire stack
+            Positioned.fill(
+              child: widget.child,
+            ),
 
             // Debug panel (slides in from bottom)
             if (_isPanelVisible)
