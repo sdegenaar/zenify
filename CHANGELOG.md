@@ -1,3 +1,14 @@
+## [1.3.4]
+
+### Documentation
+
+- Fixed `createController` syntax throughout all docs (correct getter returning lambda)
+- Clarified that services can have reactive state for business logic
+- Added controller communication patterns (shared services, static `.to` accessor, hybrid)
+- Added comparison tables for common use cases (Obx vs ZenBuilder, ZenView vs ZenConsumer, etc)
+- Complete rewrite of `state_management_patterns.md` with clearer examples and less repetition
+- Added `ARCHITECTURE_PATTERNS.md` guide in ecommerce example
+
 ## [1.3.3]
 
 ### Bug Fixes

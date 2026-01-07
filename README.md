@@ -51,7 +51,7 @@ GetX-like reactivity with `.obs()` and `Obx()`. Write less, accomplish more, kee
 
 ```yaml
 dependencies:
-  zenify: ^1.3.3
+  zenify: ^1.3.4
 ```
 
 ### 2. Initialize
@@ -76,8 +76,9 @@ class CounterController extends ZenController {
 
 ```dart
 class CounterPage extends ZenView<CounterController> {
+  // Correct syntax: getter returning a lambda
   @override
-  CounterController createController() => CounterController();
+  CounterController Function()? get createController => () => CounterController();
 
   @override
   Widget build(BuildContext context) {
@@ -100,6 +101,8 @@ class CounterPage extends ZenView<CounterController> {
 ```
 
 **That's it!** Fully reactive with automatic cleanup. No manual disposal, no memory leaks.
+
+> **Note:** `createController` is optional! If your controller is already registered in a module or globally, you can omit it and ZenView will find the controller automatically.
 
 [See complete example →](example/counter)
 
@@ -297,6 +300,97 @@ ZenStreamQueryBuilder<List<Message>>(
 );
 ```
 
+### Global Access with `.to` Pattern ⭐
+
+Clean, type-safe access to global services from anywhere - no context, no builders!
+
+```dart
+// Define services with static accessor
+class CartService {
+  static CartService get to => Zen.find<CartService>();
+
+  final items = <CartItem>[].obs();
+  final totalPrice = 0.0.obs();
+
+  Future<void> addToCart(Product product) async { ... }
+}
+
+class AuthService {
+  static AuthService get to => Zen.find<AuthService>();
+
+  final currentUser = Rx<User?>(null);
+  final isAuthenticated = false.obs();
+
+  Future<void> login(String email, String password) async { ... }
+}
+
+// Register globally
+void main() {
+  Zen.init();
+  Zen.put<CartService>(CartService(), isPermanent: true);
+  Zen.put<AuthService>(AuthService(), isPermanent: true);
+  runApp(MyApp());
+}
+
+// Access from ANYWHERE - no injection needed!
+class ProductCard extends StatelessWidget {
+  final Product product;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Column(
+        children: [
+          Text(product.name),
+          ElevatedButton(
+            onPressed: () => CartService.to.addToCart(product),
+            child: Text('Add to Cart'),
+          ),
+          // Works in reactive widgets too!
+          Obx(() => Text('Cart: ${CartService.to.items.length} items')),
+        ],
+      ),
+    );
+  }
+}
+
+// Works in controllers without injection
+class CheckoutController extends ZenController {
+  Future<void> processOrder() async {
+    if (!AuthService.to.isAuthenticated.value) {
+      // Show login dialog
+      return;
+    }
+
+    final items = CartService.to.items.value;
+    await paymentService.process(items);
+    await CartService.to.clearCart();
+  }
+}
+
+// Even works in helper classes!
+class AnalyticsHelper {
+  static void trackCartEvent() {
+    analytics.log('cart_items', {'count': CartService.to.items.length});
+  }
+}
+```
+
+**When to use `.to` pattern:**
+- ✅ Global services (auth, cart, theme, settings)
+- ✅ Services accessed from many places
+- ✅ Avoid prop drilling
+- ✅ Familiar to GetX users
+
+**When to use injection:**
+- ✅ Page-specific controllers
+- ✅ Services you want to mock in tests
+- ✅ Optional dependencies
+
+**Pro tip:** Use both! Mix `.to` for global services with constructor injection for testable dependencies.
+
+[See more patterns →](example/ecommerce/ARCHITECTURE_PATTERNS.md)
+
 ---
 
 ## 🛠️ Advanced Features
@@ -366,25 +460,45 @@ void main() async {
 
 ### Performance Control
 
-Fine-grained rebuild control when you need it.
+**Two approaches for UI updates:**
 
+**Option 1: Reactive with Obx** (Recommended - simpler)
 ```dart
 class DashboardController extends ZenController {
-  final stats = <Stat>[].obs();
+  final stats = <Stat>[].obs();  // Reactive state
   final isLoading = false.obs();
 
-  void updateStats() {
-    // Only rebuild specific widgets
-    update(['stats-widget']);
+  void updateStats(List<Stat> newStats) {
+    stats.value = newStats;  // Auto-updates Obx widgets
   }
 }
 
-// In UI
+// In UI - automatic rebuilds
+Obx(() => StatsChart(controller.stats))
+```
+
+**Option 2: Manual with ZenBuilder** (When you need fine control)
+```dart
+class DashboardController extends ZenController {
+  List<Stat> stats = [];  // Non-reactive state
+  bool isLoading = false;
+
+  void updateStats(List<Stat> newStats) {
+    stats = newStats;
+    update(['stats-widget']);  // Manually trigger rebuild
+  }
+}
+
+// In UI - targeted rebuilds
 ZenBuilder<DashboardController>(
   id: 'stats-widget',
   builder: (context, controller) => StatsChart(controller.stats),
 )
 ```
+
+**When to use:**
+- 🟢 **Obx + .obs()**: Most cases (less code, automatic)
+- 🔵 **ZenBuilder + update()**: Precise control, complex objects
 
 ---
 

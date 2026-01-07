@@ -3,6 +3,10 @@ import '../models/user_model.dart';
 
 /// Service for managing authentication in the e-commerce app
 class AuthService {
+  /// Static accessor for convenient access from anywhere
+  /// Usage: AuthService.to.login(email, password)
+  static AuthService get to => Zen.find<AuthService>();
+
   // Observable current user
   final currentUser = Rx<User?>(null);
 

@@ -4,6 +4,10 @@ import '../models/product_model.dart';
 
 /// Service for managing the shopping cart in the e-commerce app
 class CartService {
+  /// Static accessor for convenient access from anywhere
+  /// Usage: CartService.to.addToCart(product)
+  static CartService get to => Zen.find<CartService>();
+
   // Observable list of cart items
   final cartItems = <CartItem>[].obs();
 
