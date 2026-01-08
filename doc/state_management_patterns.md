@@ -7,14 +7,15 @@
 ## Table of Contents
 
 1. [Architecture Overview](#architecture-overview)
-2. [Fundamentals](#fundamentals)
-3. [Core Patterns](#core-patterns)
-4. [UI Integration](#ui-integration)
-5. [Advanced Patterns](#advanced-patterns)
-6. [Performance Optimization](#performance-optimization)
-7. [Testing](#testing)
-8. [Examples](#complete-examples)
-9. [Anti-Patterns](#anti-patterns-to-avoid)
+2. [Understanding Scopes: Where State Lives](#understanding-scopes-where-state-lives)
+3. [Fundamentals](#fundamentals)
+4. [Core Patterns](#core-patterns)
+5. [UI Integration](#ui-integration)
+6. [Advanced Patterns](#advanced-patterns)
+7. [Performance Optimization](#performance-optimization)
+8. [Testing](#testing)
+9. [Examples](#complete-examples)
+10. [Anti-Patterns](#anti-patterns-to-avoid)
 
 ---
 
@@ -47,6 +48,150 @@
 1. **Controllers** hold state and logic
 2. **Views** display state using Obx() or ZenBuilder
 3. **Registration** via modules (recommended) or createController (one-off)
+
+---
+
+## Understanding Scopes: Where State Lives
+
+Zenify uses **hierarchical scopes** to organize dependencies with automatic lifecycle management. Understanding where state lives helps you decide between Controllers and Services.
+
+### The Three Scope Levels
+
+```
+┌──────────────────────────────────────────────────┐
+│  ROOTSCOPE (Global - App Lifetime)               │
+│  Services: auth, api, cart, theme                │
+│  Lives: Entire app session                       │
+│  Access: Zen.find() anywhere                     │
+└──────────────────────────────────────────────────┘
+              ↓ child scopes
+┌──────────────────────────────────────────────────┐
+│  MODULE SCOPE (Feature - Feature Lifetime)       │
+│  Controllers: shared across feature pages        │
+│  Lives: While in feature (company → dept → emp)  │
+│  Access: Zen.find() within feature scope         │
+│  Cleanup: Auto-dispose when leaving feature      │
+└──────────────────────────────────────────────────┘
+              ↓ child scopes
+┌──────────────────────────────────────────────────┐
+│  PAGE SCOPE (Page - Page Lifetime)               │
+│  Controllers: page-specific state                │
+│  Lives: While page is visible                    │
+│  Access: controller getter in ZenView            │
+│  Cleanup: Auto-dispose when page pops            │
+└──────────────────────────────────────────────────┘
+```
+
+### Controller vs Service: It's About Scope
+
+The distinction between Controller and Service is **lifecycle intent**, not capability. Both can have reactive state and be accessed via `Zen.find()`.
+
+| What | Where | When It Dies | Example |
+|------|-------|--------------|---------|
+| **Service** | RootScope | Never (app lifetime) | `CartService`, `AuthService`, `ApiService` |
+| **Controller (Module)** | Module Scope | When leaving feature | `CompanyController`, `DepartmentController` |
+| **Controller (Page)** | Page Scope | When page pops | `LoginController`, `ProfileController` |
+
+### When to Use Which
+
+**Use Service (RootScope) when:**
+- Needed across the entire app (cart, auth, theme)
+- Should survive navigation (user session, app config)
+- Truly global state
+
+```dart
+// Services live in RootScope
+class CartService extends ZenService {
+  static CartService get to => Zen.find<CartService>();
+
+  final items = <CartItem>[].obs();
+  final total = 0.0.obs();
+
+  void addItem(Product product) {
+    items.add(CartItem.fromProduct(product));
+    _updateTotal();
+  }
+}
+
+// Register once at app startup
+void main() {
+  Zen.put(CartService());
+  Zen.put(AuthService());
+  runApp(MyApp());
+}
+```
+
+**Use Controller in Module Scope when:**
+- Shared across multiple pages in a feature
+- Should dispose when leaving the feature
+- Feature-specific state
+
+```dart
+// HR Feature with multiple pages sharing controllers
+class HRModule extends ZenModule {
+  @override
+  void register(ZenScope scope) {
+    // All these controllers shared across HR feature pages
+    scope.putLazy<CompanyController>(() => CompanyController());
+    scope.putLazy<DepartmentController>(() => DepartmentController());
+    scope.putLazy<EmployeeController>(() => EmployeeController());
+  }
+}
+
+// Used with ZenRoute - controllers live during entire HR feature
+ZenRoute(
+  moduleBuilder: () => HRModule(),
+  page: CompanyPage(),
+  scopeName: 'HRScope',
+)
+
+// Access in any HR feature widget
+class EmployeeBreadcrumbController extends ZenController {
+  // Lookup once in controller
+  late final company = Zen.find<CompanyController>();
+  late final department = Zen.find<DepartmentController>();
+  late final employee = Zen.find<EmployeeController>();
+
+  late final breadcrumb = computed(() =>
+    '${company.name.value} > ${department.name.value} > ${employee.name.value}'
+  );
+}
+```
+
+When you navigate: Company → Department → Division → Employee, all controllers stay alive. When you exit back to main menu, the entire HRScope disposes and all controllers clean up automatically.
+
+**Use Controller in Page Scope when:**
+- Only needed on one page
+- Should dispose when page pops
+- Page-specific UI state
+
+```dart
+// Page-specific controller via createController
+class LoginPage extends ZenView<LoginController> {
+  @override
+  LoginController Function()? get createController => () => LoginController();
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() => LoginForm(
+      isLoading: controller.isLoading.value,
+      onSubmit: controller.login,
+    ));
+  }
+}
+```
+
+### Rule of Thumb
+
+- **Needed everywhere?** → Service (RootScope)
+- **Needed across a feature?** → Controller (Module Scope)
+- **Needed on one page?** → Controller (Page Scope via createController)
+
+If you find yourself putting a "Controller" in RootScope, it's probably a Service. The name signals lifecycle intent to your team.
+
+### Learn More
+
+For technical details on how hierarchical scopes work (parent-child relationships, automatic discovery, navigation patterns), see the [Hierarchical Scopes Guide](hierarchical_scopes_guide.md).
 
 ---
 
