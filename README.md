@@ -5,16 +5,22 @@
 [![pub points](https://img.shields.io/pub/points/zenify?logo=dart)](https://pub.dev/packages/zenify/score)
 [![license: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**Modern Flutter state management** that combines React Query's async superpowers, Riverpod's hierarchical DI, and GetX's simplicity—all in one elegant package.
+**Complete state management for Flutter—hierarchical dependency injection, reactive programming, and intelligent async state. Zero boilerplate, automatic cleanup.**
 
 ```dart
-// Smart caching, auto-refetch, zero boilerplate
+// Hierarchical DI with automatic cleanup
+scope.put<UserService>(UserService());
+final service = scope.find<UserService>()!;  // Access from child scopes
+
+// Reactive state that just works
+final count = 0.obs();
+Obx(() => Text('$count'))  // Auto-rebuilds
+
+// Smart async with caching
 final userQuery = ZenQuery<User>(
   queryKey: 'user:123',
   fetcher: (_) => api.getUser(123),
-);
-
-// That's it. Caching, loading states, error handling—all handled.
+);  // Caching, deduplication, refetching—all handled
 ```
 
 ---
@@ -34,14 +40,49 @@ Building async-heavy Flutter apps? You're probably fighting:
 
 ## ⚡ What Makes Zenify Different
 
-### 🔥 React Query Style
-A native-inspired implementation of **TanStack Query patterns**: automatic caching, smart refetching, request deduplication, and stale-while-revalidate—seamlessly integrated with your UI.
-
 ### 🏗️ Hierarchical Scoped Architecture
-Riverpod-inspired scoping with **automatic cleanup**. Dependencies flow naturally from parent to child, and scopes dispose themselves automatically when no longer needed.
+Riverpod-inspired scoping with **automatic cleanup**. Dependencies flow naturally from parent to child, and scopes dispose themselves automatically when no longer needed. Simple API: `Zen.put()`, `Zen.find()`, `Zen.delete()`.
 
-### 🎯 Zero Boilerplate
-GetX-like reactivity with `.obs()` and `Obx()`. Write less, accomplish more, keep your code clean.
+### 🎯 Zero Boilerplate Reactivity
+GetX-like reactive system with `.obs()` and `Obx()`. Write less, accomplish more, keep your code clean. Built on Flutter's ValueNotifier for optimal performance.
+
+### 🔥 React Query Style
+A native-inspired implementation of **TanStack Query patterns**: automatic caching, smart refetching, request deduplication, and stale-while-revalidate—built on top of the reactive system.
+
+---
+
+## 🏗️ Understanding Scopes (The Foundation)
+
+Zenify organizes dependencies into **three hierarchical levels** with automatic lifecycle management:
+
+### The Three Scope Levels
+
+**🌍 RootScope (Global - App Lifetime)**
+- Services like `AuthService`, `CartService`, `ThemeService`
+- Lives for entire app session
+- Access anywhere via Zen.find<CartService>() or `.to` pattern: `CartService.to.addItem()`
+
+**📦 Module Scope (Feature - Feature Lifetime)**
+- Controllers shared across feature pages
+- Auto-dispose when leaving feature
+- Example: HR feature with `CompanyController` → `DepartmentController` → `EmployeeController`
+
+**📄 Page Scope (Page - Page Lifetime)**
+- Page-specific controllers
+- Auto-dispose when page pops
+- Example: `LoginController`, `ProfileFormController`
+
+### When to Use What
+
+| Scope | Use For | Example             | Lifetime |
+|-------|---------|---------------------|----------|
+| **RootScope** | Needed across entire app | `Zen.find<T>()`          | App session |
+| **Module Scope** | Needed across a feature | Module registration | Feature navigation |
+| **Page Scope** | Needed on one page | `createController`  | Single page |
+
+The scope hierarchy automatically manages lifecycle - when you exit a feature, all its controllers clean up automatically. No memory leaks, no manual disposal.
+
+[Learn more about hierarchical scopes →](doc/hierarchical_scopes_guide.md)
 
 ---
 
@@ -110,45 +151,7 @@ class CounterPage extends ZenView<CounterController> {
 
 ## 🔥 Core Features
 
-### 1. Smart Async State (ZenQuery)
-
-The killer feature. React Query patterns for Flutter.
-
-```dart
-// Define once
-final userQuery = ZenQuery<User>(
-  queryKey: 'user:123',
-  fetcher: (_) => api.getUser(123),
-  config: ZenQueryConfig(
-    staleTime: Duration(minutes: 5),
-    cacheTime: Duration(hours: 1),
-  ),
-);
-
-// Use anywhere - automatic caching, deduplication, refetching
-ZenQueryBuilder<User>(
-  query: userQuery,
-  builder: (context, user) => UserProfile(user),
-  loading: () => CircularProgressIndicator(),
-  error: (error, retry) => ErrorView(error, onRetry: retry),
-);
-```
-
-**What you get for free:**
-- ✅ Automatic caching with configurable staleness
-- ✅ Smart deduplication (same key = one request)
-- ✅ Background refetch on focus/reconnect
-- ✅ Stale-while-revalidate (show cached, fetch fresh)
-- ✅ Request cancellation (no wasted bandwidth)
-- ✅ Optimistic updates with rollback
-- ✅ Infinite scroll pagination
-- ✅ Real-time streams support
-
-**Perfect for:** REST APIs, GraphQL, Firebase, any async data source.
-
-[See ZenQuery Guide →](doc/zen_query_guide.md)
-
-### 2. Hierarchical DI with Auto-Cleanup
+### 1. Hierarchical DI with Auto-Cleanup
 
 Organize dependencies naturally with **feature-based modules** and parent-child scopes. When you navigate away, everything cleans up automatically.
 
@@ -162,11 +165,11 @@ class AppModule extends ZenModule {
   }
 }
 
-// Feature-level services (auto-disposed)
+// Feature-level controllers (auto-disposed)
 class UserModule extends ZenModule {
   @override
   void register(ZenScope scope) {
-    // Access parent services
+    // Access parent services via Zen.find()
     final db = scope.find<DatabaseService>()!;
 
     // Register feature-specific dependencies
@@ -183,6 +186,11 @@ ZenRoute(
 )
 ```
 
+**Core API:**
+- `Zen.put<T>()` - Register dependencies
+- `Zen.find<T>()` - Retrieve dependencies
+- `Zen.delete<T>()` - Remove dependencies
+
 **What you get:**
 - 🏗️ Natural dependency flow (parent → child)
 - 🔄 Automatic disposal (no memory leaks)
@@ -193,7 +201,7 @@ ZenRoute(
 
 [See Hierarchical Scopes Guide →](doc/hierarchical_scopes_guide.md)
 
-### 3. Zero-Boilerplate Reactivity
+### 2. Zero-Boilerplate Reactivity
 
 GetX-inspired reactive system built on Flutter's ValueNotifier. Simple, fast, no magic.
 
@@ -233,272 +241,114 @@ Obx(() => ListView.builder(
 
 [See Reactive Core Guide →](doc/reactive_core_guide.md)
 
+### 3. Smart Async State (ZenQuery)
+
+React Query patterns built on the reactive system.
+
+```dart
+// Define once
+final userQuery = ZenQuery<User>(
+  queryKey: 'user:123',
+  fetcher: (_) => api.getUser(123),
+  config: ZenQueryConfig(
+    staleTime: Duration(minutes: 5),
+    cacheTime: Duration(hours: 1),
+  ),
+);
+
+// Use anywhere - automatic caching, deduplication, refetching
+ZenQueryBuilder<User>(
+  query: userQuery,
+  builder: (context, user) => UserProfile(user),
+  loading: () => CircularProgressIndicator(),
+  error: (error, retry) => ErrorView(error, onRetry: retry),
+);
+```
+
+**What you get for free:**
+- ✅ Automatic caching with configurable staleness
+- ✅ Smart deduplication (same key = one request)
+- ✅ Background refetch on focus/reconnect
+- ✅ Stale-while-revalidate (show cached, fetch fresh)
+- ✅ Request cancellation (no wasted bandwidth)
+- ✅ Optimistic updates with rollback
+- ✅ Infinite scroll pagination
+- ✅ Real-time streams support
+
+**Perfect for:** REST APIs, GraphQL, Firebase, any async data source.
+
+[See ZenQuery Guide →](doc/zen_query_guide.md)
+
 ---
 
-## 💡 Real-World Examples
+## 💡 Common Patterns
 
-### Infinite Scroll with Pagination
+### Global Services with `.to` Pattern
 
-```dart
-final postsQuery = ZenInfiniteQuery<PostPage>(
-  queryKey: ['posts', 'feed'],
-  infiniteFetcher: (cursor, token) => api.getPosts(cursor: cursor),
-  getNextPageParam: (lastPage) => lastPage.nextCursor,
-);
-
-// In UI
-ListView.builder(
-  itemCount: postsQuery.data.length,
-  itemBuilder: (context, index) {
-    if (index == postsQuery.data.length - 1) {
-      postsQuery.fetchNextPage(); // Load more
-    }
-    return PostCard(postsQuery.data[index]);
-  },
-)
-```
-
-### Mutations with Optimistic Updates
+Access services from anywhere without context or injection:
 
 ```dart
-final updateUserMutation = ZenMutation<User, UpdateUserArgs>(
-  mutationFn: (args) => api.updateUser(args),
-  onMutate: (args) {
-    // Optimistic update
-    final oldUser = userQuery.data.value;
-    userQuery.data.value = args.toUser();
-    return oldUser; // Context for rollback
-  },
-  onError: (error, args, context) {
-    // Rollback on error
-    userQuery.data.value = context as User;
-    showError('Update failed');
-  },
-  onSettled: () {
-    // Refresh query
-    userQuery.refetch();
-  },
-);
-
-// Trigger
-updateUserMutation.mutate(UpdateUserArgs(name: 'New Name'));
-```
-
-### Real-Time Data Streams
-
-```dart
-final chatQuery = ZenStreamQuery<List<Message>>(
-  queryKey: 'chat-messages',
-  streamFn: () => chatService.messagesStream,
-);
-
-ZenStreamQueryBuilder<List<Message>>(
-  query: chatQuery,
-  builder: (context, messages) => ChatList(messages),
-  loading: () => LoadingSpinner(),
-  error: (error) => ErrorView(error),
-);
-```
-
-### Global Access with `.to` Pattern ⭐
-
-Clean, type-safe access to global services from anywhere - no context, no builders!
-
-```dart
-// Define services with static accessor
 class CartService {
   static CartService get to => Zen.find<CartService>();
 
   final items = <CartItem>[].obs();
-  final totalPrice = 0.0.obs();
-
-  Future<void> addToCart(Product product) async { ... }
+  void addToCart(Product product) => items.add(CartItem.fromProduct(product));
 }
 
-class AuthService {
-  static AuthService get to => Zen.find<AuthService>();
-
-  final currentUser = Rx<User?>(null);
-  final isAuthenticated = false.obs();
-
-  Future<void> login(String email, String password) async { ... }
-}
-
-// Register globally
+// Register once
 void main() {
-  Zen.init();
   Zen.put<CartService>(CartService(), isPermanent: true);
-  Zen.put<AuthService>(AuthService(), isPermanent: true);
   runApp(MyApp());
 }
 
-// Access from ANYWHERE - no injection needed!
-class ProductCard extends StatelessWidget {
-  final Product product;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Column(
-        children: [
-          Text(product.name),
-          ElevatedButton(
-            onPressed: () => CartService.to.addToCart(product),
-            child: Text('Add to Cart'),
-          ),
-          // Works in reactive widgets too!
-          Obx(() => Text('Cart: ${CartService.to.items.length} items')),
-        ],
-      ),
-    );
-  }
-}
-
-// Works in controllers without injection
-class CheckoutController extends ZenController {
-  Future<void> processOrder() async {
-    if (!AuthService.to.isAuthenticated.value) {
-      // Show login dialog
-      return;
-    }
-
-    final items = CartService.to.items.value;
-    await paymentService.process(items);
-    await CartService.to.clearCart();
-  }
-}
-
-// Even works in helper classes!
-class AnalyticsHelper {
-  static void trackCartEvent() {
-    analytics.log('cart_items', {'count': CartService.to.items.length});
-  }
-}
+// Use anywhere - widgets, controllers, helpers
+CartService.to.addToCart(product);
 ```
 
-**When to use `.to` pattern:**
-- ✅ Global services (auth, cart, theme, settings)
-- ✅ Services accessed from many places
-- ✅ Avoid prop drilling
-- ✅ Familiar to GetX users
+### Infinite Scroll Pagination
 
-**When to use injection:**
-- ✅ Page-specific controllers
-- ✅ Services you want to mock in tests
-- ✅ Optional dependencies
+```dart
+final postsQuery = ZenInfiniteQuery<PostPage>(
+  queryKey: ['posts'],
+  infiniteFetcher: (cursor, token) => api.getPosts(cursor: cursor),
+);
 
-**Pro tip:** Use both! Mix `.to` for global services with constructor injection for testable dependencies.
+// Auto-load next page when reaching end
+if (index == postsQuery.data.length - 1) postsQuery.fetchNextPage();
+```
 
-[See more patterns →](example/ecommerce/ARCHITECTURE_PATTERNS.md)
+### Optimistic Updates
+
+```dart
+final mutation = ZenMutation<User, UpdateArgs>(
+  onMutate: (args) => userQuery.data.value = args.toUser(), // Instant UI
+  onError: (err, args, old) => userQuery.data.value = old,  // Rollback
+);
+```
+
+### Real-Time Streams
+
+```dart
+final chatQuery = ZenStreamQuery<List<Message>>(
+  queryKey: 'chat',
+  streamFn: () => chatService.messagesStream,
+);
+```
+
+[See complete patterns with detailed examples →](doc/real_world_patterns.md)
 
 ---
 
 ## 🛠️ Advanced Features
 
-### Effects for Async Operations
+- **Effects** - Automatic loading/error/success state management ([guide](doc/effects_usage_guide.md))
+- **Computed Values** - Auto-updating derived state with dependency tracking
+- **Global Modules** - Register app-wide dependencies at startup
+- **Performance Control** - Choose between reactive (`.obs()` + `Obx`) or manual (`update()` + `ZenBuilder`)
+- **Workers** - Debounce, throttle, and interval-based reactive handlers
+- **Devtools** - Built-in inspector overlay for debugging scopes and queries
 
-Automatic state management for loading/error/success.
-
-```dart
-class UserController extends ZenController {
-  late final userEffect = createEffect<User>(name: 'loadUser');
-
-  Future<void> loadUser(String id) async {
-    await userEffect.run(() => api.getUser(id));
-  }
-}
-
-// In UI - automatic state handling
-ZenEffectBuilder<User>(
-  effect: controller.userEffect,
-  onLoading: () => LoadingSpinner(),
-  onSuccess: (user) => UserProfile(user),
-  onError: (error) => ErrorMessage(error),
-)
-```
-
-[See Effects Guide →](doc/effects_usage_guide.md)
-
-### Computed Values with Dependency Tracking
-
-```dart
-class ShoppingController extends ZenController {
-  final items = <CartItem>[].obs();
-  final discount = 0.0.obs();
-
-  late final subtotal = computed(() =>
-    items.fold(0.0, (sum, item) => sum + item.price)
-  );
-
-  late final total = computed(() =>
-    subtotal.value * (1 - discount.value)
-  );
-}
-
-// Automatic updates when items or discount change
-Obx(() => Text('Total: \$${controller.total.value}'))
-```
-
-### Global Module Registration
-
-Set up your entire app architecture at startup.
-
-```dart
-void main() async {
-  Zen.init();
-
-  // Register app-wide modules
-  await Zen.registerModules([
-    CoreModule(),     // Database, logging, storage
-    NetworkModule(),  // API clients, connectivity
-    AuthModule(),     // Authentication
-  ]);
-
-  runApp(MyApp());
-}
-```
-
-### Performance Control
-
-**Two approaches for UI updates:**
-
-**Option 1: Reactive with Obx** (Recommended - simpler)
-```dart
-class DashboardController extends ZenController {
-  final stats = <Stat>[].obs();  // Reactive state
-  final isLoading = false.obs();
-
-  void updateStats(List<Stat> newStats) {
-    stats.value = newStats;  // Auto-updates Obx widgets
-  }
-}
-
-// In UI - automatic rebuilds
-Obx(() => StatsChart(controller.stats))
-```
-
-**Option 2: Manual with ZenBuilder** (When you need fine control)
-```dart
-class DashboardController extends ZenController {
-  List<Stat> stats = [];  // Non-reactive state
-  bool isLoading = false;
-
-  void updateStats(List<Stat> newStats) {
-    stats = newStats;
-    update(['stats-widget']);  // Manually trigger rebuild
-  }
-}
-
-// In UI - targeted rebuilds
-ZenBuilder<DashboardController>(
-  id: 'stats-widget',
-  builder: (context, controller) => StatsChart(controller.stats),
-)
-```
-
-**When to use:**
-- 🟢 **Obx + .obs()**: Most cases (less code, automatic)
-- 🔵 **ZenBuilder + update()**: Precise control, complex objects
+[See detailed examples →](doc/real_world_patterns.md)
 
 ---
 
@@ -543,105 +393,48 @@ Choose the right widget for your use case:
 
 ## 🔧 Configuration
 
-### Basic Setup
-
 ```dart
 void main() {
   Zen.init();
 
-  // Environment-based config
-  if (kReleaseMode) {
-    ZenConfig.applyEnvironment(ZenEnvironment.production);
-  } else {
-    ZenConfig.applyEnvironment(ZenEnvironment.development);
-  }
+  // Optional: Configure logging and performance tracking
+  ZenConfig.configure(level: ZenLogLevel.info, performanceTracking: true);
+
+  // Optional: Set query defaults
+  ZenQueryConfig.defaults = ZenQueryConfig(
+    staleTime: Duration(minutes: 5),
+    cacheTime: Duration(hours: 1),
+  );
 
   runApp(MyApp());
 }
-```
-
-### Custom Configuration
-
-```dart
-ZenConfig.configure(
-  level: ZenLogLevel.info,
-  performanceTracking: true,
-);
-```
-
-### Query Defaults
-
-```dart
-final customDefaults = ZenQueryConfig(
-  staleTime: Duration(minutes: 5),
-  cacheTime: Duration(hours: 1),
-  retryCount: 3,
-  refetchOnFocus: true,
-  refetchOnReconnect: true,
-);
 ```
 
 ---
 
 ## 🧪 Testing
 
-Zenify is built for testing from the ground up.
+Built for testing from the ground up with mocking support:
 
 ```dart
 void main() {
-  setUp(() {
-    Zen.testMode();
-    Zen.clearQueryCache();
-  });
-
-  tearDown(() {
-    Zen.reset();
-  });
+  setUp(() => Zen.testMode().clearQueryCache());
+  tearDown(() => Zen.reset());
 
   test('counter increments', () {
     final controller = CounterController();
-    expect(controller.count.value, 0);
-
     controller.increment();
     expect(controller.count.value, 1);
+  });
 
-    controller.dispose();
+  test('mock dependencies', () {
+    Zen.testMode().mock<ApiClient>(FakeApiClient());
+    // Test code uses mock automatically
   });
 }
 ```
 
-**Mock dependencies easily:**
-
-```dart
-test('user service test', () {
-  Zen.testMode()
-    .mock<ApiClient>(FakeApiClient())
-    .mock<AuthService>(FakeAuthService());
-
-  final userService = UserService();
-  final user = await userService.getCurrentUser();
-
-  expect(user.name, 'Test User');
-});
-```
-
-[See Testing Guide →](doc/testing_guide.md)
-
-### Developer Tools
-
-Debug your app with the built-in inspector overlay:
-
-```dart
-void main() {
-  runApp(
-    ZenInspectorOverlay(
-      child: MyApp(),
-    ),
-  );
-}
-```
-
-Tap the floating "Z" button to inspect scopes, query cache, dependencies, and performance in real-time.
+[See complete testing guide →](doc/testing_guide.md)
 
 ---
 

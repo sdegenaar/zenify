@@ -694,10 +694,10 @@ class FeaturePage extends ZenView<FeatureController> {
         body: Obx(() => FeatureContent(controller.data.value)),
       ),
     );
-  }too forma
+  }
 }
 ```
-
+f
 ### 2. Controller Communication
 
 **Controllers communicate through shared services:**
