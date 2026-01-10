@@ -1,3 +1,14 @@
+## [1.3.5]
+
+### Documentation
+- Improved README structure and clarity (reduced from 708 to 489 lines)
+- Added "Understanding Scopes" section explaining hierarchical DI fundamentals
+- Repositioned features to emphasize DI and reactivity as foundation
+- Updated all service examples to extend ZenService for proper lifecycle
+- Created comprehensive real_world_patterns.md guide
+- Fixed architectural accuracy in all code examples
+- Updated tagline to better reflect library identity
+
 ## [1.3.4]
 
 ### Documentation

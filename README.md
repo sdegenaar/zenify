@@ -92,7 +92,7 @@ The scope hierarchy automatically manages lifecycle - when you exit a feature, a
 
 ```yaml
 dependencies:
-  zenify: ^1.3.4
+  zenify: ^1.3.5
 ```
 
 ### 2. Initialize
@@ -288,15 +288,25 @@ ZenQueryBuilder<User>(
 Access services from anywhere without context or injection:
 
 ```dart
-class CartService {
+class CartService extends ZenService {
   static CartService get to => Zen.find<CartService>();
 
   final items = <CartItem>[].obs();
-  void addToCart(Product product) => items.add(CartItem.fromProduct(product));
+
+  void addToCart(Product product) {
+    items.add(CartItem.fromProduct(product));
+  }
+
+  @override
+  void onClose() {
+    // Cleanup happens automatically
+    super.onClose();
+  }
 }
 
 // Register once
 void main() {
+  Zen.init();
   Zen.put<CartService>(CartService(), isPermanent: true);
   runApp(MyApp());
 }

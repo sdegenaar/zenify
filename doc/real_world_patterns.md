@@ -363,7 +363,7 @@ Clean, type-safe access to global services from anywhere - no context, no builde
 
 ```dart
 // Define services with static accessor
-class CartService {
+class CartService extends ZenService {
   static CartService get to => Zen.find<CartService>();
 
   final items = <CartItem>[].obs();
@@ -377,9 +377,15 @@ class CartService {
   void _updateTotals() {
     totalPrice.value = items.fold(0.0, (sum, item) => sum + item.price);
   }
+
+  @override
+  void onClose() {
+    // Cleanup happens automatically
+    super.onClose();
+  }
 }
 
-class AuthService {
+class AuthService extends ZenService {
   static AuthService get to => Zen.find<AuthService>();
 
   final currentUser = Rx<User?>(null);
@@ -395,6 +401,12 @@ class AuthService {
     await api.logout();
     currentUser.value = null;
     isAuthenticated.value = false;
+  }
+
+  @override
+  void onClose() {
+    // Cleanup happens automatically
+    super.onClose();
   }
 }
 

@@ -532,7 +532,7 @@ class AnyWidget extends StatelessWidget {
 
 ```dart
 // Service with reactive state
-class CartService {
+class CartService extends ZenService {
   static CartService get to => Zen.find<CartService>();
 
   final cartItems = <CartItem>[].obs();
@@ -545,6 +545,12 @@ class CartService {
 
   void _updateTotals() {
     totalPrice.value = cartItems.fold(0.0, (sum, item) => sum + item.price);
+  }
+
+  @override
+  void onClose() {
+    // Cleanup happens automatically
+    super.onClose();
   }
 }
 
@@ -704,13 +710,18 @@ f
 
 ```dart
 // Service as communication hub
-class CartService {
+class CartService extends ZenService {
   static CartService get to => Zen.find<CartService>();
 
   final cartItems = <CartItem>[].obs();
 
   void addToCart(Product product) {
     cartItems.add(CartItem.fromProduct(product));
+  }
+
+  @override
+  void onClose() {
+    super.onClose();
   }
 }
 
@@ -913,13 +924,18 @@ class CounterPage extends ZenView<CounterController> {
 
 ```dart
 // 1. Global cart service
-class CartService {
+class CartService extends ZenService {
   static CartService get to => Zen.find<CartService>();
 
   final cartItems = <CartItem>[].obs();
 
   void addToCart(Product product) {
     cartItems.add(CartItem.fromProduct(product));
+  }
+
+  @override
+  void onClose() {
+    super.onClose();
   }
 }
 
