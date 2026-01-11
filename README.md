@@ -92,7 +92,7 @@ The scope hierarchy automatically manages lifecycle - when you exit a feature, a
 
 ```yaml
 dependencies:
-  zenify: ^1.3.5
+  zenify: ^1.3.6
 ```
 
 ### 2. Initialize
@@ -117,7 +117,6 @@ class CounterController extends ZenController {
 
 ```dart
 class CounterPage extends ZenView<CounterController> {
-  // Correct syntax: getter returning a lambda
   @override
   CounterController Function()? get createController => () => CounterController();
 

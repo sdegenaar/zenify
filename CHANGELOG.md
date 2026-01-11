@@ -1,3 +1,10 @@
+## [1.3.6]
+
+### Bug Fixes
+- Fixed WidgetsBinding requirement in pure unit tests - `Zen.reset()` now works in regular `test()` without requiring `testWidgets()`
+- `ZenLifecycleManager` now gracefully handles missing WidgetsBinding in test environments
+- Controllers call `onReady()` immediately in pure tests instead of throwing "Binding has not yet been initialized"
+
 ## [1.3.5]
 
 ### Documentation

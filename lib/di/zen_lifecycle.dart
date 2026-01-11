@@ -25,12 +25,21 @@ class ZenLifecycleManager {
       if (!controller.isInitialized) {
         controller.onInit();
 
-        // Schedule onReady to be called after the current frame
-        WidgetsBinding.instance.addPostFrameCallback((_) {
+        // Schedule onReady to be called after the current frame (if in widget context)
+        // For pure DI tests, call onReady immediately
+        try {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!controller.isDisposed) {
+              controller.onReady();
+            }
+          });
+        } catch (_) {
+          // WidgetsBinding not initialized - we're in a pure unit test
+          // Call onReady immediately
           if (!controller.isDisposed) {
             controller.onReady();
           }
-        });
+        }
       }
     } catch (e, stack) {
       ZenLogger.logError(
@@ -47,10 +56,14 @@ class ZenLifecycleManager {
   /// Initialize the app lifecycle observer
   void initLifecycleObserver() {
     if (_lifecycleObserver == null) {
-      _lifecycleObserver = _ZenAppLifecycleObserver();
-      WidgetsBinding.instance.addObserver(_lifecycleObserver!);
-
-      ZenLogger.logDebug('Zen lifecycle observer initialized');
+      try {
+        _lifecycleObserver = _ZenAppLifecycleObserver();
+        WidgetsBinding.instance.addObserver(_lifecycleObserver!);
+        ZenLogger.logDebug('Zen lifecycle observer initialized');
+      } catch (_) {
+        // WidgetsBinding not initialized - skip lifecycle observer for pure unit tests
+        _lifecycleObserver = null;
+      }
     }
   }
 
@@ -106,7 +119,13 @@ class ZenLifecycleManager {
   /// Clean up resources
   void dispose() {
     if (_lifecycleObserver != null) {
-      WidgetsBinding.instance.removeObserver(_lifecycleObserver!);
+      // Only remove observer if WidgetsBinding is initialized
+      // This allows pure DI tests without requiring Flutter bindings
+      try {
+        WidgetsBinding.instance.removeObserver(_lifecycleObserver!);
+      } catch (_) {
+        // WidgetsBinding not initialized - nothing to remove
+      }
       _lifecycleObserver = null;
     }
     _lifecycleListeners.clear();
