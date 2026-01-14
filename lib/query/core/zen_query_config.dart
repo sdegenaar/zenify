@@ -44,11 +44,43 @@ class ZenQueryConfig<T> {
   /// Number of retry attempts
   final int retryCount;
 
-  /// Delay between retries
+  /// Base delay between retries (e.g., 200ms)
   final Duration retryDelay;
+
+  /// Maximum delay for retries (prevents infinite growth)
+  final Duration maxRetryDelay;
+
+  /// Multiplier for exponential backoff (default: 2.0)
+  /// Delay formula: min(retryDelay * (multiplier ^ attempt), maxRetryDelay)
+  final double retryBackoffMultiplier;
 
   /// Whether to use exponential backoff for retries
   final bool exponentialBackoff;
+
+  /// Whether to add random jitter to retry delays (prevents thundering herd)
+  final bool retryWithJitter;
+
+  // --- Pause/Resume Configuration ---
+
+  /// Whether to automatically pause queries when app goes to background
+  ///
+  /// When true, queries will automatically pause when the app lifecycle
+  /// state changes to paused, inactive, or hidden. This is useful for
+  /// mobile apps to save battery and reduce unnecessary network requests.
+  ///
+  /// For desktop/web apps where users frequently switch windows, consider
+  /// keeping this false (default) to maintain query activity.
+  ///
+  /// Default: false (opt-in for battery optimization)
+  final bool autoPauseOnBackground;
+
+  /// Whether to refetch stale data when resuming from background
+  ///
+  /// When true, queries will automatically refetch if data is stale when
+  /// the app returns to foreground. Works in conjunction with autoPauseOnBackground.
+  ///
+  /// Default: false (opt-in)
+  final bool refetchOnResume;
 
   // --- Persistence Configuration ---
 
@@ -77,8 +109,13 @@ class ZenQueryConfig<T> {
     this.refetchInterval,
     this.enableBackgroundRefetch = false,
     this.retryCount = 3,
-    this.retryDelay = const Duration(seconds: 1),
+    this.retryDelay = const Duration(milliseconds: 200),
+    this.maxRetryDelay = const Duration(seconds: 30),
+    this.retryBackoffMultiplier = 2.0,
     this.exponentialBackoff = true,
+    this.retryWithJitter = true,
+    this.autoPauseOnBackground = false,
+    this.refetchOnResume = false,
     this.persist = false,
     this.fromJson,
     this.toJson,
@@ -103,7 +140,12 @@ class ZenQueryConfig<T> {
       enableBackgroundRefetch: other.enableBackgroundRefetch,
       retryCount: other.retryCount,
       retryDelay: other.retryDelay,
+      maxRetryDelay: other.maxRetryDelay,
+      retryBackoffMultiplier: other.retryBackoffMultiplier,
       exponentialBackoff: other.exponentialBackoff,
+      retryWithJitter: other.retryWithJitter,
+      autoPauseOnBackground: other.autoPauseOnBackground,
+      refetchOnResume: other.refetchOnResume,
       persist: other.persist,
       fromJson: other.fromJson ?? fromJson,
       toJson: other.toJson ?? toJson,
@@ -127,7 +169,12 @@ class ZenQueryConfig<T> {
       enableBackgroundRefetch: enableBackgroundRefetch,
       retryCount: retryCount,
       retryDelay: retryDelay,
+      maxRetryDelay: maxRetryDelay,
+      retryBackoffMultiplier: retryBackoffMultiplier,
       exponentialBackoff: exponentialBackoff,
+      retryWithJitter: retryWithJitter,
+      autoPauseOnBackground: autoPauseOnBackground,
+      refetchOnResume: refetchOnResume,
       persist: persist,
       fromJson: fromJson != null ? (json) => fromJson!(json) as R : null,
       toJson: toJson != null ? (data) => toJson!(data as T) : null,

@@ -1,3 +1,48 @@
+## [1.4.0]
+
+### ✨ Features
+
+**Enhanced Auto-Retry**
+- Fixed retry logic to use true exponential backoff (was linear)
+- Added `maxRetryDelay` (default: 30s), `retryBackoffMultiplier` (default: 2.0), `retryWithJitter` (default: true)
+- Reduced base retry delay from 1s to 200ms for faster recovery
+
+**Pause/Resume for Battery Optimization**
+- Added manual `pause()` and `resume()` methods to `ZenQuery` and `ZenStreamQuery`
+- Added `autoPauseOnBackground` (default: false) and `refetchOnResume` (default: false) to `ZenQueryConfig`
+- Queries and streams can automatically pause on background and resume on foreground (opt-in)
+- Pausing stops timers and cancels pending requests
+- Resuming restarts timers and refetches stale data (if configured)
+- **Consistent API** across all query types (`ZenQuery`, `ZenStreamQuery`, `ZenInfiniteQuery`)
+
+**Lifecycle Integration**
+- Queries automatically respond to `AppLifecycleState` changes when `autoPauseOnBackground: true`
+- Supports paused, inactive, hidden, and resumed states
+- Added `getAllQueries()` to `ZenQueryCache` for lifecycle management
+
+### ⚠️ Breaking Changes
+
+**ZenStreamQuery Default Behavior**
+- `ZenStreamQuery` now defaults to `autoPauseOnBackground: false` (was auto-pause by default in v1.3.x)
+- This change ensures consistency with `ZenQuery` and better supports real-time use cases
+- **Migration:** Add `autoPauseOnBackground: true` to restore previous behavior:
+  ```dart
+  ZenStreamQuery(
+    queryKey: 'my-stream',
+    streamFn: () => myStream,
+    config: ZenQueryConfig(
+      autoPauseOnBackground: true,  // Restore v1.3.x behavior
+    ),
+  );
+  ```
+- **Note:** Most real-time streams (chat, notifications, live updates) should keep the new default (false)
+
+### ⚡ Performance Impact
+- **Better battery life if mobile:** No network activity when app backgrounded
+- **Reduced API costs:** Fewer unnecessary requests
+- **Faster error recovery:** Optimized retry delays
+- **Minimal overhead:** Only affects retry logic and lifecycle
+
 ## [1.3.6]
 
 ### Bug Fixes

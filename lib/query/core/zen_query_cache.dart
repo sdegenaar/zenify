@@ -81,6 +81,9 @@ class ZenQueryCache {
     _useRealTimers = useRealTimers;
   }
 
+  /// Whether real timers are being used (false in test mode)
+  bool get useRealTimers => _useRealTimers;
+
   /// Set the network connectivity stream
   void setNetworkStream(Stream<bool> stream) {
     _networkSubscription?.cancel();
@@ -265,6 +268,9 @@ class ZenQueryCache {
 
   /// Get all queries
   List<ZenQuery> get queries => _queries.values.toList();
+
+  /// Get all queries (for lifecycle management)
+  List<ZenQuery> getAllQueries() => _queries.values.toList();
 
   /// Update cache for a query
   void updateCache<T>(String queryKey, T data, DateTime timestamp) {

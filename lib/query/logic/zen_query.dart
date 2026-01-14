@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:zenify/query/core/query_key.dart';
 import 'package:zenify/query/core/zen_cancel_token.dart';
@@ -107,6 +108,9 @@ class ZenQuery<T> extends ZenController {
   /// Current cancellation token for the active request
   ZenCancelToken? _currentCancelToken;
 
+  /// Whether this query is currently paused
+  bool _isPaused = false;
+
   ZenQuery({
     required Object queryKey,
     required this.fetcher,
@@ -191,6 +195,12 @@ class ZenQuery<T> extends ZenController {
 
   /// Fetch or refetch data
   Future<T> fetch({bool force = false}) async {
+    // Check paused state
+    if (_isPaused && !force) {
+      if (hasData) return data.value!;
+      return Future.error('Query is paused');
+    }
+
     // Check enabled state
     if (!enabled.value && !force) {
       if (hasData) return data.value!;
@@ -297,10 +307,8 @@ class ZenQuery<T> extends ZenController {
         ZenLogger.logDebug(
             'Query $queryKey failed, retrying ($_retryAttempt/${config.retryCount})');
 
-        // Calculate retry delay
-        final delay = config.exponentialBackoff
-            ? config.retryDelay * _retryAttempt
-            : config.retryDelay;
+        // Calculate retry delay with exponential backoff and jitter
+        final delay = _calculateRetryDelay(_retryAttempt);
 
         await Future.delayed(delay);
 
@@ -329,6 +337,107 @@ class ZenQuery<T> extends ZenController {
       _currentCancelToken!.cancel('Query disposed or new fetch started');
       _currentCancelToken = null;
     }
+  }
+
+  /// Calculate retry delay with exponential backoff and optional jitter
+  ///
+  /// Formula: min(baseDelay * (multiplier ^ (attempt - 1)), maxDelay) + jitter
+  ///
+  /// Example with defaults (baseDelay=200ms, multiplier=2.0, maxDelay=30s):
+  /// - Attempt 1: 200ms
+  /// - Attempt 2: 400ms
+  /// - Attempt 3: 800ms
+  /// - Attempt 4: 1600ms
+  /// - Attempt 5: 3200ms
+  /// - etc., capped at 30s
+  Duration _calculateRetryDelay(int attempt) {
+    if (!config.exponentialBackoff) {
+      // Linear backoff - just use base delay
+      return config.retryDelay;
+    }
+
+    // Exponential backoff calculation
+    final baseMs = config.retryDelay.inMilliseconds;
+    final multiplier = config.retryBackoffMultiplier;
+
+    // Calculate: baseDelay * (multiplier ^ (attempt - 1))
+    final exponentialMs = baseMs * pow(multiplier, attempt - 1);
+
+    // Cap at max delay
+    final cappedMs = min(
+      exponentialMs,
+      config.maxRetryDelay.inMilliseconds.toDouble(),
+    );
+
+    // Add jitter if enabled (±20% randomness to prevent thundering herd)
+    var finalMs = cappedMs;
+    if (config.retryWithJitter) {
+      final jitterRange = cappedMs * 0.2; // 20% of the delay
+      final jitter = jitterRange * (Random().nextDouble() - 0.5) * 2;
+      finalMs = cappedMs + jitter;
+    }
+
+    final delay = Duration(milliseconds: finalMs.toInt());
+
+    ZenLogger.logDebug(
+      'Retry delay for attempt $attempt: ${delay.inMilliseconds}ms '
+      '(exponential: ${config.exponentialBackoff}, jitter: ${config.retryWithJitter})',
+    );
+
+    return delay;
+  }
+
+  /// Pause this query
+  ///
+  /// Pausing a query will:
+  /// - Stop background refetch timers
+  /// - Cancel any pending requests
+  /// - Prevent new fetches (unless forced)
+  ///
+  /// This is useful for battery optimization when the app is backgrounded.
+  void pause() {
+    if (_isPaused) return;
+
+    _isPaused = true;
+
+    // Cancel background refetch timer
+    _refetchTimer?.cancel();
+    _refetchTimer = null;
+
+    // Cancel any pending request
+    _cancelPendingRequest();
+
+    ZenLogger.logDebug('Query paused: $queryKey');
+  }
+
+  /// Resume this query
+  ///
+  /// Resuming a query will:
+  /// - Restart background refetch timers (if configured)
+  /// - Refetch data if stale (if refetchOnResume is enabled)
+  ///
+  /// This is called automatically when the app returns to foreground.
+  void resume() {
+    if (!_isPaused) return;
+
+    _isPaused = false;
+
+    // Restart background refetch if configured
+    _setupBackgroundRefetch();
+
+    // Refetch if data is stale and refetchOnResume is enabled
+    if (config.refetchOnResume && isStale && enabled.value && !_isDisposed) {
+      fetch().then(
+        (_) {},
+        onError: (error, stackTrace) {
+          ZenLogger.logWarning(
+            'ZenQuery resume refetch failed for query: $queryKey',
+          );
+        },
+      );
+    }
+
+    ZenLogger.logDebug('Query resumed: $queryKey');
   }
 
   /// Manually set data (for optimistic updates)
@@ -370,6 +479,12 @@ class ZenQuery<T> extends ZenController {
     final interval = config.refetchInterval;
     if (config.enableBackgroundRefetch && interval != null) {
       _refetchTimer?.cancel();
+
+      // Don't create timers in test mode to avoid pending timer errors
+      if (!ZenQueryCache.instance.useRealTimers) {
+        return;
+      }
+
       _refetchTimer = Timer.periodic(interval, (_) {
         if (hasData && !isLoading.value && !_isDisposed) {
           fetch(force: true).then(

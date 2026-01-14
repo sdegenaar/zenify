@@ -4,6 +4,7 @@ import '../controllers/zen_controller.dart';
 import '../controllers/zen_service.dart';
 import '../core/zen_logger.dart';
 import '../core/zen_scope.dart';
+import '../query/core/zen_query_cache.dart';
 import 'zen_di.dart';
 
 /// Manages lifecycle events for controllers
@@ -152,19 +153,49 @@ class _ZenAppLifecycleObserver extends WidgetsBindingObserver {
     switch (state) {
       case AppLifecycleState.resumed:
         _notifyControllers(allControllers, (c) => c.onResume());
+        _resumeQueries();
         break;
       case AppLifecycleState.inactive:
         _notifyControllers(allControllers, (c) => c.onInactive());
+        _pauseQueries();
         break;
       case AppLifecycleState.paused:
         _notifyControllers(allControllers, (c) => c.onPause());
+        _pauseQueries();
         break;
       case AppLifecycleState.detached:
         _notifyControllers(allControllers, (c) => c.onDetached());
         break;
       case AppLifecycleState.hidden:
         _notifyControllers(allControllers, (c) => c.onHidden());
+        _pauseQueries();
         break;
+    }
+  }
+
+  void _pauseQueries() {
+    try {
+      final queries = ZenQueryCache.instance.getAllQueries();
+      for (final query in queries) {
+        if (query.config.autoPauseOnBackground) {
+          query.pause();
+        }
+      }
+      ZenLogger.logDebug('Paused ${queries.length} queries');
+    } catch (e, stack) {
+      ZenLogger.logError('Error pausing queries', e, stack);
+    }
+  }
+
+  void _resumeQueries() {
+    try {
+      final queries = ZenQueryCache.instance.getAllQueries();
+      for (final query in queries) {
+        query.resume();
+      }
+      ZenLogger.logDebug('Resumed ${queries.length} queries');
+    } catch (e, stack) {
+      ZenLogger.logError('Error resuming queries', e, stack);
     }
   }
 

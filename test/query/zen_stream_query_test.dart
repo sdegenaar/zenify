@@ -113,6 +113,9 @@ void main() {
       final query = ZenStreamQuery<String>(
         queryKey: 'lifecycle-test',
         streamFn: () => controller.stream,
+        config: const ZenQueryConfig(
+          autoPauseOnBackground: true, // Opt-in to auto-pause
+        ),
       );
 
       // Wait for subscription
@@ -146,6 +149,9 @@ void main() {
       final query = ZenStreamQuery<String>(
         queryKey: 'lifecycle-resume-test',
         streamFn: () => controller.stream,
+        config: const ZenQueryConfig(
+          autoPauseOnBackground: true, // Opt-in to auto-pause
+        ),
       );
 
       // Start paused
@@ -176,6 +182,9 @@ void main() {
       final query = ZenStreamQuery<String>(
         queryKey: 'lifecycle-inactive-test',
         streamFn: () => controller.stream,
+        config: const ZenQueryConfig(
+          autoPauseOnBackground: true, // Opt-in to auto-pause
+        ),
       );
 
       TestWidgetsFlutterBinding.instance
@@ -205,6 +214,9 @@ void main() {
       final query = ZenStreamQuery<String>(
         queryKey: 'lifecycle-hidden-test',
         streamFn: () => controller.stream,
+        config: const ZenQueryConfig(
+          autoPauseOnBackground: true, // Opt-in to auto-pause
+        ),
       );
 
       TestWidgetsFlutterBinding.instance

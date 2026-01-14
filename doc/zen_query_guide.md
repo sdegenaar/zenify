@@ -212,8 +212,13 @@ final query = ZenQuery<User>(
 | `refetchInterval` | null | Background refetch interval |
 | `enableBackgroundRefetch` | false | Enable automatic background refetching |
 | `retryCount` | 3 | Number of retry attempts |
-| `retryDelay` | 1s | Base delay between retries |
-| `exponentialBackoff` | true | Increase delay exponentially |
+| `retryDelay` | 200ms | Base delay between retries |
+| `maxRetryDelay` | 30s | Maximum retry delay cap |
+| `retryBackoffMultiplier` | 2.0 | Exponential backoff multiplier |
+| `exponentialBackoff` | true | Use exponential backoff for retries |
+| `retryWithJitter` | true | Add jitter to retry delays |
+| `autoPauseOnBackground` | false | Auto-pause when app backgrounded (opt-in) |
+| `refetchOnResume` | false | Refetch stale data on resume (opt-in) |
 | `placeholderData` | null | Data to show while initial fetch is pending |
 
 
@@ -616,6 +621,87 @@ final liveDataQuery = ZenQuery<StockPrice>(
   ),
 );
 ```
+
+### Pause/Resume (Battery Optimization)
+
+Manually or automatically pause queries to save battery and reduce network usage:
+
+**Manual Control:**
+```dart
+// Works for all query types
+query.pause();        // ZenQuery
+streamQuery.pause();  // ZenStreamQuery  
+infiniteQuery.pause(); // ZenInfiniteQuery
+
+// Resume
+query.resume();
+streamQuery.resume();
+infiniteQuery.resume();
+```
+
+**Automatic Lifecycle Integration (Opt-in):**
+```dart
+// Works for both queries and streams
+final query = ZenQuery<User>(
+  queryKey: 'user',
+  fetcher: (_) => api.getUser(),
+  config: ZenQueryConfig(
+    autoPauseOnBackground: true,  // Pause when app backgrounded
+    refetchOnResume: true,         // Refetch stale data on resume
+  ),
+);
+
+final streamQuery = ZenStreamQuery<Message>(
+  queryKey: 'chat',
+  streamFn: () => chatService.messagesStream,
+  config: ZenQueryConfig(
+    autoPauseOnBackground: true,  // Pause stream when app backgrounded
+  ),
+);
+```
+
+**Real-time streams (keep active in background):**
+```dart
+// Chat, location, or live updates - DON'T pause
+final liveStream = ZenStreamQuery<Message>(
+  queryKey: 'live-chat',
+  streamFn: () => chatService.messagesStream,
+  config: ZenQueryConfig(
+    autoPauseOnBackground: false,  // Keep active (default)
+  ),
+);
+```
+
+**When to use:**
+- ✅ Mobile apps for battery optimization
+- ✅ Apps with expensive background operations
+- ❌ Desktop/web apps (users switch windows frequently)
+- ❌ Real-time features (chat, live updates, location tracking)
+
+### Enhanced Retry with Exponential Backoff
+
+Retries now use true exponential backoff with jitter to prevent thundering herd:
+
+```dart
+final query = ZenQuery<Data>(
+  queryKey: 'api-data',
+  fetcher: (_) => api.getData(),
+  config: ZenQueryConfig(
+    retryCount: 5,
+    retryDelay: Duration(milliseconds: 200),      // Base delay
+    maxRetryDelay: Duration(seconds: 30),         // Cap
+    retryBackoffMultiplier: 2.0,                  // Exponential factor
+    retryWithJitter: true,                        // Add randomness
+  ),
+);
+// Retries at: ~200ms, ~400ms, ~800ms, ~1.6s, ~3.2s (with jitter)
+```
+
+**Default behavior:**
+- Base delay: 200ms (reduced from 1s)
+- Multiplier: 2.0 (exponential)
+- Max delay: 30s (prevents infinite growth)
+- Jitter: enabled (prevents simultaneous retries)
 
 ---
 

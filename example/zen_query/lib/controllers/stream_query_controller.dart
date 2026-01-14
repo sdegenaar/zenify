@@ -17,10 +17,16 @@ class StreamQueryController extends ZenController {
 
     // AUTOMATIC TRACKING - No wrapper needed!
     // Queries created in onInit() are automatically tracked and disposed
+
+    // Real-time notification stream - stays active in background
+    // Note: autoPauseOnBackground defaults to false for real-time streams
+    // Set to true only for non-critical streams to save battery
     notificationStream = ZenStreamQuery<String>(
       queryKey: 'notifications:live',
       streamFn: () => ApiService.getNotificationStream(),
-      config: const ZenQueryConfig(),
+      config: const ZenQueryConfig(
+          // autoPauseOnBackground: false (default - keep active for notifications)
+          ),
     );
 
     // Listen to notifications and store them
