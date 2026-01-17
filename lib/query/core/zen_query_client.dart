@@ -38,8 +38,8 @@ class ZenQueryClient {
   });
 
   /// Get default options for queries
-  ZenQueryConfig<T> getQueryDefaults<T>() {
-    return defaultOptions.queries.cast<T>();
+  ZenQueryConfig getQueryDefaults() {
+    return defaultOptions.queries;
   }
 
   /// Resolve config for a specific query

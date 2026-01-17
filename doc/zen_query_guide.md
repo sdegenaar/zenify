@@ -190,7 +190,7 @@ final query = ZenQuery<User>(
 );
 
 // Override specific fields with copyWith
-final defaults = Zen.find<ZenQueryClient>().getQueryDefaults<User>();
+final defaults = Zen.find<ZenQueryClient>().getQueryDefaults();
 final customQuery = ZenQuery<User>(
   queryKey: 'user:456',
   fetcher: (_) => api.getUser(456),

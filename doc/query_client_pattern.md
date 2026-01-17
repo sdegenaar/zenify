@@ -62,7 +62,7 @@ Use the `copyWith` pattern to override specific fields:
 ```dart
 // Get the client defaults
 final queryClient = Zen.find<ZenQueryClient>();
-final defaults = queryClient.getQueryDefaults<Post>();
+final defaults = queryClient.getQueryDefaults();
 
 // Override specific fields
 final postsQuery = ZenQuery<List<Post>>(

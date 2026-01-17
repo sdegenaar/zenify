@@ -61,7 +61,7 @@ void main() {
       Zen.put(queryClient);
 
       // Get client defaults and override specific fields using copyWith
-      final clientDefaults = queryClient.getQueryDefaults<String>();
+      final clientDefaults = queryClient.getQueryDefaults();
       final query = ZenQuery<String>(
         queryKey: 'test-override-client',
         fetcher: (token) async => 'data',
@@ -162,8 +162,8 @@ void main() {
       );
 
       // Get defaults
-      final defaults1 = queryClient.getQueryDefaults<String>();
-      final defaults2 = queryClient.getQueryDefaults<String>();
+      final defaults1 = queryClient.getQueryDefaults();
+      final defaults2 = queryClient.getQueryDefaults();
 
       // Should return consistent results
       expect(defaults1.retryCount, defaults2.retryCount);

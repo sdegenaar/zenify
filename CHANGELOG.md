@@ -1,3 +1,14 @@
+## [1.4.2]
+
+### API Improvements
+
+**Simplified QueryClient API**
+- Removed unnecessary type parameter from `getQueryDefaults()`
+- **Before:** `queryClient.getQueryDefaults<User>()`
+- **After:** `queryClient.getQueryDefaults()`
+
+Cleaner, simpler API with no loss of functionality.
+
 ## [1.4.1]
 
 ### ✨ Features
