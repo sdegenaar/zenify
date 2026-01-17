@@ -1,3 +1,21 @@
+## [1.4.3]
+
+### Bug Fixes
+
+**Fixed `invalidate()` to auto-refetch active queries**
+- `invalidate()` now automatically refetches queries (matches React Query behavior)
+- Previously only marked queries as stale without refetching
+- Only refetches if query is enabled and not already loading
+
+```dart
+final createPostMutation = ZenMutation<Post, String>(
+  mutationFn: (content) => api.createPost(content),
+  onSuccess: (post, content, context) {
+    postsQuery.invalidate(); // Automatically refetches!
+  },
+);
+```
+
 ## [1.4.2]
 
 ### API Improvements

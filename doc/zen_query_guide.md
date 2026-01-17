@@ -877,7 +877,7 @@ ZenQuery<T>({
 - `fetch({bool force = false})`: Fetch data (returns cached if available)
 - `refetch()`: Force refetch regardless of cache
 - `setData(T newData)`: Manually update data (for optimistic updates)
-- `invalidate()`: Mark data as stale
+- `invalidate()`: Mark as stale and refetch if active
 - `reset()`: Reset to initial state
 
 ### ZenMutation

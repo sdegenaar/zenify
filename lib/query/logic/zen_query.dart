@@ -471,10 +471,29 @@ class ZenQuery<T> extends ZenController {
     update();
   }
 
-  /// Invalidate query (mark as stale)
+  /// Invalidate query (mark as stale and refetch if active)
+  ///
+  /// Marks the query data as stale and triggers an automatic refetch
+  /// if the query is currently enabled and not already loading.
+  ///
+  /// This matches React Query's behavior where invalidating an active
+  /// query causes it to refetch immediately.
+  ///
+  /// Example:
+  /// ```dart
+  /// // After a mutation, invalidate related queries
+  /// createPostMutation.onSuccess = (_, __) {
+  ///   postsQuery.invalidate(); // Automatically refetches
+  /// };
+  /// ```
   void invalidate() {
     _lastFetchTime = null;
     update();
+
+    // Auto-refetch if query is active (enabled and not already loading)
+    if (enabled.value && !isLoading.value && !_isDisposed) {
+      fetch();
+    }
   }
 
   /// Reset query to idle state
