@@ -1,3 +1,54 @@
+## [1.4.1]
+
+### ✨ Features
+
+**QueryClient Pattern for Global Query Defaults**
+- Added `ZenQueryClient` for managing global query configuration (inspired by TanStack Query)
+- Replaces mutable global state with immutable, dependency-injected configuration
+- Added `ZenQueryClientOptions` for structured default options
+- Enhanced `ZenQueryConfig` with `copyWith()` method for partial overrides
+- All fields now have concrete defaults (no nullable fields)
+
+**Benefits:**
+- Matches TanStack Query's proven pattern
+- **Immutable**: Configuration cannot change after creation
+- **Testable**: Easy to provide different clients in tests
+- **Explicit**: Clear where defaults come from
+- **Type-Safe**: Full compile-time checking with no runtime overhead
+
+**Usage:**
+```dart
+// Create and register QueryClient
+final queryClient = ZenQueryClient(
+  defaultOptions: ZenQueryClientOptions(
+    queries: ZenQueryConfig(
+      staleTime: Duration.zero,
+      retryCount: 1,
+    ),
+  ),
+);
+Zen.put(queryClient);
+
+// Queries automatically use defaults
+final query = ZenQuery(
+  queryKey: 'users',
+  fetcher: (token) => api.getUsers(),
+);
+
+// Override specific fields with copyWith
+final defaults = queryClient.getQueryDefaults<Post>();
+final postsQuery = ZenQuery(
+  queryKey: 'posts',
+  fetcher: (token) => api.getPosts(),
+  config: defaults.copyWith(retryCount: 5),
+);
+```
+
+**Documentation:**
+- Added comprehensive guide: `doc/query_client_pattern.md`
+- Includes common patterns for dev/prod, offline-first, and real-time apps
+- Migration guide from old patterns
+
 ## [1.4.0]
 
 ### ✨ Features

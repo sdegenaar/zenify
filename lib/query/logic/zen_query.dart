@@ -9,8 +9,10 @@ import '../../controllers/zen_controller.dart';
 import '../../core/zen_logger.dart';
 import '../../core/zen_scope.dart';
 import '../../reactive/core/rx_value.dart';
+import '../../di/zen_di.dart';
 import '../core/zen_query_cache.dart';
 import '../core/zen_query_config.dart';
+import '../core/zen_query_client.dart';
 
 /// Function signature for data fetching with cancellation support
 typedef ZenQueryFetcher<T> = Future<T> Function(ZenCancelToken cancelToken);
@@ -82,9 +84,7 @@ class ZenQuery<T> extends ZenController {
   /// Whether data is stale and needs refetching
   bool get isStale {
     if (_lastFetchTime == null) return true;
-    final staleTime = config.staleTime;
-    if (staleTime == null) return false;
-    return DateTime.now().difference(_lastFetchTime!) > staleTime;
+    return DateTime.now().difference(_lastFetchTime!) > config.staleTime;
   }
 
   /// Whether the query is currently refetching (loading while having data)
@@ -111,6 +111,26 @@ class ZenQuery<T> extends ZenController {
   /// Whether this query is currently paused
   bool _isPaused = false;
 
+  /// Resolve configuration using QueryClient pattern
+  /// Priority: QueryClient defaults -> instance config
+  static ZenQueryConfig<T> _resolveConfig<T>(ZenQueryConfig? instanceConfig) {
+    try {
+      // Try to get QueryClient from DI
+      final client = Zen.findOrNull<ZenQueryClient>();
+      if (client != null) {
+        return client.resolveQueryConfig<T>(instanceConfig);
+      }
+    } catch (_) {
+      // QueryClient not registered, use defaults
+    }
+
+    // Fallback to library defaults
+    if (instanceConfig == null) {
+      return ZenQueryConfig.defaults.cast<T>();
+    }
+    return ZenQueryConfig.defaults.merge(instanceConfig).cast<T>();
+  }
+
   ZenQuery({
     required Object queryKey,
     required this.fetcher,
@@ -121,7 +141,7 @@ class ZenQuery<T> extends ZenController {
     bool registerInCache = true,
     bool enabled = true,
   })  : queryKey = QueryKey.normalize(queryKey),
-        config = ZenQueryConfig.defaults.merge(config).cast<T>(),
+        config = _resolveConfig<T>(config),
         _registerInCache = registerInCache,
         enabled = RxBool(enabled) {
     // ⭐ AUTOMATIC CHILD CONTROLLER TRACKING
@@ -426,7 +446,7 @@ class ZenQuery<T> extends ZenController {
     _setupBackgroundRefetch();
 
     // Refetch if data is stale and refetchOnResume is enabled
-    if (config.refetchOnResume && isStale && enabled.value && !_isDisposed) {
+    if ((config.refetchOnResume) && isStale && enabled.value && !_isDisposed) {
       fetch().then(
         (_) {},
         onError: (error, stackTrace) {

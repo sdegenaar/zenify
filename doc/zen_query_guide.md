@@ -158,22 +158,50 @@ ZenQuery(
 
 ### Global Defaults
 
-Set defaults for all queries:
-```dart
-// Define custom defaults
-const myDefaults = ZenQueryConfig(
-  staleTime: Duration(minutes: 5),
-  cacheTime: Duration(hours: 1),
-  retryCount: 3,
-);
+Set defaults for all queries using `ZenQueryClient`:
 
-// Use in queries
+```dart
+// In main.dart
+void main() {
+  Zen.init();
+  
+  // Create QueryClient with your app's defaults
+  final queryClient = ZenQueryClient(
+    defaultOptions: ZenQueryClientOptions(
+      queries: ZenQueryConfig(
+        staleTime: Duration(minutes: 5),
+        cacheTime: Duration(hours: 1),
+        retryCount: 3,
+      ),
+    ),
+  );
+  
+  // Register with Zen DI
+  Zen.put(queryClient);
+  
+  runApp(MyApp());
+}
+
+// Queries automatically use these defaults
 final query = ZenQuery<User>(
   queryKey: 'user:123',
   fetcher: (_) => api.getUser(123),
-  config: myDefaults,
+  // Uses QueryClient defaults
 );
-``` 
+
+// Override specific fields with copyWith
+final defaults = Zen.find<ZenQueryClient>().getQueryDefaults<User>();
+final customQuery = ZenQuery<User>(
+  queryKey: 'user:456',
+  fetcher: (_) => api.getUser(456),
+  config: defaults.copyWith(
+    retryCount: 10,  // Override just this field
+  ),
+);
+```
+
+[See complete QueryClient guide →](query_client_pattern.md)
+ 
 
 ### Per-Query Configuration
 ```dart

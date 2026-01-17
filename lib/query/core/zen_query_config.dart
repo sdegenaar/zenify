@@ -18,13 +18,16 @@ enum ZenQueryStatus {
 }
 
 /// Configuration for ZenQuery
+///
+/// Follows TanStack Query's pattern: all fields have concrete defaults,
+/// and configuration is merged explicitly rather than using nullable fields.
 @immutable
 class ZenQueryConfig<T> {
   /// How long data remains fresh
-  final Duration? staleTime;
+  final Duration staleTime;
 
   /// How long inactive data remains in cache
-  final Duration? cacheTime;
+  final Duration cacheTime;
 
   /// Whether to refetch when component mounts
   final bool refetchOnMount;
@@ -123,16 +126,16 @@ class ZenQueryConfig<T> {
     this.placeholderData,
   });
 
-  /// Default configuration
+  /// Standard library defaults
   static const defaults = ZenQueryConfig();
 
-  /// Merge with another config
+  /// Merge with another config (other's values take precedence)
   ZenQueryConfig<T> merge(ZenQueryConfig<T>? other) {
     if (other == null) return this;
 
     return ZenQueryConfig<T>(
-      staleTime: other.staleTime ?? staleTime,
-      cacheTime: other.cacheTime ?? cacheTime,
+      staleTime: other.staleTime,
+      cacheTime: other.cacheTime,
       refetchOnMount: other.refetchOnMount,
       refetchOnFocus: other.refetchOnFocus,
       refetchOnReconnect: other.refetchOnReconnect,
@@ -151,6 +154,62 @@ class ZenQueryConfig<T> {
       toJson: other.toJson ?? toJson,
       storage: other.storage ?? storage,
       placeholderData: other.placeholderData ?? placeholderData,
+    );
+  }
+
+  /// Create a copy with specific fields overridden
+  ///
+  /// This provides a clean API for creating variants:
+  /// ```dart
+  /// final baseConfig = ZenQueryConfig(staleTime: Duration.zero);
+  /// final withRetries = baseConfig.copyWith(retryCount: 5);
+  /// ```
+  ZenQueryConfig<T> copyWith({
+    Duration? staleTime,
+    Duration? cacheTime,
+    bool? refetchOnMount,
+    bool? refetchOnFocus,
+    bool? refetchOnReconnect,
+    Duration? refetchInterval,
+    bool? enableBackgroundRefetch,
+    int? retryCount,
+    Duration? retryDelay,
+    Duration? maxRetryDelay,
+    double? retryBackoffMultiplier,
+    bool? exponentialBackoff,
+    bool? retryWithJitter,
+    bool? autoPauseOnBackground,
+    bool? refetchOnResume,
+    bool? persist,
+    T Function(Map<String, dynamic> json)? fromJson,
+    Map<String, dynamic> Function(T data)? toJson,
+    ZenStorage? storage,
+    T? placeholderData,
+  }) {
+    return ZenQueryConfig<T>(
+      staleTime: staleTime ?? this.staleTime,
+      cacheTime: cacheTime ?? this.cacheTime,
+      refetchOnMount: refetchOnMount ?? this.refetchOnMount,
+      refetchOnFocus: refetchOnFocus ?? this.refetchOnFocus,
+      refetchOnReconnect: refetchOnReconnect ?? this.refetchOnReconnect,
+      refetchInterval: refetchInterval ?? this.refetchInterval,
+      enableBackgroundRefetch:
+          enableBackgroundRefetch ?? this.enableBackgroundRefetch,
+      retryCount: retryCount ?? this.retryCount,
+      retryDelay: retryDelay ?? this.retryDelay,
+      maxRetryDelay: maxRetryDelay ?? this.maxRetryDelay,
+      retryBackoffMultiplier:
+          retryBackoffMultiplier ?? this.retryBackoffMultiplier,
+      exponentialBackoff: exponentialBackoff ?? this.exponentialBackoff,
+      retryWithJitter: retryWithJitter ?? this.retryWithJitter,
+      autoPauseOnBackground:
+          autoPauseOnBackground ?? this.autoPauseOnBackground,
+      refetchOnResume: refetchOnResume ?? this.refetchOnResume,
+      persist: persist ?? this.persist,
+      fromJson: fromJson ?? this.fromJson,
+      toJson: toJson ?? this.toJson,
+      storage: storage ?? this.storage,
+      placeholderData: placeholderData ?? this.placeholderData,
     );
   }
 

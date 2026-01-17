@@ -338,7 +338,7 @@ class ZenQueryCache {
           DateTime.fromMillisecondsSinceEpoch(entry['timestamp'] as int);
 
       // Check if expired based on cacheTime
-      final cacheTime = config.cacheTime ?? const Duration(minutes: 5);
+      final cacheTime = config.cacheTime;
       if (DateTime.now().difference(timestamp) > cacheTime) {
         await storage.delete(key);
         return null;

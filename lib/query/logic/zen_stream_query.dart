@@ -4,6 +4,7 @@ import '../../controllers/zen_controller.dart';
 import '../../core/zen_logger.dart';
 import '../../core/zen_scope.dart';
 import '../../di/zen_lifecycle.dart';
+import '../../di/zen_di.dart';
 import '../../reactive/core/rx_value.dart';
 import '../../workers/zen_workers.dart';
 import '../query.dart';
@@ -37,6 +38,23 @@ class ZenStreamQuery<T> extends ZenController {
   @override
   bool get isDisposed => _isDisposed;
 
+  /// Resolve configuration using QueryClient pattern
+  static ZenQueryConfig<T> _resolveConfig<T>(ZenQueryConfig? instanceConfig) {
+    try {
+      final client = Zen.findOrNull<ZenQueryClient>();
+      if (client != null) {
+        return client.resolveQueryConfig<T>(instanceConfig);
+      }
+    } catch (_) {
+      // QueryClient not registered, use defaults
+    }
+
+    if (instanceConfig == null) {
+      return ZenQueryConfig.defaults.cast<T>();
+    }
+    return ZenQueryConfig.defaults.merge(instanceConfig).cast<T>();
+  }
+
   ZenStreamQuery({
     required this.queryKey,
     required this.streamFn,
@@ -45,7 +63,7 @@ class ZenStreamQuery<T> extends ZenController {
     this.scope,
     this.autoDispose = true,
     bool autoSubscribe = true,
-  })  : config = ZenQueryConfig.defaults.merge(config).cast<T>(),
+  })  : config = _resolveConfig(config),
         data = Rx<T?>(initialData) {
     // ⭐ AUTOMATIC CHILD CONTROLLER TRACKING
     // If a parent controller is currently initializing (onInit is running),

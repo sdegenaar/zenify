@@ -92,7 +92,7 @@ The scope hierarchy automatically manages lifecycle - when you exit a feature, a
 
 ```yaml
 dependencies:
-  zenify: ^1.4.0
+  zenify: ^1.4.1
 ```
 
 ### 2. Initialize
@@ -409,11 +409,16 @@ void main() {
   // Optional: Configure logging and performance tracking
   ZenConfig.configure(level: ZenLogLevel.info, performanceTracking: true);
 
-  // Optional: Set query defaults
-  ZenQueryConfig.defaults = ZenQueryConfig(
-    staleTime: Duration(minutes: 5),
-    cacheTime: Duration(hours: 1),
+  // Optional: Set global query defaults
+  final queryClient = ZenQueryClient(
+    defaultOptions: ZenQueryClientOptions(
+      queries: ZenQueryConfig(
+        staleTime: Duration(minutes: 5),
+        cacheTime: Duration(hours: 1),
+      ),
+    ),
   );
+  Zen.put(queryClient);
 
   runApp(MyApp());
 }
