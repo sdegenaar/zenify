@@ -104,12 +104,15 @@ class _ScopeTreeViewState extends State<ScopeTreeView> {
             ),
           ),
           const SizedBox(width: 8),
-          Text(
-            scope.name ?? 'Unnamed',
-            style: TextStyle(
-              color: Colors.purple[300],
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
+          Flexible(
+            child: Text(
+              scope.name ?? 'Unnamed',
+              style: TextStyle(
+                color: Colors.purple[300],
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
           const SizedBox(width: 8),
@@ -121,7 +124,7 @@ class _ScopeTreeViewState extends State<ScopeTreeView> {
               fontFamily: 'monospace',
             ),
           ),
-          const Spacer(),
+          const Spacer(), // Pushes button to right, but allows text to shrink if needed
           TextButton.icon(
             onPressed: () {
               setState(() {

@@ -1,3 +1,12 @@
+## [1.4.4]
+
+### DevTools Improvements
+
+**Enhanced ZenInspector**
+- **Robust Feedback:** Replaced `ScaffoldMessenger` with custom internal toast system. Eliminates crashes when using Inspector without a Scaffold.
+- **UI Polish:** Fixed layout overflows by removing redundant inline actions and fixing button layouts.
+- **Data Preview:** Added scrolling and max-height constraints to large data/error previews.
+
 ## [1.4.3]
 
 ### Bug Fixes

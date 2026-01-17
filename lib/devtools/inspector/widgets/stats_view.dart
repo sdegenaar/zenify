@@ -196,10 +196,14 @@ class _StatsViewState extends State<StatsView> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: TextStyle(color: Colors.grey[400], fontSize: 14),
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(color: Colors.grey[400], fontSize: 14),
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
+          const SizedBox(width: 8),
           Text(
             value,
             style: const TextStyle(

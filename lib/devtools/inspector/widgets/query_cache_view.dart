@@ -1,4 +1,5 @@
 // lib/devtools/inspector/widgets/query_cache_view.dart
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../query/core/zen_query_cache.dart';
@@ -27,40 +28,73 @@ class _QueryCacheViewState extends State<QueryCacheView> {
       return query.queryKey.toLowerCase().contains(_searchQuery.toLowerCase());
     }).toList();
 
-    return Row(
+    return Stack(
+      alignment: Alignment.bottomCenter,
       children: [
-        // Query list (left side)
-        Expanded(
-          flex: 2,
-          child: Column(
-            children: [
-              // Search bar
-              _buildSearchBar(),
+        Row(
+          children: [
+            // Query list (left side)
+            Expanded(
+              flex: 2,
+              child: Column(
+                children: [
+                  // Search bar
+                  _buildSearchBar(),
 
-              // Query list
-              Expanded(
-                child: filteredQueries.isEmpty
-                    ? _buildEmptyState()
-                    : ListView.builder(
-                        itemCount: filteredQueries.length,
-                        itemBuilder: (context, index) {
-                          final query = filteredQueries[index];
-                          return _buildQueryListItem(query);
-                        },
-                      ),
+                  // Query list
+                  Expanded(
+                    child: filteredQueries.isEmpty
+                        ? _buildEmptyState()
+                        : ListView.builder(
+                            itemCount: filteredQueries.length,
+                            itemBuilder: (context, index) {
+                              final query = filteredQueries[index];
+                              return _buildQueryListItem(query);
+                            },
+                          ),
+                  ),
+                ],
               ),
-            ],
+            ),
+
+            // Divider
+            Container(width: 1, color: Colors.grey[800]),
+
+            // Query details (right side)
+            Expanded(
+              flex: 3,
+              child: _buildQueryDetails(),
+            ),
+          ],
+        ),
+
+        // Status Message Overlay
+        if (_statusMessage != null)
+          Positioned(
+            bottom: 16,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.grey[800],
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 8,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Text(
+                _statusMessage!,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
           ),
-        ),
-
-        // Divider
-        Container(width: 1, color: Colors.grey[800]),
-
-        // Query details (right side)
-        Expanded(
-          flex: 3,
-          child: _buildQueryDetails(),
-        ),
       ],
     );
   }
@@ -168,29 +202,6 @@ class _QueryCacheViewState extends State<QueryCacheView> {
             ),
 
             // Actions
-            if (isSelected)
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.refresh, size: 18),
-                    onPressed: () => _refetchQuery(query),
-                    tooltip: 'Refetch',
-                    color: Colors.grey[400],
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                  ),
-                  const SizedBox(width: 8),
-                  IconButton(
-                    icon: const Icon(Icons.delete, size: 18),
-                    onPressed: () => _invalidateQuery(query),
-                    tooltip: 'Invalidate',
-                    color: Colors.grey[400],
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                  ),
-                ],
-              ),
           ],
         ),
       ),
@@ -291,18 +302,23 @@ class _QueryCacheViewState extends State<QueryCacheView> {
             _buildDetailSection(
               'Data Preview',
               [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.black,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: SelectableText(
-                    query.data.value.toString(),
-                    style: TextStyle(
-                      color: Colors.green[300],
-                      fontSize: 11,
-                      fontFamily: 'monospace',
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 200),
+                  child: SingleChildScrollView(
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.black,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: SelectableText(
+                        query.data.value.toString(),
+                        style: TextStyle(
+                          color: Colors.green[300],
+                          fontSize: 11,
+                          fontFamily: 'monospace',
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -327,18 +343,23 @@ class _QueryCacheViewState extends State<QueryCacheView> {
             _buildDetailSection(
               'Error',
               [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.black,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: SelectableText(
-                    query.error.value.toString(),
-                    style: TextStyle(
-                      color: Colors.red[300],
-                      fontSize: 11,
-                      fontFamily: 'monospace',
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 150),
+                  child: SingleChildScrollView(
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.black,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: SelectableText(
+                        query.error.value.toString(),
+                        style: TextStyle(
+                          color: Colors.red[300],
+                          fontSize: 11,
+                          fontFamily: 'monospace',
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -351,28 +372,37 @@ class _QueryCacheViewState extends State<QueryCacheView> {
           _buildDetailSection(
             'Actions',
             [
-              Row(
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
                 children: [
-                  Expanded(
+                  SizedBox(
+                    width: 120,
                     child: ElevatedButton.icon(
                       onPressed: () => _refetchQuery(query),
-                      icon: const Icon(Icons.refresh, size: 18),
-                      label: const Text('Refetch'),
+                      icon: const Icon(Icons.refresh, size: 16),
+                      label:
+                          const Text('Refetch', style: TextStyle(fontSize: 12)),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.purple[700],
                         foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 8),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
+                  SizedBox(
+                    width: 120,
                     child: ElevatedButton.icon(
                       onPressed: () => _invalidateQuery(query),
-                      icon: const Icon(Icons.delete, size: 18),
-                      label: const Text('Invalidate'),
+                      icon: const Icon(Icons.delete, size: 16),
+                      label: const Text('Invalidate',
+                          style: TextStyle(fontSize: 12)),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red[700],
                         foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 8),
                       ),
                     ),
                   ),
@@ -447,27 +477,43 @@ class _QueryCacheViewState extends State<QueryCacheView> {
   void _refetchQuery(ZenQuery query) {
     query.refetch();
     setState(() {});
-    _showSnackBar('Refetching ${query.queryKey}...');
+    _showStatusMessage('Refetching ${query.queryKey}...');
   }
 
   void _invalidateQuery(ZenQuery query) {
     ZenQueryCache.instance.invalidateQuery(query.queryKey);
     setState(() {});
-    _showSnackBar('Invalidated ${query.queryKey}');
+    _showStatusMessage('Invalidated ${query.queryKey}');
   }
 
   void _copyToClipboard(String text) {
     Clipboard.setData(ClipboardData(text: text));
-    _showSnackBar('Copied to clipboard');
+    _showStatusMessage('Copied to clipboard');
   }
 
-  void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        duration: const Duration(seconds: 2),
-        backgroundColor: Colors.grey[800],
-      ),
-    );
+  // Internal status message state
+  String? _statusMessage;
+  Timer? _statusTimer;
+
+  void _showStatusMessage(String message) {
+    _statusTimer?.cancel();
+    setState(() {
+      _statusMessage = message;
+    });
+
+    // Auto-hide after 2 seconds
+    _statusTimer = Timer(const Duration(seconds: 2), () {
+      if (mounted) {
+        setState(() {
+          _statusMessage = null;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _statusTimer?.cancel();
+    super.dispose();
   }
 }
