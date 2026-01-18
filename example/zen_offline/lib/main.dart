@@ -19,14 +19,15 @@ void main() async {
     storage: PreferenceStorage(),
     mutationHandlers: {
       'create_post': (payload) async {
-        // This handler runs in background when network returns!
         await MockApi.createPost(Post.fromJson(payload));
       },
       'like_post': (payload) async {
-        await MockApi.likePost(payload['id'], payload['isLiked']);
+        final post = Post.fromJson(payload);
+        await MockApi.likePost(post.id, post.isLiked);
       },
       'delete_post': (payload) async {
-        await MockApi.deletePost(payload['id'] as String);
+        final post = Post.fromJson(payload);
+        await MockApi.deletePost(post.id);
       },
     },
   );

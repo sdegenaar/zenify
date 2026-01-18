@@ -544,6 +544,23 @@ void onHoverUser(String userId) {
 
 ### Optimistic Updates
 
+**Easy way with helpers:**
+```dart
+final updatePost = OptimisticMutation.listUpdate<Post>(
+  queryKey: 'posts',
+  mutationKey: 'update_post',
+  mutationFn: (post) => api.updatePost(post),
+  where: (item, updated) => item.id == updated.id,
+);
+
+// Use it
+updatePost.mutate(updatedPost);
+```
+
+See [Offline Guide](offline_guide.md#35-optimistic-updates-instant-feedback) for all helpers (`listAdd`, `listUpdate`, `listRemove`, `add`, `update`, `remove`).
+
+**Manual approach (advanced):**
+
 Update UI instantly, rollback on error:
 ```dart
 void updateUser(User newUser) {

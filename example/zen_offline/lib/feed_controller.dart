@@ -10,8 +10,8 @@ class FeedController extends ZenController {
 
   // Mutation to create a post
   late final ZenMutation<Post, Post> createPostMutation;
-  late final ZenMutation<void, Map<String, dynamic>> likeMutation;
-  late final ZenMutation<void, Map<String, dynamic>> deleteMutation;
+  late final ZenMutation<Post, Post> likeMutation;
+  late final ZenMutation<void, Post> deleteMutation;
 
   @override
   void onInit() {
@@ -30,59 +30,30 @@ class FeedController extends ZenController {
       ),
     );
 
-    createPostMutation = ZenMutation(
-      mutationKey: 'create_post', // Required for offline queueing
+    // ✨ NEW: Using optimistic helpers (3 lines vs 15+)
+    createPostMutation = OptimisticMutation.listAdd<Post>(
+      queryKey: 'feed',
+      mutationKey: 'create_post',
       mutationFn: (post) => MockApi.createPost(post),
-      onMutate: (newPost) async {
-        // Optimistic Update!
-        // We manually update the cache to show the new post immediately
-        ZenQueryCache.instance.setQueryData<List<Post>>(
-          'feed',
-          (old) => [newPost, ...(old ?? [])],
-        );
-        return null; // context
-      },
-      onSettled: (_, _, _, _) {
-        // Refetch to reflect server state (ids, timestamps)
-        postsQuery.refetch();
-      },
     );
 
-    likeMutation = ZenMutation(
+    // ✨ NEW: Using optimistic helper for updates
+    likeMutation = OptimisticMutation.listUpdate<Post>(
+      queryKey: 'feed',
       mutationKey: 'like_post',
-      mutationFn: (vars) => MockApi.likePost(vars['id'], vars['isLiked']),
-      onMutate: (vars) async {
-        final id = vars['id'] as String;
-        final isLiked = vars['isLiked'] as bool;
-
-        ZenQueryCache.instance.setQueryData<List<Post>>(
-          'feed',
-          (old) =>
-              old
-                  ?.map((p) => p.id == id ? p.copyWith(isLiked: isLiked) : p)
-                  .toList() ??
-              [],
-        );
-        return null;
+      mutationFn: (post) async {
+        await MockApi.likePost(post.id, post.isLiked);
+        return post; // Return the updated post
       },
+      where: (item, updated) => item.id == updated.id,
     );
 
-    deleteMutation = ZenMutation(
+    // ✨ NEW: Using optimistic helper for deletes
+    deleteMutation = OptimisticMutation.listRemove<Post>(
+      queryKey: 'feed',
       mutationKey: 'delete_post',
-      mutationFn: (vars) => MockApi.deletePost(vars['id'] as String),
-      onMutate: (vars) async {
-        final id = vars['id'] as String;
-        ZenQueryCache.instance.setQueryData<List<Post>>(
-          'feed',
-          (old) => old?.where((p) => p.id != id).toList() ?? [],
-        );
-        return null;
-      },
-      onError: (e, vars, context) {
-        // Rollback logic could go here
-        // For now we just invalidate to be safe
-        postsQuery.invalidate();
-      },
+      mutationFn: (post) => MockApi.deletePost(post.id),
+      where: (item, toRemove) => item.id == toRemove.id,
     );
   }
 
@@ -102,10 +73,12 @@ class FeedController extends ZenController {
   }
 
   void toggleLike(Post post) {
-    likeMutation.mutate({'id': post.id, 'isLiked': !post.isLiked});
+    // Pass the updated post object
+    likeMutation.mutate(post.copyWith(isLiked: !post.isLiked));
   }
 
   void deletePost(Post post) {
-    deleteMutation.mutate({'id': post.id});
+    // Pass the post object to delete
+    deleteMutation.mutate(post);
   }
 }

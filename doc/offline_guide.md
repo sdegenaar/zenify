@@ -144,26 +144,115 @@ await Zen.init(
 
 To provide the best offline experience, update your UI immediately before the server responds.
 
+### Easy Way: Use Helpers (Recommended)
+
+Zenify provides helpers for common optimistic update patterns:
+
+**Add to list:**
+```dart
+final createPost = OptimisticMutation.listAdd<Post>(
+  queryKey: 'posts',
+  mutationKey: 'create_post',
+  mutationFn: (post) => api.createPost(post),
+);
+```
+
+**Update in list:**
+```dart
+final updatePost = OptimisticMutation.listUpdate<Post>(
+  queryKey: 'posts',
+  mutationKey: 'update_post',
+  mutationFn: (post) => api.updatePost(post),
+  where: (item, updated) => item.id == updated.id,
+);
+```
+
+**Remove from list:**
+```dart
+final deletePost = OptimisticMutation.listRemove<Post>(
+  queryKey: 'posts',
+  mutationKey: 'delete_post',
+  mutationFn: (post) => api.deletePost(post.id),
+  where: (item, toRemove) => item.id == toRemove.id,
+);
+```
+
+**Single value operations:**
+```dart
+// Create/Update
+final updateUser = OptimisticMutation.update<User>(
+  queryKey: 'current_user',
+  mutationKey: 'update_user',
+  mutationFn: (user) => api.updateUser(user),
+);
+
+// Delete
+final logout = OptimisticMutation.remove(
+  queryKey: 'current_user',
+  mutationKey: 'logout',
+  mutationFn: () => api.logout(),
+);
+```
+
+**Optional callbacks:**
+
+All helpers support optional `onSuccess` and `onError` callbacks for custom logic:
+
+```dart
+final createPost = OptimisticMutation.listAdd<Post>(
+  queryKey: 'posts',
+  mutationKey: 'create_post',
+  mutationFn: (post) => api.createPost(post),
+  onSuccess: (data, item, context) {
+    // Custom success logic
+    logger.info('Post created successfully');
+    analytics.logEvent('post_created');
+  },
+  onError: (error, item) {
+    // Custom error handling (rollback is automatic)
+    logger.error('Failed to create post', error);
+    analytics.logError('post_creation_failed', error);
+  },
+);
+```
+
+**Note:** Rollback happens automatically on error, even without `onError`. The callbacks are purely for additional custom logic.
+
+### Advanced: Manual Control
+
+For complex scenarios (updating multiple queries, custom rollback logic):
+
 ```dart
 final createPost = ZenMutation<Post, Post>(
   mutationKey: 'create_post',
   mutationFn: (post) => api.createPost(post),
   onMutate: (newPost) async {
-    // Standard Way: Update the cache instantly!
+    // Update multiple queries
     ZenQueryCache.instance.setQueryData<List<Post>>(
       'feed',
       (oldData) => [newPost, ...(oldData ?? [])],
     );
+    ZenQueryCache.instance.setQueryData<List<Post>>(
+      'trending',
+      (oldData) => [newPost, ...(oldData ?? [])],
+    );
      
-    return null; // context
+    return oldData; // Save for rollback
   },
   onError: (error, vars, context) {
-    // Optional: Rollback if needed
+    // Custom rollback logic
+    if (context != null) {
+      ZenQueryCache.instance.setQueryData('feed', (_) => context);
+    }
   }
 );
 ```
 
-Using `setQueryData`, the user sees their new post immediately, even if they are offline. The mutation is queued in the background.
+**When to use helpers vs manual:**
+- ✅ **Use helpers** for standard CRUD operations (95% of cases)
+- ⚙️ **Use manual** for multi-query updates or complex rollback logic
+
+Using optimistic updates, users see changes immediately, even offline. Mutations are queued and sync when back online.
 
 ---
 

@@ -20,3 +20,6 @@ export 'logic/zen_stream_query.dart';
 export '../widgets/builders/zen_stream_query_builder.dart';
 export 'queue/zen_mutation_queue.dart';
 export 'queue/zen_mutation_job.dart';
+
+// Helpers
+export 'helpers/optimistic_mutations.dart';
