@@ -1,7 +1,13 @@
 import 'dart:async';
+import 'dart:math';
 import '../../controllers/zen_controller.dart';
 import '../../reactive/reactive.dart';
 import '../core/zen_query_enums.dart';
+
+// Internal imports for offline support
+import '../core/zen_query_cache.dart';
+import '../queue/zen_mutation_queue.dart';
+import '../queue/zen_mutation_job.dart';
 
 /// A reactive mutation that manages async data updates (creates/updates/deletes)
 ///
@@ -17,6 +23,12 @@ import '../core/zen_query_enums.dart';
 /// loginMutation.mutate(LoginArgs('user', 'pass'));
 /// ```
 class ZenMutation<TData, TVariables> extends ZenController {
+  /// Unique key for this mutation.
+  ///
+  /// Required for offline support. If set, this mutation can be queued
+  /// and replayed when the app comes back online.
+  final String? mutationKey;
+
   /// Function that performs the mutation
   final Future<TData> Function(TVariables variables) mutationFn;
 
@@ -63,14 +75,13 @@ class ZenMutation<TData, TVariables> extends ZenController {
 
   ZenMutation({
     required this.mutationFn,
+    this.mutationKey,
     this.onMutate,
     this.onSuccess,
     this.onError,
     this.onSettled,
   }) {
     // AUTOMATIC CHILD CONTROLLER TRACKING
-    // If a parent controller is currently initializing (onInit is running),
-    // automatically register this mutation with it for automatic disposal
     if (ZenController.currentParentController != null) {
       ZenController.currentParentController!.trackController(this);
     }
@@ -99,9 +110,15 @@ class ZenMutation<TData, TVariables> extends ZenController {
     Object? context;
 
     try {
-      // Lifecycle: onMutate
+      // 1. Lifecycle: onMutate
+      // Run immediately (optimistic updates depend on this)
       if (onMutate != null) {
         context = await onMutate!(variables);
+      }
+
+      // 2. Check Offline / Queueing
+      if (mutationKey != null && !ZenQueryCache.instance.isOnline) {
+        return _queueOfflineMutation(variables);
       }
 
       // Execute mutation
@@ -115,19 +132,22 @@ class ZenMutation<TData, TVariables> extends ZenController {
       _isLoadingNotifier?.value = false;
       update();
 
-      // Lifecycle: onSuccess (Definition)
+      // Lifecycle callbacks...
       this.onSuccess?.call(result, variables, context);
-      // Lifecycle: onSuccess (Call-time)
       onSuccess?.call(result, variables);
 
-      // Lifecycle: onSettled (Definition)
       this.onSettled?.call(result, null, variables, context);
-      // Lifecycle: onSettled (Call-time)
       onSettled?.call(result, null, variables);
 
       return result;
     } catch (e) {
       if (isDisposed) return null;
+
+      // Check if we should queue due to network error during execution
+      // (Simple check for now, can be improved to check Exception type)
+      if (mutationKey != null && !ZenQueryCache.instance.isOnline) {
+        return _queueOfflineMutation(variables);
+      }
 
       // Update state: Error
       error.value = e;
@@ -135,21 +155,58 @@ class ZenMutation<TData, TVariables> extends ZenController {
       _isLoadingNotifier?.value = false;
       update();
 
-      // Lifecycle: onError (Definition)
+      // Lifecycle callbacks...
       this.onError?.call(e, variables, context);
-      // Lifecycle: onError (Call-time)
       onError?.call(e, variables);
 
-      // Lifecycle: onSettled (Definition)
       this.onSettled?.call(null, e, variables, context);
-      // Lifecycle: onSettled (Call-time)
       onSettled?.call(null, e, variables);
 
-      // We generally don't rethrow here to prevent breaking UI event handlers,
-      // as the error state is captured in the reactive variable.
-      // If the caller awaits .mutate(), they can check .isError
       return null;
     }
+  }
+
+  Future<TData?> _queueOfflineMutation(TVariables variables) async {
+    // Attempt to serialize variables
+    Map<String, dynamic> payload;
+    try {
+      if (variables is Map<String, dynamic>) {
+        payload = variables;
+      } else {
+        // Try dynamic dispatch to toJson
+        payload = (variables as dynamic).toJson();
+      }
+    } catch (_) {
+      // Cannot serialize, abort queueing
+      // Fallback to normal error
+      // Or throw?
+      // Log and return null (error state?)
+      // Actually we'll just throw the original error or Offline error
+      throw StateError(
+          'Cannot queue offline mutation: variables must be Map<String, dynamic> or have toJson()');
+    }
+
+    final job = ZenMutationJob(
+      id: '${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(10000)}',
+      mutationKey: mutationKey!,
+      action: ZenMutationAction.custom,
+      payload: payload,
+      createdAt: DateTime.now(),
+    );
+
+    ZenMutationQueue.instance.add(job);
+
+    // Treat as "Pending" / "Optimistic Success"?
+    // We'll set status to idle? Or keep previous?
+    // For now, let's just log and return null.
+    // Ideally we should have a 'queued' status.
+    // For MVP transparency:
+    error.value =
+        'Mutation queued for offline replay'; // Not an exception object?
+    status.value = ZenMutationStatus.idle; // Reset to idle
+    update();
+
+    return null;
   }
 
   /// Reset the mutation state to idle

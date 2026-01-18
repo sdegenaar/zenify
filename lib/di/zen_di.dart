@@ -8,6 +8,8 @@ import '../query/core/zen_query_cache.dart';
 import '../testing/zen_test_mode.dart';
 import 'zen_lifecycle.dart';
 import 'zen_reactive.dart';
+import '../query/core/zen_storage.dart';
+import '../query/queue/zen_mutation_queue.dart';
 
 /// Main Zenify API for dependency injection
 ///
@@ -30,8 +32,28 @@ class Zen {
   //
 
   /// Initialize Zenify - call once at app startup
-  static void init() {
+  ///
+  /// [storage] - Optional storage implementation for offline persistence
+  /// [mutationHandlers] - Optional registry of mutation handlers for offline replay
+  static Future<void> init({
+    ZenStorage? storage,
+    Map<String, ZenMutationHandler>? mutationHandlers,
+  }) async {
     _lifecycleManager.initLifecycleObserver();
+
+    // Register handlers if provided
+    if (mutationHandlers != null) {
+      ZenMutationQueue.instance.registerHandlers(mutationHandlers);
+    }
+
+    // Set global storage for queries
+    if (storage != null) {
+      ZenQueryCache.instance.setStorage(storage);
+    }
+
+    // Initialize persistence and queue (restores state)
+    await ZenMutationQueue.instance.init(storage);
+
     ZenLogger.logInfo('Zen initialized');
   }
 
@@ -227,7 +249,10 @@ class Zen {
   /// );
   /// ```
   static void setNetworkStream(Stream<bool> stream) {
-    ZenQueryCache.instance.setNetworkStream(stream);
+    // Broadcast it so multiple listeners can attach
+    final broadcast = stream.isBroadcast ? stream : stream.asBroadcastStream();
+    ZenQueryCache.instance.setNetworkStream(broadcast);
+    ZenMutationQueue.instance.setNetworkStream(broadcast);
   }
 
   //

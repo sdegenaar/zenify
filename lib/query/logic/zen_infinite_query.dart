@@ -65,13 +65,20 @@ class ZenInfiniteQuery<T> extends ZenQuery<List<T>> {
         _previousPageParam =
             initialPageParam, // Initially same, logic corrects it
         super(
-          // The main fetcher (for initial load/refetch)
           fetcher: (token) async {
-            // Pass the token to the infinite fetcher
             final firstPage = await infiniteFetcher(initialPageParam, token);
             return [firstPage];
           },
-        );
+        ) {
+    // Listen to data changes to recalculate cursors (e.g. after hydration)
+    // This supports offline persistence where data is restored but params are lost.
+    data.addListener(() {
+      final pages = data.value;
+      if (pages != null && pages.isNotEmpty) {
+        _updateParams(pages);
+      }
+    });
+  }
 
   /// Fetch the next page of data.
   ///

@@ -258,7 +258,13 @@ final query = ZenQuery<User>(
 
 ## Mutations
 
-While `ZenQuery` handles fetching data (reads), `ZenMutation` handles changing data (writes).
+Think of **Mutations** as the "Writes" of your application.
+While `ZenQuery` is for **Reading** data (like GET requests), `ZenMutation` is for **Changing** it (like POST, PUT, DELETE).
+
+**Why use `ZenMutation` instead of a simple async function?**
+- 📊 **Status Tracking**: Automatically tracks `isLoading`, `error`, and `success` states for your UI.
+- 📶 **Offline Engine**: Mutations can be **queued** when offline and automatically replayed when online.
+- 🎣 **Lifecycle Hooks**: Provides standard places (`onMutate`, `onSettled`) to update cache or show alerts.
 
 ```dart
 final loginMutation = ZenMutation<User, LoginArgs>(
@@ -831,7 +837,30 @@ class FeatureModule extends ZenModule {
     );
     // ✅ Automatically disposed when scope disposes!
   }
+    // ✅ Automatically disposed when scope disposes!
+  }
 }
+```
+
+### 6. Always Use Mutations for Writes
+Avoid calling API write methods directly. Using `ZenMutation` ensures:
+- **Offline Support**: Writes are queued when the network is down.
+- **State Management**: `isLoading`, `error`, and `success` states are tracked reactively.
+- **Cache Invalidation**: Hook into `onSettled` to automatically refresh related queries.
+
+```dart
+// ❌ Avoid:
+Future<void> deletePost() async {
+  await api.deletePost(id);
+  // Manual state management, no offline queue
+}
+
+// ✅ Correct:
+final deleteMutation = ZenMutation<void, String>(
+  mutationKey: 'delete_post',
+  mutationFn: (id) => api.deletePost(id),
+  onSettled: (_, __, ___, ____) => feedQuery.refetch(),
+);
 ```
 
 **Manual (Rare):** Only needed for standalone queries:

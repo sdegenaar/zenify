@@ -66,6 +66,9 @@ class ZenQueryCache {
   StreamSubscription<bool>? _networkSubscription;
   bool _isOnline = true;
 
+  /// Whether the app is currently connected to the network
+  bool get isOnline => _isOnline;
+
   /// Global storage implementation
   ZenStorage? _storage;
 
@@ -283,9 +286,22 @@ class ZenQueryCache {
     _setCacheEntry(queryKey, data, timestamp, cacheTime);
 
     // Persist if enabled
-    if (query != null && query.config.persist) {
-      _persistQuery(
-          queryKey, data, timestamp, query.config as ZenQueryConfig<T>);
+    if (query != null) {
+      // 1. Notify active query instance to update UI (Optimistic Updates / Prefetch)
+      // Use dynamic dispatch to handle generic type erasure safely
+      try {
+        (query as dynamic).setData(data);
+      } catch (e) {
+        ZenLogger.logWarning(
+          'Failed to propagate cache update to query $queryKey: $e',
+        );
+      }
+
+      // 2. Persist
+      if (query.config.persist) {
+        _persistQuery(
+            queryKey, data, timestamp, query.config as ZenQueryConfig<T>);
+      }
     }
   }
 
@@ -425,6 +441,24 @@ class ZenQueryCache {
       return null;
     }
     return entry.data as T?;
+  }
+
+  /// Functionally update cached data for a query.
+  ///
+  /// [updater] receives the previous data and returns new data.
+  /// Automatically sets the timestamp to now.
+  void setQueryData<T>(Object queryKey, T Function(T? oldData) updater) {
+    final normalizedKey = QueryKey.normalize(queryKey);
+    final oldData = getCachedData<T>(normalizedKey);
+    final newData = updater(oldData);
+
+    updateCache(normalizedKey, newData, DateTime.now());
+  }
+
+  /// Get cached timestamp for a query
+  DateTime? getTimestamp(Object queryKey) {
+    final normalizedKey = QueryKey.normalize(queryKey);
+    return _cache[normalizedKey]?.timestamp;
   }
 
   /// Invalidate query (mark as stale)

@@ -56,6 +56,12 @@ class ZenQueryConfig<T> {
   /// - `RefetchBehavior.always`: Always refetch on reconnect
   final RefetchBehavior refetchOnReconnect;
 
+  /// Network usage mode
+  /// - `NetworkMode.online`: Default. Pause if offline.
+  /// - `NetworkMode.always`: Always fetch (ignore offline).
+  /// - `NetworkMode.offlineFirst`: Use cache if offline, otherwise pause.
+  final NetworkMode networkMode;
+
   /// Interval for background refetching (null = disabled)
   final Duration? refetchInterval;
 
@@ -147,6 +153,7 @@ class ZenQueryConfig<T> {
     this.refetchOnMount = RefetchBehavior.ifStale,
     this.refetchOnFocus = RefetchBehavior.never,
     this.refetchOnReconnect = RefetchBehavior.ifStale,
+    this.networkMode = NetworkMode.online,
     this.refetchInterval,
     this.enableBackgroundRefetch = false,
     this.retryCount = 3,
@@ -178,6 +185,7 @@ class ZenQueryConfig<T> {
       refetchOnMount: other.refetchOnMount,
       refetchOnFocus: other.refetchOnFocus,
       refetchOnReconnect: other.refetchOnReconnect,
+      networkMode: other.networkMode,
       refetchInterval: other.refetchInterval ?? refetchInterval,
       enableBackgroundRefetch: other.enableBackgroundRefetch,
       retryCount: other.retryCount,
@@ -210,6 +218,7 @@ class ZenQueryConfig<T> {
     RefetchBehavior? refetchOnMount,
     RefetchBehavior? refetchOnFocus,
     RefetchBehavior? refetchOnReconnect,
+    NetworkMode? networkMode,
     Duration? refetchInterval,
     bool? enableBackgroundRefetch,
     int? retryCount,
@@ -233,6 +242,7 @@ class ZenQueryConfig<T> {
       refetchOnMount: refetchOnMount ?? this.refetchOnMount,
       refetchOnFocus: refetchOnFocus ?? this.refetchOnFocus,
       refetchOnReconnect: refetchOnReconnect ?? this.refetchOnReconnect,
+      networkMode: networkMode ?? this.networkMode,
       refetchInterval: refetchInterval ?? this.refetchInterval,
       enableBackgroundRefetch:
           enableBackgroundRefetch ?? this.enableBackgroundRefetch,
@@ -266,6 +276,7 @@ class ZenQueryConfig<T> {
       refetchOnMount: refetchOnMount,
       refetchOnFocus: refetchOnFocus,
       refetchOnReconnect: refetchOnReconnect,
+      networkMode: networkMode,
       refetchInterval: refetchInterval,
       enableBackgroundRefetch: enableBackgroundRefetch,
       retryCount: retryCount,

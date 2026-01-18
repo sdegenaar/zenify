@@ -1,3 +1,64 @@
+## [1.6.0]
+
+### 📶 Offline-First Engine
+
+**Zenify v1.6.0 introduces a robust offline synchronization engine inspired by TanStack Query.** Make your app resilient to network failures with minimal configuration.
+
+#### New Features
+
+**1. Robust Persistence (Auto-Hydration)**
+- **ZenStorage Interface**: Persist query data to any storage backend (SharedPreferences, Hive, SQLite).
+- **Auto-Hydration**: Queries automatically load cached data on startup.
+- **Background Sync**: Stale-while-revalidate pattern ensures data is instantly available while fetching fresh data in the background.
+
+```dart
+ZenQueryConfig(
+  persist: true,
+  // storage: MyStorage(), // Set globally or per query
+  fromJson: User.fromJson,
+  toJson: (user) => user.toJson(),
+)
+```
+
+**2. Offline Mutation Queue**
+- **Action Queueing**: Mutations (create/update/delete) triggered while offline are automatically queued.
+- **Auto-Replay**: Actions are replayed sequentially when the network is restored.
+- **Survivable**: Queues persist across app restarts (if configured).
+
+**3. Optimistic Updates (Instant Feedback)**
+- **`ZenQueryCache.setQueryData`**: New helper for function-based cache updates.
+- Update UI immediately before the server responds. Rollback automatically on error.
+
+```dart
+ZenQueryCache.instance.setQueryData<List<Post>>(
+  'feed',
+  (old) => [newPost, ...(old ?? [])], // Instant update!
+);
+```
+
+**4. Network Modes**
+- **`NetworkMode.online`**: Only fetch when online (default).
+- **`NetworkMode.offlineFirst`**: Use cache if offline, fetch if online.
+- **`NetworkMode.always`**: Always attempt fetch (useful for local networks).
+
+#### 🚀 Example App
+- **New Offline Example**: `example/zen_offline` showcases:
+  - Offline Feed with persistence.
+  - Optimistic Likes & Deletes.
+  - Network Simulation for easy testing.
+
+```dart
+// The complete Offline-First setup
+ZenQuery<List<Post>>(
+  queryKey: 'posts',
+  fetcher: (_) => api.getPosts(),
+  config: ZenQueryConfig(
+    persist: true,
+    networkMode: NetworkMode.offlineFirst,
+  ),
+);
+```
+
 ## [1.5.0]
 
 ### ⚠️ Breaking Changes

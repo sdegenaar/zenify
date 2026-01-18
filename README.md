@@ -49,6 +49,9 @@ GetX-like reactive system with `.obs()` and `Obx()`. Write less, accomplish more
 ### 🔥 React Query Style
 A native-inspired implementation of **TanStack Query patterns**: automatic caching, smart refetching, request deduplication, and stale-while-revalidate—built on top of the reactive system.
 
+### 📶 Offline-First Resilience
+Don't let network issues break your app. Zenify includes **Robust Persistence**, an **Offline Mutation Queue**, and **Optimistic Updates** out of the box with minimal configuration.
+
 ---
 
 ## 🏗️ Understanding Scopes (The Foundation)
@@ -92,7 +95,7 @@ The scope hierarchy automatically manages lifecycle - when you exit a feature, a
 
 ```yaml
 dependencies:
-  zenify: ^1.5.0
+  zenify: ^1.6.0
 ```
 
 ### 2. Initialize
@@ -278,6 +281,36 @@ ZenQueryBuilder<User>(
 
 [See ZenQuery Guide →](doc/zen_query_guide.md)
 
+### 4. Offline Synchronization Engine (v1.6.0)
+
+Turn your app into an offline-capable powerhouse with **minimal configuration**.
+
+```dart
+// Auto-persist data to disk
+final postsQuery = ZenQuery<List<Post>>(
+  queryKey: 'posts',
+  fetcher: (_) => api.getPosts(),
+  config: ZenQueryConfig(
+    persist: true, 
+    networkMode: NetworkMode.offlineFirst,
+  ),
+);
+
+// Queue mutations when offline
+final createPost = ZenMutation<Post, Post>(
+  mutationKey: 'create_post', // Enables queuing
+  mutationFn: (post) => api.createPost(post),
+);
+```
+
+**Key Capabilities:**
+- 💾 **Storage Agnostic**: Works with Hive, SharedPreferences, SQLite, etc.
+- 🔄 **Mutation Queue**: Actions are queued and auto-replayed when online.
+- ⚡ **Optimistic Updates**: Update UI immediately, sync later.
+- 🌐 **Network Modes**: Control exactly how queries behave offline.
+
+[See Offline Guide →](doc/offline_guide.md)
+
 ---
 
 ## 💡 Common Patterns
@@ -457,6 +490,7 @@ void main() {
 ### Core Guides
 - [Reactive Core Guide](doc/reactive_core_guide.md) - Reactive values, collections, computed properties
 - [ZenQuery Guide](doc/zen_query_guide.md) - Async state, caching, mutations
+- [Offline-First Guide](doc/offline_guide.md) - Persistence & Synchronization
 - [Effects Guide](doc/effects_usage_guide.md) - Async operations with state management
 - [Hierarchical Scopes](doc/hierarchical_scopes_guide.md) - Advanced DI patterns
 - [State Management Patterns](doc/state_management_patterns.md) - Architectural patterns
@@ -468,6 +502,7 @@ void main() {
 - [E-commerce](example/ecommerce) - Real-world patterns
 - [Hierarchical Scopes Demo](example/hierarchical_scopes) - Advanced DI
 - [ZenQuery Demo](example/zenify_query) - Async state management
+- [Offline Demo](example/zen_offline) - Persistence & Queues (New!)
 - [Showcase](example/zenify_showcase) - All features
 
 ---
@@ -509,6 +544,7 @@ cd example/counter && flutter run
 **Choose your path:**
 - 👋 New to Zenify? → [5-minute Counter Tutorial](example/counter)
 - 🔥 Want async superpowers? → [ZenQuery Guide](doc/zen_query_guide.md)
+- 📶 Need offline support? → [Offline Guide](doc/offline_guide.md)
 - 🏗️ Building something complex? → [Hierarchical Scopes Guide](doc/hierarchical_scopes_guide.md)
 - 🧪 Setting up tests? → [Testing Guide](doc/testing_guide.md)
 

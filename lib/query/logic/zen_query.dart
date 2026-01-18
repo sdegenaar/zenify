@@ -14,6 +14,8 @@ import '../core/zen_query_cache.dart';
 import '../core/zen_query_config.dart';
 import '../core/zen_query_client.dart';
 import '../core/zen_query_enums.dart';
+import '../core/zen_exceptions.dart';
+import '../../utils/zen_utils.dart';
 
 /// Function signature for data fetching with cancellation support
 typedef ZenQueryFetcher<T> = Future<T> Function(ZenCancelToken cancelToken);
@@ -55,6 +57,9 @@ class ZenQuery<T> extends ZenController {
 
   /// Current status of the query
   final Rx<ZenQueryStatus> status = Rx(ZenQueryStatus.idle);
+
+  /// Current network fetch status
+  final Rx<ZenQueryFetchStatus> fetchStatus = Rx(ZenQueryFetchStatus.idle);
 
   /// Current data (null if not loaded yet)
   final Rx<T?> data = Rx(null);
@@ -108,9 +113,6 @@ class ZenQuery<T> extends ZenController {
 
   /// Current cancellation token for the active request
   ZenCancelToken? _currentCancelToken;
-
-  /// Whether this query is currently paused
-  bool _isPaused = false;
 
   /// Resolve configuration using QueryClient pattern
   /// Priority: QueryClient defaults -> instance config
@@ -216,19 +218,42 @@ class ZenQuery<T> extends ZenController {
 
   /// Fetch or refetch data
   Future<T> fetch({bool force = false}) async {
-    // Check paused state
-    if (_isPaused && !force) {
-      if (hasData) return data.value!;
-      return Future.error('Query is paused');
-    }
-
-    // Check enabled state
+    // 1. Check enabled state (Priority 1)
     if (!enabled.value && !force) {
       if (hasData) return data.value!;
       return Future.error('Query is disabled');
     }
 
-    // Return cached data if available and not stale
+    // 2. Check Offline Status (Automatic Pause) (Priority 2)
+    // If we are offline and mode is NOT 'always', we pause.
+    final shouldPauseForNetwork = config.networkMode != NetworkMode.always &&
+        !ZenQueryCache.instance.isOnline;
+
+    if (shouldPauseForNetwork) {
+      if (config.networkMode == NetworkMode.offlineFirst &&
+          hasData &&
+          !isStale) {
+        return data.value!;
+      }
+
+      if (fetchStatus.value != ZenQueryFetchStatus.paused) {
+        ZenLogger.logDebug('Query $queryKey paused (offline)');
+        fetchStatus.value = ZenQueryFetchStatus.paused;
+        update();
+      }
+
+      if (hasData) return data.value!;
+      throw const ZenOfflineException('Query paused due to network connection');
+    }
+
+    // 3. Check Manual Pause (Sticky) (Priority 3)
+    // If manually paused, stay paused unless forced (or network check overrode it)
+    if (fetchStatus.value == ZenQueryFetchStatus.paused && !force) {
+      if (hasData) return data.value!;
+      return Future.error('Query is paused');
+    }
+
+    // 4. Return cached data if available and not stale
     if (!force && hasData && !isStale) {
       return data.value!;
     }
@@ -275,6 +300,9 @@ class ZenQuery<T> extends ZenController {
       status.value = ZenQueryStatus.loading;
     }
     _isLoadingNotifier?.value = true;
+    // Set fetch status to fetching
+    fetchStatus.value = ZenQueryFetchStatus.fetching;
+
     error.value = null;
     // Note: We do NOT clear isPlaceholderData here yet,
     // because if we have placeholder data, we want to keep showing it while loading
@@ -289,19 +317,21 @@ class ZenQuery<T> extends ZenController {
         if (hasData) return data.value!;
         throw ZenCancellationException('Request cancelled');
       }
-
       if (_isDisposed) {
         throw StateError('Query was disposed during fetch');
       }
 
-      // Update with success
-      data.value = result;
+      // Update state: Success
+      // Use structural sharing to prevent unnecessary rebuilds
+      final optimizedData = ZenUtils.shareStructure(data.value, result);
+      data.value = optimizedData;
       status.value = ZenQueryStatus.success;
       isPlaceholderData.value = false; // Real data arrived
       _isLoadingNotifier?.value = false;
       error.value = null;
       _lastFetchTime = DateTime.now();
       _retryAttempt = 0;
+      fetchStatus.value = ZenQueryFetchStatus.idle;
       update();
 
       // Cache the result if caching is enabled
@@ -342,6 +372,7 @@ class ZenQuery<T> extends ZenController {
       error.value = e;
       status.value = ZenQueryStatus.error;
       _isLoadingNotifier?.value = false;
+      fetchStatus.value = ZenQueryFetchStatus.idle;
       update();
 
       rethrow;
@@ -357,6 +388,7 @@ class ZenQuery<T> extends ZenController {
       ZenLogger.logDebug('Cancelling pending request for $queryKey');
       _currentCancelToken!.cancel('Query disposed or new fetch started');
       _currentCancelToken = null;
+      fetchStatus.value = ZenQueryFetchStatus.idle;
     }
   }
 
@@ -424,6 +456,12 @@ class ZenQuery<T> extends ZenController {
     return delay;
   }
 
+  /// Helper to stop background refetch timer
+  void _stopBackgroundRefetch() {
+    _refetchTimer?.cancel();
+    _refetchTimer = null;
+  }
+
   /// Pause this query
   ///
   /// Pausing a query will:
@@ -433,18 +471,15 @@ class ZenQuery<T> extends ZenController {
   ///
   /// This is useful for battery optimization when the app is backgrounded.
   void pause() {
-    if (_isPaused) return;
-
-    _isPaused = true;
-
-    // Cancel background refetch timer
-    _refetchTimer?.cancel();
-    _refetchTimer = null;
-
-    // Cancel any pending request
     _cancelPendingRequest();
+    _stopBackgroundRefetch();
 
-    ZenLogger.logDebug('Query paused: $queryKey');
+    // Set status to paused
+    if (fetchStatus.value != ZenQueryFetchStatus.paused) {
+      fetchStatus.value = ZenQueryFetchStatus.paused;
+      ZenLogger.logDebug('Query paused: $queryKey');
+      update();
+    }
   }
 
   /// Resume this query
@@ -452,12 +487,15 @@ class ZenQuery<T> extends ZenController {
   /// Resuming a query will:
   /// - Restart background refetch timers (if configured)
   /// - Refetch data if stale (if refetchOnResume is enabled)
+  /// - Set fetchStatus to idle (so new fetches can happen)
   ///
   /// This is called automatically when the app returns to foreground.
   void resume() {
-    if (!_isPaused) return;
-
-    _isPaused = false;
+    if (fetchStatus.value == ZenQueryFetchStatus.paused) {
+      fetchStatus.value = ZenQueryFetchStatus.idle;
+      ZenLogger.logDebug('Query resumed: $queryKey');
+      update();
+    }
 
     // Restart background refetch if configured
     _setupBackgroundRefetch();
@@ -479,7 +517,8 @@ class ZenQuery<T> extends ZenController {
 
   /// Manually set data (for optimistic updates)
   void setData(T newData) {
-    data.value = newData;
+    // Use structural sharing
+    data.value = ZenUtils.shareStructure(data.value, newData);
     isPlaceholderData.value = false; // Manual set implies real data
     if (status.value == ZenQueryStatus.idle) {
       status.value = ZenQueryStatus.success;
@@ -521,6 +560,7 @@ class ZenQuery<T> extends ZenController {
     status.value =
         initialData != null ? ZenQueryStatus.success : ZenQueryStatus.idle;
     _isLoadingNotifier?.value = false;
+    fetchStatus.value = ZenQueryFetchStatus.idle;
     _lastFetchTime = initialData != null ? DateTime.now() : null;
     _retryAttempt = 0;
     _cancelPendingRequest();
@@ -593,9 +633,10 @@ class ZenQuery<T> extends ZenController {
         );
 
         if (hydratedData != null && !_isDisposed) {
-          data.value = hydratedData;
+          data.value = ZenUtils.shareStructure(data.value, hydratedData);
           status.value = ZenQueryStatus.success;
           isPlaceholderData.value = false;
+          _lastFetchTime = ZenQueryCache.instance.getTimestamp(queryKey);
           // If we found hydrated data, we might still want to fetch if stale,
           // but we shouldn't overwrite it with placeholder data.
         }

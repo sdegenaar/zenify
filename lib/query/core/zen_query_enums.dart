@@ -31,6 +31,20 @@ enum ZenMutationStatus {
   error,
 }
 
+/// Status of the network request for a query
+///
+/// Separates the "network state" from the "data state" (ZenQueryStatus).
+enum ZenQueryFetchStatus {
+  /// Query is not currently fetching
+  idle,
+
+  /// Query is currently fetching via network
+  fetching,
+
+  /// Query wanted to fetch but is paused (e.g., no network connection)
+  paused,
+}
+
 /// Refetch behavior for queries
 ///
 /// Matches TanStack Query's refetch modes for full semantic parity.
@@ -77,3 +91,20 @@ extension RefetchBehaviorX on RefetchBehavior {
 /// }
 /// ```
 typedef RetryDelayFn = Duration Function(int attempt, Object error);
+
+/// Network usage mode
+///
+/// Determines how queries behave based on network connectivity.
+enum NetworkMode {
+  /// Default. Fetches require network connection.
+  /// If offline, queries will pause and wait for connection.
+  online,
+
+  /// Always fetch, regardless of network status.
+  /// Useful for localhost or internal networks not detected by standard connectivity checks.
+  always,
+
+  /// Offline first. Return cache if available.
+  /// If cache is missing, pause and wait for connection.
+  offlineFirst,
+}
