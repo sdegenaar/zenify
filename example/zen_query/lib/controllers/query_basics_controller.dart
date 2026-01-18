@@ -23,8 +23,8 @@ class QueryBasicsController extends ZenController {
         retryCount: 3,
         retryDelay: Duration(seconds: 1),
         exponentialBackoff: true,
-        refetchOnMount: true,
-        refetchOnFocus: true,
+        refetchOnMount: RefetchBehavior.ifStale,
+        refetchOnFocus: RefetchBehavior.ifStale,
       ),
     );
 

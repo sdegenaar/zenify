@@ -1,3 +1,68 @@
+## [1.5.0]
+
+### ⚠️ Breaking Changes
+
+**RefetchBehavior Enum - Explicit Refetch Control**
+
+Replaced `bool` refetch flags with `RefetchBehavior` enum for semantic clarity and new capabilities.
+
+**Migration:**
+- `refetchOnMount: true` → `RefetchBehavior.ifStale`
+- `refetchOnMount: false` → `RefetchBehavior.never`
+- Same for `refetchOnFocus` and `refetchOnReconnect`
+
+**New Capability:**
+- `RefetchBehavior.always` - Force refetch regardless of staleness (critical data)
+
+```dart
+// Before
+ZenQueryConfig(refetchOnMount: true)
+
+// After
+ZenQueryConfig(refetchOnMount: RefetchBehavior.ifStale)
+
+// New: Force refetch for critical data
+ZenQueryConfig(refetchOnMount: RefetchBehavior.always)
+```
+
+**Why:** Matches TanStack Query v5's explicit refetch modes. `true` was ambiguous - does it mean "always" or "if stale"?
+
+**See:** `doc/migration_v1_5_0.md` for complete migration guide.
+
+### ✨ Features
+
+**1. RefetchBehavior Enum**
+- **Semantic Clarity**: Explicit refetch behavior eliminates ambiguity.
+- **New "Always" Mode**: Force refetch for real-time/critical data (financial dashboards, live scores, etc.).
+- **Extracted to `zen_query_enums.dart`**: Clean architecture with dedicated enum file.
+
+**2. Dynamic Retry Delays**
+- **`retryDelayFn`**: Custom function to calculate retry delays based on error type.
+- **Error-Aware Retries**: Implement exponential backoff or custom delays depending on the exception (e.g., rate limits vs network errors).
+- **Full Control**: Override default strategies easily.
+
+```dart
+ZenQueryConfig(
+  retryDelayFn: (attempt, error) {
+    if (error is RateLimitException) return Duration(seconds: 60);
+    return Duration(milliseconds: 200 * (attempt + 1));
+  },
+)
+```
+
+**3. Enhanced Documentation**
+- **Improved `staleTime` docs**: Clarifies it controls when data is considered stale (needs refetch).
+- **Improved `cacheTime` docs**: Clarifies it controls garbage collection (when data is removed from memory).
+- **Clear separation**: `staleTime` vs `cacheTime` semantics now crystal clear.
+
+### 🔧 Internal Improvements
+
+- **Architecture**: Moved `ZenQueryStatus` and `ZenMutationStatus` to `zen_query_enums.dart` for consistency.
+- **Helpers**: Added `RefetchBehaviorX.shouldRefetch()` helper extension.
+- **Types**: Added `RetryDelayFn` typedef for type-safe retry functions.
+- **Logic**: Updated `ZenQueryCache` and `ZenQuery` to fully support new enums and retry logic.
+- **Testing**: Comprehensive test coverage for all refetch modes, ensuring stability.
+
 ## [1.4.4]
 
 ### DevTools Improvements

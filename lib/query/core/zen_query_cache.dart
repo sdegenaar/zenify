@@ -7,6 +7,7 @@ import '../../core/zen_logger.dart';
 import '../../di/zen_lifecycle.dart';
 import '../logic/zen_query.dart';
 import 'zen_query_config.dart';
+import 'zen_query_enums.dart';
 
 /// Cache entry for a query
 class _CacheEntry<T> {
@@ -117,8 +118,8 @@ class ZenQueryCache {
     for (final query in _queries.values.toList()) {
       if (query.isDisposed) continue;
 
-      if (query.config.refetchOnFocus &&
-          (query.isStale || query.hasError) &&
+      if (query.config.refetchOnFocus
+              .shouldRefetch(query.isStale || query.hasError) &&
           !query.isLoading.value) {
         if (query.enabled.value) {
           query.refetch().then((_) {}, onError: (_) {});
@@ -131,8 +132,8 @@ class ZenQueryCache {
     for (final query in _queries.values.toList()) {
       if (query.isDisposed) continue;
 
-      if (query.config.refetchOnReconnect &&
-          (query.isStale || query.hasError) &&
+      if (query.config.refetchOnReconnect
+              .shouldRefetch(query.isStale || query.hasError) &&
           !query.isLoading.value) {
         if (query.enabled.value) {
           query.refetch().then((_) {}, onError: (_) {});

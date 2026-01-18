@@ -214,15 +214,18 @@ final query = ZenQuery<User>(
     cacheTime: Duration(hours: 1),
 
     // Refetch behavior
-    refetchOnMount: true,
-    refetchOnFocus: false,
-    refetchOnReconnect: true,
+    refetchOnMount: RefetchBehavior.ifStale,
+    refetchOnFocus: RefetchBehavior.never,
+    refetchOnReconnect: RefetchBehavior.ifStale,
     refetchInterval: Duration(minutes: 10),
     enableBackgroundRefetch: true,
 
     // Error handling
     retryCount: 3,
+    retryCount: 3,
     retryDelay: Duration(seconds: 1),
+    // Optional: Custom retry delay function
+    retryDelayFn: (attempt, error) => Duration(seconds: 1),
     exponentialBackoff: true,
   ),
 );
@@ -234,13 +237,14 @@ final query = ZenQuery<User>(
 |--------|---------|-------------|
 | `staleTime` | 30s | How long data is considered fresh |
 | `cacheTime` | 5min | How long unused data stays in cache |
-| `refetchOnMount` | true | Refetch when component mounts |
-| `refetchOnFocus` | false | Refetch when window gains focus |
-| `refetchOnReconnect` | true | Refetch on network reconnect |
+| `refetchOnMount` | `ifStale` | Refetch when component mounts (`always`, `ifStale`, `never`) |
+| `refetchOnFocus` | `never` | Refetch when window gains focus |
+| `refetchOnReconnect` | `ifStale` | Refetch on network reconnect |
 | `refetchInterval` | null | Background refetch interval |
 | `enableBackgroundRefetch` | false | Enable automatic background refetching |
 | `retryCount` | 3 | Number of retry attempts |
 | `retryDelay` | 200ms | Base delay between retries |
+| `retryDelayFn` | null | Custom function for dynamic delay calculation |
 | `maxRetryDelay` | 30s | Maximum retry delay cap |
 | `retryBackoffMultiplier` | 2.0 | Exponential backoff multiplier |
 | `exponentialBackoff` | true | Use exponential backoff for retries |

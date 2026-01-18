@@ -74,7 +74,7 @@ void main() {
           toJson: (data) => {'value': data},
           fromJson: (json) => json['value'] as String,
           // Disable auto-fetch to verify hydration specifically
-          refetchOnMount: false,
+          refetchOnMount: RefetchBehavior.never,
         ),
       );
 
@@ -103,7 +103,7 @@ void main() {
           cacheTime: const Duration(minutes: 5), // Expired
           toJson: (data) => {'value': data},
           fromJson: (json) => json['value'] as String,
-          refetchOnMount: false,
+          refetchOnMount: RefetchBehavior.never,
         ),
       );
 
@@ -129,7 +129,7 @@ void main() {
           persist: true,
           toJson: (data) => {'value': data},
           fromJson: (json) => json['value'] as String, // Will crash on String
-          refetchOnMount: false,
+          refetchOnMount: RefetchBehavior.never,
         ),
       );
 

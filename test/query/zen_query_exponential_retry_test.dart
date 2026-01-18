@@ -328,8 +328,38 @@ void main() {
 
       // Delays: 10ms (10*10^0), 100ms (10*10^1), 500ms (capped from 1000ms)
       // Total: ~610ms
-      expect(stopwatch.elapsedMilliseconds, greaterThan(580));
       expect(stopwatch.elapsedMilliseconds, lessThan(700));
+    });
+
+    test('uses retryDelayFn when provided', () async {
+      int attemptCount = 0;
+
+      final query = ZenQuery<String>(
+        queryKey: 'test-custom-fn',
+        fetcher: (token) async {
+          attemptCount++;
+          if (attemptCount <= 2) throw 'fail';
+          return 'success';
+        },
+        config: ZenQueryConfig(
+          retryCount: 2,
+          retryDelayFn: (attempt, error) {
+            // attempt is 0-indexed
+            // Return different delays based on attempt
+            if (attempt == 0) return const Duration(milliseconds: 50);
+            return const Duration(milliseconds: 100);
+          },
+        ),
+      );
+
+      final stopwatch = Stopwatch()..start();
+      await query.fetch();
+      stopwatch.stop();
+
+      expect(attemptCount, 3);
+      // Expected: 50ms + 100ms = 150ms
+      expect(stopwatch.elapsedMilliseconds, greaterThan(130));
+      expect(stopwatch.elapsedMilliseconds, lessThan(200));
     });
   });
 

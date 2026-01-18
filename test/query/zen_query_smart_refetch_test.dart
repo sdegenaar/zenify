@@ -24,7 +24,7 @@ void main() {
           return 'data';
         },
         config: const ZenQueryConfig(
-          refetchOnFocus: true,
+          refetchOnFocus: RefetchBehavior.ifStale,
           staleTime: Duration.zero, // Always stale
         ),
       );
@@ -57,7 +57,7 @@ void main() {
           return 'data';
         },
         config: const ZenQueryConfig(
-          refetchOnReconnect: true,
+          refetchOnReconnect: RefetchBehavior.ifStale,
           staleTime: Duration.zero,
         ),
       );
@@ -92,7 +92,7 @@ void main() {
           fetchCount++;
           return 'data';
         },
-        config: const ZenQueryConfig(refetchOnFocus: true),
+        config: const ZenQueryConfig(refetchOnFocus: RefetchBehavior.ifStale),
         enabled: false,
       );
 

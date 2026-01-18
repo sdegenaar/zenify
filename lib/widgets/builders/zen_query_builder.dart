@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/zen_logger.dart';
 import '../../query/logic/zen_query.dart';
-import '../../query/core/zen_query_config.dart';
+import 'package:zenify/query/core/zen_query_enums.dart';
 
 /// A widget that builds itself based on the state of a [ZenQuery].
 ///

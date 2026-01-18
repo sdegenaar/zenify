@@ -30,7 +30,7 @@ void main() {
           queries: ZenQueryConfig(
             retryCount: 5,
             staleTime: Duration(seconds: 60),
-            refetchOnMount: false,
+            refetchOnMount: RefetchBehavior.never,
           ),
         ),
       );
@@ -43,7 +43,7 @@ void main() {
 
       expect(query.config.retryCount, 5);
       expect(query.config.staleTime, const Duration(seconds: 60));
-      expect(query.config.refetchOnMount, false);
+      expect(query.config.refetchOnMount, RefetchBehavior.never);
     });
 
     test(

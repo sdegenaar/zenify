@@ -13,6 +13,7 @@ import '../../di/zen_di.dart';
 import '../core/zen_query_cache.dart';
 import '../core/zen_query_config.dart';
 import '../core/zen_query_client.dart';
+import '../core/zen_query_enums.dart';
 
 /// Function signature for data fetching with cancellation support
 typedef ZenQueryFetcher<T> = Future<T> Function(ZenCancelToken cancelToken);
@@ -328,7 +329,7 @@ class ZenQuery<T> extends ZenController {
             'Query $queryKey failed, retrying ($_retryAttempt/${config.retryCount})');
 
         // Calculate retry delay with exponential backoff and jitter
-        final delay = _calculateRetryDelay(_retryAttempt);
+        final delay = _calculateRetryDelay(_retryAttempt, e);
 
         await Future.delayed(delay);
 
@@ -361,6 +362,9 @@ class ZenQuery<T> extends ZenController {
 
   /// Calculate retry delay with exponential backoff and optional jitter
   ///
+  /// If `config.retryDelayFn` is provided, it will be used instead of the
+  /// default exponential backoff calculation.
+  ///
   /// Formula: min(baseDelay * (multiplier ^ (attempt - 1)), maxDelay) + jitter
   ///
   /// Example with defaults (baseDelay=200ms, multiplier=2.0, maxDelay=30s):
@@ -370,7 +374,20 @@ class ZenQuery<T> extends ZenController {
   /// - Attempt 4: 1600ms
   /// - Attempt 5: 3200ms
   /// - etc., capped at 30s
-  Duration _calculateRetryDelay(int attempt) {
+  Duration _calculateRetryDelay(int attempt, [Object? currentError]) {
+    // Use custom function if provided
+    if (config.retryDelayFn != null) {
+      // Use the passed error, or fall back to stored error, or throw/default
+      final err = currentError ?? error.value;
+      if (err != null) {
+        final delay = config.retryDelayFn!(attempt - 1, err);
+        ZenLogger.logDebug(
+          'Retry delay for attempt $attempt: ${delay.inMilliseconds}ms (custom function)',
+        );
+        return delay;
+      }
+    }
+
     if (!config.exponentialBackoff) {
       // Linear backoff - just use base delay
       return config.retryDelay;
@@ -587,15 +604,20 @@ class ZenQuery<T> extends ZenController {
       }
     }
 
-    // 3. Auto-fetch on mount if enabled and stale/idle
-    if (config.refetchOnMount && enabled.value) {
+    // 3. Auto-fetch on mount if enabled and configured
+    if (enabled.value) {
       // If we have placeholder data, we definitely want to fetch real data
       if (hasData) {
-        if (isStale || isPlaceholderData.value) {
+        final shouldFetch = config.refetchOnMount
+            .shouldRefetch(isStale || isPlaceholderData.value);
+        if (shouldFetch) {
           fetch().then((_) {}, onError: (_) {});
         }
       } else {
-        fetch().then((_) {}, onError: (_) {});
+        // No data yet - check if we should fetch
+        if (config.refetchOnMount != RefetchBehavior.never) {
+          fetch().then((_) {}, onError: (_) {});
+        }
       }
     }
   }

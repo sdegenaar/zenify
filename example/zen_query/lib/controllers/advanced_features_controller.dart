@@ -82,7 +82,7 @@ class AdvancedFeaturesController extends ZenController {
         }
         return 'Slow data loaded at ${DateTime.now().toString().split('.').first}';
       },
-      config: const ZenQueryConfig(refetchOnMount: false),
+      config: const ZenQueryConfig(refetchOnMount: RefetchBehavior.never),
     );
 
     // Deduplication demo query

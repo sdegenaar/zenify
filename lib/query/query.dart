@@ -8,6 +8,7 @@ export 'logic/zen_query.dart';
 export 'core/zen_query_cache.dart';
 export '../widgets/builders/zen_query_builder.dart';
 export 'core/zen_query_config.dart';
+export 'core/zen_query_enums.dart';
 export 'core/zen_query_client.dart';
 export 'logic/zen_mutation.dart';
 export 'logic/zen_infinite_query.dart';

@@ -380,7 +380,7 @@ void main() {
         initialData: 'initial-data',
         // Disable refetchOnMount to prevent immediate loading state transition
         // This ensures we are testing strictly the "initial" state application
-        config: ZenQueryConfig(refetchOnMount: false),
+        config: ZenQueryConfig(refetchOnMount: RefetchBehavior.never),
       );
 
       expect(query.data.value, 'initial-data');

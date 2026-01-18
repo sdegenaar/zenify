@@ -1,21 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import 'package:zenify/query/core/zen_storage.dart';
-
-/// Status of a ZenQuery
-enum ZenQueryStatus {
-  /// Query has not been executed yet
-  idle,
-
-  /// Query is currently fetching data
-  loading,
-
-  /// Query completed successfully
-  success,
-
-  /// Query failed with an error
-  error,
-}
+import 'package:zenify/query/core/zen_query_enums.dart';
 
 /// Configuration for ZenQuery
 ///
@@ -23,20 +9,52 @@ enum ZenQueryStatus {
 /// and configuration is merged explicitly rather than using nullable fields.
 @immutable
 class ZenQueryConfig<T> {
-  /// How long data remains fresh
+  /// How long data remains fresh before being considered stale
+  ///
+  /// After this duration, queries will refetch on mount/focus/reconnect
+  /// (depending on refetch settings). Does not affect cache retention.
+  ///
+  /// Default: 30 seconds
   final Duration staleTime;
 
-  /// How long inactive data remains in cache
+  /// How long inactive cache data remains in memory before garbage collection
+  ///
+  /// When a query becomes inactive (no active listeners), it stays in memory
+  /// for this duration before being removed. This is **separate** from `staleTime`:
+  ///
+  /// - `staleTime`: Controls when data is considered "stale" (needs refetch)
+  /// - `cacheTime`: Controls when data is removed from memory (garbage collected)
+  ///
+  /// **Example:**
+  /// ```dart
+  /// ZenQueryConfig(
+  ///   staleTime: Duration(seconds: 30),  // Stale after 30s
+  ///   cacheTime: Duration(minutes: 5),   // Kept in memory for 5min
+  /// )
+  /// ```
+  ///
+  /// - Set to `Duration.zero` to immediately remove when inactive
+  /// - Set to a large value to keep in memory longer
+  /// - Default: 5 minutes
   final Duration cacheTime;
 
   /// Whether to refetch when component mounts
-  final bool refetchOnMount;
+  /// - `RefetchBehavior.never`: Never refetch on mount
+  /// - `RefetchBehavior.ifStale`: Refetch only if data is stale (default)
+  /// - `RefetchBehavior.always`: Always refetch on mount
+  final RefetchBehavior refetchOnMount;
 
   /// Whether to refetch when window gains focus
-  final bool refetchOnFocus;
+  /// - `RefetchBehavior.never`: Never refetch on focus
+  /// - `RefetchBehavior.ifStale`: Refetch only if data is stale (default)
+  /// - `RefetchBehavior.always`: Always refetch on focus
+  final RefetchBehavior refetchOnFocus;
 
   /// Whether to refetch when network reconnects
-  final bool refetchOnReconnect;
+  /// - `RefetchBehavior.never`: Never refetch on reconnect
+  /// - `RefetchBehavior.ifStale`: Refetch only if data is stale (default)
+  /// - `RefetchBehavior.always`: Always refetch on reconnect
+  final RefetchBehavior refetchOnReconnect;
 
   /// Interval for background refetching (null = disabled)
   final Duration? refetchInterval;
@@ -47,8 +65,28 @@ class ZenQueryConfig<T> {
   /// Number of retry attempts
   final int retryCount;
 
-  /// Base delay between retries (e.g., 200ms)
+  /// Base delay between retries (used when retryDelayFn is null)
   final Duration retryDelay;
+
+  /// Custom function to calculate retry delay based on attempt and error
+  ///
+  /// If provided, this function will be called instead of using the default
+  /// exponential backoff calculation. Receives the retry attempt (0-indexed)
+  /// and the error that occurred.
+  ///
+  /// **Example - Error-aware delays:**
+  /// ```dart
+  /// retryDelayFn: (attempt, error) {
+  ///   if (error is RateLimitException) {
+  ///     return Duration(seconds: 60); // Wait longer for rate limits
+  ///   }
+  ///   if (error is NetworkException) {
+  ///     return Duration(seconds: 5); // Quick retry for network issues
+  ///   }
+  ///   return Duration(milliseconds: 200 * (attempt + 1)); // Default
+  /// }
+  /// ```
+  final RetryDelayFn? retryDelayFn;
 
   /// Maximum delay for retries (prevents infinite growth)
   final Duration maxRetryDelay;
@@ -106,13 +144,14 @@ class ZenQueryConfig<T> {
   const ZenQueryConfig({
     this.staleTime = const Duration(seconds: 30),
     this.cacheTime = const Duration(minutes: 5),
-    this.refetchOnMount = true,
-    this.refetchOnFocus = false,
-    this.refetchOnReconnect = true,
+    this.refetchOnMount = RefetchBehavior.ifStale,
+    this.refetchOnFocus = RefetchBehavior.never,
+    this.refetchOnReconnect = RefetchBehavior.ifStale,
     this.refetchInterval,
     this.enableBackgroundRefetch = false,
     this.retryCount = 3,
     this.retryDelay = const Duration(milliseconds: 200),
+    this.retryDelayFn,
     this.maxRetryDelay = const Duration(seconds: 30),
     this.retryBackoffMultiplier = 2.0,
     this.exponentialBackoff = true,
@@ -143,6 +182,7 @@ class ZenQueryConfig<T> {
       enableBackgroundRefetch: other.enableBackgroundRefetch,
       retryCount: other.retryCount,
       retryDelay: other.retryDelay,
+      retryDelayFn: other.retryDelayFn ?? retryDelayFn,
       maxRetryDelay: other.maxRetryDelay,
       retryBackoffMultiplier: other.retryBackoffMultiplier,
       exponentialBackoff: other.exponentialBackoff,
@@ -167,13 +207,14 @@ class ZenQueryConfig<T> {
   ZenQueryConfig<T> copyWith({
     Duration? staleTime,
     Duration? cacheTime,
-    bool? refetchOnMount,
-    bool? refetchOnFocus,
-    bool? refetchOnReconnect,
+    RefetchBehavior? refetchOnMount,
+    RefetchBehavior? refetchOnFocus,
+    RefetchBehavior? refetchOnReconnect,
     Duration? refetchInterval,
     bool? enableBackgroundRefetch,
     int? retryCount,
     Duration? retryDelay,
+    RetryDelayFn? retryDelayFn,
     Duration? maxRetryDelay,
     double? retryBackoffMultiplier,
     bool? exponentialBackoff,
@@ -197,6 +238,7 @@ class ZenQueryConfig<T> {
           enableBackgroundRefetch ?? this.enableBackgroundRefetch,
       retryCount: retryCount ?? this.retryCount,
       retryDelay: retryDelay ?? this.retryDelay,
+      retryDelayFn: retryDelayFn ?? this.retryDelayFn,
       maxRetryDelay: maxRetryDelay ?? this.maxRetryDelay,
       retryBackoffMultiplier:
           retryBackoffMultiplier ?? this.retryBackoffMultiplier,
@@ -228,6 +270,7 @@ class ZenQueryConfig<T> {
       enableBackgroundRefetch: enableBackgroundRefetch,
       retryCount: retryCount,
       retryDelay: retryDelay,
+      retryDelayFn: retryDelayFn,
       maxRetryDelay: maxRetryDelay,
       retryBackoffMultiplier: retryBackoffMultiplier,
       exponentialBackoff: exponentialBackoff,

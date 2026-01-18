@@ -3,7 +3,7 @@ import 'package:zenify/query/core/zen_cancel_token.dart';
 import '../../reactive/core/rx_value.dart';
 import 'zen_query.dart';
 import '../core/zen_query_cache.dart';
-import '../core/zen_query_config.dart';
+import '../core/zen_query_enums.dart';
 
 /// A specialized query for infinite scrolling / pagination.
 ///

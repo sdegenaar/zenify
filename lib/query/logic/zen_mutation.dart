@@ -1,14 +1,7 @@
 import 'dart:async';
 import '../../controllers/zen_controller.dart';
 import '../../reactive/reactive.dart';
-
-/// Status of a mutation
-enum ZenMutationStatus {
-  idle,
-  loading,
-  success,
-  error,
-}
+import '../core/zen_query_enums.dart';
 
 /// A reactive mutation that manages async data updates (creates/updates/deletes)
 ///
