@@ -1,3 +1,18 @@
+## [1.6.5]
+
+### 🛠️ DevTools & API Enhancements
+
+**This release enhances the DevTools with offline visibility.**
+
+#### New Features
+
+**DevTools:**
+- Added **"Pending Mutations"** card to Stats View.
+- Visual indicator for offline queue status (Green=Synced, Orange=Pending).
+- Exposed `ZenMutationQueue.pendingCount` and `pendingJobs` for debugging.
+
+---
+
 ## [1.6.4]
 
 ### ✨ Unified API Aliases

@@ -297,6 +297,33 @@ class _QueryCacheViewState extends State<QueryCacheView> {
 
           const SizedBox(height: 16),
 
+          // Network & Configuration info
+          _buildDetailSection(
+            'Configuration',
+            [
+              _buildDetailRow(
+                'Network Mode',
+                query.config.networkMode.toString().split('.').last,
+              ),
+              _buildDetailRow(
+                'Stale Time',
+                '${query.config.staleTime.inMinutes}m',
+              ),
+              _buildDetailRow(
+                'Cache Time',
+                '${query.config.cacheTime.inMinutes}m',
+              ),
+              _buildDetailRow(
+                'Refetch Interval',
+                query.config.refetchInterval != null
+                    ? '${query.config.refetchInterval!.inSeconds}s'
+                    : 'None',
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+
           // Data preview
           if (query.hasData)
             _buildDetailSection(

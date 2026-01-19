@@ -619,7 +619,7 @@ void main() {
       });
 
       test('Zen.queryCache should work for setting and getting data', () {
-        final testData = ['item1', 'item2'];
+        const testData = ['Cache', 'Works'];
 
         Zen.queryCache.setQueryData('test-key', (_) => testData);
         final cached = Zen.queryCache.getCachedData<List<String>>('test-key');

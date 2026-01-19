@@ -37,7 +37,9 @@ void main() async {
   final networkSimulator = NetworkSimulator();
   Zen.setNetworkStream(networkSimulator.stream);
 
-  runApp(OfflineApp(networkSimulator: networkSimulator));
+  runApp(
+    ZenInspectorOverlay(child: OfflineApp(networkSimulator: networkSimulator)),
+  );
 }
 
 /// Helper to simulate network conditions
@@ -107,82 +109,110 @@ class FeedPage extends ZenView<FeedController> {
   Widget build(BuildContext context) {
     // Note: ZenView provides 'controller' automatically
 
-    return Scaffold(
-      body: NestedScrollView(
-        headerSliverBuilder: (context, _) => [
-          SliverAppBar.large(
-            title: const Text('Zen Feed'),
-            actions: [
-              // Simulation Toggle
-              Obx(
-                () => Row(
-                  // Use Obx for reactivity
-                  children: [
-                    Text(
-                      networkSimulator.isSimulatedOffline.value
-                          ? 'Simulating Offline'
-                          : 'Live Network',
+    return Stack(
+      children: [
+        // 1. Main App Content
+        Scaffold(
+          body: NestedScrollView(
+            headerSliverBuilder: (context, _) => [
+              const SliverAppBar.large(title: Text('Zen Feed')),
+            ],
+            body: ZenQueryBuilder(
+              query: controller.postsQuery,
+              builder: (context, posts) {
+                if (posts.isEmpty) {
+                  return const Center(child: Text('No posts yet'));
+                }
+                return ListView.builder(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+                  itemCount: posts.length,
+                  itemBuilder: (context, index) =>
+                      PostCard(post: posts[index], controller: controller),
+                );
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, _) => Center(child: Text('Error: $e')),
+            ),
+          ),
+          floatingActionButton: FloatingActionButton.extended(
+            onPressed: () => _showAddPostDialog(context),
+            icon: const Icon(Icons.add),
+            label: const Text('New Post'),
+          ),
+        ),
+
+        // 2. Floating Overlay (Always on top)
+        Material(
+          type: MaterialType.transparency,
+          child: SafeArea(
+            child: Align(
+              alignment: Alignment.topRight,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Card(
+                  elevation: 6,
+                  shadowColor: Colors.black54,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(24),
+                    onTap: () {}, // Capture touches to prevent pass-through
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          StreamBuilder<bool>(
+                            stream: networkSimulator.stream,
+                            initialData: true,
+                            builder: (context, snapshot) {
+                              final isOnline = snapshot.data ?? true;
+                              return Icon(
+                                isOnline ? Icons.wifi : Icons.wifi_off,
+                                color: isOnline
+                                    ? Colors.green
+                                    : Colors.orangeAccent,
+                                size: 20,
+                              );
+                            },
+                          ),
+                          const SizedBox(width: 12),
+                          Obx(
+                            () => Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  networkSimulator.isSimulatedOffline.value
+                                      ? 'Offline Mode'
+                                      : 'Online',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Switch(
+                                  value:
+                                      networkSimulator.isSimulatedOffline.value,
+                                  onChanged: (_) => networkSimulator.toggle(),
+                                  activeColor: Colors.orangeAccent,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    Switch(
-                      value: networkSimulator.isSimulatedOffline.value,
-                      onChanged: (_) => networkSimulator.toggle(),
-                      activeThumbColor: Colors.orangeAccent,
-                    ),
-                  ],
+                  ),
                 ),
               ),
-              const SizedBox(width: 8),
-              // Status Indicator
-              StreamBuilder<bool>(
-                stream: networkSimulator.stream, // Listen to simulated stream
-                initialData: true,
-                builder: (context, snapshot) {
-                  final isOnline = snapshot.data ?? true;
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 16),
-                    child: Chip(
-                      avatar: Icon(
-                        isOnline ? Icons.wifi : Icons.wifi_off,
-                        color: isOnline
-                            ? Colors.greenAccent
-                            : Colors.orangeAccent,
-                        size: 16,
-                      ),
-                      label: Text(isOnline ? 'On' : 'Off'),
-                      backgroundColor: Theme.of(
-                        context,
-                      ).colorScheme.surfaceContainerHighest,
-                      visualDensity: VisualDensity.compact,
-                      side: BorderSide.none,
-                    ),
-                  );
-                },
-              ),
-            ],
+            ),
           ),
-        ],
-        body: ZenQueryBuilder(
-          query: controller.postsQuery,
-          builder: (context, posts) {
-            if (posts.isEmpty) {
-              return const Center(child: Text('No posts yet'));
-            }
-            return ListView.builder(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
-              itemCount: posts.length,
-              itemBuilder: (context, index) =>
-                  PostCard(post: posts[index], controller: controller),
-            );
-          },
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Center(child: Text('Error: $e')), // Fix signature
         ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showAddPostDialog(context),
-        icon: const Icon(Icons.add),
-        label: const Text('New Post'),
-      ),
+      ],
     );
   }
 

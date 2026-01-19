@@ -1,6 +1,7 @@
 // lib/devtools/inspector/widgets/stats_view.dart
 import 'package:flutter/material.dart';
 import '../../../debug/zen_system_stats.dart';
+import '../../../query/queue/zen_mutation_queue.dart';
 
 /// Displays system statistics and performance metrics
 class StatsView extends StatefulWidget {
@@ -15,6 +16,7 @@ class _StatsViewState extends State<StatsView> {
   Widget build(BuildContext context) {
     final stats = ZenSystemStats.getSystemStats();
     final navInfo = stats['navigation'] as Map<String, dynamic>?;
+    final pendingMutations = ZenMutationQueue.instance.pendingCount;
 
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -46,6 +48,12 @@ class _StatsViewState extends State<StatsView> {
             (stats['totalQueries'] as int? ?? 0).toString(),
             Icons.cached,
             Colors.orange,
+          ),
+          _StatItem(
+            'Pending Mutations',
+            pendingMutations.toString(),
+            Icons.cloud_queue,
+            pendingMutations > 0 ? Colors.orange : Colors.green,
           ),
         ]),
 

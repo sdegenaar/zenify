@@ -20,6 +20,12 @@ class ZenMutationQueue {
   ZenStorage? _storage;
   bool _isProcessing = false;
 
+  /// Get the number of pending mutations in the queue
+  int get pendingCount => _queue.length;
+
+  /// Get a list of pending mutation jobs (for debugging/devtools)
+  List<ZenMutationJob> get pendingJobs => _queue.toList();
+
   /// Initialize the queue and restore from storage if available
   Future<void> init(ZenStorage? storage) async {
     _storage = storage;
