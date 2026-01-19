@@ -835,6 +835,29 @@ class ZenScope {
     return instance;
   }
 
+  // =========================================================================
+  // CONVENIENCE ALIASES (v1.6.4+)
+  // =========================================================================
+
+  /// Alias for [find]. Gets a dependency from the scope.
+  ///
+  /// This is a convenience alias that provides consistent verb naming
+  /// across the Zenify API (get/put/remove/has).
+  T? get<T>({String? tag}) => find<T>(tag: tag);
+
+  /// Alias for [delete]. Removes a dependency from the scope.
+  ///
+  /// This is a convenience alias that provides consistent verb naming
+  /// across the Zenify API (get/put/remove/has).
+  bool remove<T>({String? tag, bool force = false}) =>
+      delete<T>(tag: tag, force: force);
+
+  /// Alias for [exists]. Checks if a dependency exists in the scope.
+  ///
+  /// This is a convenience alias that provides consistent verb naming
+  /// across the Zenify API (get/put/remove/has).
+  bool has<T>({String? tag}) => exists<T>(tag: tag);
+
   @override
   String toString() {
     return 'ZenScope{name: $name, id: $id, disposed: $_disposed, '

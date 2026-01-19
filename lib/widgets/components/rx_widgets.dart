@@ -132,3 +132,21 @@ class _ObxState extends State<Obx> {
     return result;
   }
 }
+
+/// Alias for [Obx] that follows Zenify naming conventions.
+///
+/// A widget that automatically rebuilds when any reactive value (`.obs()`)
+/// used in the builder changes.
+///
+/// Example:
+/// ```dart
+/// final count = 0.obs();
+///
+/// ZenObserver(() => Text('Count: $count'))
+/// ```
+///
+/// This is identical to [Obx] but uses the `Zen*` naming convention
+/// for consistency with other Zenify APIs.
+class ZenObserver extends Obx {
+  const ZenObserver(super.builder, {super.key});
+}

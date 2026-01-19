@@ -14,7 +14,7 @@ final service = scope.find<UserService>()!;  // Access from child scopes
 
 // Reactive state that just works
 final count = 0.obs();
-Obx(() => Text('$count'))  // Auto-rebuilds
+ZenObserver(() => Text('$count'))  // Auto-rebuilds
 
 // Smart async with caching
 final userQuery = ZenQuery<User>(
@@ -44,7 +44,7 @@ Building async-heavy Flutter apps? You're probably fighting:
 Riverpod-inspired scoping with **automatic cleanup**. Dependencies flow naturally from parent to child, and scopes dispose themselves automatically when no longer needed. Simple API: `Zen.put()`, `Zen.find()`, `Zen.delete()`.
 
 ### 🎯 Zero Boilerplate Reactivity
-GetX-like reactive system with `.obs()` and `Obx()`. Write less, accomplish more, keep your code clean. Built on Flutter's ValueNotifier for optimal performance.
+Reactive system with `.obs()` and `ZenObserver()` (or `Obx()` for GetX users). Write less, accomplish more, keep your code clean. Built on Flutter's ValueNotifier for optimal performance.
 
 ### 🔥 React Query Style
 A native-inspired implementation of **TanStack Query patterns**: automatic caching, smart refetching, request deduplication, and stale-while-revalidate—built on top of the reactive system.
@@ -95,7 +95,7 @@ The scope hierarchy automatically manages lifecycle - when you exit a feature, a
 
 ```yaml
 dependencies:
-  zenify: ^1.6.3
+  zenify: ^1.6.4
 ```
 
 ### 2. Initialize
@@ -130,7 +130,7 @@ class CounterPage extends ZenView<CounterController> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Obx(() => Text('Count: ${controller.count.value}')),
+            ZenObserver(() => Text('Count: ${controller.count.value}')),
             ElevatedButton(
               onPressed: controller.increment,
               child: Text('Increment'),
@@ -228,8 +228,8 @@ class TodoController extends ZenController {
 }
 
 // In UI - automatic rebuilds
-Obx(() => Text('${controller.todos.length} todos'))
-Obx(() => ListView.builder(
+ZenObserver(() => Text('${controller.todos.length} todos'))
+ZenObserver(() => ListView.builder(
   itemCount: controller.filteredTodos.length,
   itemBuilder: (context, i) => TodoItem(controller.filteredTodos[i]),
 ))
@@ -237,7 +237,7 @@ Obx(() => ListView.builder(
 
 **What you get:**
 - ⚡ Minimal rebuilds (only affected widgets)
-- 🎯 Simple API (`.obs()`, `Obx()`, done)
+- 🎯 Simple API (`.obs()`, `ZenObserver()`, done)
 - 🔒 Type-safe (compile-time checks)
 - 🏎️ Zero overhead (built on ValueNotifier)
 
@@ -396,7 +396,7 @@ final chatQuery = ZenStreamQuery<List<Message>>(
 - **Effects** - Automatic loading/error/success state management ([guide](doc/effects_usage_guide.md))
 - **Computed Values** - Auto-updating derived state with dependency tracking
 - **Global Modules** - Register app-wide dependencies at startup
-- **Performance Control** - Choose between reactive (`.obs()` + `Obx`) or manual (`update()` + `ZenBuilder`)
+- **Performance Control** - Choose between reactive (`.obs()` + `ZenObserver`) or manual (`update()` + `ZenBuilder`)
 - **Workers** - Debounce, throttle, and interval-based reactive handlers
 - **Devtools** - Built-in inspector overlay for debugging scopes and queries
 
@@ -429,7 +429,7 @@ Choose the right widget for your use case:
 |--------|----------|-------------|
 | **ZenView** | Building pages with controllers | Automatic lifecycle |
 | **ZenRoute** | Need module/scope per route | Route navigation |
-| **Obx** | Need reactive updates | Reactive value changes |
+| **ZenObserver** | Need reactive updates | Reactive value changes |
 | **ZenBuilder** | Need manual control | `controller.update()` call |
 | **ZenQueryBuilder** | Fetching API data | Query state changes |
 | **ZenStreamQueryBuilder** | Real-time data streams | Stream events |
@@ -438,7 +438,7 @@ Choose the right widget for your use case:
 
 **90% of the time, you'll use:**
 - `ZenView` for pages
-- `Obx` for reactive UI
+- `ZenObserver` for reactive UI
 - `ZenQueryBuilder` for API calls
 
 ---

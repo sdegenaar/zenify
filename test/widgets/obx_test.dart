@@ -580,4 +580,56 @@ void main() {
       expect(find.text('C2 Counter: 1'), findsOneWidget);
     });
   });
+
+  // v1.6.4 ZenObserver Alias Tests
+  group('ZenObserver Alias Tests', () {
+    testWidgets('ZenObserver should work identically to Obx',
+        (WidgetTester tester) async {
+      final controller = ReactiveController();
+      Zen.put(controller);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Column(
+              children: [
+                // Test both Obx and ZenObserver side by side
+                Obx(() => Text('Obx: ${controller.counter.value}')),
+                ZenObserver(
+                    () => Text('ZenObserver: ${controller.counter.value}')),
+                ElevatedButton(
+                  onPressed: controller.incrementCounter,
+                  child: const Text('Increment'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      // Verify initial state
+      expect(find.text('Obx: 0'), findsOneWidget);
+      expect(find.text('ZenObserver: 0'), findsOneWidget);
+
+      // Increment
+      await tester.tap(find.text('Increment'));
+      await tester.pump();
+
+      // Both should update
+      expect(find.text('Obx: 1'), findsOneWidget);
+      expect(find.text('ZenObserver: 1'), findsOneWidget);
+    });
+
+    testWidgets('ZenObserver should be an instance of Obx',
+        (WidgetTester tester) async {
+      final controller = ReactiveController();
+      Zen.put(controller);
+
+      final zenObserver =
+          ZenObserver(() => Text('${controller.counter.value}'));
+
+      // ZenObserver should be an Obx
+      expect(zenObserver, isA<Obx>());
+    });
+  });
 }

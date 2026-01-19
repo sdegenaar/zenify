@@ -1,3 +1,38 @@
+## [1.6.4]
+
+### ✨ Unified API Aliases
+
+**Zenify v1.6.4 completes the unified API with consistent aliases across DI, scopes, and reactive widgets.**
+
+#### New Features
+
+**Reactive Widget Alias:**
+- `ZenObserver` - Alias for `Obx` widget
+
+**Scope Method Aliases:**
+- `scope.get<T>()` - Alias for `scope.find<T>()`
+- `scope.remove<T>()` - Alias for `scope.delete<T>()`
+- `scope.has<T>()` - Alias for `scope.exists<T>()`
+
+**Example:**
+```dart
+final count = 0.obs();
+
+// Both work identically
+Obx(() => Text('Count: $count'))         // OLD - still works
+ZenObserver(() => Text('Count: $count')) // NEW - Zen-branded
+```
+
+**Benefits:**
+- ✅ Consistent with `Zen*` naming convention
+- ✅ More descriptive than `Obx`
+- ✅ Pairs naturally with `.obs()` (observable + observer)
+- ✅ 100% backward compatible (`Obx` still works)
+
+**Note:** `Obx` remains fully supported. Both names work identically for now.
+
+---
+
 ## [1.6.3]
 
 ### ✨ Unified API Improvements
