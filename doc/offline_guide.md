@@ -140,7 +140,55 @@ await Zen.init(
 
 ---
 
-## 3.5. Optimistic Updates (Instant Feedback)
+## 3.5. Why Use Mutations? (vs Direct API Calls)
+
+You might wonder: "Why not just call `api.createPost()` directly?" Here's why mutations are better:
+
+### Direct API Call (Limited)
+```dart
+Future<void> createPost(Post post) async {
+  try {
+    await api.createPost(post);
+    // UI doesn't update - need to manually refetch
+    postsQuery.refetch();
+  } catch (e) {
+    // Manual error handling
+  }
+}
+```
+
+**Problems:**
+- ❌ No loading/error state tracking
+- ❌ UI doesn't update until refetch completes (slow)
+- ❌ No offline support
+- ❌ No optimistic updates
+- ❌ Manual cache management
+
+### With ZenMutation (Powerful)
+```dart
+final createPost = ZenMutation.listPut<Post>(
+  queryKey: 'posts',
+  mutationFn: (post) => api.createPost(post),
+);
+
+// Use it
+createPost.mutate(newPost);
+```
+
+**Benefits:**
+- ✅ **Automatic loading state**: `mutation.isLoading.value`
+- ✅ **Automatic error handling**: `mutation.error.value`
+- ✅ **Optimistic updates**: UI updates instantly
+- ✅ **Automatic rollback**: Reverts on error
+- ✅ **Offline queueing**: Works offline, syncs later
+- ✅ **Cache updates**: Automatically updates queries
+- ✅ **Reactive UI**: Widgets rebuild automatically
+
+**Use mutations for all CRUD operations on displayed data.** Use direct API calls only for fire-and-forget operations (analytics, logging, etc.).
+
+---
+
+## 3.6. Optimistic Updates (Instant Feedback)
 
 To provide the best offline experience, update your UI immediately before the server responds.
 

@@ -261,10 +261,28 @@ final query = ZenQuery<User>(
 Think of **Mutations** as the "Writes" of your application.
 While `ZenQuery` is for **Reading** data (like GET requests), `ZenMutation` is for **Changing** it (like POST, PUT, DELETE).
 
-**Why use `ZenMutation` instead of a simple async function?**
-- 📊 **Status Tracking**: Automatically tracks `isLoading`, `error`, and `success` states for your UI.
-- 📶 **Offline Engine**: Mutations can be **queued** when offline and automatically replayed when online.
-- 🎣 **Lifecycle Hooks**: Provides standard places (`onMutate`, `onSettled`) to update cache or show alerts.
+**Why use `ZenMutation` instead of calling the API directly?**
+
+Direct API calls seem simpler, but mutations provide critical benefits:
+
+- 📊 **Automatic State Tracking**: `isLoading`, `error`, `data` states tracked automatically
+- ⚡ **Optimistic Updates**: UI updates instantly, rolls back on error
+- 📶 **Offline Support**: Mutations queue when offline and replay automatically
+- 🔄 **Cache Synchronization**: Automatically updates related queries
+- 🎯 **Reactive UI**: Widgets rebuild automatically on state changes
+- 🎣 **Lifecycle Hooks**: `onMutate`, `onSuccess`, `onError` for custom logic
+
+**Quick Comparison:**
+```dart
+// ❌ Direct API call - manual everything
+await api.createPost(post);
+postsQuery.refetch(); // Manual cache update
+
+// ✅ ZenMutation - automatic everything
+createMutation.mutate(post); // Loading, cache, offline all handled
+```
+
+For detailed comparison, see the [Offline Guide](offline_guide.md#35-why-use-mutations-vs-direct-api-calls).
 
 ```dart
 final loginMutation = ZenMutation<User, LoginArgs>(

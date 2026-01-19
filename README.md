@@ -361,6 +361,8 @@ if (index == postsQuery.data.length - 1) postsQuery.fetchNextPage();
 
 ### Optimistic Updates
 
+Mutations provide automatic loading/error states, optimistic UI updates, offline queueing, and cache synchronization. [Learn why mutations are better than direct API calls →](doc/offline_guide.md#35-why-use-mutations-vs-direct-api-calls)
+
 ```dart
 // ✨ Easy way: Use helpers (recommended)
 final createPost = ZenMutation.listPut<Post>(
