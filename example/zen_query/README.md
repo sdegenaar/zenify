@@ -226,13 +226,13 @@ Queries have four states:
 ### Cache Management
 ```dart
 // Get cache statistics
-final stats = ZenQueryCache.instance.getStats();
+final stats = Zen.queryCache.getStats();
 
 // Invalidate a query (mark as stale)
 query.invalidate();
 
 // Clear entire cache
-ZenQueryCache.instance.clear();
+Zen.queryCache.clear();
 ```
 
 ### Configuration

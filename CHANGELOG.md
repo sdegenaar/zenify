@@ -1,3 +1,40 @@
+## [1.6.3]
+
+### ✨ Unified API Improvements
+
+**Zenify v1.6.3 adds convenience aliases for better discoverability and consistency.**
+
+#### New Features
+
+**DI Verb Aliases:**
+- `Zen.get<T>()` - Alias for `Zen.find<T>()`
+- `Zen.remove<T>()` - Alias for `Zen.delete<T>()`
+- `Zen.has<T>()` - Alias for `Zen.exists<T>()`
+
+**Cache Shorthand:**
+- `Zen.queryCache` - Shorthand for `ZenQueryCache.instance`
+
+**Examples:**
+```dart
+// Before
+final service = Zen.find<UserService>();
+ZenQueryCache.instance.setQueryData('users', (_) => users);
+
+// After (both work!)
+final service = Zen.get<UserService>();
+Zen.queryCache.setQueryData('users', (_) => users);
+```
+
+**Benefits:**
+- ✅ Better discoverability (type `Zen.` to see everything)
+- ✅ Consistent verbs across DI, Cache, and Mutations
+- ✅ Shorter, cleaner code
+- ✅ 100% backward compatible (old names still work)
+
+**Note:** Old names (`find`, `delete`, `exists`, `ZenQueryCache.instance`) remain fully supported.
+
+---
+
 ## [1.6.2]
 
 ### 🔄 API Alignment (Breaking Change)

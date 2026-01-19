@@ -69,7 +69,7 @@ ZenMutation<Post, Post>(
   mutationFn: (post) => api.createPost(post),
   onMutate: (post) {
     // Optimistic update: Add to UI immediately
-    ZenQueryCache.instance.setQueryData<List<Post>>(
+    Zen.queryCache.setQueryData<List<Post>>(
       'feed',
       (old) => [post, ...(old ?? [])],
     );

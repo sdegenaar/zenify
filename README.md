@@ -95,14 +95,14 @@ The scope hierarchy automatically manages lifecycle - when you exit a feature, a
 
 ```yaml
 dependencies:
-  zenify: ^1.6.2
+  zenify: ^1.6.3
 ```
 
 ### 2. Initialize
 
 ```dart
-void main() {
-  Zen.init();
+void main() async {
+  await Zen.init();
   runApp(MyApp());
 }
 ```

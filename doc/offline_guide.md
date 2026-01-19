@@ -276,11 +276,11 @@ final createPost = ZenMutation<Post, Post>(
   mutationFn: (post) => api.createPost(post),
   onMutate: (newPost) async {
     // Update multiple queries
-    ZenQueryCache.instance.setQueryData<List<Post>>(
+    Zen.queryCache.setQueryData<List<Post>>(
       'feed',
       (oldData) => [newPost, ...(oldData ?? [])],
     );
-    ZenQueryCache.instance.setQueryData<List<Post>>(
+    Zen.queryCache.setQueryData<List<Post>>(
       'trending',
       (oldData) => [newPost, ...(oldData ?? [])],
     );
@@ -290,7 +290,7 @@ final createPost = ZenMutation<Post, Post>(
   onError: (error, vars, context) {
     // Custom rollback logic
     if (context != null) {
-      ZenQueryCache.instance.setQueryData('feed', (_) => context);
+      Zen.queryCache.setQueryData('feed', (_) => context);
     }
   }
 );

@@ -335,7 +335,7 @@ final addPostMutation = ZenMutation<Post, String>(
   mutationFn: (content) => api.createPost(content),
   onSettled: (_, __, ___) {
     // Mark 'posts' as stale. Any active UI showing posts will immediately refetch.
-    ZenQueryCache.instance.invalidateQuery(['posts', 'feed']);
+    Zen.queryCache.invalidateQuery(['posts', 'feed']);
   }
 );
 ```
@@ -450,7 +450,7 @@ Set your storage instance at app startup.
 ```dart
 void main() async {
   final prefs = await SharedPreferences.getInstance();
-  ZenQueryCache.instance.setStorage(MyStorage(prefs));
+  Zen.queryCache.setStorage(MyStorage(prefs));
   
   runApp(MyApp());
 }
@@ -547,7 +547,7 @@ Improve perceived performance by pre-loading data before the user needs it (e.g.
 ```dart
 // In a service or controller
 void onHoverUser(String userId) {
-  ZenQueryCache.instance.prefetch(
+  Zen.queryCache.prefetch(
     queryKey: ['user', userId],
     fetcher: (_) => api.getUser(userId),
     staleTime: Duration(minutes: 5), // Only fetch if stale
@@ -631,13 +631,13 @@ void main() {
 Mark data as stale to trigger refetch:
 ```dart
 // Invalidate single query
-ZenQueryCache.instance.invalidateQuery('user:123');
+Zen.queryCache.invalidateQuery('user:123');
 
 // Invalidate by prefix (all user queries)
-ZenQueryCache.instance.invalidateQueriesWithPrefix('user:');
+Zen.queryCache.invalidateQueriesWithPrefix('user:');
 
 // Invalidate with custom predicate
-ZenQueryCache.instance.invalidateQueries((key) => key.contains('posts'));
+Zen.queryCache.invalidateQueries((key) => key.contains('posts'));
 
 // Invalidate specific query
 userQuery.invalidate();
@@ -651,7 +651,7 @@ Force refresh regardless of stale state:
 await userQuery.refetch();
 
 // Refetch multiple queries
-await ZenQueryCache.instance.refetchQueries((key) => key.startsWith('user:'));
+await Zen.queryCache.refetchQueries((key) => key.startsWith('user:'));
 
 ``` 
 
@@ -791,7 +791,7 @@ Organize keys in a hierarchy for easier invalidation:
 'users:123:posts:456'
 
 // Can invalidate all user 123 data:
-ZenQueryCache.instance.invalidateQueriesWithPrefix('users:123:');
+Zen.queryCache.invalidateQueriesWithPrefix('users:123:');
 ``` 
 
 ### 2. Set Appropriate Stale Times
@@ -989,7 +989,7 @@ ZenQueryBuilder<T>({
 Singleton for managing multiple queries:
 ```dart
 // Get cache instance
-ZenQueryCache.instance
+Zen.queryCache
 
 // Invalidate queries
 invalidateQuery(String key)
@@ -1169,7 +1169,7 @@ class MyController extends ZenController {
 ### Global Queries (Default)
 ```dart
 // Get cache instance
-ZenQueryCache.instance
+Zen.queryCache
 
 // Invalidate queries
 invalidateQuery(String key)
@@ -1342,24 +1342,24 @@ class AppModule extends ZenModule {
 #### Invalidate All Queries in Scope
 ```dart
 // Invalidate all queries in a scope (marks as stale)
-ZenQueryCache.instance.invalidateScope(scope.id);
+Zen.queryCache.invalidateScope(scope.id);
 ``` 
 
 #### Refetch All Queries in Scope
 ```dart
 // Refetch all queries in a scope
-await ZenQueryCache.instance.refetchScope(scope.id);
+await Zen.queryCache.refetchScope(scope.id);
 ```
 
 #### Clear Scope Cache
 ```dart
 // Remove all queries from a scope
-ZenQueryCache.instance.clearScope(scope.id);
+Zen.queryCache.clearScope(scope.id);
 ``` 
 
 #### Get Scope Statistics
 ```dart
-final stats = ZenQueryCache.instance.getScopeStats(scope.id);
+final stats = Zen.queryCache.getScopeStats(scope.id);
 print('Total queries: ${stats['total']}');
 print('Loading: ${stats['loading']}');
 print('Success: ${stats['success']}');
@@ -1503,12 +1503,12 @@ class TodoController extends ZenController {
      onError: (error, todo) {
         ZenLogger.logError('Failed to toggle todo', error);
         // Trigger a refetch to ensure consistency
-        ZenQueryCache.instance.invalidateQuery('todos'); 
+        Zen.queryCache.invalidateQuery('todos'); 
      },
 
      // 3. On Settled: Always refetch to ensure server consistency
      onSettled: (data, error, todo) {
-        ZenQueryCache.instance.invalidateQuery('todos');
+        Zen.queryCache.invalidateQuery('todos');
      }
    );
 

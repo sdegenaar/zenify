@@ -549,6 +549,84 @@ void main() {
       controller.onReady();
       expect(controller.readyCalled, isTrue);
     });
+
+    // v1.6.3 Alias Tests
+    group('v1.6.3 Convenience Aliases', () {
+      test('Zen.get should be alias for Zen.find', () {
+        final service = TestService('alias-test');
+        Zen.put<TestService>(service);
+
+        final foundViaFind = Zen.find<TestService>();
+        final foundViaGet = Zen.get<TestService>();
+
+        expect(foundViaGet, same(foundViaFind));
+        expect(foundViaGet, same(service));
+      });
+
+      test('Zen.get with tag should work', () {
+        final service = TestService('tagged-alias');
+        Zen.put<TestService>(service, tag: 'mytag');
+
+        final found = Zen.get<TestService>(tag: 'mytag');
+        expect(found, same(service));
+        expect(found.value, 'tagged-alias');
+      });
+
+      test('Zen.remove should be alias for Zen.delete', () {
+        final service = TestService('remove-test');
+        Zen.put<TestService>(service);
+
+        expect(Zen.has<TestService>(), isTrue);
+
+        final removed = Zen.remove<TestService>();
+        expect(removed, isTrue);
+        expect(Zen.findOrNull<TestService>(), isNull);
+      });
+
+      test('Zen.remove with force should work', () {
+        final service = TestService('force-remove');
+        Zen.put<TestService>(service, isPermanent: true);
+
+        // Should fail without force
+        expect(Zen.remove<TestService>(), isFalse);
+        expect(Zen.has<TestService>(), isTrue);
+
+        // Should succeed with force
+        expect(Zen.remove<TestService>(force: true), isTrue);
+        expect(Zen.has<TestService>(), isFalse);
+      });
+
+      test('Zen.has should be alias for Zen.exists', () {
+        expect(Zen.has<TestService>(), isFalse);
+
+        final service = TestService('exists-test');
+        Zen.put<TestService>(service);
+
+        expect(Zen.has<TestService>(), isTrue);
+        expect(Zen.exists<TestService>(), isTrue);
+      });
+
+      test('Zen.has with tag should work', () {
+        expect(Zen.has<TestService>(tag: 'special'), isFalse);
+
+        Zen.put<TestService>(TestService('tagged'), tag: 'special');
+
+        expect(Zen.has<TestService>(tag: 'special'), isTrue);
+      });
+
+      test('Zen.queryCache should be shorthand for ZenQueryCache.instance', () {
+        expect(Zen.queryCache, same(ZenQueryCache.instance));
+      });
+
+      test('Zen.queryCache should work for setting and getting data', () {
+        final testData = ['item1', 'item2'];
+
+        Zen.queryCache.setQueryData('test-key', (_) => testData);
+        final cached = Zen.queryCache.getCachedData<List<String>>('test-key');
+
+        expect(cached, testData);
+      });
+    });
   });
 }
 

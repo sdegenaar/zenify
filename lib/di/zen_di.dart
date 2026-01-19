@@ -303,4 +303,56 @@ class Zen {
     ZenQueryCache.instance.clear();
     ZenLogger.logInfo('🗑️ Query cache cleared');
   }
+
+  // =========================================================================
+  // CONVENIENCE ALIASES (v1.6.3+)
+  // =========================================================================
+
+  /// Alias for [find]. Gets a dependency from the container.
+  ///
+  /// This is a convenience alias that provides consistent verb naming
+  /// across the Zenify API (get/put/remove/has).
+  ///
+  /// Example:
+  /// ```dart
+  /// final service = Zen.get<UserService>();
+  /// ```
+  static T get<T>({String? tag}) => find<T>(tag: tag);
+
+  /// Alias for [delete]. Removes a dependency from the container.
+  ///
+  /// This is a convenience alias that provides consistent verb naming
+  /// across the Zenify API (get/put/remove/has).
+  ///
+  /// Example:
+  /// ```dart
+  /// Zen.remove<UserService>();
+  /// ```
+  static bool remove<T>({String? tag, bool force = false}) =>
+      delete<T>(tag: tag, force: force);
+
+  /// Alias for [exists]. Checks if a dependency exists in the container.
+  ///
+  /// This is a convenience alias that provides consistent verb naming
+  /// across the Zenify API (get/put/remove/has).
+  ///
+  /// Example:
+  /// ```dart
+  /// if (Zen.has<UserService>()) { ... }
+  /// ```
+  static bool has<T>({String? tag}) => exists<T>(tag: tag);
+
+  /// Shorthand for [ZenQueryCache.instance].
+  ///
+  /// Provides shorter, more convenient access to the query cache.
+  ///
+  /// Example:
+  /// ```dart
+  /// // Before
+  /// ZenQueryCache.instance.setQueryData('users', (_) => users);
+  ///
+  /// // After
+  /// Zen.queryCache.setQueryData('users', (_) => users);
+  /// ```
+  static ZenQueryCache get queryCache => ZenQueryCache.instance;
 }
