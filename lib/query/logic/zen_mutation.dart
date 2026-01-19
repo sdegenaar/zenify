@@ -226,4 +226,288 @@ class ZenMutation<TData, TVariables> extends ZenController {
     _isLoadingNotifier?.dispose();
     super.onClose();
   }
+
+  // =========================================================================
+  // STATIC HELPER FACTORIES
+  // =========================================================================
+
+  /// Create a mutation that optimistically adds an item to a list.
+  ///
+  /// Automatically:
+  /// - Adds item to list immediately (optimistic update)
+  /// - Rolls back on error
+  /// - Supports offline queueing
+  ///
+  /// Example:
+  /// ```dart
+  /// final createPost = ZenMutation.listPut<Post>(
+  ///   queryKey: 'posts',
+  ///   mutationFn: (post) => api.createPost(post),
+  /// );
+  /// ```
+  static ZenMutation<TData, TData> listPut<TData>({
+    required Object queryKey,
+    String? mutationKey,
+    required Future<TData> Function(TData item) mutationFn,
+    bool addToStart = true,
+    void Function(TData data, TData item, Object? context)? onSuccess,
+    void Function(Object error, TData item)? onError,
+  }) {
+    return ZenMutation<TData, TData>(
+      mutationKey: mutationKey ?? '${queryKey}_listPut',
+      mutationFn: mutationFn,
+      onMutate: (item) async {
+        final oldList =
+            ZenQueryCache.instance.getCachedData<List<TData>>(queryKey);
+        ZenQueryCache.instance.setQueryData<List<TData>>(
+          queryKey,
+          (old) {
+            final list = old ?? <TData>[];
+            return addToStart ? [item, ...list] : [...list, item];
+          },
+        );
+        return oldList;
+      },
+      onSuccess: (data, item, context) => onSuccess?.call(data, item, context),
+      onError: (err, item, context) {
+        if (context != null) {
+          ZenQueryCache.instance.setQueryData<List<TData>>(
+            queryKey,
+            (_) => context as List<TData>,
+          );
+        }
+        onError?.call(err, item);
+      },
+    );
+  }
+
+  /// Create a mutation that optimistically updates an item in a list.
+  ///
+  /// Automatically:
+  /// - Updates item in list immediately (optimistic update)
+  /// - Rolls back on error
+  /// - Supports offline queueing
+  ///
+  /// Example:
+  /// ```dart
+  /// final updatePost = ZenMutation.listSet<Post>(
+  ///   queryKey: 'posts',
+  ///   mutationFn: (post) => api.updatePost(post),
+  ///   where: (item, updated) => item.id == updated.id,
+  /// );
+  /// ```
+  static ZenMutation<TData, TData> listSet<TData>({
+    required Object queryKey,
+    String? mutationKey,
+    required Future<TData> Function(TData item) mutationFn,
+    required bool Function(TData item, TData updated) where,
+    void Function(TData data, TData item, Object? context)? onSuccess,
+    void Function(Object error, TData item)? onError,
+  }) {
+    return ZenMutation<TData, TData>(
+      mutationKey: mutationKey ?? '${queryKey}_listSet',
+      mutationFn: mutationFn,
+      onMutate: (item) async {
+        final oldList =
+            ZenQueryCache.instance.getCachedData<List<TData>>(queryKey);
+        ZenQueryCache.instance.setQueryData<List<TData>>(
+          queryKey,
+          (old) => old?.map((i) => where(i, item) ? item : i).toList() ?? [],
+        );
+        return oldList;
+      },
+      onSuccess: (data, item, context) => onSuccess?.call(data, item, context),
+      onError: (err, item, context) {
+        if (context != null) {
+          ZenQueryCache.instance.setQueryData<List<TData>>(
+            queryKey,
+            (_) => context as List<TData>,
+          );
+        }
+        onError?.call(err, item);
+      },
+    );
+  }
+
+  /// Create a mutation that optimistically removes an item from a list.
+  ///
+  /// Automatically:
+  /// - Removes item from list immediately (optimistic update)
+  /// - Rolls back on error
+  /// - Supports offline queueing
+  ///
+  /// Example:
+  /// ```dart
+  /// final deletePost = ZenMutation.listRemove<Post>(
+  ///   queryKey: 'posts',
+  ///   mutationFn: (post) => api.deletePost(post.id),
+  ///   where: (item, toRemove) => item.id == toRemove.id,
+  /// );
+  /// ```
+  static ZenMutation<void, TData> listRemove<TData>({
+    required Object queryKey,
+    String? mutationKey,
+    required Future<void> Function(TData item) mutationFn,
+    required bool Function(TData item, TData toRemove) where,
+    void Function(TData item, Object? context)? onSuccess,
+    void Function(Object error, TData item)? onError,
+  }) {
+    return ZenMutation<void, TData>(
+      mutationKey: mutationKey ?? '${queryKey}_listRemove',
+      mutationFn: mutationFn,
+      onMutate: (item) async {
+        final oldList =
+            ZenQueryCache.instance.getCachedData<List<TData>>(queryKey);
+        ZenQueryCache.instance.setQueryData<List<TData>>(
+          queryKey,
+          (old) => old?.where((i) => !where(i, item)).toList() ?? [],
+        );
+        return oldList;
+      },
+      onSuccess: (_, item, context) => onSuccess?.call(item, context),
+      onError: (err, item, context) {
+        if (context != null) {
+          ZenQueryCache.instance.setQueryData<List<TData>>(
+            queryKey,
+            (_) => context as List<TData>,
+          );
+        }
+        onError?.call(err, item);
+      },
+    );
+  }
+
+  /// Create a mutation that optimistically creates/adds a single value.
+  ///
+  /// Automatically:
+  /// - Sets value immediately (optimistic update)
+  /// - Rolls back on error
+  /// - Supports offline queueing
+  ///
+  /// Example:
+  /// ```dart
+  /// final createUser = ZenMutation.put<User>(
+  ///   queryKey: 'current_user',
+  ///   mutationFn: (user) => api.createUser(user),
+  /// );
+  /// ```
+  static ZenMutation<TData, TData> put<TData>({
+    required Object queryKey,
+    String? mutationKey,
+    required Future<TData> Function(TData value) mutationFn,
+    void Function(TData data, TData value, Object? context)? onSuccess,
+    void Function(Object error, TData value)? onError,
+  }) {
+    return ZenMutation<TData, TData>(
+      mutationKey: mutationKey ?? '${queryKey}_put',
+      mutationFn: mutationFn,
+      onMutate: (value) async {
+        final oldValue = ZenQueryCache.instance.getCachedData<TData>(queryKey);
+        ZenQueryCache.instance.setQueryData<TData>(
+          queryKey,
+          (_) => value,
+        );
+        return oldValue;
+      },
+      onSuccess: (data, value, context) =>
+          onSuccess?.call(data, value, context),
+      onError: (err, value, context) {
+        if (context != null) {
+          ZenQueryCache.instance.setQueryData<TData>(
+            queryKey,
+            (_) => context as TData,
+          );
+        }
+        onError?.call(err, value);
+      },
+    );
+  }
+
+  /// Create a mutation that optimistically updates a single value.
+  ///
+  /// Automatically:
+  /// - Updates value immediately (optimistic update)
+  /// - Rolls back on error
+  /// - Supports offline queueing
+  ///
+  /// Example:
+  /// ```dart
+  /// final updateUser = ZenMutation.set<User>(
+  ///   queryKey: 'current_user',
+  ///   mutationFn: (user) => api.updateUser(user),
+  /// );
+  /// ```
+  static ZenMutation<TData, TData> set<TData>({
+    required Object queryKey,
+    String? mutationKey,
+    required Future<TData> Function(TData value) mutationFn,
+    void Function(TData data, TData value, Object? context)? onSuccess,
+    void Function(Object error, TData value)? onError,
+  }) {
+    return ZenMutation<TData, TData>(
+      mutationKey: mutationKey ?? '${queryKey}_set',
+      mutationFn: mutationFn,
+      onMutate: (value) async {
+        final oldValue = ZenQueryCache.instance.getCachedData<TData>(queryKey);
+        ZenQueryCache.instance.setQueryData<TData>(
+          queryKey,
+          (_) => value,
+        );
+        return oldValue;
+      },
+      onSuccess: (data, value, context) =>
+          onSuccess?.call(data, value, context),
+      onError: (err, value, context) {
+        if (context != null) {
+          ZenQueryCache.instance.setQueryData<TData>(
+            queryKey,
+            (_) => context as TData,
+          );
+        }
+        onError?.call(err, value);
+      },
+    );
+  }
+
+  /// Create a mutation that optimistically removes/deletes a single value.
+  ///
+  /// Automatically:
+  /// - Clears value from cache immediately (optimistic update)
+  /// - Rolls back on error
+  /// - Supports offline queueing
+  ///
+  /// Example:
+  /// ```dart
+  /// final logout = ZenMutation.remove(
+  ///   queryKey: 'current_user',
+  ///   mutationFn: () => api.logout(),
+  /// );
+  /// ```
+  static ZenMutation<void, void> remove({
+    required Object queryKey,
+    String? mutationKey,
+    required Future<void> Function() mutationFn,
+    void Function(Object? context)? onSuccess,
+    void Function(Object error)? onError,
+  }) {
+    return ZenMutation<void, void>(
+      mutationKey: mutationKey ?? '${queryKey}_remove',
+      mutationFn: (_) => mutationFn(),
+      onMutate: (_) async {
+        final oldValue = ZenQueryCache.instance.getCachedData(queryKey);
+        ZenQueryCache.instance.removeQuery(queryKey);
+        return oldValue;
+      },
+      onSuccess: (_, __, context) => onSuccess?.call(context),
+      onError: (err, _, context) {
+        if (context != null) {
+          ZenQueryCache.instance.setQueryData(
+            queryKey,
+            (_) => context,
+          );
+        }
+        onError?.call(err);
+      },
+    );
+  }
 }

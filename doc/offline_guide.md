@@ -150,7 +150,7 @@ Zenify provides helpers for common optimistic update patterns:
 
 **Add to list:**
 ```dart
-final createPost = OptimisticMutation.listAdd<Post>(
+final createPost = ZenMutation.listPut<Post>(
   queryKey: 'posts',
   mutationKey: 'create_post',
   mutationFn: (post) => api.createPost(post),
@@ -159,7 +159,7 @@ final createPost = OptimisticMutation.listAdd<Post>(
 
 **Update in list:**
 ```dart
-final updatePost = OptimisticMutation.listUpdate<Post>(
+final updatePost = ZenMutation.listSet<Post>(
   queryKey: 'posts',
   mutationKey: 'update_post',
   mutationFn: (post) => api.updatePost(post),
@@ -169,7 +169,7 @@ final updatePost = OptimisticMutation.listUpdate<Post>(
 
 **Remove from list:**
 ```dart
-final deletePost = OptimisticMutation.listRemove<Post>(
+final deletePost = ZenMutation.listRemove<Post>(
   queryKey: 'posts',
   mutationKey: 'delete_post',
   mutationFn: (post) => api.deletePost(post.id),
@@ -180,14 +180,14 @@ final deletePost = OptimisticMutation.listRemove<Post>(
 **Single value operations:**
 ```dart
 // Create/Update
-final updateUser = OptimisticMutation.update<User>(
+final updateUser = ZenMutation.set<User>(
   queryKey: 'current_user',
   mutationKey: 'update_user',
   mutationFn: (user) => api.updateUser(user),
 );
 
 // Delete
-final logout = OptimisticMutation.remove(
+final logout = ZenMutation.remove(
   queryKey: 'current_user',
   mutationKey: 'logout',
   mutationFn: () => api.logout(),
@@ -199,7 +199,7 @@ final logout = OptimisticMutation.remove(
 All helpers support optional `onSuccess` and `onError` callbacks for custom logic:
 
 ```dart
-final createPost = OptimisticMutation.listAdd<Post>(
+final createPost = ZenMutation.listPut<Post>(
   queryKey: 'posts',
   mutationKey: 'create_post',
   mutationFn: (post) => api.createPost(post),

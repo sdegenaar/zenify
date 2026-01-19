@@ -546,7 +546,7 @@ void onHoverUser(String userId) {
 
 **Easy way with helpers:**
 ```dart
-final updatePost = OptimisticMutation.listUpdate<Post>(
+final updatePost = ZenMutation.listSet<Post>(
   queryKey: 'posts',
   mutationKey: 'update_post',
   mutationFn: (post) => api.updatePost(post),

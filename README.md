@@ -95,7 +95,7 @@ The scope hierarchy automatically manages lifecycle - when you exit a feature, a
 
 ```yaml
 dependencies:
-  zenify: ^1.6.1
+  zenify: ^1.6.2
 ```
 
 ### 2. Initialize
@@ -363,9 +363,8 @@ if (index == postsQuery.data.length - 1) postsQuery.fetchNextPage();
 
 ```dart
 // ✨ Easy way: Use helpers (recommended)
-final createPost = OptimisticMutation.listAdd<Post>(
+final createPost = ZenMutation.listPut<Post>(
   queryKey: 'posts',
-  mutationKey: 'create_post',
   mutationFn: (post) => api.createPost(post),
   onError: (err, post) => logger.error('Create failed', err), // Rollback automatic!
 );

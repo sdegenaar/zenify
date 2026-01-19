@@ -31,16 +31,14 @@ class FeedController extends ZenController {
     );
 
     // ✨ NEW: Using optimistic helpers (3 lines vs 15+)
-    createPostMutation = OptimisticMutation.listAdd<Post>(
+    createPostMutation = ZenMutation.listPut<Post>(
       queryKey: 'feed',
-      mutationKey: 'create_post',
       mutationFn: (post) => MockApi.createPost(post),
     );
 
     // ✨ NEW: Using optimistic helper for updates
-    likeMutation = OptimisticMutation.listUpdate<Post>(
+    likeMutation = ZenMutation.listSet<Post>(
       queryKey: 'feed',
-      mutationKey: 'like_post',
       mutationFn: (post) async {
         await MockApi.likePost(post.id, post.isLiked);
         return post; // Return the updated post
@@ -49,9 +47,8 @@ class FeedController extends ZenController {
     );
 
     // ✨ NEW: Using optimistic helper for deletes
-    deleteMutation = OptimisticMutation.listRemove<Post>(
+    deleteMutation = ZenMutation.listRemove<Post>(
       queryKey: 'feed',
-      mutationKey: 'delete_post',
       mutationFn: (post) => MockApi.deletePost(post.id),
       where: (item, toRemove) => item.id == toRemove.id,
     );

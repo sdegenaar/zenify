@@ -1,7 +1,7 @@
 name: zenify
 description: Powerful asynchronous state management, automatic caching, hierarchical DI, and zero-boilerplate reactivity. A holistic architecture for modern Flutter apps.
 
-version: 1.6.1
+version: 1.6.2
 homepage: https://github.com/sdegenaar/zenify
 repository: https://github.com/sdegenaar/zenify
 issue_tracker: https://github.com/sdegenaar/zenify/issues

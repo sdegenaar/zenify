@@ -1,3 +1,52 @@
+## [1.6.2]
+
+### 🔄 API Alignment (Breaking Change)
+
+**Zenify v1.6.2 aligns mutation helper API for consistency across the framework.**
+
+#### Breaking Changes
+
+**Renamed Class and Methods:**
+- `OptimisticMutation` → `ZenMutation` (helpers are now static methods on `ZenMutation`)
+- `listAdd` → `listPut` (aligns with `Zen.put`)
+- `listUpdate` → `listSet` (aligns with cache operations)
+- `add` → `put` (aligns with `Zen.put`)
+- `update` → `set` (aligns with cache operations)
+- `listRemove`, `remove` → unchanged
+
+**Optional `mutationKey`:**
+- `mutationKey` is now optional and auto-generated from `queryKey` if not provided
+- Example: `queryKey: 'users'` → `mutationKey: 'users_listPut'`
+
+#### Migration Guide
+
+```dart
+// Before (v1.6.1)
+final create = OptimisticMutation.listAdd<Post>(
+  queryKey: 'posts',
+  mutationKey: 'create_post',
+  mutationFn: (post) => api.createPost(post),
+);
+
+// After (v1.6.2)
+final create = ZenMutation.listPut<Post>(
+  queryKey: 'posts',
+  mutationFn: (post) => api.createPost(post),
+  // mutationKey auto-generated as 'posts_listPut'
+);
+```
+
+#### Rationale
+
+This change achieves API consistency across Zenify:
+- **DI:** `Zen.put/get/remove`
+- **Cache:** `cache.set/get/remove`
+- **Mutations:** `ZenMutation.listPut/listSet/listRemove`
+
+All subsystems now use aligned verbs, reducing cognitive load and improving discoverability.
+
+---
+
 ## [1.6.1]
 
 ### ✨ Optimistic Mutation Helpers

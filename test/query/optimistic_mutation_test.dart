@@ -12,7 +12,7 @@ void main() {
     Zen.reset();
   });
 
-  group('OptimisticMutation.listAdd', () {
+  group('ZenMutation.listPut', () {
     test('adds item to list optimistically', () async {
       // Setup initial query
       ZenQueryCache.instance.setQueryData<List<String>>(
@@ -20,7 +20,7 @@ void main() {
         (_) => ['item1'],
       );
 
-      final mutation = OptimisticMutation.listAdd<String>(
+      final mutation = ZenMutation.listPut<String>(
         queryKey: 'items',
         mutationKey: 'add_item',
         mutationFn: (item) async {
@@ -40,9 +40,9 @@ void main() {
       await future;
 
       // Still in cache after success
-      final final_cached =
+      final finalCached =
           ZenQueryCache.instance.getCachedData<List<String>>('items');
-      expect(final_cached, ['item2', 'item1']);
+      expect(finalCached, ['item2', 'item1']);
     });
 
     test('adds item to end when addToStart is false', () async {
@@ -51,7 +51,7 @@ void main() {
         (_) => ['item1'],
       );
 
-      final mutation = OptimisticMutation.listAdd<String>(
+      final mutation = ZenMutation.listPut<String>(
         queryKey: 'items',
         mutationKey: 'add_item',
         mutationFn: (item) async => item,
@@ -71,7 +71,7 @@ void main() {
         (_) => ['item1'],
       );
 
-      final mutation = OptimisticMutation.listAdd<String>(
+      final mutation = ZenMutation.listPut<String>(
         queryKey: 'items',
         mutationKey: 'add_item',
         mutationFn: (item) async => throw Exception('Network error'),
@@ -89,7 +89,7 @@ void main() {
       var successCalled = false;
       String? successData;
 
-      final mutation = OptimisticMutation.listAdd<String>(
+      final mutation = ZenMutation.listPut<String>(
         queryKey: 'items',
         mutationKey: 'add_item',
         mutationFn: (item) async => item,
@@ -109,7 +109,7 @@ void main() {
       var errorCalled = false;
       Object? capturedError;
 
-      final mutation = OptimisticMutation.listAdd<String>(
+      final mutation = ZenMutation.listPut<String>(
         queryKey: 'items',
         mutationKey: 'add_item',
         mutationFn: (item) async => throw Exception('Test error'),
@@ -126,14 +126,14 @@ void main() {
     });
   });
 
-  group('OptimisticMutation.listRemove', () {
+  group('ZenMutation.listRemove', () {
     test('removes item from list optimistically', () async {
       ZenQueryCache.instance.setQueryData<List<String>>(
         'items',
         (_) => ['item1', 'item2', 'item3'],
       );
 
-      final mutation = OptimisticMutation.listRemove<String>(
+      final mutation = ZenMutation.listRemove<String>(
         queryKey: 'items',
         mutationKey: 'remove_item',
         mutationFn: (item) async {},
@@ -153,7 +153,7 @@ void main() {
         (_) => ['item1', 'item2'],
       );
 
-      final mutation = OptimisticMutation.listRemove<String>(
+      final mutation = ZenMutation.listRemove<String>(
         queryKey: 'items',
         mutationKey: 'remove_item',
         mutationFn: (item) async => throw Exception('Failed'),
@@ -169,7 +169,7 @@ void main() {
     });
   });
 
-  group('OptimisticMutation.listUpdate', () {
+  group('ZenMutation.listSet', () {
     test('updates item in list optimistically', () async {
       ZenQueryCache.instance.setQueryData<List<Map<String, dynamic>>>(
         'items',
@@ -179,7 +179,7 @@ void main() {
         ],
       );
 
-      final mutation = OptimisticMutation.listUpdate<Map<String, dynamic>>(
+      final mutation = ZenMutation.listSet<Map<String, dynamic>>(
         queryKey: 'items',
         mutationKey: 'update_item',
         mutationFn: (item) async => item,
@@ -201,7 +201,7 @@ void main() {
         ],
       );
 
-      final mutation = OptimisticMutation.listUpdate<Map<String, dynamic>>(
+      final mutation = ZenMutation.listSet<Map<String, dynamic>>(
         queryKey: 'items',
         mutationKey: 'update_item',
         mutationFn: (item) async => throw Exception('Failed'),
@@ -216,9 +216,9 @@ void main() {
     });
   });
 
-  group('OptimisticMutation.add (single value)', () {
+  group('ZenMutation.put (single value)', () {
     test('sets single value optimistically', () async {
-      final mutation = OptimisticMutation.add<String>(
+      final mutation = ZenMutation.put<String>(
         queryKey: 'user',
         mutationKey: 'create_user',
         mutationFn: (user) async => user,
@@ -232,13 +232,13 @@ void main() {
 
     test('is alias for update', () {
       // Verify add and update have same signature
-      final add = OptimisticMutation.add<String>(
+      final add = ZenMutation.put<String>(
         queryKey: 'user',
         mutationKey: 'create_user',
         mutationFn: (user) async => user,
       );
 
-      final update = OptimisticMutation.update<String>(
+      final update = ZenMutation.set<String>(
         queryKey: 'user',
         mutationKey: 'update_user',
         mutationFn: (user) async => user,
@@ -248,11 +248,11 @@ void main() {
     });
   });
 
-  group('OptimisticMutation.update (single value)', () {
+  group('ZenMutation.set (single value)', () {
     test('updates single value optimistically', () async {
       ZenQueryCache.instance.setQueryData<String>('user', (_) => 'John');
 
-      final mutation = OptimisticMutation.update<String>(
+      final mutation = ZenMutation.set<String>(
         queryKey: 'user',
         mutationKey: 'update_user',
         mutationFn: (user) async => user,
@@ -267,7 +267,7 @@ void main() {
     test('rolls back on error', () async {
       ZenQueryCache.instance.setQueryData<String>('user', (_) => 'John');
 
-      final mutation = OptimisticMutation.update<String>(
+      final mutation = ZenMutation.set<String>(
         queryKey: 'user',
         mutationKey: 'update_user',
         mutationFn: (user) async => throw Exception('Failed'),
@@ -280,11 +280,11 @@ void main() {
     });
   });
 
-  group('OptimisticMutation.remove (single value)', () {
+  group('ZenMutation.remove (single value)', () {
     test('removes single value from cache', () async {
       ZenQueryCache.instance.setQueryData<String>('user', (_) => 'John');
 
-      final mutation = OptimisticMutation.remove(
+      final mutation = ZenMutation.remove(
         queryKey: 'user',
         mutationKey: 'logout',
         mutationFn: () async {},
@@ -299,7 +299,7 @@ void main() {
     test('rolls back on error', () async {
       ZenQueryCache.instance.setQueryData<String>('user', (_) => 'John');
 
-      final mutation = OptimisticMutation.remove(
+      final mutation = ZenMutation.remove(
         queryKey: 'user',
         mutationKey: 'logout',
         mutationFn: () async => throw Exception('Failed'),
@@ -312,11 +312,11 @@ void main() {
     });
   });
 
-  group('OptimisticMutation offline support', () {
+  group('ZenMutation offline support', () {
     test('helpers work with offline mutation queue', () async {
       // This test verifies that helpers properly set mutationKey
       // which is required for offline queueing
-      final mutation = OptimisticMutation.listAdd<String>(
+      final mutation = ZenMutation.listPut<String>(
         queryKey: 'items',
         mutationKey: 'add_item',
         mutationFn: (item) async => item,
