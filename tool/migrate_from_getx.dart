@@ -171,7 +171,7 @@ class GetXMigrator {
   }
 
   void printSummary() {
-    print('\n' + '═' * 50);
+    print('\n${'═' * 50}');
     print('📊 Migration Summary');
     print('═' * 50);
     print('Files scanned: $filesScanned');

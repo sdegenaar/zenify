@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:zenify/widgets/widgets.dart';
 import '../../controllers/zen_controller.dart';
+import '../../core/zen_exception.dart';
 import '../../core/zen_scope.dart';
 import '../../di/zen_di.dart';
 
@@ -46,8 +47,7 @@ class _ZenViewState<T extends ZenController> extends State<ZenView<T>> {
     }
 
     if (instance == null) {
-      throw Exception(
-          'Controller $T not found. Register it or provide createController.');
+      throw ZenControllerNotFoundException(typeName: T.toString());
     }
 
     _controller = instance;
@@ -137,8 +137,7 @@ extension ZenViewExtension<T extends ZenController> on ZenView<T> {
       return globalController;
     }
 
-    throw Exception(
-        'Controller $T not available. Access from build method only.');
+    throw ZenControllerNotFoundException(typeName: T.toString());
   }
 }
 
@@ -155,6 +154,6 @@ extension ZenViewContextExtensions on BuildContext {
       return globalController;
     }
 
-    throw Exception('Controller $T not found.');
+    throw ZenControllerNotFoundException(typeName: T.toString());
   }
 }

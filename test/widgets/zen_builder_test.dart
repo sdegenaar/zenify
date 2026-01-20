@@ -169,14 +169,10 @@ void main() {
       await tester.pumpWidget(const MaterialApp(home: SizedBox()));
 
       // Try to access disposed controller
-      // Updated to match v1.0 error message format
       expect(
-          () => Zen.find<TestController>(),
-          throwsA(isA<Exception>().having(
-            (e) => e.toString(),
-            'message',
-            contains('Dependency of type TestController not found'),
-          )));
+        () => Zen.find<TestController>(),
+        throwsA(isA<ZenDependencyNotFoundException>()),
+      );
     });
 
     testWidgets('should cleanup listeners on dispose',

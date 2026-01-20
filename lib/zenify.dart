@@ -45,6 +45,7 @@ export 'core/zen_config.dart';
 export 'core/zen_environment.dart';
 export 'core/zen_log_level.dart';
 export 'core/zen_logger.dart';
+export 'core/zen_exception.dart';
 export 'core/zen_metrics.dart';
 
 // ===== UTILITIES =====

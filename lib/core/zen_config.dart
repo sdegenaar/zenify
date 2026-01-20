@@ -35,6 +35,27 @@ class ZenConfig {
   static bool enableNavigationLogging = false;
   static bool enableRouteLogging = false;
 
+  /// Use verbose error formatting (boxed, multi-line)
+  /// Default: false (compact single-line)
+  ///
+  /// When true, exceptions display in a detailed boxed format:
+  /// ```
+  /// ╔══════════════════════════════════════════════════════════╗
+  /// ║ ❌ ZenDependencyNotFoundException                         ║
+  /// ╠══════════════════════════════════════════════════════════╣
+  /// ║ Dependency not found                                     ║
+  /// ║ Type: UserService                                        ║
+  /// ║ 💡 Suggestion: Zen.put(UserService());                    ║
+  /// ╚══════════════════════════════════════════════════════════╝
+  /// ```
+  ///
+  /// When false (default), exceptions use compact format:
+  /// ```
+  /// ❌ ZenDependencyNotFoundException: Dependency not found (Type=UserService)
+  ///    💡 Zen.put(UserService());
+  /// ```
+  static bool verboseErrors = false;
+
   // ============================================================================
   // PERFORMANCE & METRICS CONFIGURATION
   // ============================================================================
@@ -110,6 +131,7 @@ class ZenConfig {
     enableRxTracking = false;
     enableNavigationLogging = false;
     enableRouteLogging = false;
+    verboseErrors = false;
 
     // Performance & Metrics
     enablePerformanceTracking = false;
@@ -134,6 +156,7 @@ class ZenConfig {
       'enableRxTracking': enableRxTracking,
       'enableNavigationLogging': enableNavigationLogging,
       'enableRouteLogging': enableRouteLogging,
+      'verboseErrors': verboseErrors,
       'enablePerformanceTracking': enablePerformanceTracking,
       'enablePerformanceMetrics': enablePerformanceMetrics,
       'enableMetrics': enableMetrics,

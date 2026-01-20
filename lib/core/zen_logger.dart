@@ -76,6 +76,55 @@ class ZenLogger {
     }
   }
 
+  /// Log a ZenException with beautiful formatting
+  ///
+  /// This method automatically formats ZenException instances using their
+  /// toString() method, which respects ZenConfig.verboseErrors setting.
+  ///
+  /// Example:
+  /// ```dart
+  /// try {
+  ///   final service = Zen.find<UserService>();
+  /// } catch (e) {
+  ///   if (e is ZenException) {
+  ///     ZenLogger.logException(e);
+  ///   }
+  /// }
+  /// ```
+  static void logException(Object exception, [StackTrace? stackTrace]) {
+    if (!ZenLogLevel.error.shouldLog(ZenConfig.logLevel)) return;
+
+    // Format the exception message
+    final message = exception.toString();
+
+    // Use custom error handler if set
+    if (_errorHandler != null) {
+      _errorHandler!(message, exception, stackTrace);
+      return;
+    }
+
+    // Use custom log handler if set
+    if (_logHandler != null) {
+      _logHandler!(message, LogLevel.error);
+      return;
+    }
+
+    // Default logging with formatted output
+    if (kDebugMode) {
+      if (testMode && logFunction != null) {
+        logFunction!(message, name: '$_prefix EXCEPTION');
+      } else {
+        developer.log(
+          message,
+          name: '$_prefix EXCEPTION',
+          error: exception,
+          stackTrace: stackTrace,
+          level: 1000, // Error level
+        );
+      }
+    }
+  }
+
   /// Log a warning message
   static void logWarning(String message) {
     if (!ZenLogLevel.warning.shouldLog(ZenConfig.logLevel)) return;

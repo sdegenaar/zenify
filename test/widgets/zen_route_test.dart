@@ -653,10 +653,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(caughtError, isNotNull);
-      expect(
-        caughtError.toString(),
-        contains('Dependency of type ChildService'),
-      );
+      expect(caughtError, isA<ZenDependencyNotFoundException>());
     });
 
     testWidgets('findInScopeOrNull returns null when dependency not found',

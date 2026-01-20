@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/core.dart';
+import '../../core/zen_exception.dart';
 import '../../di/zen_di.dart';
 
 /// Route-scoped dependency injection widget
@@ -325,8 +326,7 @@ class _ZenScopeProvider extends InheritedWidget {
   static ZenScope of(BuildContext context) {
     final scope = maybeOf(context);
     if (scope == null) {
-      throw Exception(
-          'No ZenScope found in widget tree. Wrap your widget with ZenRoute or ZenScopeWidget.');
+      throw ZenScopeNotFoundException(widgetType: 'ZenRoute');
     }
     return scope;
   }
@@ -344,12 +344,15 @@ extension ZenRouteExtensions on BuildContext {
   T findInScope<T>({String? tag}) {
     final scope = zenScope;
     if (scope == null) {
-      throw Exception('No ZenScope found. Use this method within a ZenRoute.');
+      throw ZenScopeNotFoundException(widgetType: 'ZenRoute');
     }
     final result = scope.find<T>(tag: tag);
     if (result == null) {
-      throw Exception(
-          'Dependency of type $T${tag != null ? ' with tag $tag' : ''} not found in scope');
+      throw ZenDependencyNotFoundException(
+        typeName: T.toString(),
+        scopeName: scope.name ?? 'UnnamedScope',
+        tag: tag,
+      );
     }
     return result;
   }

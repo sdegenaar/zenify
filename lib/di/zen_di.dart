@@ -1,5 +1,6 @@
 // lib/di/zen_di.dart
 import '../controllers/zen_service.dart';
+import '../core/zen_exception.dart';
 import '../core/zen_logger.dart';
 import '../core/zen_scope.dart';
 import '../core/zen_module.dart';
@@ -171,8 +172,11 @@ class Zen {
   static T find<T>({String? tag}) {
     final result = rootScope.find<T>(tag: tag);
     if (result == null) {
-      throw Exception(
-          'Dependency of type $T${tag != null ? ' with tag "$tag"' : ''} not found in root scope');
+      throw ZenDependencyNotFoundException(
+        typeName: T.toString(),
+        scopeName: 'RootScope',
+        tag: tag,
+      );
     }
 
     // Auto-initialize ZenService on first access

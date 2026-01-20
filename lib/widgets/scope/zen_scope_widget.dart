@@ -73,8 +73,7 @@ class ZenScopeWidget extends StatefulWidget {
     final _ZenScopeProvider? provider =
         context.dependOnInheritedWidgetOfExactType<_ZenScopeProvider>();
     if (provider == null) {
-      throw Exception('No ZenScope found in the widget tree. '
-          'Make sure to wrap your widget with a ZenScopeWidget or ZenRoute.');
+      throw ZenScopeNotFoundException(widgetType: 'ZenScopeWidget');
     }
     return provider.scope;
   }

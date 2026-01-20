@@ -1,3 +1,67 @@
+## [1.6.6]
+
+### 🎨 Enhanced Exception System
+
+**Complete exception system with helpful error messages, suggestions, and documentation links.**
+
+#### New Features
+
+**Exception System:**
+- **Base `ZenException` class** with smart formatting (compact by default, verbose opt-in)
+- **Specific exception types** for every error category:
+  - `ZenDependencyNotFoundException` - DI lookup failures
+  - `ZenCircularDependencyException` - Circular dependency detection
+  - `ZenDisposedScopeException` - Operations on disposed scopes
+  - `ZenScopeNotFoundException` - Missing scope in widget tree
+  - `ZenControllerNotFoundException` - Controller lookup failures
+  - `ZenControllerDisposedException` - Disposed controller access
+  - `ZenOfflineException` - Network/offline errors (migrated)
+  - `ZenQueryException` - Query failures
+  - `ZenMutationException` - Mutation errors
+  - `ZenModuleException`, `ZenLifecycleException`, `ZenRouteException`
+
+**Error Formatting:**
+- **Compact format (default)**: Clean single-line with inline suggestions
+  ```
+  ❌ ZenDependencyNotFoundException: Dependency not found (Type=UserService, Scope=RootScope)
+     💡 Zen.put(UserService());
+  ```
+- **Verbose format (opt-in)**: Beautiful boxed format via `ZenConfig.verboseErrors = true`
+  ```
+  ╔══════════════════════════════════════════════════════════╗
+  ║ ❌ ZenDependencyNotFoundException                         ║
+  ╠══════════════════════════════════════════════════════════╣
+  ║ Dependency not found                                     ║
+  ║ Type: UserService                                        ║
+  ║ Scope: RootScope                                         ║
+  ║ 💡 Suggestion: Zen.put(UserService());                    ║
+  ║ 📚 Learn more: https://github.com/sdegenaar/zenify#...  ║
+  ╚══════════════════════════════════════════════════════════╝
+  ```
+
+**Logger Integration:**
+- `ZenLogger.logException(e)` - Automatic formatting with category tagging
+- Respects `ZenConfig.verboseErrors` setting
+- Works with custom error handlers
+
+**Framework Migration:**
+- All core framework code now uses specific `ZenException` types
+- 12 exceptions migrated across DI, scopes, controllers, and widgets
+- Zero breaking changes (all exceptions still implement `Exception`)
+
+**Configuration:**
+- `ZenConfig.verboseErrors` - Toggle between compact/verbose formatting
+- Integrated into environment presets and reset methods
+
+#### Benefits
+
+- ✅ **Better DX**: Helpful error messages with actionable suggestions
+- ✅ **Faster debugging**: Context and fix hints right in the error
+- ✅ **Type-safe error handling**: Catch specific exception types
+- ✅ **Zero bloat**: Compact format by default keeps logs clean
+
+---
+
 ## [1.6.5]
 
 ### 🛠️ DevTools & API Enhancements

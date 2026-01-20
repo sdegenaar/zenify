@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../controllers/zen_controller.dart';
 import '../controllers/zen_service.dart';
 import '../di/zen_lifecycle.dart';
+import 'zen_exception.dart';
 import 'zen_logger.dart';
 
 /// Hierarchical dependency injection scope
@@ -91,7 +92,10 @@ class ZenScope {
   /// Register a dependency in this scope
   T put<T>(T instance, {String? tag, bool isPermanent = false}) {
     if (_disposed) {
-      throw Exception('Cannot register in a disposed scope: $name');
+      throw ZenDisposedScopeException(
+        scopeName: name ?? 'UnnamedScope',
+        operation: 'put',
+      );
     }
 
     // Smart default: ZenService instances default to permanent (same as Zen.put)
@@ -165,7 +169,10 @@ class ZenScope {
     bool alwaysNew = false,
   }) {
     if (_disposed) {
-      throw Exception('Cannot register in a disposed scope: $name');
+      throw ZenDisposedScopeException(
+        scopeName: name ?? 'UnnamedScope',
+        operation: 'putLazy',
+      );
     }
 
     if (isPermanent && alwaysNew) {
@@ -254,8 +261,11 @@ class ZenScope {
   T findRequired<T>({String? tag}) {
     final result = find<T>(tag: tag);
     if (result == null) {
-      throw Exception(
-          'Dependency of type $T${tag != null ? ' with tag $tag' : ''} not found in scope: $name');
+      throw ZenDependencyNotFoundException(
+        typeName: T.toString(),
+        scopeName: name ?? 'UnnamedScope',
+        tag: tag,
+      );
     }
     return result;
   }
@@ -486,8 +496,11 @@ class ZenScope {
 
   /// Register a function that will be called when this scope is disposed
   void registerDisposer(void Function() disposer) {
-    if (_disposed) {
-      throw Exception('Cannot register disposer on a disposed scope: $name');
+    if (isDisposed) {
+      throw ZenDisposedScopeException(
+        scopeName: name ?? 'UnnamedScope',
+        operation: 'registerDisposer',
+      );
     }
 
     _disposers.add(disposer);

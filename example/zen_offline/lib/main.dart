@@ -198,7 +198,7 @@ class FeedPage extends ZenView<FeedController> {
                                   value:
                                       networkSimulator.isSimulatedOffline.value,
                                   onChanged: (_) => networkSimulator.toggle(),
-                                  activeColor: Colors.orangeAccent,
+                                  activeThumbColor: Colors.orangeAccent,
                                 ),
                               ],
                             ),
