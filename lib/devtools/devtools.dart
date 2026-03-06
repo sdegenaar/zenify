@@ -41,3 +41,4 @@
 library;
 
 export 'inspector/zen_inspector_overlay.dart';
+export 'service_extensions.dart' show ZenServiceExtensions;

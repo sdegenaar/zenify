@@ -1,4 +1,5 @@
 // lib/di/zen_di.dart
+import 'package:flutter/foundation.dart' show kDebugMode;
 import '../controllers/zen_service.dart';
 import '../core/zen_exception.dart';
 import '../core/zen_logger.dart';
@@ -11,6 +12,7 @@ import 'zen_lifecycle.dart';
 import 'zen_reactive.dart';
 import '../query/core/zen_storage.dart';
 import '../query/queue/zen_mutation_queue.dart';
+import '../devtools/service_extensions.dart' show ZenServiceExtensions;
 
 /// Main Zenify API for dependency injection
 ///
@@ -36,9 +38,11 @@ class Zen {
   ///
   /// [storage] - Optional storage implementation for offline persistence
   /// [mutationHandlers] - Optional registry of mutation handlers for offline replay
+  /// [registerDevTools] - Whether to register DevTools service extensions (default: true in debug mode)
   static Future<void> init({
     ZenStorage? storage,
     Map<String, ZenMutationHandler>? mutationHandlers,
+    bool registerDevTools = true,
   }) async {
     _lifecycleManager.initLifecycleObserver();
 
@@ -54,6 +58,17 @@ class Zen {
 
     // Initialize persistence and queue (restores state)
     await ZenMutationQueue.instance.init(storage);
+
+    // Register DevTools extensions in debug mode
+    if (registerDevTools && kDebugMode) {
+      try {
+        ZenServiceExtensions.registerExtensions();
+        ZenLogger.logDebug('DevTools service extensions registered');
+      } catch (e) {
+        // Silently fail if devtools not available
+        ZenLogger.logDebug('DevTools extensions not available: $e');
+      }
+    }
 
     ZenLogger.logInfo('Zen initialized');
   }

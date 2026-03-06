@@ -12,8 +12,10 @@ Future<void> main() async {
   // Initialize Flutter binding
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Zen with enhanced configuration
-  Zen.init();
+  // Initialize Zenify with DevTools support
+  await Zen.init(
+    registerDevTools: true, // Enables DevTools extension
+  );
 
   ZenConfig.configure(
     level: kDebugMode ? ZenLogLevel.info : ZenLogLevel.warning,

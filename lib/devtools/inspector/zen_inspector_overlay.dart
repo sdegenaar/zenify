@@ -5,27 +5,12 @@ import 'widgets/debug_panel.dart';
 
 /// Developer tools overlay for inspecting Zenify state
 ///
-/// This widget provides an in-app inspector for debugging:
-/// - Scope hierarchies
-/// - Query cache contents
-/// - Registered dependencies
-/// - Performance metrics
+/// **DEPRECATED**: Use the official Flutter DevTools extension instead.
+/// This in-app overlay will be removed in v2.0.0.
 ///
-/// ## Safety
+/// ## Migration Guide
 ///
-/// This overlay is designed to be safe for production builds:
-/// - Defaults to [kDebugMode] (automatically disabled in release)
-/// - Multiple runtime guards prevent accidental activation
-/// - Tree-shakes out when disabled (zero bytes in release)
-///
-/// ## Architecture
-///
-/// Wraps your app BEFORE MaterialApp to provide debugging across all routes.
-/// Uses only basic widgets (Stack, Container, GestureDetector) to avoid dependencies.
-/// The debug panel is wrapped with Directionality + MediaQuery when shown.
-///
-/// ## Usage
-///
+/// ### Before (v1.6.x):
 /// ```dart
 /// void main() {
 ///   runApp(
@@ -36,15 +21,35 @@ import 'widgets/debug_panel.dart';
 /// }
 /// ```
 ///
-/// ## WARNING
-///
-/// Never enable in production:
+/// ### After (v1.7.0+):
 /// ```dart
-/// ZenInspectorOverlay(
-///   enabled: true,  // ❌ DANGEROUS in release builds!
-///   child: child,
-/// )
+/// void main() {
+///   runApp(MaterialApp(home: HomePage()));
+///   // The DevTools extension is automatically available!
+///   // Just run your app and open Flutter DevTools
+/// }
 /// ```
+///
+/// ## Why Switch?
+///
+/// The new DevTools extension provides:
+/// - ✅ Better performance (no overlay rendering)
+/// - ✅ Richer features (timeline, filtering, export)
+/// - ✅ Standard Flutter DevTools UI
+/// - ✅ Works with all DevTools features
+/// - ✅ No app code changes needed
+///
+/// ## How to Use DevTools Extension
+///
+/// 1. Run your app in debug mode: `flutter run`
+/// 2. Flutter DevTools opens automatically in browser
+/// 3. Click the "Zenify" tab to inspect your app
+///
+/// See: https://github.com/sdegenaar/zenify#devtools-extension
+///
+@Deprecated('Use the Flutter DevTools extension instead. '
+    'This will be removed in v2.0.0. '
+    'See migration guide: https://github.com/sdegenaar/zenify/blob/main/MIGRATION_DEVTOOLS.md')
 class ZenInspectorOverlay extends StatefulWidget {
   /// The app to wrap with inspector overlay
   final Widget child;
