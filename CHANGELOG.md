@@ -1,3 +1,84 @@
+## [1.7.0]
+
+### 🔍 Flutter DevTools Extension
+
+**Complete DevTools integration with real-time scope inspection, query cache monitoring, and system metrics.**
+
+#### New Features
+
+**DevTools Extension:**
+- **3-tab inspector interface** integrated into Flutter DevTools
+  - **Scope Inspector** - Hierarchical visualization of DI scopes with dependency breakdown
+  - **Query Cache Viewer** - Real-time query monitoring with search, filters, and actions
+  - **Metrics Dashboard** - Live system metrics (scopes, queries, dependencies, memory)
+- **Auto-discovery** - Extension automatically appears in DevTools when running debug builds
+- **Real-time updates** - All data refreshes live from your running app
+- **Interactive controls** - Refetch queries, invalidate cache, expand/collapse scope trees
+
+**Backend Service Extensions:**
+- New `ZenServiceExtensions` class with VM Service Protocol integration
+- Service extensions for scopes, queries, stats, and metrics
+- Automatic registration via `Zen.init(registerDevTools: true)` in debug mode
+- Zero performance impact in release builds
+
+**Query Cache Viewer:**
+- Search queries by key
+- Filter by status (All/Loading/Error/Stale/Fresh)
+- Visual indicators (⏳ loading, ✅ success, ❌ error, ⚠️ stale)
+- Statistics dashboard showing global vs scoped queries
+- Actions: Refetch individual queries, Invalidate stale data
+- Metadata display (timestamps, fetch count, scope association)
+
+**Metrics Dashboard:**
+- **Scope metrics**: Total/Active/Disposed counts
+- **Query metrics**: Total/Global/Scoped/Loading/Error/Stale breakdown
+- **Dependency metrics**: Controllers vs Services counts
+- **Memory usage**: RSS, Heap Size, Heap Used (when available)
+- Auto-refreshes every 2 seconds with live status indicator
+
+**Scope Inspector:**
+- Hierarchical tree view of all scopes (root → module → page)
+- Parent-child relationship visualization
+- Dependency breakdown by category (Controllers, Services, Others)
+- Expand/collapse nodes for detailed inspection
+- Shows scope metadata (ID, name, disposed status)
+
+**Migration from Old Inspector:**
+- `ZenInspectorOverlay` deprecated in favor of DevTools extension
+- Migration guide included for existing users
+- Old overlay still works but shows deprecation notice
+
+**Developer Experience:**
+- Works with all examples via `devtools_options.yaml`
+- Comprehensive documentation in `extension/devtools/README.md`
+- Easy setup: Just `await Zen.init(registerDevTools: true)`
+- No configuration required - works out of the box
+
+#### Breaking Changes
+
+- None! Fully backward compatible.
+
+#### Configuration
+
+```dart
+// Enable DevTools extension (default in debug mode)
+await Zen.init(
+  registerDevTools: true,  // Auto-registers service extensions
+);
+```
+
+Then open Flutter DevTools and look for the "Zenify" tab with the query_stats icon.
+
+#### Benefits
+
+- ✅ **Better debugging**: Visual scope hierarchy reveals DI issues instantly
+- ✅ **Query optimization**: See cache hits, stale queries, and fetch patterns
+- ✅ **Memory leak detection**: Monitor scope disposal and lifecycle
+- ✅ **Performance insights**: Real-time metrics help identify bottlenecks
+- ✅ **Zero setup**: Works automatically in debug builds
+
+---
+
 ## [1.6.6]
 
 ### 🎨 Enhanced Exception System

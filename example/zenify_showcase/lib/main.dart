@@ -3,12 +3,20 @@ import 'package:zenify/zenify.dart';
 import 'showcase/modules/showcase_module.dart';
 import 'showcase/pages/showcase_home_page.dart';
 
-void main() {
+Future<void> main() async {
+  // Ensure Flutter binding is initialized
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Zenify with DevTools support
+  await Zen.init(
+    registerDevTools: true, // Enables DevTools extension
+  );
+
   // Configure Zenify for showcase
   ZenConfig.applyEnvironment(ZenEnvironment.debug);
 
   // Register all modules globally at startup
-  Zen.registerModules([
+  await Zen.registerModules([
     ShowcaseModule(),
     // Add other modules here as your app grows
   ]);

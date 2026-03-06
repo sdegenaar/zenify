@@ -95,7 +95,7 @@ The scope hierarchy automatically manages lifecycle - when you exit a feature, a
 
 ```yaml
 dependencies:
-  zenify: ^1.6.6
+  zenify: ^1.7.0
 ```
 
 ### 2. Initialize
@@ -492,6 +492,63 @@ void main() {
 ```
 
 [See complete testing guide →](doc/testing_guide.md)
+
+---
+
+## 🔍 Flutter DevTools Extension
+
+**NEW in v1.7.0:** Zenify includes a comprehensive DevTools extension for real-time inspection and debugging.
+
+### Quick Setup
+
+```dart
+void main() async {
+  await Zen.init(
+    registerDevTools: true,  // Enables DevTools extension
+  );
+  runApp(MyApp());
+}
+```
+
+### Features
+
+**📊 3-Tab Inspector:**
+
+1. **Scope Inspector** - Visualize your entire DI hierarchy
+   - Hierarchical tree view (root → module → page)
+   - Dependency breakdown (Controllers, Services, Others)
+   - Parent-child relationship visualization
+   - Expand/collapse nodes for detailed inspection
+
+2. **Query Cache Viewer** - Monitor all cached queries
+   - Search and filter queries by status
+   - Visual indicators (⏳ loading, ✅ success, ❌ error, ⚠️ stale)
+   - Real-time statistics (global vs scoped queries)
+   - Actions: Refetch, Invalidate, Clear cache
+   - Metadata: Timestamps, fetch count, scope association
+
+3. **Metrics Dashboard** - Live system performance
+   - Scope metrics (Total/Active/Disposed)
+   - Query metrics (Total/Loading/Error/Stale)
+   - Dependency breakdown (Controllers vs Services)
+   - Memory usage (RSS, Heap Size, Heap Used)
+   - Auto-refreshes every 2 seconds
+
+### How to Use
+
+1. Start your Flutter app in debug mode
+2. Open Flutter DevTools (from VS Code, Android Studio, or command line)
+3. Look for the **"Zenify"** tab (with query_stats icon)
+4. Explore your scopes, queries, and metrics in real-time!
+
+### Benefits
+
+- ✅ **Debug DI issues** - See your scope hierarchy and dependencies visually
+- ✅ **Optimize queries** - Monitor cache hits, stale data, and fetch patterns
+- ✅ **Detect memory leaks** - Watch scope disposal and lifecycle
+- ✅ **Performance insights** - Real-time metrics help identify bottlenecks
+
+[Learn more about the DevTools extension →](extension/devtools/README.md)
 
 ---
 

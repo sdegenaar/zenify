@@ -1,0 +1,5 @@
+# DevTools extension configuration for Zenify
+name: zenify
+version: 1.7.0
+issueTracker: https://github.com/sdegenaar/zenify/issues
+materialIconCodePoint: '0xe86d'  # query_stats icon
