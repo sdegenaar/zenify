@@ -13,8 +13,9 @@ import 'pages/advanced_features_page.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Zenify
-  Zen.init();
+  // Initialize Zenify with DevTools support
+  // To use the visual DevTools extension, add zenify_devtools_extension as a dev dependency
+  Zen.init(registerDevTools: true);
 
   // Configure for development with detailed logging
   ZenConfig.applyEnvironment(ZenEnvironment.development);
@@ -35,11 +36,7 @@ Future<void> main() async {
     ZenQueryModule(),
   ]);
 
-  runApp(
-    const ZenInspectorOverlay(
-      child: ZenQueryApp(),
-    ),
-  );
+  runApp(const ZenQueryApp());
 }
 
 class ZenQueryApp extends StatelessWidget {

@@ -14,8 +14,10 @@ void main() async {
   // Enable Debug Logging
   ZenConfig.configure(level: ZenLogLevel.debug);
 
-  // 1. Initialize Zenify with Persistence
+  // 1. Initialize Zenify with Persistence & DevTools
+  // To use the visual DevTools extension, add zenify_devtools_extension as a dev dependency
   await Zen.init(
+    registerDevTools: true,
     storage: PreferenceStorage(),
     mutationHandlers: {
       'create_post': (payload) async {
@@ -37,9 +39,7 @@ void main() async {
   final networkSimulator = NetworkSimulator();
   Zen.setNetworkStream(networkSimulator.stream);
 
-  runApp(
-    ZenInspectorOverlay(child: OfflineApp(networkSimulator: networkSimulator)),
-  );
+  runApp(OfflineApp(networkSimulator: networkSimulator));
 }
 
 /// Helper to simulate network conditions

@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:zenify/zenify.dart';
 
 void main() {
-  // Initialize Zenify
+  // Initialize Zenify with DevTools support
+  // To use the visual DevTools extension, add zenify_devtools_extension as a dev dependency
+  Zen.init(registerDevTools: true);
   ZenConfig.applyEnvironment('dev');
+
   runApp(const ZenifyExampleApp());
 }
 
@@ -12,11 +15,10 @@ class ZenifyExampleApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const ZenInspectorOverlay(
-        child: MaterialApp(
+    return const MaterialApp(
       title: 'Zenify Example',
       home: CounterPage(),
-    ));
+    );
   }
 }
 

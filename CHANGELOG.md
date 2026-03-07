@@ -1,3 +1,64 @@
+## [1.8.0]
+
+### 🚨 BREAKING CHANGE (Minor)
+
+**Removed `ZenInspectorOverlay` Widget**
+
+The `ZenInspectorOverlay` widget has been removed. DevTools integration now works the same as v1.7.0 - just call `Zen.init(registerDevTools: true)`.
+
+#### Migration (30 seconds)
+
+**If you were using `ZenInspectorOverlay`:**
+
+```dart
+// ❌ Old (v1.7.0)
+void main() {
+  Zen.init(registerDevTools: true);
+  runApp(ZenInspectorOverlay(child: MyApp()));  // Remove this wrapper
+}
+
+// ✅ New (v1.8.0)
+void main() {
+  Zen.init(registerDevTools: true);  // Same as 1.7.0!
+  runApp(MyApp());
+}
+```
+
+**That's it!** DevTools integration works exactly the same - just remove the wrapper.
+
+#### Optional: Visual DevTools Extension
+
+The DevTools extension UI is now a **separate optional package** (for cleaner core package):
+
+```yaml
+dev_dependencies:
+  zenify_devtools_extension: ^1.0.0  # Optional
+```
+
+Enable in `devtools_options.yaml`:
+```yaml
+extensions:
+  - zenify_devtools_extension: true
+```
+
+See: https://github.com/sdegenaar/zenify_devtools_extension
+
+### What Changed Internally
+
+- Moved DevTools extension to separate package for better deployment
+- Removed `extension/` folder from core package
+- Smaller core package size (~25MB smaller)
+- Independent versioning for DevTools extension
+
+### Benefits
+
+- ✅ **No API changes** - `Zen.init(registerDevTools: true)` still works
+- ✅ **Smaller package** - Core package is leaner
+- ✅ **Optional DevTools UI** - Install only if needed
+- ✅ **Easier deployment** - No more build conflicts
+
+---
+
 ## [1.7.0]
 
 ### 🔍 Flutter DevTools Extension

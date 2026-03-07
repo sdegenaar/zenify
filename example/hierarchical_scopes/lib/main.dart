@@ -13,9 +13,8 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize Zenify with DevTools support
-  await Zen.init(
-    registerDevTools: true, // Enables DevTools extension
-  );
+  // To use the visual DevTools extension, add zenify_devtools_extension as a dev dependency
+  await Zen.init(registerDevTools: true);
 
   ZenConfig.configure(
     level: kDebugMode ? ZenLogLevel.info : ZenLogLevel.warning,
@@ -41,11 +40,7 @@ Future<void> main() async {
   ]);
 
   // Run the app
-  runApp(
-    const ZenInspectorOverlay(
-      child: CompanyApp(),
-    ),
-  );
+  runApp(const CompanyApp());
 }
 
 /// Main application widget

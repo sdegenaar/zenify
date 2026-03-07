@@ -7,7 +7,7 @@ void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize Zenify
-  Zen.init();
+  Zen.init(registerDevTools: true);
 
   // Configure for development with detailed logging
   ZenConfig.applyEnvironment(ZenEnvironment.development);

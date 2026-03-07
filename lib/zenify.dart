@@ -65,6 +65,6 @@ export 'query/extensions/zen_scope_query_extension.dart';
 export 'debug/zen_debug.dart' show ZenDebug;
 
 // ===== DEVTOOLS =====
-// Inspector overlay and debugging tools
-// Safe for production - automatically disabled in release mode
+// Service extensions for DevTools integration
+// Use zenify_devtools_extension package for visual DevTools UI
 export 'devtools/devtools.dart';

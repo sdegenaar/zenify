@@ -1,44 +1,31 @@
 // lib/devtools/devtools.dart
 
-/// Development tools and debugging utilities for Zenify
+/// Service extensions for DevTools integration
 ///
-/// This module provides in-app debugging tools including:
-/// - Inspector overlay for visualizing scope hierarchies
-/// - Query cache viewer
-/// - Dependency inspector
-/// - Performance metrics
-///
-/// ## Safety
-///
-/// All devtools are designed to be safe for production builds:
-/// - Automatically disabled in release mode by default
-/// - Tree-shakes out when disabled (zero overhead)
-/// - Multiple runtime guards prevent accidental activation
+/// This module provides service extensions that allow the DevTools extension
+/// to query the running app for scope hierarchy, dependencies, and other debug information.
 ///
 /// ## Usage
+///
+/// Register service extensions in your app's main() function:
 ///
 /// ```dart
 /// import 'package:zenify/devtools/devtools.dart';
 ///
 /// void main() {
-///   runApp(
-///     ZenInspectorOverlay(
-///       child: MyApp(),  // ✅ Safe: uses kDebugMode by default
-///     ),
-///   );
+///   ZenServiceExtensions.registerExtensions();
+///   runApp(MyApp());
 /// }
 /// ```
 ///
-/// ## WARNING
+/// ## DevTools Extension
 ///
-/// Never enable devtools in production:
-/// ```dart
-/// ZenInspectorOverlay(
-///   enabled: true,  // ❌ DANGEROUS in release builds!
-///   child: MyApp(),
-/// )
+/// To use the visual DevTools extension, add it as a dev dependency:
+///
+/// ```yaml
+/// dev_dependencies:
+///   zenify_devtools_extension: ^1.0.0
 /// ```
 library;
 
-export 'inspector/zen_inspector_overlay.dart';
 export 'service_extensions.dart' show ZenServiceExtensions;

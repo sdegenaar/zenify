@@ -9,8 +9,9 @@ import 'package:zenify/zenify.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Zen with enhanced configuration
-  Zen.init();
+  // Initialize Zen with DevTools support
+  // To use the visual DevTools extension, add zenify_devtools_extension as a dev dependency
+  Zen.init(registerDevTools: true);
 
   // Configure for development with detailed logging
   ZenConfig.applyEnvironment(ZenEnvironment.development);
@@ -25,11 +26,7 @@ void main() {
     },
   );
 
-  runApp(
-    const ZenInspectorOverlay(
-      child: CounterApp(),
-    ),
-  );
+  runApp(const CounterApp());
 }
 
 class CounterApp extends StatelessWidget {

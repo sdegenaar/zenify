@@ -4,7 +4,7 @@ import 'package:zenify/zenify.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  Zen.init();
+  Zen.init(registerDevTools: true);
 
   // Simple environment-based configuration (RECOMMENDED)
   if (kReleaseMode) {
