@@ -1,3 +1,13 @@
+# Build artifacts and test files
+build/
+coverage/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub/
+.metadata
+
 # Exclude documentation
 ARCHITECTURAL_REVIEW_2025.md
 BUILDER_ARCHITECTURE.md
