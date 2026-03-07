@@ -95,7 +95,7 @@ The scope hierarchy automatically manages lifecycle - when you exit a feature, a
 
 ```yaml
 dependencies:
-  zenify: ^1.7.0
+  zenify: ^1.8.0
 ```
 
 ### 2. Initialize
