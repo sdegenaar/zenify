@@ -18,6 +18,10 @@ dart tool/migrate_from_getx.dart /path/to/your/project --dry-run
 dart tool/migrate_from_getx.dart /path/to/your/project
 ```
 
+> **Before running:** commit or stash your current changes so you can easily review the diff or revert if needed.
+>
+> The script uses text replacement, not AST parsing. It handles the common patterns reliably but cannot account for every codebase. Always run with `--dry-run` first, review the output, and verify with `dart analyze` after applying. It is provided as a convenience with no guarantees.
+
 **What it converts automatically:**
 - Import statements
 - `GetxController` / `GetxService` → `ZenController` / `ZenService`
