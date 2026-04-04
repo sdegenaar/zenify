@@ -628,32 +628,101 @@ void main() {
 
 ### Cache Invalidation
 
-Mark data as stale to trigger refetch:
+Mark data as stale to trigger a refetch. Zenify provides three strategies that compose cleanly:
+
+#### By key (exact or prefix)
 ```dart
-// Invalidate single query
+// Single query
 Zen.queryCache.invalidateQuery('user:123');
 
-// Invalidate by prefix (all user queries)
+// All queries starting with 'user:'
 Zen.queryCache.invalidateQueriesWithPrefix('user:');
 
-// Invalidate with custom predicate
+// Custom predicate
 Zen.queryCache.invalidateQueries((key) => key.contains('posts'));
 
-// Invalidate specific query
+// The query itself
 userQuery.invalidate();
 ```
+
+#### By tag — group-based invalidation ✨
+
+Tag queries at creation time, then invalidate an entire group in one call.
+Useful after mutations that affect multiple entities.
+
+```dart
+// Tag queries when creating them
+final userProfile = ZenQuery<User>(
+  queryKey: 'user:123',
+  tags: ['user', 'profile'],   // one or more tags
+  fetcher: (_) => api.getUser(123),
+);
+
+final userActivity = ZenQuery<Activity>(
+  queryKey: 'user:123:activity',
+  tags: ['user'],
+  fetcher: (_) => api.getUserActivity(123),
+);
+
+// After a profile update mutation — invalidate everything tagged 'user'
+final updateMutation = ZenMutation<User, User>(
+  mutationFn: (user) => api.updateUser(user),
+  onSettled: (_, __, ___, ____) {
+    Zen.queryCache.invalidateQueriesByTag('user'); // invalidates both queries above
+  },
+);
+```
+
+You can also inspect or work with tagged queries directly:
+```dart
+// All live query instances with tag 'user'
+Zen.queryCache.getQueriesByTag('user');
+
+// Just the cache keys
+Zen.queryCache.getKeysByTag('user');
+```
+
+#### By glob pattern — wildcard invalidation ✨
+
+Use `*` as a wildcard to match multiple keys without manually tagging:
+
+```dart
+// Prefix: all user entity queries
+Zen.queryCache.invalidateQueriesByPattern('user:*');
+
+// Suffix: all ':comments' sub-queries regardless of entity
+Zen.queryCache.invalidateQueriesByPattern('*:comments');
+
+// Contains: any key with 'feed' anywhere
+Zen.queryCache.invalidateQueriesByPattern('*feed*');
+```
+
+**When to use which:**
+
+| Strategy | Best for |
+|---|---|
+| `invalidateQuery(key)` | Invalidating a single known query |
+| `invalidateQueriesWithPrefix('user:')` | Hierarchical key schemes |
+| `invalidateQueriesByTag('user')` | Logically grouped queries (any key structure) |
+| `invalidateQueriesByPattern('user:*')` | Pattern-based invalidation without tagging |
 
 ### Manual Refetching
 
 Force refresh regardless of stale state:
 ```dart
-// Refetch single query
+// Single query
 await userQuery.refetch();
 
-// Refetch multiple queries
+// Multiple queries by predicate
 await Zen.queryCache.refetchQueries((key) => key.startsWith('user:'));
 
-``` 
+// All queries with a tag
+await Zen.queryCache.refetchQueriesByTag('user');
+
+// All queries matching a glob pattern
+await Zen.queryCache.refetchQueriesByPattern('user:*');
+```
+
 
 ### Query Deduplication
 
@@ -780,19 +849,36 @@ final query = ZenQuery<Data>(
 
 ## Best Practices
 
-### 1. Use Hierarchical Keys
+### 1. Use Hierarchical Keys + Tags Together
 
-Organize keys in a hierarchy for easier invalidation:
+Organize keys in a hierarchy for prefix-based invalidation. Add tags for any queries that need cross-hierarchy grouping:
 ```dart
-// Good ✅
+// Hierarchical keys ✅
 'users'
 'users:123'
 'users:123:posts'
 'users:123:posts:456'
 
-// Can invalidate all user 123 data:
+// Prefix: invalidate all user 123 data
 Zen.queryCache.invalidateQueriesWithPrefix('users:123:');
-``` 
+
+// Tags: when queries for the same concept live at different key paths
+final profileQuery = ZenQuery<User>(
+  queryKey: 'users:123',
+  tags: ['user-data'],
+  fetcher: (_) => api.getUser(123),
+);
+final activityQuery = ZenQuery<Activity>(
+  queryKey: 'activity:user:123',   // different hierarchy branch
+  tags: ['user-data'],
+  fetcher: (_) => api.getActivity(123),
+);
+
+// Invalidate both despite different key paths:
+Zen.queryCache.invalidateQueriesByTag('user-data');
+```
+
+
 
 ### 2. Set Appropriate Stale Times
 
@@ -919,14 +1005,16 @@ query.dispose();
 #### Constructor
 ```dart
 ZenQuery<T>({
-  required String queryKey,
-  required Future<T> Function() fetcher,
+  required Object queryKey,
+  required Future<T> Function(ZenCancelToken) fetcher,
   ZenQueryConfig? config,
   T? initialData,
   ZenScope? scope,
   bool autoDispose = true,
+  List<String>? tags,   // optional group labels for invalidation
 })
 ```
+
 
 #### Properties
 
@@ -991,13 +1079,25 @@ Singleton for managing multiple queries:
 // Get cache instance
 Zen.queryCache
 
-// Invalidate queries
-invalidateQuery(String key)
+// Invalidate queries — by key
+invalidateQuery(Object key)
 invalidateQueriesWithPrefix(String prefix)
 invalidateQueries(bool Function(String) predicate)
 
-// Refetch queries
+// Invalidate queries — by tag or glob pattern ✨
+invalidateQueriesByTag(String tag)
+invalidateQueriesByPattern(String pattern)  // supports * wildcard
+
+// Refetch queries — by predicate
 refetchQueries(bool Function(String) predicate)
+
+// Refetch queries — by tag or glob pattern ✨
+refetchQueriesByTag(String tag)
+refetchQueriesByPattern(String pattern)
+
+// Tag lookups ✨
+getQueriesByTag(String tag)   // → List<ZenQuery>
+getKeysByTag(String tag)       // → List<String>
 
 // Scope operations
 invalidateScope(String scopeId)
@@ -1014,8 +1114,8 @@ clear()
 
 // Get statistics
 getStats()
-
 ```
+
 
 ---
 

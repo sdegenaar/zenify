@@ -53,6 +53,9 @@ class ZenQueryCache {
   // Track which queries belong to which scope
   final Map<String, Set<String>> _scopeQueries = {};
 
+  // Tag index: tag -> Set of query keys that carry that tag
+  final Map<String, Set<String>> _tagIndex = {};
+
   /// Cached data by key
   final Map<String, _CacheEntry> _cache = {};
 
@@ -148,12 +151,14 @@ class ZenQueryCache {
   /// Register a query in the cache
   void register<T>(ZenQuery<T> query) {
     _queries[query.queryKey] = query;
+    _indexTags(query.queryKey, query.tags);
     ZenLogger.logDebug('Registered global query: ${query.queryKey}');
   }
 
   /// Register a scoped query with automatic scope tracking
   void registerScoped<T>(ZenQuery<T> query, String scopedKey, String scopeId) {
     _queries[scopedKey] = query;
+    _indexTags(scopedKey, query.tags);
 
     // Track which queries belong to this scope
     _scopeQueries.putIfAbsent(scopeId, () => <String>{}).add(scopedKey);
@@ -167,6 +172,7 @@ class ZenQueryCache {
   /// Unregister a query from the cache
   void unregister(String queryKey) {
     final query = _queries.remove(queryKey);
+    _unindexTags(queryKey);
 
     // Remove from scope tracking if it was a scoped query
     _scopeQueries.forEach((scopeId, keys) {
@@ -179,6 +185,23 @@ class ZenQueryCache {
     if (query != null) {
       ZenLogger.logDebug('Unregistered query: $queryKey');
     }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Tag index helpers
+  // ---------------------------------------------------------------------------
+
+  void _indexTags(String queryKey, List<String> tags) {
+    for (final tag in tags) {
+      _tagIndex.putIfAbsent(tag, () => <String>{}).add(queryKey);
+    }
+  }
+
+  void _unindexTags(String queryKey) {
+    for (final keys in _tagIndex.values) {
+      keys.remove(queryKey);
+    }
+    _tagIndex.removeWhere((_, keys) => keys.isEmpty);
   }
 
   /// Invalidate all queries in a specific scope
@@ -485,7 +508,77 @@ class ZenQueryCache {
     invalidateQueries((key) => key.startsWith(prefix));
   }
 
-  /// Refetch query by key
+  /// Invalidate all queries that carry [tag].
+  ///
+  /// Tags are assigned at query creation:
+  /// ```dart
+  /// ZenQuery<User>(
+  ///   queryKey: 'user:123',
+  ///   tags: ['user', 'profile'],
+  ///   fetcher: (_) => api.getUser(123),
+  /// );
+  ///
+  /// // Invalidate everything tagged 'user':
+  /// Zen.queryCache.invalidateQueriesByTag('user');
+  /// ```
+  void invalidateQueriesByTag(String tag) {
+    final keys = _tagIndex[tag];
+    if (keys == null || keys.isEmpty) return;
+
+    int count = 0;
+    for (final key in keys.toList()) {
+      final query = _queries[key];
+      if (query != null && !query.isDisposed) {
+        query.invalidate();
+        count++;
+      }
+    }
+    ZenLogger.logDebug('Invalidated $count queries with tag: $tag');
+  }
+
+  /// Invalidate all queries whose keys match a glob-style [pattern].
+  ///
+  /// Supports `*` as a wildcard anywhere in the pattern:
+  /// ```dart
+  /// // All user entity queries:
+  /// Zen.queryCache.invalidateQueriesByPattern('user:*');
+  ///
+  /// // All comment sub-queries regardless of entity:
+  /// Zen.queryCache.invalidateQueriesByPattern('*:comments');
+  ///
+  /// // Any key containing 'feed':
+  /// Zen.queryCache.invalidateQueriesByPattern('*feed*');
+  /// ```
+  void invalidateQueriesByPattern(String pattern) {
+    final matches = _matchPattern(pattern);
+    int count = 0;
+    for (final key in matches) {
+      final query = _queries[key];
+      if (query != null && !query.isDisposed) {
+        query.invalidate();
+        count++;
+      }
+    }
+    ZenLogger.logDebug('Invalidated $count queries matching pattern: $pattern');
+  }
+
+  /// Returns all query keys currently registered under [tag].
+  List<String> getKeysByTag(String tag) {
+    return (_tagIndex[tag] ?? {}).toList();
+  }
+
+  /// Returns all live (non-disposed) queries that carry [tag].
+  List<ZenQuery> getQueriesByTag(String tag) {
+    final keys = _tagIndex[tag];
+    if (keys == null) return [];
+    return keys
+        .map((k) => _queries[k])
+        .whereType<ZenQuery>()
+        .where((q) => !q.isDisposed)
+        .toList();
+  }
+
+  /// Refetch a query by key
   Future<void> refetchQuery(String queryKey) async {
     final query = _queries[queryKey];
     if (query != null) {
@@ -493,12 +586,11 @@ class ZenQueryCache {
     }
   }
 
-  /// Refetch queries matching pattern
+  /// Refetch all queries whose keys match [predicate].
   Future<void> refetchQueries(bool Function(String key) predicate) async {
     final futures = <Future>[];
     for (final entry in _queries.entries) {
       if (predicate(entry.key)) {
-        // Wrap in anonymous function to handle errors properly
         futures.add(
           Future(() async {
             try {
@@ -507,13 +599,77 @@ class ZenQueryCache {
               ZenLogger.logWarning(
                 'Failed to refetch query ${entry.key}: $e',
               );
-              // Don't rethrow - we want to continue with other queries
             }
           }),
         );
       }
     }
     await Future.wait(futures);
+  }
+
+  /// Refetch all queries that carry [tag].
+  Future<void> refetchQueriesByTag(String tag) async {
+    final keys = _tagIndex[tag];
+    if (keys == null || keys.isEmpty) return;
+
+    final futures = <Future>[];
+    for (final key in keys.toList()) {
+      final query = _queries[key];
+      if (query != null && !query.isDisposed) {
+        futures.add(
+          query.refetch().catchError((Object e) {
+            ZenLogger.logWarning(
+                'Failed to refetch query $key (tag: $tag): $e');
+          }),
+        );
+      }
+    }
+    await Future.wait(futures);
+    ZenLogger.logDebug('Refetched ${futures.length} queries with tag: $tag');
+  }
+
+  /// Refetch all queries matching a glob-style [pattern].
+  Future<void> refetchQueriesByPattern(String pattern) async {
+    final matches = _matchPattern(pattern);
+    final futures = <Future>[];
+    for (final key in matches) {
+      final query = _queries[key];
+      if (query != null && !query.isDisposed) {
+        futures.add(
+          query.refetch().catchError((Object e) {
+            ZenLogger.logWarning(
+                'Failed to refetch query $key (pattern: $pattern): $e');
+          }),
+        );
+      }
+    }
+    await Future.wait(futures);
+    ZenLogger.logDebug(
+        'Refetched ${futures.length} queries matching pattern: $pattern');
+  }
+
+  // ---------------------------------------------------------------------------
+  // Pattern matching
+  // ---------------------------------------------------------------------------
+
+  /// Returns all registered query keys matching the glob-style [pattern].
+  /// Supports [*] as a wildcard at any position in the pattern.
+  List<String> _matchPattern(String pattern) {
+    if (!pattern.contains('*')) {
+      return _queries.containsKey(pattern) ? [pattern] : [];
+    }
+
+    // Warn if the pattern is only wildcards — this will match every query in the cache.
+    if (pattern.replaceAll('*', '').isEmpty) {
+      ZenLogger.logWarning(
+        'invalidateQueriesByPattern called with "$pattern" which matches ALL '
+        'queries in the cache. If this is intentional, use ZenQueryCache.clear() instead.',
+      );
+    }
+
+    final parts = pattern.split('*').map(RegExp.escape).join('.*');
+    final regex = RegExp('^$parts' r'$');
+    return _queries.keys.where((k) => regex.hasMatch(k)).toList();
   }
 
   /// Remove query from cache
@@ -535,6 +691,7 @@ class ZenQueryCache {
     _queries.clear();
     _pendingFetches.clear();
     _scopeQueries.clear();
+    _tagIndex.clear();
   }
 
   /// Get comprehensive cache statistics

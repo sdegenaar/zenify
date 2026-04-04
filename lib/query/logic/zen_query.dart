@@ -55,6 +55,23 @@ class ZenQuery<T> extends ZenController {
   /// Whether the query is enabled to fetch data
   final RxBool enabled;
 
+  /// Tags for group-based invalidation.
+  ///
+  /// Allows invalidating or refetching multiple related queries at once:
+  ///
+  /// ```dart
+  /// // Tag queries when creating them:
+  /// final userQuery = ZenQuery<User>(
+  ///   queryKey: 'user:123',
+  ///   tags: ['user', 'profile'],
+  ///   fetcher: (_) => api.getUser(123),
+  /// );
+  ///
+  /// // Later, invalidate all 'user' tagged queries at once:
+  /// Zen.queryCache.invalidateQueriesByTag('user');
+  /// ```
+  final List<String> tags;
+
   /// Current status of the query
   final Rx<ZenQueryStatus> status = Rx(ZenQueryStatus.idle);
 
@@ -143,9 +160,11 @@ class ZenQuery<T> extends ZenController {
     this.autoDispose = true,
     bool registerInCache = true,
     bool enabled = true,
+    List<String>? tags,
   })  : queryKey = QueryKey.normalize(queryKey),
         config = _resolveConfig<T>(config),
         _registerInCache = registerInCache,
+        tags = List.unmodifiable(tags ?? const []),
         enabled = RxBool(enabled) {
     // ⭐ AUTOMATIC CHILD CONTROLLER TRACKING
     // If a parent controller is currently initializing (onInit is running),

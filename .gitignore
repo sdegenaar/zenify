@@ -92,6 +92,18 @@ app.*.symbols
 !**/ios/**/default.perspectivev3
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
 
+# Agent working docs (do not commit)
+.agentdocs/
+doc/PROJECT_EVALUATION.md
+ARCHITECTURAL_REVIEW_2025.md
+STRATEGIC_ROADMAP_2025.md
+ROADMAP.md
+CLAUDE.md
+
+# Flutter IDE metadata
+.metadata
+**/.metadata
+
 # Temporary files
 *.log
 *.tmp

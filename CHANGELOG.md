@@ -1,490 +1,126 @@
+## [1.9.0]
+
+### Added
+- `tags` parameter on `ZenQuery` for group-based cache management
+- `ZenQueryCache.invalidateQueriesByTag(tag)` and `refetchQueriesByTag(tag)`
+- `ZenQueryCache.invalidateQueriesByPattern(pattern)` and `refetchQueriesByPattern(pattern)` — supports glob-style `*` wildcards
+- `ZenQueryCache.getQueriesByTag(tag)` and `getKeysByTag(tag)` for tag inspection
+- `InMemoryStorage` — a built-in zero-dependency `ZenStorage` adapter for testing and ephemeral storage
+- Warning log when a wildcard pattern matches all queries (e.g. `'*'`)
+
+---
+
 ## [1.8.0]
 
-### 🚨 BREAKING CHANGE (Minor)
-
-**Removed `ZenInspectorOverlay` Widget**
-
-The `ZenInspectorOverlay` widget has been removed. DevTools integration now works the same as v1.7.0 - just call `Zen.init(registerDevTools: true)`.
-
-#### Migration (30 seconds)
-
-**If you were using `ZenInspectorOverlay`:**
+### Breaking Changes
+- Removed `ZenInspectorOverlay` widget. Remove the wrapper from your app — `Zen.init(registerDevTools: true)` continues to work as before.
 
 ```dart
-// ❌ Old (v1.7.0)
-void main() {
-  Zen.init(registerDevTools: true);
-  runApp(ZenInspectorOverlay(child: MyApp()));  // Remove this wrapper
-}
+// Before
+runApp(ZenInspectorOverlay(child: MyApp()));
 
-// ✅ New (v1.8.0)
-void main() {
-  Zen.init(registerDevTools: true);  // Same as 1.7.0!
-  runApp(MyApp());
-}
+// After
+runApp(MyApp()); // DevTools integration unchanged
 ```
 
-**That's it!** DevTools integration works exactly the same - just remove the wrapper.
-
-#### Optional: Visual DevTools Extension
-
-The DevTools extension UI is now a **separate optional package** (for cleaner core package):
-
-```yaml
-dev_dependencies:
-  zenify_devtools_extension: ^1.0.0  # Optional
-```
-
-Enable in `devtools_options.yaml`:
-```yaml
-extensions:
-  - zenify_devtools_extension: true
-```
-
-See: https://github.com/sdegenaar/zenify_devtools_extension
-
-### What Changed Internally
-
-- Moved DevTools extension to separate package for better deployment
-- Removed `extension/` folder from core package
-- Smaller core package size (~25MB smaller)
-- Independent versioning for DevTools extension
-
-### Benefits
-
-- ✅ **No API changes** - `Zen.init(registerDevTools: true)` still works
-- ✅ **Smaller package** - Core package is leaner
-- ✅ **Optional DevTools UI** - Install only if needed
-- ✅ **Easier deployment** - No more build conflicts
+### Changed
+- DevTools UI moved to a separate optional package: `zenify_devtools_extension`
+- Core package is ~25MB smaller as a result
 
 ---
 
 ## [1.7.0]
 
-### 🔍 Flutter DevTools Extension
-
-**Complete DevTools integration with real-time scope inspection, query cache monitoring, and system metrics.**
-
-#### New Features
-
-**DevTools Extension:**
-- **3-tab inspector interface** integrated into Flutter DevTools
-  - **Scope Inspector** - Hierarchical visualization of DI scopes with dependency breakdown
-  - **Query Cache Viewer** - Real-time query monitoring with search, filters, and actions
-  - **Metrics Dashboard** - Live system metrics (scopes, queries, dependencies, memory)
-- **Auto-discovery** - Extension automatically appears in DevTools when running debug builds
-- **Real-time updates** - All data refreshes live from your running app
-- **Interactive controls** - Refetch queries, invalidate cache, expand/collapse scope trees
-
-**Backend Service Extensions:**
-- New `ZenServiceExtensions` class with VM Service Protocol integration
-- Service extensions for scopes, queries, stats, and metrics
-- Automatic registration via `Zen.init(registerDevTools: true)` in debug mode
+### Added
+- Flutter DevTools extension with 3-tab inspector: Scope Inspector, Query Cache Viewer, Metrics Dashboard
+- `ZenServiceExtensions` class for VM Service Protocol integration
+- Automatic service extension registration via `Zen.init(registerDevTools: true)` in debug builds
 - Zero performance impact in release builds
-
-**Query Cache Viewer:**
-- Search queries by key
-- Filter by status (All/Loading/Error/Stale/Fresh)
-- Visual indicators (⏳ loading, ✅ success, ❌ error, ⚠️ stale)
-- Statistics dashboard showing global vs scoped queries
-- Actions: Refetch individual queries, Invalidate stale data
-- Metadata display (timestamps, fetch count, scope association)
-
-**Metrics Dashboard:**
-- **Scope metrics**: Total/Active/Disposed counts
-- **Query metrics**: Total/Global/Scoped/Loading/Error/Stale breakdown
-- **Dependency metrics**: Controllers vs Services counts
-- **Memory usage**: RSS, Heap Size, Heap Used (when available)
-- Auto-refreshes every 2 seconds with live status indicator
-
-**Scope Inspector:**
-- Hierarchical tree view of all scopes (root → module → page)
-- Parent-child relationship visualization
-- Dependency breakdown by category (Controllers, Services, Others)
-- Expand/collapse nodes for detailed inspection
-- Shows scope metadata (ID, name, disposed status)
-
-**Migration from Old Inspector:**
-- `ZenInspectorOverlay` deprecated in favor of DevTools extension
-- Migration guide included for existing users
-- Old overlay still works but shows deprecation notice
-
-**Developer Experience:**
-- Works with all examples via `devtools_options.yaml`
-- Comprehensive documentation in `extension/devtools/README.md`
-- Easy setup: Just `await Zen.init(registerDevTools: true)`
-- No configuration required - works out of the box
-
-#### Breaking Changes
-
-- None! Fully backward compatible.
-
-#### Configuration
-
-```dart
-// Enable DevTools extension (default in debug mode)
-await Zen.init(
-  registerDevTools: true,  // Auto-registers service extensions
-);
-```
-
-Then open Flutter DevTools and look for the "Zenify" tab with the query_stats icon.
-
-#### Benefits
-
-- ✅ **Better debugging**: Visual scope hierarchy reveals DI issues instantly
-- ✅ **Query optimization**: See cache hits, stale queries, and fetch patterns
-- ✅ **Memory leak detection**: Monitor scope disposal and lifecycle
-- ✅ **Performance insights**: Real-time metrics help identify bottlenecks
-- ✅ **Zero setup**: Works automatically in debug builds
 
 ---
 
 ## [1.6.6]
 
-### 🎨 Enhanced Exception System
-
-**Complete exception system with helpful error messages, suggestions, and documentation links.**
-
-#### New Features
-
-**Exception System:**
-- **Base `ZenException` class** with smart formatting (compact by default, verbose opt-in)
-- **Specific exception types** for every error category:
-  - `ZenDependencyNotFoundException` - DI lookup failures
-  - `ZenCircularDependencyException` - Circular dependency detection
-  - `ZenDisposedScopeException` - Operations on disposed scopes
-  - `ZenScopeNotFoundException` - Missing scope in widget tree
-  - `ZenControllerNotFoundException` - Controller lookup failures
-  - `ZenControllerDisposedException` - Disposed controller access
-  - `ZenOfflineException` - Network/offline errors (migrated)
-  - `ZenQueryException` - Query failures
-  - `ZenMutationException` - Mutation errors
-  - `ZenModuleException`, `ZenLifecycleException`, `ZenRouteException`
-
-**Error Formatting:**
-- **Compact format (default)**: Clean single-line with inline suggestions
-  ```
-  ❌ ZenDependencyNotFoundException: Dependency not found (Type=UserService, Scope=RootScope)
-     💡 Zen.put(UserService());
-  ```
-- **Verbose format (opt-in)**: Beautiful boxed format via `ZenConfig.verboseErrors = true`
-  ```
-  ╔══════════════════════════════════════════════════════════╗
-  ║ ❌ ZenDependencyNotFoundException                         ║
-  ╠══════════════════════════════════════════════════════════╣
-  ║ Dependency not found                                     ║
-  ║ Type: UserService                                        ║
-  ║ Scope: RootScope                                         ║
-  ║ 💡 Suggestion: Zen.put(UserService());                    ║
-  ║ 📚 Learn more: https://github.com/sdegenaar/zenify#...  ║
-  ╚══════════════════════════════════════════════════════════╝
-  ```
-
-**Logger Integration:**
-- `ZenLogger.logException(e)` - Automatic formatting with category tagging
-- Respects `ZenConfig.verboseErrors` setting
-- Works with custom error handlers
-
-**Framework Migration:**
-- All core framework code now uses specific `ZenException` types
-- 12 exceptions migrated across DI, scopes, controllers, and widgets
-- Zero breaking changes (all exceptions still implement `Exception`)
-
-**Configuration:**
-- `ZenConfig.verboseErrors` - Toggle between compact/verbose formatting
-- Integrated into environment presets and reset methods
-
-#### Benefits
-
-- ✅ **Better DX**: Helpful error messages with actionable suggestions
-- ✅ **Faster debugging**: Context and fix hints right in the error
-- ✅ **Type-safe error handling**: Catch specific exception types
-- ✅ **Zero bloat**: Compact format by default keeps logs clean
+### Added
+- `ZenException` base class with compact (default) and verbose (`ZenConfig.verboseErrors = true`) error formatting
+- Specific exception types: `ZenDependencyNotFoundException`, `ZenCircularDependencyException`, `ZenDisposedScopeException`, `ZenScopeNotFoundException`, `ZenControllerNotFoundException`, `ZenControllerDisposedException`, `ZenOfflineException`, `ZenQueryException`, `ZenMutationException`, `ZenModuleException`, `ZenLifecycleException`, `ZenRouteException`
+- `ZenLogger.logException(e)` for formatted exception output
+- `ZenConfig.verboseErrors` toggle
 
 ---
 
 ## [1.6.5]
 
-### 🛠️ DevTools & API Enhancements
-
-**This release enhances the DevTools with offline visibility.**
-
-#### New Features
-
-**DevTools:**
-- Added **"Pending Mutations"** card to Stats View.
-- Visual indicator for offline queue status (Green=Synced, Orange=Pending).
-- Exposed `ZenMutationQueue.pendingCount` and `pendingJobs` for debugging.
+### Added
+- "Pending Mutations" card in DevTools Stats View
+- `ZenMutationQueue.pendingCount` and `pendingJobs` for debugging
+- Visual offline queue status indicator in DevTools
 
 ---
 
 ## [1.6.4]
 
-### ✨ Unified API Aliases
-
-**Zenify v1.6.4 completes the unified API with consistent aliases across DI, scopes, and reactive widgets.**
-
-#### New Features
-
-**Reactive Widget Alias:**
-- `ZenObserver` - Alias for `Obx` widget
-
-**Scope Method Aliases:**
-- `scope.get<T>()` - Alias for `scope.find<T>()`
-- `scope.remove<T>()` - Alias for `scope.delete<T>()`
-- `scope.has<T>()` - Alias for `scope.exists<T>()`
-
-**Example:**
-```dart
-final count = 0.obs();
-
-// Both work identically
-Obx(() => Text('Count: $count'))         // OLD - still works
-ZenObserver(() => Text('Count: $count')) // NEW - Zen-branded
-```
-
-**Benefits:**
-- ✅ Consistent with `Zen*` naming convention
-- ✅ More descriptive than `Obx`
-- ✅ Pairs naturally with `.obs()` (observable + observer)
-- ✅ 100% backward compatible (`Obx` still works)
-
-**Note:** `Obx` remains fully supported. Both names work identically for now.
+### Added
+- `ZenObserver` — alias for `Obx` widget
+- `scope.get<T>()` — alias for `scope.find<T>()`
+- `scope.remove<T>()` — alias for `scope.delete<T>()`
+- `scope.has<T>()` — alias for `scope.exists<T>()`
 
 ---
 
 ## [1.6.3]
 
-### ✨ Unified API Improvements
-
-**Zenify v1.6.3 adds convenience aliases for better discoverability and consistency.**
-
-#### New Features
-
-**DI Verb Aliases:**
-- `Zen.get<T>()` - Alias for `Zen.find<T>()`
-- `Zen.remove<T>()` - Alias for `Zen.delete<T>()`
-- `Zen.has<T>()` - Alias for `Zen.exists<T>()`
-
-**Cache Shorthand:**
-- `Zen.queryCache` - Shorthand for `ZenQueryCache.instance`
-
-**Examples:**
-```dart
-// Before
-final service = Zen.find<UserService>();
-ZenQueryCache.instance.setQueryData('users', (_) => users);
-
-// After (both work!)
-final service = Zen.get<UserService>();
-Zen.queryCache.setQueryData('users', (_) => users);
-```
-
-**Benefits:**
-- ✅ Better discoverability (type `Zen.` to see everything)
-- ✅ Consistent verbs across DI, Cache, and Mutations
-- ✅ Shorter, cleaner code
-- ✅ 100% backward compatible (old names still work)
-
-**Note:** Old names (`find`, `delete`, `exists`, `ZenQueryCache.instance`) remain fully supported.
+### Added
+- `Zen.get<T>()` — alias for `Zen.find<T>()`
+- `Zen.remove<T>()` — alias for `Zen.delete<T>()`
+- `Zen.has<T>()` — alias for `Zen.exists<T>()`
+- `Zen.queryCache` — shorthand for `ZenQueryCache.instance`
 
 ---
 
 ## [1.6.2]
 
-### 🔄 API Alignment (Breaking Change)
-
-**Zenify v1.6.2 aligns mutation helper API for consistency across the framework.**
-
-#### Breaking Changes
-
-**Renamed Class and Methods:**
-- `OptimisticMutation` → `ZenMutation` (helpers are now static methods on `ZenMutation`)
-- `listAdd` → `listPut` (aligns with `Zen.put`)
-- `listUpdate` → `listSet` (aligns with cache operations)
-- `add` → `put` (aligns with `Zen.put`)
-- `update` → `set` (aligns with cache operations)
-- `listRemove`, `remove` → unchanged
-
-**Optional `mutationKey`:**
-- `mutationKey` is now optional and auto-generated from `queryKey` if not provided
-- Example: `queryKey: 'users'` → `mutationKey: 'users_listPut'`
-
-#### Migration Guide
+### Breaking Changes
+- `OptimisticMutation` renamed to `ZenMutation` (helpers are now static methods)
+- `listAdd` → `listPut`, `listUpdate` → `listSet`, `add` → `put`, `update` → `set`
 
 ```dart
-// Before (v1.6.1)
-final create = OptimisticMutation.listAdd<Post>(
-  queryKey: 'posts',
-  mutationKey: 'create_post',
-  mutationFn: (post) => api.createPost(post),
-);
+// Before
+OptimisticMutation.listAdd<Post>(queryKey: 'posts', mutationKey: 'create', mutationFn: ...)
 
-// After (v1.6.2)
-final create = ZenMutation.listPut<Post>(
-  queryKey: 'posts',
-  mutationFn: (post) => api.createPost(post),
-  // mutationKey auto-generated as 'posts_listPut'
-);
+// After
+ZenMutation.listPut<Post>(queryKey: 'posts', mutationFn: ...) // mutationKey auto-generated
 ```
 
-#### Rationale
-
-This change achieves API consistency across Zenify:
-- **DI:** `Zen.put/get/remove`
-- **Cache:** `cache.set/get/remove`
-- **Mutations:** `ZenMutation.listPut/listSet/listRemove`
-
-All subsystems now use aligned verbs, reducing cognitive load and improving discoverability.
+### Changed
+- `mutationKey` is now optional; auto-generated from `queryKey` if omitted
 
 ---
 
 ## [1.6.1]
 
-### ✨ Optimistic Mutation Helpers
-
-**Zenify v1.6.1 introduces helpers that dramatically simplify optimistic updates**, reducing boilerplate by ~50% for common CRUD patterns.
-
-#### New Features
-
-**OptimisticMutation Helpers**
-- **`OptimisticMutation.listAdd<T>`**: Add items to lists with automatic optimistic updates and rollback
-- **`OptimisticMutation.listUpdate<T>`**: Update items in lists with automatic optimistic updates and rollback
-- **`OptimisticMutation.listRemove<T>`**: Remove items from lists with automatic optimistic updates and rollback
-- **`OptimisticMutation.add<T>`**: Create/add single values with automatic optimistic updates and rollback
-- **`OptimisticMutation.update<T>`**: Update single values with automatic optimistic updates and rollback
-- **`OptimisticMutation.remove()`**: Delete/remove single values with automatic optimistic updates and rollback
-
-**Before (Manual - 54 lines):**
-```dart
-final createPost = ZenMutation<Post, Post>(
-  mutationKey: 'create_post',
-  mutationFn: (post) => api.createPost(post),
-  onMutate: (newPost) async {
-    ZenQueryCache.instance.setQueryData<List<Post>>(
-      'feed',
-      (old) => [newPost, ...(old ?? [])],
-    );
-    return old; // For rollback
-  },
-  onError: (err, post, old) {
-    // Manual rollback
-    if (old != null) {
-      ZenQueryCache.instance.setQueryData('feed', (_) => old);
-    }
-  },
-);
-```
-
-**After (Helpers - 26 lines):**
-```dart
-final createPost = OptimisticMutation.listAdd<Post>(
-  queryKey: 'feed',
-  mutationKey: 'create_post',
-  mutationFn: (post) => api.createPost(post),
-  onError: (err, post) => logger.error('Create failed', err), // Rollback automatic!
-);
-```
-
-**Code Reduction: 52% less boilerplate** ✨
-
-#### Documentation Updates
-- Updated `README.md` to showcase helpers as the recommended approach
-- Added comprehensive helper documentation to `doc/offline_guide.md`
-- Updated `doc/zen_query_guide.md` with helper examples and cross-references
-- Updated `example/zen_offline` to demonstrate all helpers
-
-#### Benefits
-- ✅ **Simpler API**: 3 lines instead of 15+ for common patterns
-- ✅ **Type-safe**: Full generic support with compile-time safety
-- ✅ **Automatic rollback**: Built-in error handling and cache restoration
-- ✅ **Offline-ready**: Works seamlessly with mutation queue
-- ✅ **Consistent**: Same verbs for lists and single values (`add`, `update`, `remove`)
-
-**When to use:**
-- ✅ Use helpers for standard CRUD operations (95% of cases)
-- ⚙️ Use manual `ZenMutation` for multi-query updates or complex rollback logic
+### Added
+- `ZenMutation.listPut<T>`, `listSet<T>`, `listRemove<T>` — optimistic list helpers with automatic rollback
+- `ZenMutation.put<T>`, `set<T>`, `remove()` — optimistic single-value helpers
 
 ---
 
 ## [1.6.0]
 
+### Added
+- `ZenStorage` interface for pluggable persistence backends (SharedPreferences, Hive, SQLite, etc.)
+- Auto-hydration: queries load cached data from storage on startup
+- Offline mutation queue: mutations triggered while offline are queued and replayed on reconnect
+- `ZenQueryCache.setQueryData()` for function-based optimistic cache updates
+- `NetworkMode` enum: `online`, `offlineFirst`, `always`
+- `example/zen_offline` — full offline-first example app
 
-### 📶 Offline-First Engine
-
-**Zenify v1.6.0 introduces a robust offline synchronization engine inspired by TanStack Query.** Make your app resilient to network failures with minimal configuration.
-
-#### New Features
-
-**1. Robust Persistence (Auto-Hydration)**
-- **ZenStorage Interface**: Persist query data to any storage backend (SharedPreferences, Hive, SQLite).
-- **Auto-Hydration**: Queries automatically load cached data on startup.
-- **Background Sync**: Stale-while-revalidate pattern ensures data is instantly available while fetching fresh data in the background.
-
-```dart
-ZenQueryConfig(
-  persist: true,
-  // storage: MyStorage(), // Set globally or per query
-  fromJson: User.fromJson,
-  toJson: (user) => user.toJson(),
-)
-```
-
-**2. Offline Mutation Queue**
-- **Action Queueing**: Mutations (create/update/delete) triggered while offline are automatically queued.
-- **Auto-Replay**: Actions are replayed sequentially when the network is restored.
-- **Survivable**: Queues persist across app restarts (if configured).
-
-**3. Optimistic Updates (Instant Feedback)**
-- **`ZenQueryCache.setQueryData`**: New helper for function-based cache updates.
-- Update UI immediately before the server responds. Rollback automatically on error.
-
-```dart
-ZenQueryCache.instance.setQueryData<List<Post>>(
-  'feed',
-  (old) => [newPost, ...(old ?? [])], // Instant update!
-);
-```
-
-**4. Network Modes**
-- **`NetworkMode.online`**: Only fetch when online (default).
-- **`NetworkMode.offlineFirst`**: Use cache if offline, fetch if online.
-- **`NetworkMode.always`**: Always attempt fetch (useful for local networks).
-
-#### 🚀 Example App
-- **New Offline Example**: `example/zen_offline` showcases:
-  - Offline Feed with persistence.
-  - Optimistic Likes & Deletes.
-  - Network Simulation for easy testing.
-
-```dart
-// The complete Offline-First setup
-ZenQuery<List<Post>>(
-  queryKey: 'posts',
-  fetcher: (_) => api.getPosts(),
-  config: ZenQueryConfig(
-    persist: true,
-    networkMode: NetworkMode.offlineFirst,
-  ),
-);
-```
+---
 
 ## [1.5.0]
 
-### ⚠️ Breaking Changes
-
-**RefetchBehavior Enum - Explicit Refetch Control**
-
-Replaced `bool` refetch flags with `RefetchBehavior` enum for semantic clarity and new capabilities.
-
-**Migration:**
-- `refetchOnMount: true` → `RefetchBehavior.ifStale`
-- `refetchOnMount: false` → `RefetchBehavior.never`
-- Same for `refetchOnFocus` and `refetchOnReconnect`
-
-**New Capability:**
-- `RefetchBehavior.always` - Force refetch regardless of staleness (critical data)
+### Breaking Changes
+- `refetchOnMount`, `refetchOnFocus`, `refetchOnReconnect` changed from `bool` to `RefetchBehavior` enum
 
 ```dart
 // Before
@@ -492,1125 +128,476 @@ ZenQueryConfig(refetchOnMount: true)
 
 // After
 ZenQueryConfig(refetchOnMount: RefetchBehavior.ifStale)
-
-// New: Force refetch for critical data
-ZenQueryConfig(refetchOnMount: RefetchBehavior.always)
+// New option: RefetchBehavior.always — force refetch regardless of staleness
 ```
 
-**Why:** Matches TanStack Query v5's explicit refetch modes. `true` was ambiguous - does it mean "always" or "if stale"?
+### Added
+- `RefetchBehavior.always` for real-time/critical data use cases
+- `ZenQueryConfig.retryDelayFn` — custom function for error-aware retry delays
 
-**See:** `doc/migration_v1_5_0.md` for complete migration guide.
-
-### ✨ Features
-
-**1. RefetchBehavior Enum**
-- **Semantic Clarity**: Explicit refetch behavior eliminates ambiguity.
-- **New "Always" Mode**: Force refetch for real-time/critical data (financial dashboards, live scores, etc.).
-- **Extracted to `zen_query_enums.dart`**: Clean architecture with dedicated enum file.
-
-**2. Dynamic Retry Delays**
-- **`retryDelayFn`**: Custom function to calculate retry delays based on error type.
-- **Error-Aware Retries**: Implement exponential backoff or custom delays depending on the exception (e.g., rate limits vs network errors).
-- **Full Control**: Override default strategies easily.
-
-```dart
-ZenQueryConfig(
-  retryDelayFn: (attempt, error) {
-    if (error is RateLimitException) return Duration(seconds: 60);
-    return Duration(milliseconds: 200 * (attempt + 1));
-  },
-)
-```
-
-**3. Enhanced Documentation**
-- **Improved `staleTime` docs**: Clarifies it controls when data is considered stale (needs refetch).
-- **Improved `cacheTime` docs**: Clarifies it controls garbage collection (when data is removed from memory).
-- **Clear separation**: `staleTime` vs `cacheTime` semantics now crystal clear.
-
-### 🔧 Internal Improvements
-
-- **Architecture**: Moved `ZenQueryStatus` and `ZenMutationStatus` to `zen_query_enums.dart` for consistency.
-- **Helpers**: Added `RefetchBehaviorX.shouldRefetch()` helper extension.
-- **Types**: Added `RetryDelayFn` typedef for type-safe retry functions.
-- **Logic**: Updated `ZenQueryCache` and `ZenQuery` to fully support new enums and retry logic.
-- **Testing**: Comprehensive test coverage for all refetch modes, ensuring stability.
+---
 
 ## [1.4.4]
 
-### DevTools Improvements
+### Fixed
+- `ZenInspectorOverlay` crashes when used without a `Scaffold` — replaced `ScaffoldMessenger` with internal toast system
+- Layout overflows and data preview scrolling in inspector
 
-**Enhanced ZenInspector**
-- **Robust Feedback:** Replaced `ScaffoldMessenger` with custom internal toast system. Eliminates crashes when using Inspector without a Scaffold.
-- **UI Polish:** Fixed layout overflows by removing redundant inline actions and fixing button layouts.
-- **Data Preview:** Added scrolling and max-height constraints to large data/error previews.
+---
 
 ## [1.4.3]
 
-### Bug Fixes
+### Fixed
+- `invalidate()` now automatically refetches active queries (previously only marked stale)
 
-**Fixed `invalidate()` to auto-refetch active queries**
-- `invalidate()` now automatically refetches queries (matches React Query behavior)
-- Previously only marked queries as stale without refetching
-- Only refetches if query is enabled and not already loading
-
-```dart
-final createPostMutation = ZenMutation<Post, String>(
-  mutationFn: (content) => api.createPost(content),
-  onSuccess: (post, content, context) {
-    postsQuery.invalidate(); // Automatically refetches!
-  },
-);
-```
+---
 
 ## [1.4.2]
 
-### API Improvements
+### Changed
+- Removed unnecessary type parameter from `ZenQueryClient.getQueryDefaults()`
 
-**Simplified QueryClient API**
-- Removed unnecessary type parameter from `getQueryDefaults()`
-- **Before:** `queryClient.getQueryDefaults<User>()`
-- **After:** `queryClient.getQueryDefaults()`
-
-Cleaner, simpler API with no loss of functionality.
+---
 
 ## [1.4.1]
 
-### ✨ Features
+### Added
+- `ZenQueryClient` and `ZenQueryClientOptions` for managing global query defaults
+- `ZenQueryConfig.copyWith()` for partial config overrides
 
-**QueryClient Pattern for Global Query Defaults**
-- Added `ZenQueryClient` for managing global query configuration (inspired by TanStack Query)
-- Replaces mutable global state with immutable, dependency-injected configuration
-- Added `ZenQueryClientOptions` for structured default options
-- Enhanced `ZenQueryConfig` with `copyWith()` method for partial overrides
-- All fields now have concrete defaults (no nullable fields)
-
-**Benefits:**
-- Matches TanStack Query's proven pattern
-- **Immutable**: Configuration cannot change after creation
-- **Testable**: Easy to provide different clients in tests
-- **Explicit**: Clear where defaults come from
-- **Type-Safe**: Full compile-time checking with no runtime overhead
-
-**Usage:**
-```dart
-// Create and register QueryClient
-final queryClient = ZenQueryClient(
-  defaultOptions: ZenQueryClientOptions(
-    queries: ZenQueryConfig(
-      staleTime: Duration.zero,
-      retryCount: 1,
-    ),
-  ),
-);
-Zen.put(queryClient);
-
-// Queries automatically use defaults
-final query = ZenQuery(
-  queryKey: 'users',
-  fetcher: (token) => api.getUsers(),
-);
-
-// Override specific fields with copyWith
-final defaults = queryClient.getQueryDefaults<Post>();
-final postsQuery = ZenQuery(
-  queryKey: 'posts',
-  fetcher: (token) => api.getPosts(),
-  config: defaults.copyWith(retryCount: 5),
-);
-```
-
-**Documentation:**
-- Added comprehensive guide: `doc/query_client_pattern.md`
-- Includes common patterns for dev/prod, offline-first, and real-time apps
-- Migration guide from old patterns
+---
 
 ## [1.4.0]
 
-### ✨ Features
+### Added
+- `pause()` and `resume()` methods on `ZenQuery` and `ZenStreamQuery`
+- `ZenQueryConfig.autoPauseOnBackground` and `refetchOnResume`
+- `ZenQueryCache.getAllQueries()` for lifecycle management
+- Exponential backoff: `maxRetryDelay`, `retryBackoffMultiplier`, `retryWithJitter`
 
-**Enhanced Auto-Retry**
-- Fixed retry logic to use true exponential backoff (was linear)
-- Added `maxRetryDelay` (default: 30s), `retryBackoffMultiplier` (default: 2.0), `retryWithJitter` (default: true)
-- Reduced base retry delay from 1s to 200ms for faster recovery
+### Breaking Changes
+- `ZenStreamQuery` now defaults to `autoPauseOnBackground: false` (was `true` in 1.3.x)
 
-**Pause/Resume for Battery Optimization**
-- Added manual `pause()` and `resume()` methods to `ZenQuery` and `ZenStreamQuery`
-- Added `autoPauseOnBackground` (default: false) and `refetchOnResume` (default: false) to `ZenQueryConfig`
-- Queries and streams can automatically pause on background and resume on foreground (opt-in)
-- Pausing stops timers and cancels pending requests
-- Resuming restarts timers and refetches stale data (if configured)
-- **Consistent API** across all query types (`ZenQuery`, `ZenStreamQuery`, `ZenInfiniteQuery`)
+```dart
+// To restore previous behavior
+ZenStreamQuery(config: ZenQueryConfig(autoPauseOnBackground: true))
+```
 
-**Lifecycle Integration**
-- Queries automatically respond to `AppLifecycleState` changes when `autoPauseOnBackground: true`
-- Supports paused, inactive, hidden, and resumed states
-- Added `getAllQueries()` to `ZenQueryCache` for lifecycle management
-
-### ⚠️ Breaking Changes
-
-**ZenStreamQuery Default Behavior**
-- `ZenStreamQuery` now defaults to `autoPauseOnBackground: false` (was auto-pause by default in v1.3.x)
-- This change ensures consistency with `ZenQuery` and better supports real-time use cases
-- **Migration:** Add `autoPauseOnBackground: true` to restore previous behavior:
-  ```dart
-  ZenStreamQuery(
-    queryKey: 'my-stream',
-    streamFn: () => myStream,
-    config: ZenQueryConfig(
-      autoPauseOnBackground: true,  // Restore v1.3.x behavior
-    ),
-  );
-  ```
-- **Note:** Most real-time streams (chat, notifications, live updates) should keep the new default (false)
-
-### ⚡ Performance Impact
-- **Better battery life if mobile:** No network activity when app backgrounded
-- **Reduced API costs:** Fewer unnecessary requests
-- **Faster error recovery:** Optimized retry delays
-- **Minimal overhead:** Only affects retry logic and lifecycle
+---
 
 ## [1.3.6]
 
-### Bug Fixes
-- Fixed WidgetsBinding requirement in pure unit tests - `Zen.reset()` now works in regular `test()` without requiring `testWidgets()`
-- `ZenLifecycleManager` now gracefully handles missing WidgetsBinding in test environments
-- Controllers call `onReady()` immediately in pure tests instead of throwing "Binding has not yet been initialized"
+### Fixed
+- `Zen.reset()` no longer requires `testWidgets()` — works in plain `test()` blocks
+- `ZenLifecycleManager` handles missing `WidgetsBinding` in test environments gracefully
+
+---
 
 ## [1.3.5]
 
-### Documentation
-- Improved README structure and clarity (reduced from 708 to 489 lines)
-- Added "Understanding Scopes" section explaining hierarchical DI fundamentals
-- Repositioned features to emphasize DI and reactivity as foundation
-- Updated all service examples to extend ZenService for proper lifecycle
-- Created comprehensive real_world_patterns.md guide
-- Fixed architectural accuracy in all code examples
-- Updated tagline to better reflect library identity
+### Changed
+- Restructured README and documentation for clarity
+- Added `doc/real_world_patterns.md`
+
+---
 
 ## [1.3.4]
 
-### Documentation
+### Changed
+- Fixed `createController` syntax in all documentation
+- Rewrote `state_management_patterns.md` with clearer examples
 
-- Fixed `createController` syntax throughout all docs (correct getter returning lambda)
-- Clarified that services can have reactive state for business logic
-- Added controller communication patterns (shared services, static `.to` accessor, hybrid)
-- Added comparison tables for common use cases (Obx vs ZenBuilder, ZenView vs ZenConsumer, etc)
-- Complete rewrite of `state_management_patterns.md` with clearer examples and less repetition
-- Added `ARCHITECTURE_PATTERNS.md` guide in ecommerce example
+---
 
 ## [1.3.3]
 
-### Bug Fixes
+### Fixed
+- 1-pixel `RenderFlex` overflow in `ZenInspectorOverlay` on iOS/Android with no dependencies
+- Improved overlay positioning with explicit `Positioned.fill`
 
-- **ZenInspectorOverlay**: Fixed 1-pixel RenderFlex overflow in `DependencyListView` on IOS/Android when no dependencies are present
-- **ZenInspectorOverlay**: Improved overlay positioning by using explicit `Positioned.fill` for main app content instead of implicit Stack alignment, ensuring proper full-screen coverage and preventing layout ambiguity
+---
 
 ## [1.3.2]
 
-### Developer Tools
+### Added
+- `ZenInspectorOverlay` — in-app debug overlay with real-time scope hierarchy, query cache, and performance stats
 
-- **ZenInspectorOverlay**: New in-app debugging overlay with real-time scope hierarchy, query cache inspection, dependency tracking, and performance stats. Wrap your app with `ZenInspectorOverlay` to enable.
+---
 
 ## [1.3.1]
 
-### Automatic Query Tracking - Zero Boilerplate Memory Management
+### Added
+- Automatic query tracking: queries created in `onInit()` are automatically disposed when the controller closes — no `onClose()` boilerplate required
 
-**Queries created in `onInit()` are automatically tracked and disposed - no manual cleanup needed!**
-
-#### What Changed
-
-- **Before**: Developers had to manually dispose each query in `onClose()`:
-  ```dart
-  @override
-  void onClose() {
-    userQuery.dispose();
-    postsQuery.dispose();
-    searchQuery.dispose();
-    super.onClose();
-  }
-  ```
-
-- **After**: Queries automatically register with their parent controller:
-  ```dart
-  @override
-  void onClose() {
-    // Queries automatically disposed! ✨
-    super.onClose();
-  }
-  ```
-
-#### How It Works
-
-- When `onInit()` runs, the controller sets itself as the "current parent"
-- Any `ZenQuery`, `ZenStreamQuery`, or `ZenMutation` created during `onInit()` automatically registers with the parent
-- All tracked queries are automatically disposed when the controller disposes
-- Works for queries created in `onInit()` or directly in the constructor
-
-#### Benefits
-
-- **Zero Boilerplate**: No more wrapping with `trackController()` or manual disposal
-- **Prevents Memory Leaks**: Impossible to forget to dispose a query
-- **Developer Friendly**: Just create queries naturally - automatic cleanup happens
-- **Safe by Default**: All query types (`ZenQuery`, `ZenStreamQuery`, `ZenMutation`) auto-register
+---
 
 ## [1.3.0]
 
-### ♻️ Major Architecture Refactoring: Hybrid Scope Discovery
+### Changed
+- Internal architecture refactoring: replaced `ZenScopeManager` (541 lines) and `ZenScopeStackTracker` with a single `Zen.currentScope` navigation bridge (~80% reduction in scope management code)
+- `ZenRoute` reduced from 526 to 336 lines
 
-**Simplified scope management by 80% using a hybrid discovery pattern with navigation bridge.**
+### Added
+- `parentScope` parameter on `ZenRoute` for explicit scope control
 
-#### Breaking Changes
+### Breaking Changes
+- None. All public APIs unchanged.
 
-**None** - This is a pure internal refactoring. All public APIs remain unchanged.
-
-#### Architecture Improvements
-
-- **Hybrid Discovery Strategy**: `ZenRoute` now uses a 3-level fallback system for automatic parent resolution:
-    1. **Explicit**: `parentScope` parameter for full control (e.g., clean routes)
-    2. **Widget Tree**: `InheritedWidget` discovery for nested widgets in same route
-    3. **Navigation Bridge**: `Zen.currentScope` pointer bridges Flutter's Navigator gap
-    - Works automatically across navigation while supporting explicit control when needed
-
-- **The Navigation Bridge**:
-    - **Problem Solved**: Flutter's `Navigator.push()` creates sibling routes, breaking InheritedWidget hierarchy
-    - **Solution**: Single `Zen.currentScope` pointer acts as a bridge across navigation boundaries
-    - When a route creates a scope, it becomes "current"
-    - Next pushed route automatically discovers it via the bridge
-    - Parent scope restored as "current" on pop - automatic cleanup
-    - Simple, explicit, and solves the widget tree gap with minimal code
-
-- **Removed Global State Management (~666 lines)**:
-    - **Deleted** `ZenScopeManager` (541 lines) - Complex global scope registry
-    - **Deleted** `ZenScopeStackTracker` (125 lines) - Navigation-aware stack tracking
-    - Eliminated 6 global tracking maps and complex lifecycle coordination
-    - Replaced with single `Zen.currentScope` pointer - minimal global state
-
-- **Simplified Core Components**:
-    - `ZenRoute` reduced from 526 to 336 lines (-36%)
-    - Added `parentScope` parameter for explicit control (optional)
-    - `ZenScope.createChild()` no longer calls global manager
-    - `ZenDebug` now uses recursive tree traversal instead of global registry
-    - Lazy root scope creation in `Zen.rootScope` (lib/di/zen_di.dart)
-
-#### Key Benefits
-
-- ✅ **Minimal Global State**: Just one pointer bridge vs complex registry system
-- ✅ **Solves Navigator Gap**: Automatically handles Flutter's route sibling architecture
-- ✅ **Automatic & Explicit**: Works automatically with optional explicit control
-- ✅ **Simpler Codebase**: 80% reduction in scope management complexity
-- ✅ **Better Maintainability**: Clear fallback chain, easy to understand and debug
-- ✅ **100% Test Coverage**: All existing tests pass, hierarchical_scopes example verified
-
-#### Technical Details
-
-- `_ZenScopeProvider` InheritedWidget provides scope to descendants (lib/widgets/components/zen_route.dart:304-334)
-- Hybrid discovery: explicit → widget tree → navigation bridge (lib/widgets/components/zen_route.dart:116-118)
-- `Zen.currentScope` set on scope creation, restored on disposal (lib/widgets/components/zen_route.dart:136, 203-206)
-- Optional `parentScope` parameter for explicit control (lib/widgets/components/zen_route.dart:52)
-- Updated `ZenDebug.allScopes` to use recursive tree collection (lib/debug/zen_debug.dart)
-
-#### Documentation
-
-- Complete rewrite of `doc/hierarchical_scopes_guide.md` explaining hybrid architecture
-- Added explanation of the navigation bridge pattern
-- Added examples for explicit `parentScope` usage (clean routes)
-- Updated all internal documentation references
+---
 
 ## [1.2.3]
 
-### 🐛 Bug Fixes & Improvements
+### Fixed
+- `ZenStreamQuery` now pauses on `inactive` and `hidden` app states (web tab switching)
+- Lifecycle events (`onPause`, `onResume`) now fire correctly when query is not registered in DI
 
-**Fixed Stream Query lifecycle behavior on Web and improved debugging visibility.**
-
-#### Improvements
-
-- **Web Lifecycle Fix**: `ZenStreamQuery` now correctly pauses subscriptions when the app becomes `inactive` (e.g., switching tabs on Web) or `hidden`, not just `paused`.
-- **Lifecycle Propagation**: `ZenStreamQuery` now correctly triggers `onPause`, `onResume`, and other lifecycle methods even if the query instance isn't directly registered in the DI system (e.g., when used as a class member).
-- **Better Logging**: Added explicit info-level logs for `inactive` and `hidden` states to make debugging stream lifecycles easier.
+---
 
 ## [1.2.2]
 
-### 📱 Example App Improvements
+### Changed
+- Expanded `zen_query` example app with additional features
 
-**Expanded the zen_query app with all features.**
+---
 
 ## [1.2.1]
 
-### 🔄 Bidirectional Pagination & Mutation Context
+### Added
+- `ZenInfiniteQuery.getPreviousPageParam()` and `fetchPreviousPage()` for bidirectional pagination
+- `hasPreviousPage` and `isFetchingPreviousPage` reactive properties
+- Call-time callbacks on `mutate()`: `onSuccess`, `onError`, `onSettled`
+- `placeholderData` in `ZenQueryConfig` — temporary initial data that doesn't persist to cache
+- `keepPreviousData` on `ZenQueryBuilder` and `ZenStreamQueryBuilder` to prevent flash-of-loading on key changes
 
-**Enhanced Infinite Query, smarter Mutations, and better UX controls.**
-
-#### New Features
-
-- **Bidirectional Infinite Query**: Added support for fetching *previous* pages.
-    - `ZenInfiniteQuery` now supports `getPreviousPageParam` and `fetchPreviousPage()`.
-    - Perfect for chat applications (scroll up to load history) or bidirectional lists.
-    - Added `hasPreviousPage` and `isFetchingPreviousPage` reactive properties.
-
-    ```dart
-    ZenInfiniteQuery(
-      queryKey: 'chat',
-      infiniteFetcher: (pageParam, token) => api.getMessages(pageParam),
-      getNextPageParam: (lastPage, _) => lastPage.nextCursor,
-      getPreviousPageParam: (firstPage, _) => firstPage.prevCursor, // New!
-    );
-    ```
-
-- **Mutation Context & Callbacks**:
-    - `onMutate` can now return a context object that is passed to `onError` and `onSettled` (useful for rolling back optimistic updates).
-    - **Call-Time Callbacks**: `mutate()` now accepts `onSuccess`, `onError`, and `onSettled` for one-off logic (e.g. navigation or snackbars) alongside the global definition.
-
-- **Placeholder Data**:
-    - Added `placeholderData` to `ZenQueryConfig` to show initial data while the real fetch is happening.
-    - Unlike `initialData`, this does not persist to cache and is treated as temporary.
-
-- **Builder Improvements**:
-    - **`keepPreviousData`**: `ZenQueryBuilder` and `ZenStreamQueryBuilder` can now keep showing data from a previous query instance while the new one loads. This prevents "flash of loading" when changing query keys (e.g. pagination or filters).
+---
 
 ## [1.2.0]
 
-### 🌊 ZenStreamQuery & Project Restructuring
+### Added
+- `ZenStreamQuery` — reactive wrapper for `Stream<T>` with lifecycle management and optimistic updates
+- `ZenStreamQueryBuilder` widget
 
-**Added first-class support for Streams and reorganized the project structure for better scalability.**
+### Changed
+- Folder restructure: builders moved to `lib/widgets/builders/`, query internals to `lib/query/core|logic|extensions/`
+- `import 'package:zenify/zenify.dart'` is unaffected
 
-#### New Features
-
-- **ZenStreamQuery**: A reactive wrapper for Streams with the same powerful API as `ZenQuery`.
-    - **Real-time Data**: tailored for WebSockets, Firebase, or any `Stream<T>`.
-    - **Lifecycle Management**: Automatically pauses subscriptions when the app is paused (if configured).
-    - **Optimistic Updates**: Support for `setData` to manually update the stream state while waiting for events.
-    - **Safe**: Handles errors and subscription cleanup automatically.
-
-    ```dart
-    final chatQuery = ZenStreamQuery(
-      queryKey: 'chat-messages',
-      streamFn: () => chatService.messagesStream,
-    );
-    ```
-
-- **ZenStreamQueryBuilder**: A dedicated widget for handling stream states.
-    - Handles `loading` (initial connection), `data` (stream events), and `error` states.
-    - Smartly keeps showing data while reconnecting if available.
-
-    ```dart
-    ZenStreamQueryBuilder<List<Message>>(
-      query: chatQuery,
-      builder: (context, messages) => ChatList(messages),
-      loading: () => const Spinner(),
-      error: (err) => ErrorBanner(err),
-    );
-    ```
-
-#### ♻️ Refactoring & Improvements
-
-- **Folder Restructuring**:
-    - Separated UI components from core logic for better maintainability.
-    - Moved builders to `lib/widgets/builders/` (`ZenQueryBuilder`, `ZenStreamQueryBuilder`, etc.).
-    - Reorganized `lib/query/` into `core/`, `logic/`, and `extensions/`.
-    - **Note**: If you import specific files instead of the main package file, you may need to update your imports. Using `import 'package:zenify/zenify.dart';` remains the recommended way and requires no changes.
+---
 
 ## [1.1.9]
 
-### 💾 Offline Persistence Architecture
+### Added
+- `ZenStorage` interface (foundation for 1.6.0 offline engine)
+- `persist`, `fromJson`, `toJson`, `storage` options on `ZenQueryConfig`
+- Auto-hydration from storage on query initialization
 
-**Added foundation for persisting query state across app restarts.**
-
-#### New Features
-
-- **ZenStorage Interface**: Define your own storage backend (SharedPreferences, Hive, etc.) for persisting query data.
-    - Implement `ZenStorage` and inject via `ZenQueryCache.instance.setStorage()`.
-- **Persistence Configuration**:
-    - Added `persist`, `fromJson`, `toJson`, and `storage` options to `ZenQueryConfig`.
-    - `ZenQuery` now automatically hydrates from storage on initialization if configured.
-    - Data is automatically persisted to storage on successful fetches.
-
-    ```dart
-    // Enable persistence
-    ZenQueryConfig(
-      persist: true,
-      fromJson: User.fromJson,
-      toJson: (user) => user.toJson(),
-    )
-    ```
+---
 
 ## [1.1.8]
 
-### 🛑 Smart Cancellation & Network Efficiency
+### Breaking Changes
+- Fetcher signature now requires a `ZenCancelToken` parameter
 
-**Introduced `ZenCancelToken` to prevent network waste and handle query cancellation gracefully.**
+```dart
+// Before
+fetcher: () => api.getData()
 
-#### ⚠️ Breaking Changes
+// After
+fetcher: (_) => api.getData()
+```
 
-- **Fetcher Signature Update**:
-    - `ZenQuery.fetcher` now requires a `ZenCancelToken` parameter: `(token) => ...`.
-    - `ZenInfiniteQuery.infiniteFetcher` now requires a `ZenCancelToken` parameter: `(pageParam, token) => ...`.
-    - **Migration**: Update your fetcher functions to accept the token argument (you can use `_` if unused).
-      ```dart
-      // Before
-      fetcher: () => api.getData()
-      
-      // After
-      fetcher: (_) => api.getData()
-      
-      ```
+### Added
+- `ZenCancelToken` for platform-agnostic request cancellation
+- Automatic cancel on dispose and on re-trigger (prevents stale data race conditions)
 
-#### New Features
+---
 
-- **ZenCancelToken**: A platform-agnostic token for cancelling async operations.
-    - **Universal Compatibility**: Works with `http`, `dio`, or any async library.
-    - **Automatic Cleanup**: Queries automatically cancel pending requests when disposed or re-triggered.
-    - **Race Condition Handling**: Prevents "old" data from overwriting "new" data if multiple fetches occur rapidly.
-
-    ```dart
-    ZenQuery(
-      queryKey: 'search',
-      fetcher: (token) async {
-        final client = http.Client();
-        // Auto-close connection if user types fast or leaves page
-        token.onCancel(() => client.close()); 
-        
-        return api.search(term);
-      },
-    );
-    ```
-
-#### Improvements
-
-- **ZenInfiniteQuery**: Enhanced cancellation support for pagination.
-    - `fetchNextPage()` now correctly cancels any in-flight "next page" requests if called again.
-    - Full refreshes cancel any pending pagination requests.
 ## [1.1.7]
 
-### 🧠 Smart Refetching Engine
+### Added
+- Smart refetching: stale queries auto-refetch on app resume and network reconnect
+- `ZenQueryConfig.refetchOnFocus` and `refetchOnReconnect`
+- `Zen.setNetworkStream()` for connectivity integration
 
-**Added lifecycle and network awareness to ZenQuery for a more robust experience.**
+### Changed
+- App lifecycle observation centralized to `ZenLifecycleManager` (single observer)
 
-#### New Features
+---
 
-- **Smart Refetching**: Automatically keeps data fresh based on app state.
-    - **Window Focus**: Refetches stale queries when the app resumes (foreground).
-    - **Network Reconnect**: Refetches stale/failed queries when the device goes online.
-    - **Configuration**: Controlled via `ZenQueryConfig.refetchOnFocus` and `refetchOnReconnect`.
-
-    ```dart
-    // Setup connectivity (e.g. in main.dart)
-    Zen.setNetworkStream(
-      Connectivity().onConnectivityChanged.map((res) => 
-        !res.contains(ConnectivityResult.none))
-    );
-    ```
-
-### ♻️ Architecture Improvements
-
-- **Centralized Lifecycle Management**: Moved app lifecycle observation (pause/resume) from individual controllers to `ZenLifecycleManager`.
-    - improved performance by having a single observer.
-    - **Note for testing**: Controllers must now be registered via `Zen.put()` or within a `ZenScope` to receive lifecycle events (onPause, onResume, etc.). Standalone controllers in unit tests will not receive these events unless registered.
-  
 ## [1.1.6]
 
-### 🚀 Dependent Queries & Prefetching
+### Added
+- `enabled` parameter and `RxBool enabled` property on `ZenQuery` for dependent queries
+- `ZenQueryCache.instance.prefetch()` for pre-loading data without creating listeners
 
-**Added powerful tools for complex data flows and performance optimization.**
+---
 
-#### New Features
-
-- **Dependent Queries (`enabled`)**: Control when a query should start fetching.
-  - Added `enabled` parameter to `ZenQuery` constructor.
-  - Added reactive `RxBool enabled` property to dynamically toggle fetching.
-  - Automatically triggers fetch when `enabled` becomes `true` (if data is stale).
-  - Prevents fetching when `enabled` is `false`.
-
-    ```dart
-    // Only fetch posts when user is loaded
-    final postsQuery = ZenQuery(
-      queryKey: ['posts', userId],
-      fetcher: () => api.getPosts(userId),
-      enabled: false, // Start disabled
-    );
-    
-    // Enable later (e.g. in onInit)
-    postsQuery.enabled.value = true;
-    ```
-
-- **Data Prefetching**: Pre-load data without creating listeners.
-    - `ZenQueryCache.instance.prefetch()`: Fetches and caches data if stale.
-    - Useful for `onHover` actions, route guards, or background sync.
-
-  
 ## [1.1.5]
 
-### 🎯 Granular Reactivity for ZenQuery
+### Added
+- `ZenQuery.select()` — derived queries that only update when specific data changes
 
-**Introduced fine-grained state management for ZenQuery to optimize performance and prevent unnecessary rebuilds.**
+---
 
-#### New Features
-
-- **`ZenQuery.select()`**: Create derived queries that only update when specific data changes.
-- **Performance**: Prevents widget rebuilds when unrelated fields in a large object update.
-- **Composition**: Derived queries share the parent's lifecycle and state automatically.
-- **Integration**: Works seamlessly with `ZenQueryBuilder` and `ZenWorkers`.
-
-  ```dart
-  // Only rebuilds when isOnline changes
-  ZenQueryBuilder<bool>(
-    query: userQuery.select((user) => user.isOnline),
-    builder: (context, isOnline) => OnlineBadge(isOnline),
-  );
-  ```
-  
 ## [1.1.4]
 
-### ♾️ ZenInfiniteQuery & Type-Safe Keys
+### Added
+- `ZenInfiniteQuery` for paginated lists and infinite scrolling
+- `queryKey` now accepts `Object` (including `List`) in addition to `String`
 
-**Major enhancements to the ZenQuery system including first-class pagination support and type-safe keys.**
-
-#### New Features
-
-- **ZenInfiniteQuery**: Specialized query for handling paginated lists and infinite scrolling.
-    - **Automatic Pagination**: Handles page concatenation, cursor management, and loading states.
-    - **Smart Fetching**: `getNextPageParam` determines when and how to fetch the next page.
-    - **Helpers**: `fetchNextPage()`, `hasNextPage`, `isFetchingNextPage` built-in.
-    - **UI Ready**: Returns `List<T>` containing all loaded pages, ready for rendering.
-
-- **Typed Query Keys**: Enhanced safety for cache keys.
-    - `queryKey` now accepts `Object` instead of just `String`.
-    - Support for **List Keys**: `['posts', 'user', 123]` is automatically normalized to a stable key.
-    - Eliminates string interpolation bugs (e.g., `user:123` vs `user-123`).
-    - Backward compatible with existing string keys.
-
-#### Improvements
-
-- **ZenQueryCache**: Updated internal storage to support normalized object keys.
-- **ZenScopeQueryExtension**: Updated `putQuery` and `putCachedQuery` to accept `Object` keys.
+---
 
 ## [1.1.3]
 
-### ⚡ Complete Data Lifecycle with ZenMutation
+### Added
+- `ZenMutation` for reactive write operations (create, update, delete)
+- Lifecycle hooks: `onMutate`, `onSuccess`, `onError`, `onSettled`
+- `ZenQueryCache.invalidateQuery()` integration pattern
 
-**Added support for reactive write operations to complement ZenQuery**
-
-#### New Features
-
-- **ZenMutation**: A new reactive primitive for handling side effects (create, update, delete operations)
-    - Separates Command (Write) from Query (Read) responsibilities
-    - **Lifecycle Hooks**: `onMutate` (for optimistic updates), `onSuccess`, `onError`, and `onSettled`
-    - **Reactive State**: Built-in `isLoading`, `isSuccess`, `isError`, and `data` state
-    - **Cache Integration**: Designed to easily trigger `ZenQueryCache.invalidateQuery` for data consistency
-
-#### Documentation
-
-- Added complete **Mutations** section to `zen_query_guide.md`
-- Added quick-start example for ZenMutation in `README.md`
-- Documented optimistic update patterns and cache invalidation strategies
+---
 
 ## [1.1.2]
 
-### 🎯 API Enhancement: Scoped Query Creation
+### Added
+- `ZenScopeQueryExtension`: `scope.putQuery<T>()` and `scope.putCachedQuery<T>()`
 
-**Simplified pattern for creating scoped queries in modules**
-
-#### New Features
-
-- **ZenScopeQueryExtension**: Added convenient extension methods for scoped query creation
-    - `scope.putQuery<T>()` - Create and register scoped query in one call
-    - `scope.putCachedQuery<T>()` - Create scoped query with common caching defaults
-    - Automatic scope binding and registration
-    - Consistent with existing `scope.put()` / `scope.putLazy()` API pattern
-
-#### Improvements
-
-- Reduced boilerplate when creating scoped queries in modules
-- Eliminated common mistakes (forgetting to set scope, forgetting to register)
-- Enhanced documentation with recommended patterns for scoped queries
-- Updated ZenQuery Guide with `putQuery` examples
-
-#### Documentation
-
-- Comprehensive documentation in `zen_query_guide.md` for both global and scoped patterns
+---
 
 ## [1.1.1]
 
-### 🚀 Scope-Aware ZenQuery
-**ZenQuery now supports optional scope integration for automatic lifecycle management**
+### Added
+- `scope` parameter on `ZenQuery` for automatic disposal with scope lifecycle
+- `ZenQueryCache.invalidateScope()`, `refetchScope()`, `clearScope()`, `getScopeQueries()`, `getScopeStats()`
 
-#### New Features
-
-- **Scope Integration**: Tie queries to scopes for automatic disposal
-    - Pass `scope` parameter to bind query to a specific scope
-    - `autoDispose` flag controls automatic cleanup behavior
-    - Queries auto-dispose when their scope disposes (prevents memory leaks)
-
-- **Scope Operations**: Bulk operations on scoped queries
-    - `ZenQueryCache.invalidateScope(scopeId)` - Invalidate all queries in scope
-    - `ZenQueryCache.refetchScope(scopeId)` - Refetch all queries in scope
-    - `ZenQueryCache.clearScope(scopeId)` - Clear all queries from scope
-    - `ZenQueryCache.getScopeQueries(scopeId)` - Get all queries in scope
-    - `ZenQueryCache.getScopeStats(scopeId)` - Get scope query statistics
-
-- **Enhanced Cache Statistics**: Differentiate global vs scoped queries
-    - `global_queries` count
-    - `scoped_queries` count
-    - `active_scopes` count
-
-#### Key Advantages
-
-- ✅ **Automatic cleanup** - Queries dispose with their scope (no memory leaks)
-- ✅ **Cache isolation** - Feature modules have isolated query caches
-- ✅ **Flexible** - Choose global or scoped based on use case
-- ✅ **Backward compatible** - Existing queries work without changes (default to global)
-
+---
 
 ## [1.1.0]
 
-### 🚀 Major Feature: ZenQuery System
+### Added
+- `ZenQuery` — async state management with caching, deduplication, retries, and background refetch
+- `ZenQueryBuilder` — reactive widget with loading/error/success states and SWR pattern
+- `ZenQueryCache` — global cache manager with invalidation and memory management
 
-**Async state management inspired by React Query and TanStack Query**
-
-#### New Features
-- **ZenQuery**: Smart query management with automatic caching, deduplication, and background refetching
-    - Automatic request deduplication (same query key = single request)
-    - Configurable stale time and cache time
-    - Automatic retries with exponential backoff
-    - Background refetching on configurable intervals
-    - Optimistic updates support
-    - Query invalidation and cache management
-
-- **ZenQueryBuilder**: Reactive widget for query-driven UI
-    - Auto-fetch on mount
-    - Show stale data while refetching (SWR pattern)
-    - Built-in loading, error, and success states
-    - Automatic retry functionality
-    - Custom state builders
-
-- **ZenQueryCache**: Global cache manager
-    - Query registration and lifecycle management
-    - Cache invalidation by key or prefix
-    - Bulk query refetching
-    - Memory management with automatic cleanup
-    - Cache statistics and debugging
-
-#### Key Advantages Over Alternatives
-- ✅ **10x simpler** for async data
-- ✅ **Automatic caching** with smart defaults
-- ✅ **Built-in retry logic** with exponential backoff
-- ✅ **Zero boilerplate** for common patterns
-- ✅ **Production-ready** with comprehensive error handling
+---
 
 ## [1.0.1]
 
 ### Added
-- Added comprehensive testing guide (`doc/testing_guide.md`) with examples for unit, widget, and integration testing
+- `doc/testing_guide.md`
 
 ### Changed
-- Simplified factory pattern API - removed `Zen.putFactory()`, use `Zen.putLazy(..., alwaysNew: true)` instead
-- Enhanced `putLazy()` with `alwaysNew` parameter for factory pattern support
-- Improved logging - route and controller lifecycle events now use `logInfo()` for better visibility
+- Removed `Zen.putFactory()` — use `Zen.putLazy(..., alwaysNew: true)` instead
+- Route and controller lifecycle events now use `logInfo()` level
 
 ### Fixed
-- Fixed `ZenScope.put()` default parameter handling
-- Fixed factory cleanup logic in scope disposal
+- `ZenScope.put()` default parameter handling
+- Factory cleanup logic in scope disposal
 
 ---
 
-## [1.0.0] 
+## [1.0.0]
 
-### 🎉 Major Release - API Simplification
+### Breaking Changes
+- `EagerRef`, `LazyRef`, `ControllerRef`, `ZenRef` replaced by a single `Ref<T>`
+- `.put()`, `.asRef()`, `.register()` extension methods removed — use `Zen.put()`
+- `Zen.putFactory()` removed — use `Zen.putLazy(..., isPermanent: false)`
+- Debug methods moved to `ZenDebug` class: `ZenDebug.dumpScopes()` etc.
 
-Simplified API by 40% while maintaining 100% of the power. **One obvious way to do it.**
-
-### ⚠️ Breaking Changes
-
-#### Unified References
-- **Removed**: `EagerRef`, `LazyRef`, `ControllerRef`, `ZenRef` class
-- **Added**: Single `Ref<T>` for all use cases
-```dart 
-// Before 
-final ref = ZenRef.eager();
-// Now 
-final ref = Ref();
-```
-
-#### Removed Extension Methods
-- **Removed**: `.put()`, `.asRef()`, `.register()` extensions
-- **Use**: `Zen.put()` for all registrations
-```
-// Before 
-myService.put(tag: 'main');
-// Now 
-Zen.put(myService, tag: 'main');
-``` 
-
-#### Simplified API
-- **Removed**: `Zen.putFactory()` - use `Zen.putLazy(..., isPermanent: false)`
-- **Moved**: Debug methods to `ZenDebug` class
-
-```
-// Before
-Zen.dumpScopes();
-
-// Now
-ZenDebug.dumpScopes();
-```
-
-### ✨ New Features
-
-- **`Ref<T>`**: Universal reference with `call()` shorthand: `ref()` = `ref.find()`
-- **ZenBuilder**: Proper DI cleanup, ownership tracking, smart disposal defaults
-- **Module System**: Fail-fast with clearer error messages
-- **Barrel Exports**: Clean package structure with logical grouping
-
-### 🔧 Improvements
-
-- Better error messages with scope context
-- `ZenBuilder` removes controllers from DI on disposal
-- Organized exports - internal details hidden
-
-### 🐛 Bug Fixes
-
-- Fixed `ZenBuilder` not removing controllers from DI
-- Fixed module rollback leaving inconsistent state
-- Fixed reactive exports including internals
-- Fixed circular import issues
-
-### 📚 Quick Migration
-
-1. Replace `EagerRef/LazyRef/ControllerRef` → `Ref`
-2. Replace `.put()/.asRef()` → `Zen.put()`
-3. Replace `Zen.putFactory()` → `Zen.putLazy(..., isPermanent: false)`
-4. Replace `Zen.debug*()` → `ZenDebug.*()`
-
-### ✅ What Stays the Same
-
-All core features preserved: hierarchical scopes, lazy loading, tagged dependencies, modules, reactive system, workers, effects, testing, debugging.
+### Added
+- `Ref<T>` universal reference with `call()` shorthand
+- Improved `ZenBuilder` with proper DI cleanup and ownership tracking
 
 ---
 
+## [0.6.3]
 
-## 0.6.3
+### Added
+- `ZenEnvironment.productionVerbose` environment preset
+- `ZenConfig.shouldLogRoutes` and `shouldLogNavigation` helpers
 
-### 🎯 Logging Improvements
+---
 
-#### New Features
-- **New Environment**: `ZenEnvironment.productionVerbose` - warnings + errors with performance metrics
-- **Smart Log Helpers**: `ZenConfig.shouldLogRoutes` and `ZenConfig.shouldLogNavigation`
-- **Better Log Levels**: Controller lifecycle events now use appropriate levels (info vs debug)
-
-#### Improvements
-- Route/navigation logging now properly controlled by environment settings
-- Log levels respect both flags AND global log level configuration
-- Enhanced `toMap()` includes all computed properties for debugging
-- Test environment uses longer disposal timeout (10s) for stability
-
-## [0.6.2] 
+## [0.6.2]
 
 ### Fixed
-- **Log Level Filtering**: Fixed inverted logic in `shouldLog()` method that caused logs to appear even when log level was set to suppress them
-- **Rx Tracking Logs**: Rx widget tracking logs now properly respect `ZenConfig.enableRxTracking` flag instead of always showing in debug mode
-    - Changed Obx widget debug logs to use `logRxTracking()` for proper control
-    - Debug mode now shows general debug logs but hides Rx tracking logs as documented
-    - Trace mode shows all logs including Rx tracking logs as documented
+- Inverted logic in `shouldLog()` causing logs to appear when suppressed
+- Rx tracking logs now respect `ZenConfig.enableRxTracking`
 
-### Improved
-- Log level configuration now works correctly across all environments (production, staging, development, debug, trace, test)
-- Better separation between general debug logging and verbose Rx tracking logging
+---
 
+## [0.6.1]
 
-## 0.6.1
+### Breaking Changes
+- `enableDebugLogs` replaced by `ZenLogLevel` enum: `none`, `error`, `warning`, `info`, `debug`, `trace`
 
-### 🎯 Comprehensive Logging System Enhancement
+### Added
+- `ZenEnvironment` enum for type-safe environment configuration: `production`, `staging`, `development`, `debug`, `trace`, `test`
 
-#### Breaking Changes
-- **Replaced simple `enableDebugLogs` with granular `ZenLogLevel` enum**
-    - `ZenLogLevel.none` - No logging (silent)
-    - `ZenLogLevel.error` - Only errors (recommended for production)
-    - `ZenLogLevel.warning` - Errors and warnings (recommended for production)
-    - `ZenLogLevel.info` - General information (recommended for development)
-    - `ZenLogLevel.debug` - Detailed debug info (for development)
-    - `ZenLogLevel.trace` - Very verbose including internals (debugging only)
+---
 
-#### New Features
+## [0.6.0]
 
-**Type-Safe Environment Configuration**
-- Added `ZenEnvironment` enum for type-safe environment configuration
-- Prevents typos and provides IDE autocomplete
-- Supports aliases: 'prod' → production, 'dev' → development, 'stage' → staging
-- Backward compatible with string-based configuration
+### Breaking Changes
+- `ZenController.onDispose()` → `onClose()`
+- `ZenService.onDelete()` → `onClose()`
+- `ZenScope.put()` parameter `permanent` → `isPermanent`
 
-**Available Environments:**
-- `ZenEnvironment.production` - Minimal logging, no debug features
-- `ZenEnvironment.staging` - Moderate logging, performance metrics
-- `ZenEnvironment.development` - Detailed logging, all debug features
-- `ZenEnvironment.debug` - Very detailed logging with strict mode
-- `ZenEnvironment.trace` - Extreme verbosity including Rx tracking
-- `ZenEnvironment.test` - Optimized for testing (no auto-dispose)
+### Added
+- Automatic `ZenService` disposal when its scope disposes
 
-#### Code Cleanup
-- Removed all deprecated `ZenConfig.enableDebugLogs` checks throughout codebase
-- Integrated `RxLogger` with `ZenLogger` to respect `ZenConfig.logLevel`
-- Simplified logging calls by removing redundant conditional checks
-- Improved consistency between core and reactive logging systems
-- All logging now properly respects the unified `ZenLogLevel` system
+---
 
-## 0.6.0
+## [0.5.5]
 
-### 🚨 BREAKING CHANGES
-- **Lifecycle Standardization**: Renamed lifecycle methods for consistency
-    - `ZenController.onDispose()` → `ZenController.onClose()`
-    - `ZenService.onDelete()` → `ZenService.onClose()`
-- **API Consistency**: `ZenScope.put()` parameter `permanent` → `isPermanent`
+### Added
+- `ZenService` base class with `onInit` and `onClose` lifecycle hooks
 
-### ✨ New Features
-- **Automatic ZenService Disposal**: Services are automatically disposed when their scope is disposed (promotes proper scope design)
-- **Enhanced ZenService Integration**: `ZenScope` now matches `Zen` API behavior for services
-- **Smart Defaults**: ZenService instances default to permanent across all registration methods
+---
 
-### 🔧 Improvements
-- Consistent lifecycle pattern: `onInit()` → `onClose()` → `dispose()`
-- ZenService instances properly initialize from lazy factories
-- Complete disposal coverage in all scope cleanup operations
+## [0.5.4]
 
-### 🔄 Migration Guide
-```
-// Lifecycle methods
-@override void onDispose() → @override void onClose()
-@override void onDelete() → @override void onClose()
+### Changed
+- Updated pub.dev example application
 
-// Scope registration
-scope.put(service, permanent: true) → scope.put(service, isPermanent: true)
-```
+---
 
-### 📝 Internal Changes
-- **Restructured ZenService disposal**: Added internal `dispose()` method that calls user's `onClose()`
-- **Improved separation of concerns**: Clear distinction between user cleanup (`onClose()`) and framework disposal (`dispose()`)
-- Updated all examples and documentation to use new lifecycle methods
-- Enhanced error messages to reference correct method names
+## [0.5.3]
 
-## 0.5.5
-* **🆕 ZenService (long‑lived services)**
-    * Adds `ZenService` base with `onInit` and `onClose` lifecycle hooks
-    * Safe init: `isInitialized` set only after successful `onInit`
-    * Guaranteed cleanup via `onDelete` → `onClose`
+### Fixed
+- Linting, formatting, and analysis issues for pub.dev score compliance
 
-- **🧩 DI behavior and consistency**
-    * `Zen.put(instance)`: `ZenService` defaults to `isPermanent = true` and initializes via lifecycle manager
-    * `Zen.putLazy(factory)`: explicit permanence (default `false`); instance created on first `find()`
-    * `Zen.putFactory(factory)`: unchanged; always creates new instances
-    * `Zen.find()`: auto‑initializes `ZenService` on first access (covers lazy/scoped resolutions)
+---
 
-- **✅ Compatibility**
-    * No changes to behavior `ZenController`
-    * Works across scopes and modules with consistent lifecycle handling
+## [0.5.2]
 
-- **🧪 Tests**
-    * Added unit/integration tests for service init/disposal, lazy resolution, and error handling
+### Changed
+- Updated package topics for better pub.dev discoverability
 
-- **📝 Docs**
-    * Updated guidance on services vs controllers, permanence defaults, and initialization semantics
+---
 
-## 0.5.4
+## [0.5.1]
 
-* **📱 Pub.dev Example Improvements**
-    * Updated example application displayed on pub.dev package page
-    * Cleaner code structure and improved readability for new users
-    * Better demonstration of ZenView and reactive state patterns
+### Fixed
+- Deprecated `RadioListTile` API usage — migrated to `RadioGroup` widget
 
-## 0.5.3
+---
 
-* **🏆 Perfect pub.dev Package Score Achievement (160/160)**
-    * Achieved maximum possible pub.dev score: 160/160 points
-    * **Static Analysis (50/50)**: Fixed all linting issues and code formatting problems
-    * **Documentation (10/10)**: Comprehensive README and API documentation maintained
-    * **Example (30/30)**: Added complete example application demonstrating all features
-    * **Maintenance (70/70)**: Up-to-date dependencies and Flutter compatibility
-    * Fixed code formatting issues across the entire codebase using `dart format`
-    * Added missing curly braces around single-line if statements for better code style
-    * Improved documentation comments formatting to prevent HTML interpretation warnings
-    * Enhanced code consistency by enforcing `curly_braces_in_flow_control_structures` rule
-    * Updated analysis configuration to match pub.dev standards for optimal package quality
-    * Ensured example application meets pub.dev requirements for discoverability and usability
+## [0.5.0]
 
-## 0.5.2
+Initial pub.dev release.
 
-* **📦 Package Metadata Improvements**
-    * Updated topics to use `hierarchical-dependency-injection` for better discoverability
-    * Improved SEO for dependency injection searches while highlighting hierarchical approach
-    * Enhanced pub.dev searchability and positioning
+---
 
-## 0.5.1
+## [0.4.1]
 
-* **🐛 Bug Fixes and Compatibility Improvements**
-    * Fixed deprecated `RadioListTile` `groupValue` and `onChanged` parameters
-    * Migrated to `RadioGroup` widget for radio button group management (Flutter 3.32.0+ compatibility)
-    * Enhanced radio button implementation following Flutter's latest best practices
+### Changed
+- README and package metadata improvements for pub.dev
 
-## 0.5.0
+### Fixed
+- `const` keyword consistency across codebase
+- Documentation path corrections (`docs/` → `doc/`)
 
-* **🚀 Official pub.dev Release**
-    * Published Zenify to pub.dev as a stable pre-release package
-    * Updated installation instructions to use `zenify: ^0.5.0` from pub.dev
-    * Enhanced package description for better discoverability
-    * Added comprehensive pub.dev metadata (topics, platforms, documentation links)
-    * Prepared package for wider Flutter community adoption
+---
 
+## [0.4.0]
 
-## 0.4.1
+### Breaking Changes
+- `ZenModulePage` renamed to `ZenRoute`
 
-* Documentation and Publishing Preparation
-    * Polish README.md with improved formatting and comprehensive content
-    * Enhance installation instructions and quick start guide
-    * Add comprehensive feature highlights and comparison guidance
-    * Refine documentation structure with "Coming Soon" sections for planned content
-    * Update community links and support channels
-    * Prepare package metadata for pub.dev publishing
-* Code Quality and Performance Improvements
-    * Add `const` keyword for durations and widgets across files for consistency
-    * Apply `const` to widget declarations where applicable to reduce rebuilds
-    * Fix minor typos in documentation paths from `docs/` to `doc/`
-    * Improve code clarity and conformance with modern Dart guidelines
-* Package Configuration Updates
-    * Refine `pubspec.yaml` description for better pub.dev presentation
-    * Update Flutter SDK constraint for compatibility
-    * Adjust dependencies for optimal package setup
+### Added
+- `ZenModule` base class and comprehensive module system
+- `ZenRoute` widget for module-based dependency injection
+- `ZenConsumer` widget for dependency access without rebuild
+- Stack-based scope tracking and automatic lifecycle management
 
+---
 
-## 0.4.0
+## [0.3.0]
 
-* Major Enhancement: Complete Module System and Route Management
-    * **BREAKING**: Rename ZenModulePage to ZenRoute for clarity and better naming
-    * Implement comprehensive hierarchical module system with ZenModule base class
-    * Add ZenRoute widget for seamless module-based dependency injection
-    * Implement stack-based scope tracking for reliable parent resolution
-    * Add automatic scope cleanup and lifecycle management
-    * Implement smart auto-dispose defaults based on scope hierarchy
-    * Add comprehensive error handling with layout-aware loading/error states
-    * Implement ZenScopeStackTracker for hierarchical scope inheritance
-    * Add ZenScopeManager for centralized scope lifecycle management
-    * Implement proper Zen.currentScope synchronization throughout navigation
-    * Add comprehensive logging and debug support for scope operations
-    * Implement robust parent scope resolution with multiple fallback strategies
-    * Add comprehensive example applications (ecommerce, todo, showcase)
-    * Restructure documentation with complete guides and improved examples
-    * Add ZenConsumer widget for efficient dependency access with automatic caching
-    * Implement production-ready module registration and cleanup patterns
+### Added
+- `RxResult<T>` for success/failure error handling patterns
+- `RxComputed` for automatic dependency tracking
+- `RxFuture` for reactive async operations
+- Circuit breaker pattern for resilient reactive operations
+- Batch operations and bulk updates for collections
 
-## 0.3.0
+---
 
-* Major Enhancement: Production-Ready Reactive System
-    * Complete reactive state management system with comprehensive error handling
-    * Add RxResult<T> for robust error handling with success/failure patterns
-    * Implement RxException with timestamp tracking and error context
-    * Add RxComputed for automatic dependency tracking and computed values
-    * Implement RxFuture for reactive async operations with state management
-    * Add comprehensive error handling extensions for all reactive types
-    * Implement circuit breaker pattern for resilient reactive operations
-    * Add RxLogger with configurable error handling and context tracking
-    * Implement extensive list extensions with safe operations and error handling
-    * Add batch operations and bulk update support for collections
-    * Implement retry logic with configurable delays and attempt limits
-    * Add performance monitoring utilities and resource leak detection
-    * Implement comprehensive test coverage for all reactive components
-    * Add production-ready error configuration and logging systems
-    * Implement automatic dependency cleanup and memory management
-    * Add type-safe reactive operations with compile-time guarantees
+## [0.2.0]
 
-## 0.2.0
+### Added
+- `ZenConsumer` widget with automatic caching
 
-* Major Enhancement: Widget System Expansion and Performance Optimization
-    * Add ZenConsumer widget for efficient dependency access with automatic caching
-    * Add comprehensive test suite for ZenConsumer widget functionality
-    * Enhance widget system documentation with complete comparison table
-    * Add examples demonstrating ZenConsumer for optional services and dependencies
-    * Improve README with detailed widget selection guidelines and best practices
-    * Add performance-optimized patterns for different UI scenarios
-    * Update migration guide with widget system improvements
+---
 
-## 0.1.9
+## [0.1.9]
 
-* Enhanced Testing and Logging Infrastructure
-    * Add comprehensive memory leak detection test suite with tracking utilities
-    * Implement resource lifecycle monitoring for controllers, scopes, and services
-    * Add stress tests for rapid creation/disposal scenarios
-    * Implement dependency resolution benchmark suite for performance monitoring
-    * Add widget lifecycle tests with safe ZenView implementation patterns
-    * Enhance error handling in test teardown processes
-    * Add performance monitoring utilities with operations-per-second metrics
-    * Improve test coverage for module registration and cleanup
-    * Add hierarchical scope disposal verification tests
-    * Implement batch operations benchmarking for large-scale dependency management
+### Added
+- Memory leak detection test suite
+- Dependency resolution benchmark suite
 
-## 0.1.8
+---
 
-* Major Enhancement: ZenView Integration and Widget System
-    * Add ZenView base class for automatic controller management in pages
-    * Implement direct controller access pattern (controller.property)
-    * Add ZenViewRegistry for controller lifecycle management
-    * Introduce context extensions for nested widget controller access
-    * Replace manual Zen.find() pattern with automatic binding
-    * Add comprehensive ZenView examples and patterns
-    * Improve error handling with clear controller availability messages
-    * Update documentation with ZenView best practices
-    * Add support for tagged controllers in ZenView
-    * Enhance type safety with automatic controller resolution
+## [0.1.8]
 
-## 0.1.7
+### Added
+- `ZenView` base class for automatic controller management in pages
 
-* Complete Phase 4: API Consistency and Reference System Improvements
-    * Rename `lookup` to `find` for more intuitive API
-    * Add `findOrNull` method for non-throwing dependency lookup
-    * Enhance reference system with `EagerRef` and `LazyRef` implementations
-    * Improve error handling in ZenView for better debugging
-    * Refine scope management in widget integration
-    * Update examples to use new API methods
-    * Fix dependency resolution in hierarchical scopes
+---
 
-## 0.1.6
+## [0.1.7]
 
-* Complete Phase 3: Logging and Testing Improvements
-    * Replace print statements with structured ZenLogger system
-    * Add proper log levels (debug, warning, error) for better debugging
-    * Add comprehensive tests for dependency injection functionality
-    * Implement test helpers for isolated scope testing
-    * Add integration tests for scoped dependencies
-    * Improve error handling with descriptive messages
+### Changed
+- `lookup` renamed to `find`
 
-## 0.1.5
+### Added
+- `findOrNull()` for non-throwing dependency lookup
+- `EagerRef` and `LazyRef` reference types
 
-* Complete Phase 2: Dependency Management Improvements
-    * Implement hierarchical scope system for nested controller access
-    * Add circular dependency detection to prevent deadlocks
-    * Create module/binding system for organized dependency registration
-    * Enhance controller discovery with improved scoping
-    * Add lazy initialization support for dependencies
-    * Improve error reporting for dependency resolution issues
+---
 
-## 0.1.4
+## [0.1.6]
 
-* Complete Phase 1: Enhanced Type Safety
-    * Add generic type constraints to all collections (RxList<E>, RxMap<K,V>, RxSet<E>)
-    * Implement typed provider references with ControllerRef<T>
-    * Add compile-time type checking for controller dependencies
-    * Ensure type safety throughout reactive system and DI container
+### Added
+- `ZenLogger` system with `debug`, `warning`, `error` levels
+- Comprehensive DI test suite
 
-## 0.1.3
+---
 
-* Add ZenEffect for handling async operations with loading states
-* Improve worker compatibility with proper RxNotifier types
-* Fix type compatibility issues between RxInt and RxNotifier
-* Add examples demonstrating async effects and reactive data flows
-* Enhance documentation for state bridging patterns
+## [0.1.5]
 
-## 0.1.2
+### Added
+- Hierarchical scope system
+- Circular dependency detection
+- Module/binding system for organized registration
+- Lazy initialization support
 
-* Update minimum Dart SDK to 2.19.0
-* Fix deprecated IndexError usage with IndexError.withLength
-* Improve logging system with developer.log instead of print statements
-* Fix collection implementations for better type safety
-* Add missing implementations in RxList, RxMap, and RxSet classes
+---
 
-## 0.1.1
+## [0.1.4]
 
-* Initial release
-* Core state management features
-* Reactive state with Rx objects
-* Controller lifecycle management
-* Route-based controller disposal
+### Added
+- Generic type constraints on `RxList<E>`, `RxMap<K,V>`, `RxSet<E>`
+- `ControllerRef<T>` typed provider references
+
+---
+
+## [0.1.3]
+
+### Added
+- `ZenEffect` for async operations with loading states
+- Worker compatibility improvements
+
+---
+
+## [0.1.2]
+
+### Fixed
+- Minimum Dart SDK updated to 2.19.0
+- Deprecated `IndexError` usage
+- Collection type safety in `RxList`, `RxMap`, `RxSet`
+
+---
+
+## [0.1.1]
+
+Initial release — reactive state, controller lifecycle management, route-based disposal.

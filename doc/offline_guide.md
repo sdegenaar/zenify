@@ -10,35 +10,134 @@ This guide explains how to make your app work flawlessly without an internet con
 
 ## 1. Enabling Offline Support (`ZenStorage`)
 
-The synchronization engine requires a place to store data. Implement the `ZenStorage` interface using your preferred storage solution (Hive, SQLite, SharedPreferences, etc.).
+Zenify's synchronization engine requires a storage backend to persist query data and mutation queues across app restarts.
 
-### Example Implementation (SharedPreferences)
+### Design Philosophy: Bring Your Own Storage
+
+Zenify ships **zero third-party dependencies** by design. Rather than bundling `shared_preferences`, `hive`, `sqflite`, or any other platform package, Zenify provides a simple 3-method interface — `ZenStorage` — that you implement yourself.
+
+This means you choose exactly what goes into your project.
 
 ```dart
-import 'package:zenify/zenify.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
+// The full interface — just 3 methods:
+abstract class ZenStorage {
+  Future<void> write(String key, Map<String, dynamic> json);
+  Future<Map<String, dynamic>?> read(String key);
+  Future<void> delete(String key);
+}
+```
 
-class MyStorage implements ZenStorage {
+### Production Adapter: SharedPreferences
+
+This is a production-ready implementation you can copy straight into your project:
+
+```dart
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:zenify/zenify.dart';
+
+class SharedPreferencesStorage implements ZenStorage {
+  final String prefix;
+  SharedPreferences? _prefs;
+
+  SharedPreferencesStorage({this.prefix = 'zen_query_'});
+
+  // Cache the instance — only calls getInstance() once per app lifecycle
+  Future<SharedPreferences> get _instance async =>
+      _prefs ??= await SharedPreferences.getInstance();
+
+  String _key(String key) => '$prefix$key';
+
   @override
   Future<void> write(String key, Map<String, dynamic> json) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(key, jsonEncode(json));
+    try {
+      await (await _instance).setString(_key(key), jsonEncode(json));
+    } catch (e) {
+      // Never crash the app — log and continue
+      debugPrint('ZenStorage write failed: $e');
+    }
   }
 
   @override
   Future<Map<String, dynamic>?> read(String key) async {
-    final prefs = await SharedPreferences.getInstance();
-    final jsonString = prefs.getString(key);
-    return jsonString != null ? jsonDecode(jsonString) : null;
+    try {
+      final raw = (await _instance).getString(_key(key));
+      if (raw == null) return null;
+      final decoded = jsonDecode(raw);
+      return decoded is Map<String, dynamic> ? decoded : null;
+    } catch (e) {
+      debugPrint('ZenStorage read failed: $e');
+      return null;
+    }
   }
 
   @override
   Future<void> delete(String key) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(key);
+    try {
+      await (await _instance).remove(_key(key));
+    } catch (e) {
+      debugPrint('ZenStorage delete failed: $e');
+    }
+  }
+
+  /// Clears only Zenify's keys — leaves all other SharedPreferences intact.
+  Future<void> clearAll() async {
+    final prefs = await _instance;
+    final keys = prefs.getKeys().where((k) => k.startsWith(prefix)).toList();
+    for (final k in keys) await prefs.remove(k);
   }
 }
+```
+
+> **See also**: `example/zen_offline/lib/storage.dart` for the canonical production example with full error handling.
+
+### Production Adapter: Hive (minimal recipe)
+
+```dart
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:zenify/zenify.dart';
+
+class HiveStorage implements ZenStorage {
+  late final Box _box;
+
+  Future<void> init() async {
+    await Hive.initFlutter();
+    _box = await Hive.openBox('zenify_cache');
+  }
+
+  @override
+  Future<void> write(String key, Map<String, dynamic> json) async =>
+      _box.put(key, json);
+
+  @override
+  Future<Map<String, dynamic>?> read(String key) async =>
+      (_box.get(key) as Map?)?.cast<String, dynamic>();
+
+  @override
+  Future<void> delete(String key) async => _box.delete(key);
+}
+```
+
+### Built-in: InMemoryStorage (testing & debug)
+
+Zenify exports `InMemoryStorage` — a zero-dependency in-memory adapter that ships with the package:
+
+```dart
+import 'package:zenify/zenify.dart';
+
+// Perfect for tests:
+final storage = InMemoryStorage();
+ZenQueryCache.instance.setStorage(storage);
+
+// Or conditionally in your app:
+await Zen.init(
+  storage: kDebugMode ? InMemoryStorage() : SharedPreferencesStorage(),
+);
+
+// Useful extras:
+storage.clear();               // Wipe all entries
+storage.containsKey('users');  // Check existence
+storage.length;                // How many entries
 ```
 
 ### Initialization
@@ -47,32 +146,30 @@ Pass your storage instance to `Zen.init()`. This single line enables both **Cach
 
 ```dart
 void main() async {
-  // Initialize Zenify with Storage
   await Zen.init(
-    storage: MyStorage(), 
-    
+    storage: SharedPreferencesStorage(),
+
     // Optional: Register Mutation Handlers (see Section 3)
     mutationHandlers: {
       'create_post': (payload) => api.createPost(payload),
     },
   );
-  
-  // 2. Setup Network Monitoring (Crucial!)
-  // Zenify needs to know when you are online. 
-  // You can use 'connectivity_plus' or any other package.
+
+  // Set up network monitoring (required for offline/online detection)
+  // Use 'connectivity_plus' or any package that emits a bool stream.
   Zen.setNetworkStream(
     Connectivity().onConnectivityChanged.map(
-      (results) => !results.contains(ConnectivityResult.none)
-    )
+      (results) => !results.contains(ConnectivityResult.none),
+    ),
   );
-  
+
   runApp(MyApp());
 }
 ```
 
-**Note:** You must provide a `Stream<bool>` via `Zen.setNetworkStream`.
-- `true` = Online
-- `false` = Offline
+**Note:** `Zen.setNetworkStream` expects a `Stream<bool>`:
+- `true` = device is online
+- `false` = device is offline
 
 ---
 

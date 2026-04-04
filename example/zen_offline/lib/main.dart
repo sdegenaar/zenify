@@ -18,7 +18,7 @@ void main() async {
   // To use the visual DevTools extension, add zenify_devtools_extension as a dev dependency
   await Zen.init(
     registerDevTools: true,
-    storage: PreferenceStorage(),
+    storage: SharedPreferencesStorage(),
     mutationHandlers: {
       'create_post': (payload) async {
         await MockApi.createPost(Post.fromJson(payload));
