@@ -1,4 +1,5 @@
 // Example demonstrating the new exception system
+// ignore_for_file: avoid_print
 
 import 'package:zenify/zenify.dart';
 

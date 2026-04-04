@@ -1,3 +1,14 @@
+## [1.9.1]
+
+### Added
+- `ZenQuery.when()` — declarative shorthand for `ZenQueryBuilder`. Supports `data`, `loading`, `error`, and `idle` builders.
+- `tool/migrate_from_getx.dart` — migration script that auto-converts GetX code to Zenify (imports, controllers, `.obs` → `.obs()`, DI calls, widgets, `permanent:` → `isPermanent:`). Flags navigation, workers, and other patterns for manual review.
+- GitHub Actions CI workflow (`flutter test`, `dart analyze`, format check)
+- GetX migration guide (`doc/migration_guide.md`) complete rewrite with verified API examples
+- README callout for GetX developers linking to the migration guide
+
+---
+
 ## [1.9.0]
 
 ### Added

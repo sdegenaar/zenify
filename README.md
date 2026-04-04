@@ -54,6 +54,11 @@ Don't let network issues break your app. Zenify includes **robust persistence**,
 
 ---
 
+> **Coming from GetX?** The reactive system (`.obs()`, `Obx()`), controller lifecycle, and DI verbs are intentionally familiar. Most migration is mechanical.
+> [GetX Migration Guide →](doc/migration_guide.md)
+
+---
+
 ## 🏗️ Understanding Scopes (The Foundation)
 
 Zenify organizes dependencies into **three hierarchical levels** with automatic lifecycle management:
@@ -95,7 +100,7 @@ The scope hierarchy automatically manages lifecycle — when you exit a feature,
 
 ```yaml
 dependencies:
-  zenify: ^1.9.0
+  zenify: ^1.9.1
 ```
 
 ### 2. Initialize
@@ -559,6 +564,7 @@ extensions:
 - [Hierarchical Scopes](doc/hierarchical_scopes_guide.md) — Advanced DI patterns
 - [State Management Patterns](doc/state_management_patterns.md) — Architectural patterns
 - [Testing Guide](doc/testing_guide.md) — Testing strategies and utilities
+- [GetX Migration Guide](doc/migration_guide.md) — Migrating from GetX
 
 ### Examples
 - [Counter](example/counter) — Simple reactive state

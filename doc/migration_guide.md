@@ -1,31 +1,73 @@
 # GetX to Zenify Migration Guide
 
-## 🚀 Quick Migration
+Zenify is intentionally familiar to GetX developers. The reactive system (`.obs()`, `Obx()`), controller lifecycle (`onInit`, `onClose`), and DI verbs (`put`, `find`, `delete`) are all close enough that most migration is mechanical.
 
-### Automated Migration (Recommended)
-
-Use our migration script to automatically convert most GetX code (experimental/testing:
-
-```bash
-# Preview changes (dry run)
-dart tools/migrate_from_getx.dart /path/to/your/project --dry-run
-
-# Apply changes
-dart tools/migrate_from_getx.dart /path/to/your/project
-```
-
-The script will:
-- ✅ Convert 70-80% of GetX code automatically
-- ⚠️ Flag files that need manual review
-- 📊 Generate a detailed migration report
+This guide covers every major GetX concept and its Zenify equivalent.
 
 ---
 
-## 📋 Manual Migration Reference
+## Migration Script
 
-### 1. Dependencies
+A script handles the mechanical parts automatically:
 
-**pubspec.yaml:**
+```bash
+# Preview changes (dry run — no files modified)
+dart tool/migrate_from_getx.dart /path/to/your/project --dry-run
+
+# Apply changes
+dart tool/migrate_from_getx.dart /path/to/your/project
+```
+
+**What it converts automatically:**
+- Import statements
+- `GetxController` / `GetxService` → `ZenController` / `ZenService`
+- `.obs` → `.obs()` (adds parentheses throughout)
+- `Get.put` / `Get.find` / `Get.delete` / `Get.lazyPut` → Zen equivalents
+- `Get.isRegistered` → `Zen.has`
+- `GetBuilder` / `GetView` / `GetX<T>` → Zen widget equivalents
+- `permanent:` → `isPermanent:` (parameter rename)
+
+**What it flags for manual review:**
+- Navigation (`Get.to`, `Get.back`, `Get.off`, `Get.offAll`)
+- `GetMaterialApp` → `MaterialApp`
+- `Bindings` → `ZenModule`
+- Worker functions (`ever(`, `once(`, `debounce(`, `interval(`) → `ZenWorkers.*`
+- `Get.context` → pass `BuildContext` explicitly
+- `GetStorage` → `ZenStorage`
+- `Get.snackbar` / `Get.dialog` / `Get.bottomSheet`
+- GetX i18n (`.tr`)
+
+After running the script: `dart analyze` will surface any remaining issues.
+
+---
+
+## Concept Map
+
+| GetX | Zenify | Notes |
+|------|--------|-------|
+| `GetxController` | `ZenController` | Same lifecycle hooks |
+| `GetxService` | `ZenService` | Same, but scoped by default |
+| `.obs` | `.obs()` | Add parentheses |
+| `Obx()` | `Obx()` or `ZenObserver()` | Both work |
+| `GetBuilder` | `ZenBuilder` | Same API |
+| `GetView<T>` | `ZenView<T>` | Same pattern |
+| `Get.put()` | `Zen.put()` | Same |
+| `Get.find()` | `Zen.find()` or `Zen.get()` | Same |
+| `Get.delete()` | `Zen.delete()` or `Zen.remove()` | Same |
+| `Get.lazyPut()` | `Zen.putLazy()` | Same concept |
+| `Bindings` | `ZenModule` | Scoped, not global |
+| `GetMaterialApp` | `MaterialApp` | No wrapper needed |
+| `Get.to()` / `Get.back()` | Flutter Navigator or GoRouter | No built-in navigation |
+| `ever`, `once`, `debounce`, `interval` | `ZenWorkers` | Direct equivalents |
+| `GetStorage` | `ZenStorage` / `InMemoryStorage` | Interface-based |
+| `GetConnect` / Async state | `ZenQuery` / `ZenMutation` | Much more capable |
+
+---
+
+## Step-by-Step Migration
+
+### 1. Update pubspec.yaml
+
 ```yaml
 # Remove
 dependencies:
@@ -33,12 +75,10 @@ dependencies:
 
 # Add
 dependencies:
-  zenify: ^1.6.4
+  zenify: ^1.9.0
 ```
 
----
-
-### 2. Imports
+### 2. Update imports
 
 ```dart
 // Before
@@ -48,211 +88,492 @@ import 'package:get/get.dart';
 import 'package:zenify/zenify.dart';
 ```
 
----
-
-### 3. Controllers
+### 3. Initialize
 
 ```dart
 // Before
-class MyController extends GetxController {
-  final count = 0.obs;
-  void increment() => count.value++;
+void main() {
+  runApp(GetMaterialApp(home: HomePage()));
 }
 
 // After
-class MyController extends ZenController {
-  final count = 0.obs();  // Note: .obs() with parentheses
-  void increment() => count.value++;
+void main() async {
+  await Zen.init();
+  runApp(MaterialApp(home: HomePage()));
 }
 ```
 
 ---
 
-### 4. Dependency Injection
+## Controllers
+
+The lifecycle is identical. The only differences are the base class name and `.obs()` parentheses.
+
+```dart
+// Before
+class CounterController extends GetxController {
+  final count = 0.obs;           // no parentheses
+  final name = ''.obs;
+  final items = <String>[].obs;
+
+  @override
+  void onInit() {
+    super.onInit();
+    // setup
+  }
+
+  @override
+  void onClose() {
+    // cleanup
+    super.onClose();
+  }
+}
+
+// After
+class CounterController extends ZenController {
+  final count = 0.obs();         // parentheses required
+  final name = ''.obs();
+  final items = <String>[].obs();
+
+  @override
+  void onInit() {
+    super.onInit();
+    // setup — identical
+  }
+
+  @override
+  void onClose() {
+    // cleanup — identical
+    super.onClose();
+  }
+}
+```
+
+---
+
+## Dependency Injection
 
 ```dart
 // Before
 Get.put(MyController());
-final controller = Get.find<MyController>();
+Get.put(MyService(), permanent: true);
+Get.lazyPut(() => MyController());
+Get.lazyPut(() => MyController(), fenix: true);  // recreate after delete
+
+final ctrl = Get.find<MyController>();
 Get.delete<MyController>();
 
 // After
 Zen.put(MyController());
-final controller = Zen.find<MyController>();
-// or Zen.get<MyController>() - new in v1.6.3!
-Zen.delete<MyController>();
-// or Zen.remove<MyController>() - new in v1.6.3!
+Zen.put(MyService(), isPermanent: true);  // note: isPermanent
+Zen.putLazy(() => MyController());
+Zen.putLazy(() => MyController(), alwaysNew: true);  // equivalent to fenix
+
+final ctrl = Zen.find<MyController>();  // or Zen.get<MyController>()
+Zen.delete<MyController>();             // or Zen.remove<MyController>()
 ```
 
 ---
 
-### 5. Reactive Widgets
+## Reactive Widgets
 
 ```dart
-// Before
+// Before — all of these
 Obx(() => Text('${controller.count}'))
 
-// After - Both work!
-Obx(() => Text('${controller.count}'))
-ZenObserver(() => Text('${controller.count}'))  // New in v1.6.4
-```
+GetX<MyController>(
+  builder: (controller) => Text('${controller.count}'),
+)
 
----
-
-### 6. Builder Widgets
-
-```dart
-// Before
 GetBuilder<MyController>(
   builder: (controller) => Text('${controller.count}'),
 )
 
 // After
+ZenObserver(() => Text('${controller.count.value}'))  // reactive
+// or Obx() still works — Zenify keeps it as an alias
+
 ZenBuilder<MyController>(
-  builder: (controller) => Text('${controller.count}'),
+  builder: (controller) => Text('${controller.count.value}'),
 )
+// Note: ZenBuilder requires manual controller.update() to rebuild
+// Use ZenObserver for automatic reactive rebuilds
 ```
 
 ---
 
-### 7. View Widgets
+## Page Widgets
 
 ```dart
 // Before
-class MyPage extends GetView<MyController> {
+class ProfilePage extends GetView<ProfileController> {
   @override
   Widget build(BuildContext context) {
-    return Text('${controller.count}');
+    return Text(controller.name.value);
   }
 }
 
 // After
-class MyPage extends ZenView<MyController> {
+class ProfilePage extends ZenView<ProfileController> {
   @override
   Widget build(BuildContext context) {
-    return Text('${controller.count}');
+    return Text(controller.name.value);
+  }
+}
+```
+
+`ZenView` optionally lets you create and own the controller directly on the page:
+
+```dart
+class ProfilePage extends ZenView<ProfileController> {
+  @override
+  ProfileController Function()? get createController => () => ProfileController();
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(controller.name.value);  // auto-disposed when page pops
   }
 }
 ```
 
 ---
 
-## ⚠️ Manual Migrations Required
-
-### Navigation
-
-GetX navigation needs manual conversion to Flutter's Navigator:
+## Services
 
 ```dart
 // Before
-Get.to(NextPage());
-Get.back();
-Get.off(NextPage());
-Get.offAll(HomePage());
+class AuthService extends GetxService {
+  static AuthService get to => Get.find();
+
+  final isLoggedIn = false.obs;
+
+  Future<AuthService> init() async {
+    // setup
+    return this;
+  }
+}
+
+// Register
+await Get.putAsync(() async {
+  final service = AuthService();
+  return await service.init();
+});
 
 // After
-Navigator.push(context, MaterialPageRoute(builder: (_) => NextPage()));
-Navigator.pop(context);
-Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => NextPage()));
-Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => HomePage()), (_) => false);
-```
+class AuthService extends ZenService {
+  static AuthService get to => Zen.find<AuthService>();
 
-**Or use Zenify's routing:**
-```dart
-ZenRoute(
-  path: '/next',
-  builder: () => NextPage(),
-)
+  final isLoggedIn = false.obs();
+
+  @override
+  void onInit() {
+    super.onInit();
+    // setup — called automatically
+  }
+}
+
+// Register
+Zen.put<AuthService>(AuthService(), isPermanent: true);
 ```
 
 ---
 
-### Bindings → Modules
+## Bindings → Modules
+
+GetX Bindings are global. Zenify Modules are scoped — dependencies are automatically disposed when you leave the feature.
 
 ```dart
 // Before
-class MyBinding extends Bindings {
+class HomeBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut(() => MyController());
-    Get.put(MyService());
+    Get.lazyPut(() => HomeController());
+    Get.lazyPut(() => UserRepository());
   }
 }
 
-// After
-class MyModule extends ZenModule {
+GetPage(name: '/home', page: () => HomePage(), binding: HomeBinding())
+
+// After — ZenModule requires a name and a register() method
+class HomeModule extends ZenModule {
   @override
-  String get name => 'MyModule';
-  
+  String get name => 'HomeModule';  // required — must be unique across your app
+
   @override
   void register(ZenScope scope) {
-    scope.putLazy(() => MyController());
-    scope.put(MyService());
+    scope.putLazy(() => HomeController());
+    scope.putLazy(() => UserRepository());
   }
+
+  // Optional: async setup after dependencies are registered
+  @override
+  Future<void> onInit(ZenScope scope) async {
+    final repo = scope.find<UserRepository>();
+    await repo?.preload();
+  }
+
+  // Optional: cleanup when the module's scope disposes
+  @override
+  Future<void> onDispose(ZenScope scope) async {}
+}
+```
+
+`ZenRoute` creates a scope, loads the module, and disposes both when the widget leaves the tree:
+
+```dart
+// Wrap your page with ZenRoute — works with any router (GoRouter, Navigator, etc.)
+ZenRoute(
+  moduleBuilder: () => HomeModule(),
+  page: HomePage(),
+  scopeName: 'HomeScope',  // optional, used for debugging
+)
+
+// GoRouter example
+GoRoute(
+  path: '/home',
+  builder: (context, state) => ZenRoute(
+    moduleBuilder: () => HomeModule(),
+    page: HomePage(),
+  ),
+)
+```
+
+For app-wide services loaded at startup, register modules globally instead:
+
+```dart
+void main() async {
+  await Zen.init();
+  await Zen.registerModules([
+    CoreModule(),
+    AuthModule(),
+  ]);
+  runApp(MyApp());
 }
 ```
 
 ---
 
-### GetMaterialApp → MaterialApp
+## Workers
+
+Zenify has direct equivalents for all GetX workers:
 
 ```dart
 // Before
-GetMaterialApp(
-  home: HomePage(),
-  getPages: [...],
-)
+ever(controller.count, (value) => print('changed: $value'));
+once(controller.count, (value) => print('first change: $value'));
+debounce(controller.count, (value) => search(value), time: Duration(milliseconds: 500));
+interval(controller.count, (value) => sync(value), time: Duration(seconds: 1));
 
-// After
-MaterialApp(
-  home: HomePage(),
-  // Use Flutter's routing or ZenRoute
-)
+// After (inside a ZenController)
+@override
+void onInit() {
+  super.onInit();
+  ZenWorkers.ever(count, (value) => print('changed: $value'));
+  ZenWorkers.once(count, (value) => print('first change: $value'));
+  ZenWorkers.debounce(count, (value) => search(value),
+      duration: Duration(milliseconds: 500));
+  ZenWorkers.interval(count, (value) => sync(value),
+      duration: Duration(seconds: 1));
+  // Workers are automatically cancelled when the controller closes
+}
 ```
 
 ---
 
-## 🎯 Key Differences
+## Navigation
 
-| Feature | GetX | Zenify |
-|---------|------|--------|
-| **Reactive** | `.obs` | `.obs()` (with parentheses) |
-| **DI** | `Get.find()` | `Zen.find()` or `Zen.get()` |
-| **Widget** | `Obx()` | `Obx()` or `ZenObserver()` |
-| **Routing** | Built-in | Use Flutter Navigator or ZenRoute |
-| **Scoping** | Global | Hierarchical scopes |
+Zenify does not provide navigation helpers. Use Flutter's built-in Navigator or a dedicated router.
 
----
+```dart
+// Before
+Get.to(() => DetailPage());
+Get.back();
+Get.off(() => LoginPage());
+Get.offAll(() => HomePage());
+Get.toNamed('/detail');
 
-## ✅ Migration Checklist
+// After — standard Flutter Navigator
+Navigator.push(context, MaterialPageRoute(builder: (_) => DetailPage()));
+Navigator.pop(context);
+Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => LoginPage()));
+Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => HomePage()), (_) => false);
 
-- [ ] Run migration script
-- [ ] Update pubspec.yaml
-- [ ] Run `flutter pub get`
-- [ ] Fix `.obs` → `.obs()` (add parentheses)
-- [ ] Migrate navigation to Flutter Navigator
-- [ ] Convert Bindings to ZenModule
-- [ ] Replace GetMaterialApp with MaterialApp
-- [ ] Test all features
-- [ ] Remove GetX dependency
+// Or use GoRouter (recommended for larger apps)
+context.go('/detail');
+context.pop();
+```
 
----
-
-## 💡 Zenify Advantages
-
-**What you gain:**
-- ✅ **Hierarchical Scoping** - Better dependency management
-- ✅ **Query System** - TanStack Query-like data fetching
-- ✅ **Offline Support** - Built-in persistence and sync
-- ✅ **Better Testing** - Scoped dependencies are easier to test
-- ✅ **Cleaner API** - Consistent naming across all features
+Zenify's `ZenRoute` integrates with any router to provide scoped dependency injection per route — it is not a navigation API.
 
 ---
 
-## 🆘 Need Help?
+## Snackbars & Dialogs
 
-- 📖 [Full Documentation](../README.md)
-- 💬 [GitHub Issues](https://github.com/sdegenaar/zenify/issues)
-- 📧 Contact: [your-email]
+GetX provides `Get.snackbar()` and `Get.dialog()`. Zenify does not — use Flutter's built-in APIs instead.
 
-**Welcome to Zenify!** 🎉
+```dart
+// Before
+Get.snackbar('Title', 'Message');
+Get.dialog(AlertDialog(...));
+Get.bottomSheet(Container(...));
+
+// After
+ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Message')));
+showDialog(context: context, builder: (_) => AlertDialog(...));
+showModalBottomSheet(context: context, builder: (_) => Container(...));
+```
+
+---
+
+## Storage
+
+```dart
+// Before (GetStorage)
+final box = GetStorage();
+box.write('token', 'abc123');
+final token = box.read('token');
+box.remove('token');
+
+// After — implement ZenStorage with your preferred backend
+// SharedPreferences example (see example/zen_offline/lib/storage.dart):
+await Zen.init(storage: SharedPreferencesStorage());
+
+// For tests — built-in, no dependencies
+await Zen.init(storage: InMemoryStorage());
+```
+
+The `ZenStorage` interface is simple to implement for any backend:
+
+```dart
+class MyStorage implements ZenStorage {
+  @override
+  Future<void> write(String key, Map<String, dynamic> json) async { ... }
+
+  @override
+  Future<Map<String, dynamic>?> read(String key) async { ... }
+
+  @override
+  Future<void> delete(String key) async { ... }
+}
+```
+
+---
+
+## Async State
+
+If you're managing async data with `GetxController` + manual `isLoading`/`hasError` flags, `ZenQuery` replaces the whole pattern:
+
+```dart
+// Before — typical GetX async pattern
+class UserController extends GetxController {
+  final isLoading = false.obs;
+  final hasError = false.obs;
+  final user = Rxn<User>();
+
+  @override
+  void onInit() {
+    super.onInit();
+    fetchUser();
+  }
+
+  Future<void> fetchUser() async {
+    isLoading.value = true;
+    hasError.value = false;
+    try {
+      user.value = await api.getUser();
+    } catch (e) {
+      hasError.value = true;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+}
+
+// After — ZenQuery handles all of this
+class UserController extends ZenController {
+  late final userQuery = ZenQuery<User>(
+    queryKey: 'user',
+    fetcher: (_) => api.getUser(),
+  );
+}
+
+// In UI — concise form (recommended)
+controller.userQuery.when(
+  data: (user) => UserCard(user),
+  loading: () => CircularProgressIndicator(),
+  error: (err, retry) => ErrorView(err, onRetry: retry),
+)
+
+// Or the explicit widget form
+ZenQueryBuilder<User>(
+  query: controller.userQuery,
+  builder: (context, user) => UserCard(user),
+  loading: () => CircularProgressIndicator(),
+  error: (err, retry) => ErrorView(err, onRetry: retry),
+)
+```
+
+You get caching, deduplication, retries, and background refetch for free.
+
+---
+
+## The `.to` Pattern
+
+This is identical and works exactly the same in Zenify:
+
+```dart
+// Both use the same static accessor pattern
+class CartService extends ZenService {
+  static CartService get to => Zen.find<CartService>();
+
+  final items = <CartItem>[].obs();
+}
+
+// Usage — unchanged from GetX
+CartService.to.items.add(item);
+```
+
+---
+
+## What GetX Has That Zenify Doesn't
+
+Be aware of these before migrating:
+
+| GetX Feature | Zenify | Alternative |
+|---|---|---|
+| `Get.to()` / navigation | None | GoRouter, AutoRoute, Navigator |
+| `Get.snackbar()` | None | `ScaffoldMessenger` |
+| `Get.dialog()` | None | `showDialog()` |
+| `GetMaterialApp` theme/locale | None | Standard `MaterialApp` |
+| Internationalization (`.tr`) | None | `flutter_localizations` |
+| `GetConnect` HTTP client | None | `http`, `dio` |
+
+If your app relies heavily on GetX navigation or i18n, factor that into your migration timeline.
+
+---
+
+## Migration Checklist
+
+- [ ] Replace `get:` with `zenify:` in `pubspec.yaml`
+- [ ] Replace `import 'package:get/get.dart'` with `import 'package:zenify/zenify.dart'`
+- [ ] Change `GetMaterialApp` to `MaterialApp`, add `await Zen.init()`
+- [ ] Rename `GetxController` → `ZenController`, `GetxService` → `ZenService`
+- [ ] Add parentheses: `.obs` → `.obs()`
+- [ ] Rename `GetBuilder` → `ZenBuilder`, `GetView` → `ZenView`
+- [ ] Rename `Get.put/find/delete` → `Zen.put/find/delete`
+- [ ] Convert `Bindings` → `ZenModule` with `ZenRoute`
+- [ ] Migrate `Get.to/back/off` to Flutter Navigator or GoRouter
+- [ ] Migrate `Get.snackbar/dialog` to `ScaffoldMessenger`/`showDialog`
+- [ ] Replace GetStorage with a `ZenStorage` implementation
+- [ ] Replace manual async state with `ZenQuery`/`ZenMutation`
+- [ ] Update workers: `ever/debounce/interval` → `ZenWorkers.*`
+- [ ] Run `flutter analyze`
+- [ ] Run `flutter test`
+
+---
+
+## Need Help?
+
+- [Documentation](../README.md)
+- [GitHub Issues](https://github.com/sdegenaar/zenify/issues)
+- [GitHub Discussions](https://github.com/sdegenaar/zenify/discussions)

@@ -41,6 +41,13 @@ ZenQueryBuilder<User>(
   loading: () => CircularProgressIndicator(),
   error: (error, retry) => ErrorWidget(error: error, onRetry: retry),
 );
+
+// Shorthand form — same result, fewer lines (v1.9.1+)
+userQuery.when(
+  data: (user) => Text(user.name),
+  loading: () => CircularProgressIndicator(),
+  error: (error, retry) => ErrorWidget(error: error, onRetry: retry),
+);
 ```
 
 ### With Configuration
@@ -1070,7 +1077,38 @@ ZenQueryBuilder<T>({
   bool keepPreviousData = false,
   Widget Function(BuildContext, Widget)? wrapper,
 })
-``` 
+```
+
+### ZenQuery.when()
+
+A concise shorthand for `ZenQueryBuilder`. Use this for the common case:
+
+```dart
+userQuery.when(
+  data: (user) => UserCard(user),
+  loading: () => const CircularProgressIndicator(),
+  error: (e, retry) => ErrorView(e, onRetry: retry),
+)
+```
+
+All parameters except `data` are optional — sensible defaults are used otherwise.
+
+```dart
+extension ZenQueryWhenExtension<T> on ZenQuery<T> {
+  Widget when({
+    required Widget Function(T data) data,
+    Widget Function()? loading,
+    Widget Function(Object error, VoidCallback retry)? error,
+    Widget Function()? idle,
+    bool autoFetch = true,
+    bool showStaleData = true,
+  })
+}
+```
+
+**When to use which:**
+- Use `.when()` for standard data/loading/error rendering
+- Use `ZenQueryBuilder` when you need `keepPreviousData`, a `wrapper`, or `key` control
 
 ### ZenQueryCache
 

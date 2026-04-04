@@ -109,3 +109,4 @@ CLAUDE.md
 *.tmp
 *.temp
 .DS_Store
+/example/zen_query/ARCHITECTURE.md

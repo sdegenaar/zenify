@@ -26,6 +26,8 @@ export 'reactive/reactive.dart';
 
 // ===== WIDGETS =====
 export 'widgets/builders/zen_builder.dart';
+export 'widgets/builders/zen_query_builder.dart';
+export 'widgets/builders/zen_query_when.dart';
 export 'widgets/components/zen_route.dart';
 export 'widgets/scope/zen_scope_widget.dart';
 export 'widgets/scope/zen_consumer.dart';
