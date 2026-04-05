@@ -1,3 +1,40 @@
+## [1.10.0]
+
+### Added
+- `ZenInfiniteQuery.when()` — declarative builder for infinite-scroll UI. Handles all states (loading, error, data, loadingMore, empty) with optional `footer` slot for a "load more" trigger.
+- `ZenMutation.when()` — reactive mutation state builder using `AnimatedBuilder` + `Listenable.merge`. Covers idle, loading, success, and error states with full type parameters.
+- `doc/gorouter_guide.md` — comprehensive guide for integrating `ZenRoute` with GoRouter, covering nested routes, auth guards, and scope lifecycle.
+- Codecov badge in README.
+
+### Bug Fixes
+These bugs were uncovered through the new test suite ("coverage-driven debugging"). All are fixed in this release.
+
+- **`RxTransformations.skip()` never updated after creation** — the closure returned `null` without accessing `value`, so the source `Rx` was never registered as a dependency. The computed was permanently dead and would never re-evaluate when the source changed. Fixed by always accessing `value` before branching.
+- **`RxTransformations.take()` lost its dependency after exhaustion** — same root cause. Fixed for consistency.
+- **`RxTimingExtensions.take/skip` caused API-wide ambiguity** — `RxTimingExtensions` defined callback-style `take(int, callback)` and `skip(int, callback)` on `Rx<T>`, conflicting with `RxTransformations.take(int)` and `.skip(int)`. Dart could not resolve either name. **Renamed** to `takeFirst` / `skipFirst` — consistent with Flutter's `firstWhere`/`firstOrNull` pattern.
+- **`RxTimingExtensions.map/where` caused API-wide ambiguity** — `RxTimingExtensions` defined callback-style `map(transformer, callback)` and `where(condition, callback)` on `Rx<T>`, conflicting with `RxComputedExtensions.map` / `.where` which both return computed values. **Renamed** to `listenMapped(transformer, callback)` and `listenWhere(condition, callback)` — the `listen*` prefix makes the side-effect callback intent explicit and unambiguous.
+- **`RxMapExtensions.update()` was unreachable dead code** — `Rx<T>` has a class-level `update(T Function(T) updater)` that always shadows the extension method `update(K key, V Function(V), ...)`. Users could never call the map-keyed version. **Removed**; use `tryUpdate(key, fn)` directly.
+- **`RxTransformations.whereNotNull()` caused ambiguity for nullable types** — conflicted with `RxNullableTransformations.whereNotNull()`. **Removed** from `RxTransformations<T>`; `RxNullableTransformations<T>.whereNotNull()` is the correct location.
+- **`ZenTestMode.mockAll()` silently registers under `dynamic` (breaking change documented)** — calling `Zen.put(instance)` where `instance` is typed as `dynamic` loses the generic type parameter `T` to type erasure. All mocks were registered under `dynamic` instead of the intended interface type, making `Zen.find<T>()` always return `null` regardless of what was mocked. **Deprecated** with a clear runtime warning explaining the bug. Use chained `.mock<T>()` calls instead.
+- **`ZenModuleRegistry` dead code removed** — the missing-dependency guard in `registerModules` was unreachable because `_collectAllDependencies()` already recursively resolves all transitive dependencies before the check was reached. Removed to prevent misleading error messages.
+- **`ZenController.autoDispose<T>()` did not dispose handle on error** — if the callback threw an exception, the handle was orphaned. It now calls `handle.dispose()` in the catch block, consistent with the no-leak guarantee.
+- **`ZenController.limited<T>()` did not dispose handle on error** — same issue. Now disposes on callback exception.
+
+### Tests
+- **Comprehensive Test Coverage**: Over **2,120+ unit and widget tests** validating core logic, widget interactions, garbage collection, and strict state invariants. Line test coverage has reached **>95.0%** overall!
+
+### Big Fixes & Minor Tweaks
+
+*   **Fixed Lifecycle Hook Warnings**: Resolved `mustCallSuper` lint warnings within ZenController's `onInit` and `onReady` hooks, ensuring developers properly chain initialization methods.
+*   **Widget Testing Stability**: Fixed pending timer exceptions during test disposal by ensuring immediate flush of garbage collection timers within Widget tests affecting `ZenQueryBuilder`, `ZenInfiniteQuery.when()`, and cache operations.
+
+### Dead Code Audit
+As part of the final push for test coverage, we removed/ignored non-reachable safety pathways:
+*   **Scope clearAll fallback**: `// coverage:ignore-line` added to the error catch inside `clearAll` since `dispose` completely swallows exceptions within ZenScope's controller array cleanup phase.  
+*   **ControllerScope key update**: Standard Flutter validation (`Widget.canUpdate` verifies identical keys) effectively prevents instances with different keys from executing `didUpdateWidget`. Thus, key differences trigger complete teardowns via widget replacement rather than widget updates. This redundant internal key check inside `ZenControllerScope.didUpdateWidget` has been marked with `// coverage:ignore`.
+
+---
+
 ## [1.9.1]
 
 ### Added

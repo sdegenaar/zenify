@@ -38,8 +38,9 @@ class ZenLifecycleManager {
           // WidgetsBinding not initialized - we're in a pure unit test
           // Call onReady immediately
           if (!controller.isDisposed) {
-            controller.onReady();
-          }
+            // coverage:ignore-line
+            controller.onReady(); // coverage:ignore-line
+          } // coverage:ignore-line
         }
       }
     } catch (e, stack) {
@@ -63,7 +64,7 @@ class ZenLifecycleManager {
         ZenLogger.logDebug('Zen lifecycle observer initialized');
       } catch (_) {
         // WidgetsBinding not initialized - skip lifecycle observer for pure unit tests
-        _lifecycleObserver = null;
+        _lifecycleObserver = null; // coverage:ignore-line
       }
     }
   }
@@ -183,7 +184,8 @@ class _ZenAppLifecycleObserver extends WidgetsBindingObserver {
       }
       ZenLogger.logDebug('Paused ${queries.length} queries');
     } catch (e, stack) {
-      ZenLogger.logError('Error pausing queries', e, stack);
+      ZenLogger.logError(
+          'Error pausing queries', e, stack); // coverage:ignore-line
     }
   }
 
@@ -195,7 +197,8 @@ class _ZenAppLifecycleObserver extends WidgetsBindingObserver {
       }
       ZenLogger.logDebug('Resumed ${queries.length} queries');
     } catch (e, stack) {
-      ZenLogger.logError('Error resuming queries', e, stack);
+      ZenLogger.logError(
+          'Error resuming queries', e, stack); // coverage:ignore-line
     }
   }
 

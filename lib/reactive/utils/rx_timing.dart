@@ -226,8 +226,10 @@ extension RxTimingExtensions<T> on Rx<T> {
     addListener(listener);
   }
 
-  /// Take only first n value changes
-  void take(int count, void Function(T value) callback) {
+  /// Take only first n value changes (callback-style listener)
+  /// NOTE: Named `takeFirst` to avoid ambiguity with `RxTransformations.take`
+  /// which returns a computed value instead of registering a callback.
+  void takeFirst(int count, void Function(T value) callback) {
     var callCount = 0;
     late VoidCallback listener;
 
@@ -244,8 +246,10 @@ extension RxTimingExtensions<T> on Rx<T> {
     addListener(listener);
   }
 
-  /// Skip first n value changes
-  void skip(int count, void Function(T value) callback) {
+  /// Skip first n value changes (callback-style listener)
+  /// NOTE: Named `skipFirst` to avoid ambiguity with `RxTransformations.skip`
+  /// which returns a computed value instead of registering a callback.
+  void skipFirst(int count, void Function(T value) callback) {
     var skipCount = 0;
 
     void listener() {
@@ -259,8 +263,10 @@ extension RxTimingExtensions<T> on Rx<T> {
     addListener(listener);
   }
 
-  /// Only call callback when value meets condition
-  void where(
+  /// Only call callback when value meets condition.
+  /// Named [listenWhere] to distinguish from [RxComputedExtensions.where]
+  /// which returns a computed value rather than registering a callback.
+  void listenWhere(
       bool Function(T value) condition, void Function(T value) callback) {
     void listener() {
       if (condition(value)) {
@@ -271,8 +277,10 @@ extension RxTimingExtensions<T> on Rx<T> {
     addListener(listener);
   }
 
-  /// Transform value before calling callback
-  void map<R>(
+  /// Transform value before calling callback.
+  /// Named [listenMapped] to distinguish from [RxComputedExtensions.map]
+  /// which returns a computed value rather than registering a callback.
+  void listenMapped<R>(
       R Function(T value) transformer, void Function(R value) callback) {
     void listener() {
       final transformed = transformer(value);

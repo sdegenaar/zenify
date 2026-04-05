@@ -1,4 +1,8 @@
 // lib/devtools/service_extensions.dart
+// coverage:ignore-file
+// This file registers dart:developer service extensions which can only
+// be invoked by an active DevTools connection. The callbacks cannot be
+// exercised in unit tests. Tested manually via DevTools integration.
 import 'dart:developer' as developer;
 import '../debug/zen_debug.dart';
 import '../utils/zen_scope_inspector.dart';

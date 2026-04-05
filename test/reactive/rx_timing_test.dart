@@ -1,116 +1,151 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zenify/reactive/reactive.dart';
+import 'package:zenify/zenify.dart';
 
+/// Tests for rx_timing.dart targeting uncovered lines:
+/// - L59-60: addSubscription
+/// - L70: subscription cleanup
+/// - L151-184: sample() (StreamSubscription, onListen/onCancel, timer tracking)
+/// - L157-168: sample internals
 void main() {
-  setUp(() {
-    // Clear timing data before each test to avoid interference
-    RxTimingUtils.clearAllTimingData();
-  });
+  setUp(Zen.init);
+  tearDown(Zen.reset);
 
-  tearDown(() {
-    // Clean up after each test
-    RxTimingUtils.clearAllTimingData();
-  });
-
-  group('RxTiming', () {
-    test('should debounce value changes', () async {
-      final value = 0.obs();
-      var callCount = 0;
-      String? lastValue;
-
-      value.debounce(const Duration(milliseconds: 100), (val) {
-        callCount++;
-        lastValue = val.toString();
-      });
-
-      // Rapid changes
-      value.value = 1;
-      value.value = 2;
-      value.value = 3;
-
-      expect(callCount, 0); // Should not be called yet
-
-      // Wait for debounce
-      await Future.delayed(const Duration(milliseconds: 150));
-
-      expect(callCount, 1);
-      expect(lastValue, '3'); // Only last value
+  // ══════════════════════════════════════════════════════════
+  // RxTimingData.addSubscription / cleanup
+  // ══════════════════════════════════════════════════════════
+  group('RxPerformanceExtensions', () {
+    test('trackChange increments stats', () {
+      final rx = Rx<int>(0);
+      rx.trackChange();
+      rx.trackChange();
+      expect(rx.performanceStats['changeCount'], 2);
+      rx.cleanupTiming();
     });
 
-    test('should throttle value changes', () async {
-      final value = 0.obs();
-      var callCount = 0;
-      final receivedValues = <int>[];
-
-      value.throttle(const Duration(milliseconds: 100), (val) {
-        callCount++;
-        receivedValues.add(val);
-      });
-
-      // Rapid changes
-      value.value = 1; // Should be called immediately
-      value.value = 2; // Should be throttled
-      value.value = 3; // Should be throttled
-
-      expect(callCount, 1);
-      expect(receivedValues, [1]);
-
-      // Wait for throttle to reset
-      await Future.delayed(const Duration(milliseconds: 150));
-
-      value.value = 4; // Should be called again
-      expect(callCount, 2);
-      expect(receivedValues, [1, 4]);
+    test('resetPerformanceStats resets to 0', () {
+      final rx = Rx<int>(0);
+      rx.trackChange();
+      rx.trackChange();
+      rx.resetPerformanceStats();
+      expect(rx.performanceStats['changeCount'], 0);
+      rx.cleanupTiming();
     });
 
-    test('should track performance stats', () {
-      final value = 0.obs();
-
-      value.trackChange();
-      value.trackChange();
-      value.trackChange();
-
-      final stats = value.performanceStats;
-      expect(stats['changeCount'], 3);
-      expect(stats['lastChangeTime'], isNotNull);
-    });
-
-    test('should reset performance stats', () {
-      final value = 0.obs();
-
-      value.trackChange();
-      value.trackChange();
-
-      value.resetPerformanceStats();
-
-      final stats = value.performanceStats;
+    test('performanceStats returns defaults when never tracked', () {
+      final rx = Rx<int>(0);
+      final stats = rx.performanceStats;
       expect(stats['changeCount'], 0);
       expect(stats['lastChangeTime'], isNull);
     });
 
-    test('should cleanup timing resources', () {
-      final value = 0.obs();
-
-      value.debounce(const Duration(milliseconds: 100), (val) {});
-      value.throttle(const Duration(milliseconds: 100), (val) {});
-
-      // Should not throw
-      expect(() => value.cleanupTiming(), returnsNormally);
+    test('cleanupTiming unregisters the rx instance', () {
+      final rx = Rx<int>(0);
+      rx.trackChange();
+      rx.cleanupTiming();
+      // After cleanup, stats should reset to defaults
+      expect(rx.performanceStats['changeCount'], 0);
     });
   });
 
-  group('RxTimingUtils', () {
-    test('should track multiple Rx instances', () {
-      final value1 = 0.obs();
-      final value2 = 1.obs();
+  // ══════════════════════════════════════════════════════════
+  // debounce
+  // ══════════════════════════════════════════════════════════
+  group('RxTimingExtensions.debounce', () {
+    test('debounce fires after inactivity period', () async {
+      final rx = Rx<int>(0);
+      int calls = 0;
+      rx.debounce(const Duration(milliseconds: 30), (_) => calls++);
 
-      value1.debounce(const Duration(milliseconds: 100), (val) {});
-      value2.throttle(const Duration(milliseconds: 100), (val) {});
+      rx.value = 1;
+      rx.value = 2;
+      rx.value = 3;
+      expect(calls, 0); // not fired yet
 
-      expect(RxTimingUtils.trackedInstanceCount, 2);
+      await Future.delayed(const Duration(milliseconds: 60));
+      expect(calls, 1); // fired once after inactivity
+      rx.cleanupTiming();
+    });
 
-      RxTimingUtils.clearAllTimingData();
-      expect(RxTimingUtils.trackedInstanceCount, 0);
+    test('debounce does not fire if rx is not updated again', () async {
+      final rx = Rx<int>(0);
+      int calls = 0;
+      rx.debounce(const Duration(milliseconds: 50), (_) => calls++);
+
+      await Future.delayed(const Duration(milliseconds: 80));
+      expect(calls, 0); // no change = no debounce fire
+      rx.cleanupTiming();
+    });
+  });
+
+  // ══════════════════════════════════════════════════════════
+  // throttle
+  // ══════════════════════════════════════════════════════════
+  group('RxTimingExtensions.throttle', () {
+    test('throttle limits calls within duration window', () async {
+      final rx = Rx<int>(0);
+      int calls = 0;
+      rx.throttle(const Duration(milliseconds: 50), (_) => calls++);
+
+      rx.value = 1; // fires
+      rx.value = 2; // throttled
+      rx.value = 3; // throttled
+      expect(calls, 1);
+
+      await Future.delayed(const Duration(milliseconds: 80));
+      rx.value = 4; // window reset, fires again
+      expect(calls, 2);
+      rx.cleanupTiming();
+    });
+  });
+
+  // ══════════════════════════════════════════════════════════
+  // sample — covers L151-184 almost entirely
+  // ══════════════════════════════════════════════════════════
+  group('RxTimingExtensions.sample', () {
+    test('sample delivers values at specified interval', () async {
+      final rx = Rx<int>(0);
+      final received = <int>[];
+
+      final sub = rx.sample(
+        const Duration(milliseconds: 30),
+        (v) => received.add(v),
+      );
+
+      rx.value = 1;
+      await Future.delayed(const Duration(milliseconds: 50));
+      rx.value = 2;
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      await sub.cancel();
+      expect(received, isNotEmpty);
+      rx.cleanupTiming();
+    });
+
+    test('sample subscription can be cancelled without crashing', () async {
+      final rx = Rx<int>(0);
+      final sub = rx.sample(const Duration(milliseconds: 20), (_) {});
+      rx.value = 1;
+      await Future.delayed(const Duration(milliseconds: 10));
+      await expectLater(sub.cancel(), completes);
+      rx.cleanupTiming();
+    });
+  });
+
+  // ══════════════════════════════════════════════════════════
+  // delay
+  // ══════════════════════════════════════════════════════════
+  group('RxTimingExtensions.delay', () {
+    test('delay fires callback after specified duration', () async {
+      final rx = Rx<int>(0);
+      int? received;
+      rx.delay(const Duration(milliseconds: 30), (v) => received = v);
+
+      rx.value = 42;
+      expect(received, isNull); // not immediate
+
+      await Future.delayed(const Duration(milliseconds: 60));
+      expect(received, 42);
+      rx.cleanupTiming();
     });
   });
 }

@@ -607,5 +607,53 @@ void main() {
       // The new controller should have the default count
       expect(find.text('Count: 0'), findsOneWidget);
     });
+
+    testWidgets(
+        'should register and find controllers using explicit scope parameter',
+        (tester) async {
+      final explicitScope = Zen.createScope(name: 'ExplicitScope');
+      CounterController? controllerCreated;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ZenControllerScope<CounterController>(
+            scope: explicitScope,
+            create: () {
+              controllerCreated = CounterController();
+              return controllerCreated!;
+            },
+            child: ZenBuilder<CounterController>(
+              scope: explicitScope,
+              builder: (context, controller) =>
+                  Text('Explicit: ${controller.count}'),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+      expect(find.text('Explicit: 0'), findsOneWidget);
+
+      // Verify it's actually in our explicit scope
+      expect(explicitScope.findInThisScope<CounterController>(), isNotNull);
+      // Verify it's NOT in the root scope
+      expect(Zen.rootScope.findInThisScope<CounterController>(), isNull);
+
+      // Test reusing existing controller in explicit scope
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ZenControllerScope<CounterController>(
+            scope: explicitScope,
+            create: () => CounterController(), // Should NOT be called
+            child: const Text('Reused'),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Should still be exactly one controller in the explicit scope
+      expect(explicitScope.findInThisScope<CounterController>(),
+          equals(controllerCreated));
+    });
   });
 }

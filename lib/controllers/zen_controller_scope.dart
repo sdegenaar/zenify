@@ -76,10 +76,15 @@ class _ZenControllerScopeState<T extends ZenController>
     super.didUpdateWidget(oldWidget);
 
     // Check if we need to recreate the controller
+    // coverage:ignore-start
+    // Note: widget.key != oldWidget.key is actually impossible to reach
+    // in normal Flutter lifecycle because if keys differ, canUpdate() is false
+    // and a new Element is created (initState) instead of didUpdateWidget.
     if (widget.key != oldWidget.key) {
       _disposeController(oldWidget);
       _initController();
     }
+    // coverage:ignore-end
   }
 
   void _disposeController(ZenControllerScope<T> widget) {
@@ -93,9 +98,11 @@ class _ZenControllerScopeState<T extends ZenController>
         // Changed from logDebug to logInfo - important lifecycle event
         ZenLogger.logInfo(
             'Disposed controller $T${widget.tag != null ? ' (${widget.tag})' : ''}');
+        // coverage:ignore-start
       } catch (e) {
         ZenLogger.logError('Error disposing controller $T: $e');
       }
+      // coverage:ignore-end
     }
   }
 

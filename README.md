@@ -3,6 +3,7 @@
 [![pub package](https://img.shields.io/pub/v/zenify.svg)](https://pub.dev/packages/zenify)
 [![likes](https://img.shields.io/pub/likes/zenify?logo=dart)](https://pub.dev/packages/zenify/score)
 [![pub points](https://img.shields.io/pub/points/zenify?logo=dart)](https://pub.dev/packages/zenify/score)
+[![codecov](https://codecov.io/gh/sdegenaar/zenify/branch/main/graph/badge.svg)](https://codecov.io/gh/sdegenaar/zenify)
 [![license: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 **Complete state management for Flutter—hierarchical dependency injection, reactive programming, and intelligent async state. Zero boilerplate, automatic cleanup.**
@@ -100,7 +101,7 @@ The scope hierarchy automatically manages lifecycle — when you exit a feature,
 
 ```yaml
 dependencies:
-  zenify: ^1.9.1
+  zenify: ^1.10.0
 ```
 
 ### 2. Initialize
@@ -564,6 +565,7 @@ extensions:
 - [Hierarchical Scopes](doc/hierarchical_scopes_guide.md) — Advanced DI patterns
 - [State Management Patterns](doc/state_management_patterns.md) — Architectural patterns
 - [Testing Guide](doc/testing_guide.md) — Testing strategies and utilities
+- [GoRouter Integration](doc/gorouter_guide.md) — ZenRoute with GoRouter
 - [GetX Migration Guide](doc/migration_guide.md) — Migrating from GetX
 
 ### Examples
@@ -611,6 +613,8 @@ flutter pub add zenify
 - New to Zenify? → [5-minute Counter Tutorial](example/counter)
 - Want async superpowers? → [ZenQuery Guide](doc/zen_query_guide.md)
 - Need offline support? → [Offline Guide](doc/offline_guide.md)
+- Using GoRouter? → [GoRouter Integration Guide](doc/gorouter_guide.md)
+- Coming from GetX? → [Migration Guide](doc/migration_guide.md)
 - Building something complex? → [Hierarchical Scopes Guide](doc/hierarchical_scopes_guide.md)
 - Setting up tests? → [Testing Guide](doc/testing_guide.md)
 

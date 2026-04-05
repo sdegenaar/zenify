@@ -44,45 +44,40 @@ extension RxTransformations<T> on Rx<T> {
     });
   }
 
-  /// Take the first n values
+  /// Take the first n values, returns null once exhausted.
+  /// Always accesses [value] so dependency tracking is maintained,
+  /// ensuring re-evaluation when the source changes.
   RxComputed<T?> take(int count) {
     int taken = 0;
     return computed(() {
+      final current = value; // Always access to maintain dependency tracking
       if (taken < count) {
         taken++;
-        return value;
+        return current;
       }
       return null;
     });
   }
 
-  /// Skip the first n values
+  /// Skip the first n values, returns null until exhausted.
+  /// Always accesses [value] so dependency tracking is maintained,
+  /// fixing a bug where the computed became permanently dead during the skip
+  /// phase (since it never accessed [value] and thus tracked no dependencies).
   RxComputed<T?> skip(int count) {
     int skipped = 0;
     return computed(() {
+      final current = value; // Always access to maintain dependency tracking
       if (skipped < count) {
         skipped++;
         return null;
       }
-      return value;
+      return current;
     });
   }
 
   /// Convert to nullable type
   RxComputed<T?> asNullable() {
     return computed(() => value as T?);
-  }
-
-  /// Handle null values with a default
-  RxComputed<T> whereNotNull([T? defaultValue]) {
-    return computed(() {
-      final val = value;
-      if (val == null) {
-        if (defaultValue != null) return defaultValue;
-        throw StateError('Value is null and no default provided');
-      }
-      return val;
-    });
   }
 }
 

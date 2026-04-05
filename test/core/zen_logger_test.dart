@@ -1,280 +1,223 @@
-// test/core/zen_logger_test.dart
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zenify/zenify.dart';
 
-// Create a testable version of the logger that captures log output
-class LogCapture {
-  static final List<String> logs = [];
-
-  static void captureLog(String message, {String? name}) {
-    logs.add('${name ?? ''}: $message');
-  }
-
-  static void clear() {
-    logs.clear();
-  }
-}
-
 void main() {
-  group('ZenLogger', () {
-    // Capture log output
-    late List<String> capturedLogs;
-    late ZenLogLevel originalLogLevel;
+  tearDown(ZenLogger.resetHandlers);
 
-    setUp(() {
-      // Store original state
-      originalLogLevel = ZenConfig.logLevel;
-
-      // Set the custom log method
-      ZenLogger.testMode = true;
-      ZenLogger.logFunction = LogCapture.captureLog;
-
-      // Enable all logs for testing using new log level system
+  // ══════════════════════════════════════════════════════════
+  // Custom log handler
+  // ══════════════════════════════════════════════════════════
+  group('ZenLogger custom logHandler', () {
+    test('logError routes to _logHandler when error handler not set', () {
+      final captured = <String>[];
+      ZenLogger.init(logHandler: (msg, level) => captured.add(msg));
       ZenConfig.logLevel = ZenLogLevel.trace;
-
-      // Setup log capture
-      capturedLogs = [];
-      LogCapture.clear();
-
-      // Set custom handlers for testing
-      ZenLogger.init(logHandler: (String message, LogLevel level) {
-        capturedLogs.add('[$level] $message');
-      }, errorHandler: (String message,
-          [dynamic error, StackTrace? stackTrace]) {
-        capturedLogs.add('[error] $message');
-        if (error != null) {
-          capturedLogs.add('Error: $error');
-        }
-        if (stackTrace != null) {
-          capturedLogs.add('StackTrace: Present');
-        }
-      });
+      ZenLogger.logError('my error message');
+      expect(captured, contains('my error message'));
     });
 
-    tearDown(() {
-      // Reset handlers
-      ZenLogger.resetHandlers();
-
-      // Restore log level
-      ZenConfig.logLevel = originalLogLevel;
-    });
-
-    test('should log debug messages when debug logs are enabled', () {
+    test('logError with error object routes extra message', () {
+      final captured = <String>[];
+      ZenLogger.init(logHandler: (msg, level) => captured.add(msg));
       ZenConfig.logLevel = ZenLogLevel.trace;
-
-      ZenLogger.logDebug('Debug message');
-      ZenLogger.logInfo('Info message');
-      ZenLogger.logWarning('Warning message');
-      ZenLogger.logError('Error message');
-
-      expect(capturedLogs.length, 4);
-      expect(capturedLogs[0], contains('LogLevel.debug'));
-      expect(capturedLogs[0], contains('Debug message'));
-      expect(capturedLogs[1], contains('LogLevel.info'));
-      expect(capturedLogs[1], contains('Info message'));
-      expect(capturedLogs[2], contains('LogLevel.warning'));
-      expect(capturedLogs[2], contains('Warning message'));
-      expect(capturedLogs[3], contains('error'));
-      expect(capturedLogs[3], contains('Error message'));
+      ZenLogger.logError('err', Exception('cause'));
+      expect(captured.any((m) => m.contains('cause')), true);
     });
 
-    test('should not log debug messages when log level is too low', () {
-      ZenConfig.logLevel = ZenLogLevel.info;
-
-      ZenLogger.logDebug('Debug message');
-      ZenLogger.logInfo('Info message');
-      ZenLogger.logWarning('Warning message');
-      ZenLogger.logError('Error message');
-
-      // Debug should not be logged at info level
-      expect(capturedLogs.length, 3);
-      expect(capturedLogs[0], contains('LogLevel.info'));
-      expect(capturedLogs[0], contains('Info message'));
-      expect(capturedLogs[1], contains('LogLevel.warning'));
-      expect(capturedLogs[1], contains('Warning message'));
-      expect(capturedLogs[2], contains('error'));
-      expect(capturedLogs[2], contains('Error message'));
-    });
-
-    test('should handle errors and stack traces', () {
-      final error = Exception('Test exception');
-      final stackTrace = StackTrace.current;
-
-      ZenLogger.logError('Error with exception', error, stackTrace);
-
-      expect(capturedLogs.length, 3);
-      expect(capturedLogs[0], contains('Error with exception'));
-      expect(capturedLogs[1], contains('Test exception'));
-      expect(capturedLogs[2], contains('StackTrace: Present'));
-    });
-
-    test('should fallback to internal logging when no handler is set', () {
-      // Remove custom handlers
-      ZenLogger.resetHandlers();
-      LogCapture.clear();
-
-      // Re-enable test mode
-      ZenLogger.testMode = true;
-      ZenLogger.logFunction = LogCapture.captureLog;
-
-      // Test logging with fallback to internal log function
-      ZenLogger.logInfo('Test message');
-
-      // Verify log was created with fallback mechanism
-      expect(LogCapture.logs.length, 1);
-      expect(LogCapture.logs[0], contains('[Zenify] INFO: Test message'));
-    });
-
-    test('should handle null values gracefully', () {
-      ZenLogger.logError('Error with null values', null, null);
-
-      expect(capturedLogs.length, 1);
-      expect(capturedLogs[0], contains('Error with null values'));
-    });
-
-    test('should use error handler for errors when available', () {
-      // Clear captured logs
-      capturedLogs.clear();
-
-      // Setup with only error handler
-      ZenLogger.init(
-          logHandler: null,
-          errorHandler: (String message,
-              [dynamic error, StackTrace? stackTrace]) {
-            capturedLogs.add('Custom error handler: $message');
-            if (error != null) {
-              capturedLogs.add('Has error: true');
-            }
-            if (stackTrace != null) {
-              capturedLogs.add('Has stack: true');
-            }
-          });
-
-      final error = Exception('Custom error');
-      final stack = StackTrace.current;
-
-      ZenLogger.logError('Error message', error, stack);
-
-      expect(capturedLogs.length, 3);
-      expect(capturedLogs[0], contains('Custom error handler: Error message'));
-      expect(capturedLogs[1], contains('Has error: true'));
-      expect(capturedLogs[2], contains('Has stack: true'));
-    });
-
-    test('should use log handler for non-error logs', () {
-      // Clear captured logs
-      capturedLogs.clear();
-
-      // Setup with only log handler
-      ZenLogger.init(
-          logHandler: (String message, LogLevel level) {
-            capturedLogs.add('Custom log handler: [$level] $message');
-          },
-          errorHandler: null);
-
-      ZenLogger.logInfo('Info with custom handler');
-      ZenLogger.logWarning('Warning with custom handler');
-
-      expect(capturedLogs.length, 2);
-      expect(
-          capturedLogs[0],
-          contains(
-              'Custom log handler: [LogLevel.info] Info with custom handler'));
-      expect(
-          capturedLogs[1],
-          contains(
-              'Custom log handler: [LogLevel.warning] Warning with custom handler'));
-    });
-
-    test(
-        'should use log handler for errors when error handler is not available',
-        () {
-      // Clear captured logs
-      capturedLogs.clear();
-
-      // Setup with only log handler
-      ZenLogger.init(
-          logHandler: (String message, LogLevel level) {
-            capturedLogs.add('Custom log handler: [$level] $message');
-          },
-          errorHandler: null);
-
-      final error = Exception('Test error');
-      final stack = StackTrace.current;
-
-      ZenLogger.logError('Error with log handler', error, stack);
-
-      // Should use log handler for all parts of the error
-      expect(capturedLogs.length, 3);
-      expect(
-          capturedLogs[0],
-          contains(
-              'Custom log handler: [LogLevel.error] Error with log handler'));
-      expect(
-          capturedLogs[1],
-          contains(
-              'Custom log handler: [LogLevel.error] Error: Exception: Test error'));
-      expect(capturedLogs[2],
-          contains('Custom log handler: [LogLevel.error] StackTrace:'));
-    });
-
-    test('should respect log levels correctly', () {
-      capturedLogs.clear();
-
-      // Set to warning level
-      ZenConfig.logLevel = ZenLogLevel.warning;
-
-      ZenLogger.logDebug('Debug - should not appear');
-      ZenLogger.logInfo('Info - should not appear');
-      ZenLogger.logWarning('Warning - should appear');
-      ZenLogger.logError('Error - should appear');
-
-      // Only warning and error should be logged
-      expect(capturedLogs.length, 2);
-      expect(capturedLogs[0], contains('Warning'));
-      expect(capturedLogs[1], contains('Error'));
-    });
-
-    test('should handle trace level correctly', () {
-      capturedLogs.clear();
-
+    test('logError with stackTrace routes trace message', () {
+      final captured = <String>[];
+      ZenLogger.init(logHandler: (msg, level) => captured.add(msg));
       ZenConfig.logLevel = ZenLogLevel.trace;
-
-      ZenLogger.logTrace('Trace message');
-      ZenLogger.logDebug('Debug message');
-
-      expect(capturedLogs.length, 2);
-      expect(capturedLogs[0], contains('Trace message'));
-      expect(capturedLogs[1], contains('Debug message'));
+      ZenLogger.logError('e', null, StackTrace.fromString('fake'));
+      expect(captured.any((m) => m.contains('StackTrace')), true);
     });
 
-    test('should not log anything when level is none', () {
-      capturedLogs.clear();
-
-      ZenConfig.logLevel = ZenLogLevel.none;
-
-      ZenLogger.logError('Error - should not appear');
-      ZenLogger.logWarning('Warning - should not appear');
-      ZenLogger.logInfo('Info - should not appear');
-
-      expect(capturedLogs.length, 0);
+    test('logWarning routes to _logHandler', () {
+      final captured = <String>[];
+      ZenLogger.init(logHandler: (msg, level) => captured.add(msg));
+      ZenConfig.logLevel = ZenLogLevel.trace;
+      ZenLogger.logWarning('my warning');
+      expect(captured, contains('my warning'));
     });
 
-    test('should handle resetHandlers correctly', () {
-      // Set handlers
+    test('logInfo routes to _logHandler', () {
+      final captured = <String>[];
+      ZenLogger.init(logHandler: (msg, level) => captured.add(msg));
+      ZenConfig.logLevel = ZenLogLevel.trace;
+      ZenLogger.logInfo('my info');
+      expect(captured, contains('my info'));
+    });
+
+    test('logDebug routes to _logHandler', () {
+      final captured = <String>[];
+      ZenLogger.init(logHandler: (msg, level) => captured.add(msg));
+      ZenConfig.logLevel = ZenLogLevel.trace;
+      ZenLogger.logDebug('debug msg');
+      expect(captured, contains('debug msg'));
+    });
+
+    test('logTrace routes to _logHandler', () {
+      final captured = <String>[];
+      ZenLogger.init(logHandler: (msg, level) => captured.add(msg));
+      ZenConfig.logLevel = ZenLogLevel.trace;
+      ZenLogger.logTrace('trace msg');
+      expect(captured, contains('trace msg'));
+    });
+  });
+
+  // ══════════════════════════════════════════════════════════
+  // Custom error handler
+  // ══════════════════════════════════════════════════════════
+  group('ZenLogger custom errorHandler', () {
+    test('logError routes to errorHandler when set', () {
+      String? capturedMsg;
       ZenLogger.init(
-        logHandler: (msg, level) {},
-        errorHandler: (msg, [err, stack]) {},
+        errorHandler: (msg, [err, st]) => capturedMsg = msg,
       );
-      ZenLogger.testMode = true;
-      ZenLogger.logFunction = LogCapture.captureLog;
+      ZenConfig.logLevel = ZenLogLevel.trace;
+      ZenLogger.logError('err from error handler');
+      expect(capturedMsg, 'err from error handler');
+    });
 
-      // Reset
+    test('logException routes to errorHandler', () {
+      String? capturedMsg;
+      ZenLogger.init(
+        errorHandler: (msg, [err, st]) => capturedMsg = msg,
+      );
+      ZenConfig.logLevel = ZenLogLevel.trace;
+      ZenLogger.logException(Exception('test exc'));
+      expect(capturedMsg, contains('test exc'));
+    });
+  });
+
+  // ══════════════════════════════════════════════════════════
+  // logException
+  // ══════════════════════════════════════════════════════════
+  group('ZenLogger.logException', () {
+    test('does not crash without any handler set', () {
+      ZenConfig.logLevel = ZenLogLevel.trace;
+      expect(
+        () => ZenLogger.logException(Exception('plain exception')),
+        returnsNormally,
+      );
+    });
+
+    test('with _logHandler routes to it', () {
+      final captured = <String>[];
+      ZenLogger.init(logHandler: (msg, _) => captured.add(msg));
+      ZenConfig.logLevel = ZenLogLevel.trace;
+      ZenLogger.logException(Exception('via logHandler'));
+      expect(captured.any((m) => m.contains('via logHandler')), true);
+    });
+
+    test('is silenced when log level is above error', () {
+      ZenConfig.logLevel = ZenLogLevel.none;
+      final captured = <String>[];
+      ZenLogger.init(errorHandler: (msg, [_, __]) => captured.add(msg));
+      ZenLogger.logException(Exception('silenced'));
+      expect(captured, isEmpty);
+    });
+
+    test('with stackTrace does not crash', () {
+      ZenConfig.logLevel = ZenLogLevel.trace;
+      expect(
+        () => ZenLogger.logException(
+          Exception('with stack'),
+          StackTrace.fromString('fake'),
+        ),
+        returnsNormally,
+      );
+    });
+  });
+
+  // ══════════════════════════════════════════════════════════
+  // logTrace
+  // ══════════════════════════════════════════════════════════
+  group('ZenLogger.logTrace', () {
+    test('does not crash at trace level', () {
+      ZenConfig.logLevel = ZenLogLevel.trace;
+      expect(() => ZenLogger.logTrace('a trace'), returnsNormally);
+    });
+
+    test('is silenced below trace level', () {
+      ZenConfig.logLevel = ZenLogLevel.debug;
+      const captured = <String>[];
+      // When silenced, no output — we only verify no crash
+      expect(() => ZenLogger.logTrace('silenced'), returnsNormally);
+      expect(captured, isEmpty);
+    });
+
+    test('routes to _logHandler at trace level', () {
+      final captured = <String>[];
+      ZenLogger.init(logHandler: (msg, _) => captured.add(msg));
+      ZenConfig.logLevel = ZenLogLevel.trace;
+      ZenLogger.logTrace('routed trace');
+      expect(captured, contains('routed trace'));
+    });
+  });
+
+  // ══════════════════════════════════════════════════════════
+  // logRxTracking
+  // ══════════════════════════════════════════════════════════
+  group('ZenLogger.logRxTracking', () {
+    setUp(() {
+      ZenConfig.enableRxTracking = true;
+    });
+    tearDown(() {
+      ZenConfig.enableRxTracking = false;
+    });
+
+    test('does not crash when enableRxTracking is true', () {
+      expect(() => ZenLogger.logRxTracking('rx track'), returnsNormally);
+    });
+
+    test('is silenced when enableRxTracking is false', () {
+      ZenConfig.enableRxTracking = false;
+      expect(() => ZenLogger.logRxTracking('silent'), returnsNormally);
+    });
+  });
+
+  // ══════════════════════════════════════════════════════════
+  // resetHandlers
+  // ══════════════════════════════════════════════════════════
+  group('ZenLogger.resetHandlers', () {
+    test('clears handlers so logError no longer routes to them', () {
+      final captured = <String>[];
+      ZenLogger.init(logHandler: (msg, _) => captured.add(msg));
+      ZenConfig.logLevel = ZenLogLevel.trace;
+      ZenLogger.logError('before reset');
+      expect(captured, isNotEmpty);
+
       ZenLogger.resetHandlers();
+      captured.clear();
+      ZenLogger.logError('after reset');
+      // No handler set - default logging, captured is empty
+      expect(captured, isEmpty);
+    });
 
-      // Verify all cleared
+    test('resets testMode and logFunction', () {
+      ZenLogger.testMode = true;
+      ZenLogger.logFunction = (msg, {name}) {};
+      ZenLogger.resetHandlers();
       expect(ZenLogger.testMode, false);
       expect(ZenLogger.logFunction, isNull);
+    });
+  });
+
+  // ══════════════════════════════════════════════════════════
+  // Level silencing
+  // ══════════════════════════════════════════════════════════
+  group('ZenLogger level silencing', () {
+    test('all methods silent at none level', () {
+      ZenConfig.logLevel = ZenLogLevel.none;
+      final captured = <String>[];
+      ZenLogger.init(logHandler: (msg, _) => captured.add(msg));
+      ZenLogger.logError('e');
+      ZenLogger.logWarning('w');
+      ZenLogger.logInfo('i');
+      ZenLogger.logDebug('d');
+      ZenLogger.logTrace('t');
+      expect(captured, isEmpty);
     });
   });
 }

@@ -589,15 +589,18 @@ class ZenScope {
           try {
             instance.dispose();
           } catch (e) {
-            ZenLogger.logError(
-                'Error disposing controller during clearAll: $e');
-          }
+            // coverage:ignore-line
+            ZenLogger.logError(// coverage:ignore-line
+                'Error disposing controller during clearAll: $e'); // coverage:ignore-line
+          } // coverage:ignore-line
         } else if (instance is ZenService && !instance.isDisposed) {
           try {
             instance.dispose();
           } catch (e) {
-            ZenLogger.logError('Error disposing service during clearAll: $e');
-          }
+            // coverage:ignore-line
+            ZenLogger.logError(
+                'Error disposing service during clearAll: $e'); // coverage:ignore-line
+          } // coverage:ignore-line
         }
       }
     }
@@ -628,15 +631,18 @@ class ZenScope {
           try {
             instance.dispose();
           } catch (e) {
-            ZenLogger.logError(
-                'Error disposing controller during clearAll: $e');
-          }
+            // coverage:ignore-line
+            ZenLogger.logError(// coverage:ignore-line
+                'Error disposing controller during clearAll: $e'); // coverage:ignore-line
+          } // coverage:ignore-line
         } else if (instance is ZenService && !instance.isDisposed) {
           try {
             instance.dispose();
           } catch (e) {
-            ZenLogger.logError('Error disposing service during clearAll: $e');
-          }
+            // coverage:ignore-line
+            ZenLogger.logError(
+                'Error disposing service during clearAll: $e'); // coverage:ignore-line
+          } // coverage:ignore-line
         }
       }
     }

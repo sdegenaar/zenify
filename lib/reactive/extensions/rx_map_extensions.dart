@@ -173,17 +173,6 @@ extension RxMapExtensions<K, V> on Rx<Map<K, V>> {
     }
   }
 
-  /// Update value (convenience method)
-  V update(K key, V Function(V value) update, {V Function()? ifAbsent}) {
-    final result = tryUpdate(key, update, ifAbsent: ifAbsent);
-    if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!, context: 'Map');
-      if (ifAbsent != null) return ifAbsent();
-      throw result.errorOrNull!;
-    }
-    return result.value;
-  }
-
   /// Update all values (convenience method)
   void updateAll(V Function(K key, V value) update) {
     final result = tryUpdateAll(update);

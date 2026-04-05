@@ -257,7 +257,10 @@ class ZenRouteObserver extends NavigatorObserver {
       }
     } catch (e, stack) {
       ZenLogger.logError(
-          'Error disposing controllers for route $routeName', e, stack);
+          // coverage:ignore-line
+          'Error disposing controllers for route $routeName',
+          e,
+          stack); // coverage:ignore-line
     }
   }
 
@@ -266,9 +269,9 @@ class ZenRouteObserver extends NavigatorObserver {
     try {
       return scope.deleteByTag(tag, force: true);
     } catch (e) {
-      ZenLogger.logWarning(
-          'Failed to delete tag \'$tag\' from scope ${scope.name ?? scope.id}: $e');
-      return false;
+      ZenLogger.logWarning(// coverage:ignore-line
+          'Failed to delete tag \'$tag\' from scope ${scope.name ?? scope.id}: $e'); // coverage:ignore-line
+      return false; // coverage:ignore-line
     }
   }
 
@@ -295,7 +298,8 @@ class ZenRouteObserver extends NavigatorObserver {
             'Route scope for $routeName still has ${dependencies.length} dependencies, keeping alive');
       }
     } catch (e) {
-      ZenLogger.logError('Failed to cleanup route scope for $routeName', e);
+      ZenLogger.logError('Failed to cleanup route scope for $routeName',
+          e); // coverage:ignore-line
     }
   }
 

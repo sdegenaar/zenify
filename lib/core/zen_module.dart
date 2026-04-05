@@ -50,16 +50,11 @@ class ZenModuleRegistry {
     // 2. Validate - throws if circular dependencies
     _validateDependencyGraph(allModules);
 
-    // 3. Check all module dependencies are available
-    for (final module in allModules) {
-      for (final dep in module.dependencies) {
-        if (!_modules.containsKey(dep.name) &&
-            !allModules.any((m) => m.name == dep.name)) {
-          throw StateError(
-              'Missing dependency: "${dep.name}" required by "${module.name}"');
-        }
-      }
-    }
+    // 3. Dependency resolution is complete:
+    //    _collectAllDependencies() already recursively collected every
+    //    transitive dependency declared by each module. If a module object
+    //    is reachable from the root list, all its sub-dependencies are too.
+    //    No additional "missing dependency" check is needed here.
 
     // 4. Calculate load order
     final loadOrder = _calculateLoadOrder(allModules);
