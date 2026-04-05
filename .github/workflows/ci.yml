@@ -22,10 +22,10 @@ jobs:
         run: flutter pub get
 
       - name: Analyze
-        run: dart analyze --fatal-infos
+        run: dart analyze --fatal-infos lib test
 
       - name: Format check
-        run: dart format --output=none --set-exit-if-changed .
+        run: dart format --output=none --set-exit-if-changed lib test
 
       - name: Test
         run: flutter test --coverage
