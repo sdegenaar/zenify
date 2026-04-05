@@ -33,5 +33,6 @@ jobs:
       - name: Upload coverage
         uses: codecov/codecov-action@v4
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           file: coverage/lcov.info
         continue-on-error: true
