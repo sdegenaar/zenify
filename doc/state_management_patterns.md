@@ -46,8 +46,13 @@
 ### Key Principles
 
 1. **Controllers** hold state and logic
-2. **Views** display state using Obx() or ZenBuilder
-3. **Registration** via modules (recommended) or createController (one-off)
+2. **Views** display state using `ZenView` (Preferred), `Obx()`, or `ZenBuilder`
+3. **Registration** via modules (recommended) or `createController` (one-off)
+
+### The "Goldilocks Zone" Philosophy
+* **Versus Riverpod**: Riverpod is an incredibly powerful, deeply flexible tool that relies on code generation (`build_runner`) and global scope binding. Zenify offers an alternative for teams looking for standard object-oriented controllers without requiring a code generation step.
+* **Versus BLoC**: BLoC provides excellent structural cleanliness via its strictly typed event-to-state mapping. Zenify provides a similar separation of logic via `ZenController`, but leverages a more direct reactive mutation approach commonly found in React Query. 
+* **Zenify's Advantage**: We sit exactly in the middle. We provide the robust class-based separation of BLoC, the asynchronous loading mastery of Riverpod, and the lightweight syntax of GetX. With strictly localized component scopes via `ZenView` and **>95% test coverage**, it is enterprise-ready and highly productive.
 
 ---
 

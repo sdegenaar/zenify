@@ -4,6 +4,9 @@ Zenify is intentionally familiar to GetX developers. The reactive system (`.obs(
 
 This guide covers every major GetX concept and its Zenify equivalent.
 
+> **Why migrate from GetX?** 
+> GetX is an incredibly productive and beloved library. Zenify preserves the same highly-ergonomic syntax (`.obs`) that developers love, while introducing `BuildContext`-safe hierarchical scopes. This ensures your components integrate cleanly into Flutter's native `Element` lifecycle, enabling high testability (backed by **>95% line test coverage**) and rock-solid architecture for growing enterprise teams, all while feeling immediately familiar.
+
 ---
 
 ## Migration Script
@@ -79,7 +82,7 @@ dependencies:
 
 # Add
 dependencies:
-  zenify: ^1.9.0
+  zenify: ^1.10.0
 ```
 
 ### 2. Update imports

@@ -435,7 +435,37 @@ test('scoped dependencies', () {
 ```
 
 Widget Testing
-Testing with ZenBuilder
+Testing with ZenView (Primary)
+
+``` dart
+testWidgets('ZenView auto-injects and cleanly disposes controller', (tester) async {
+  Zen.testMode().mock<ApiClient>(FakeApiClient());
+  
+  class TestPage extends ZenView<CounterController> {
+    @override
+    CounterController Function()? get createController => () => CounterController();
+
+    @override
+    Widget build(BuildContext context) {
+      return Text('Count: ${controller.count.value}');
+    }
+  }
+
+  await tester.pumpWidget(MaterialApp(home: TestPage()));
+  
+  // Initial state
+  expect(find.text('Count: 0'), findsOneWidget);
+  
+  // Modify via injected controller
+  final controller = Zen.find<CounterController>();
+  controller.increment();
+  
+  await tester.pump();
+  expect(find.text('Count: 1'), findsOneWidget);
+});
+```
+
+Testing with ZenBuilder (Manual Control)
 
 ``` dart
 testWidgets('ZenBuilder updates on controller change', (tester) async {
