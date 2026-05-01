@@ -241,7 +241,7 @@ class ZenInfiniteQuery<T> extends ZenQuery<List<T>> {
 
   void _updateParams(List<T> pages) {
     if (pages.isEmpty) return;
-    
+
     // Update next param
     final nextParam = getNextPageParam(pages.last, pages);
     _nextPageParam = nextParam;

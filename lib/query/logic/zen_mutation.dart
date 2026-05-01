@@ -91,7 +91,7 @@ class ZenMutation<TData, TVariables> extends ZenController {
   static final RxInt activeMutations = RxInt(0);
 
   /// Returns true if ANY mutation is currently running.
-  /// 
+  ///
   /// Reactive: You can use this inside a `ZenObserver` to show a global loading indicator.
   static bool get anyMutating => activeMutations.value > 0;
 
