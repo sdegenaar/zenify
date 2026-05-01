@@ -27,6 +27,7 @@ export 'reactive/reactive.dart';
 // ===== WIDGETS =====
 export 'widgets/builders/zen_builder.dart';
 export 'widgets/builders/zen_query_builder.dart';
+export 'widgets/builders/zen_query_consumer.dart';
 export 'widgets/builders/zen_query_when.dart';
 export 'widgets/builders/zen_infinite_query_when.dart';
 export 'widgets/builders/zen_mutation_when.dart';

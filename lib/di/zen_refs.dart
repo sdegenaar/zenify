@@ -22,7 +22,7 @@ class Ref<T> {
   T call() => find();
 
   /// Get the instance (throws if not found)
-  T find() => _targetScope.findRequired<T>(tag: tag);
+  T find() => _targetScope.require<T>(tag: tag);
 
   /// Find the instance (returns null if not found)
   T? findOrNull() => _targetScope.find<T>(tag: tag);

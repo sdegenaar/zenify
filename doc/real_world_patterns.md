@@ -701,7 +701,7 @@ class NetworkModule extends ZenModule {
 
   @override
   void register(ZenScope scope) {
-    final logging = scope.find<LoggingService>()!;
+    final logging = scope.require<LoggingService>();
 
     scope.put<ApiClient>(ApiClient(logger: logging), isPermanent: true);
     scope.put<ConnectivityService>(ConnectivityService(), isPermanent: true);
@@ -715,8 +715,8 @@ class AuthModule extends ZenModule {
 
   @override
   void register(ZenScope scope) {
-    final api = scope.find<ApiClient>()!;
-    final storage = scope.find<StorageService>()!;
+    final api = scope.require<ApiClient>();
+    final storage = scope.require<StorageService>();
 
     scope.put<AuthService>(
       AuthService(api: api, storage: storage),

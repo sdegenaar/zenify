@@ -257,8 +257,21 @@ class ZenScope {
     }
   }
 
-  /// Find a dependency (throws if not found)
-  T findRequired<T>({String? tag}) {
+  /// Require a dependency — throws [ZenDependencyNotFoundException] with a
+  /// helpful message if the type is not registered in this scope hierarchy.
+  ///
+  /// Prefer this over `find<T>()!` (null-assertion) in production code.
+  /// The thrown exception includes the type name, scope name, optional tag,
+  /// and a ready-to-paste registration suggestion.
+  ///
+  /// ```dart
+  /// // ❌ Avoid — crashes with null-dereference, no context
+  /// final svc = scope.find<MyService>()!;
+  ///
+  /// // ✅ Prefer — throws ZenDependencyNotFoundException with actionable message
+  /// final svc = scope.require<MyService>();
+  /// ```
+  T require<T>({String? tag}) {
     final result = find<T>(tag: tag);
     if (result == null) {
       throw ZenDependencyNotFoundException(
@@ -269,6 +282,13 @@ class ZenScope {
     }
     return result;
   }
+
+  /// Find a dependency (throws if not found).
+  ///
+  /// @deprecated Use [require] instead — same behaviour, clearer name.
+  @Deprecated(
+      'Use require<T>() instead. It is identical but more discoverable.')
+  T findRequired<T>({String? tag}) => require<T>(tag: tag);
 
   /// Check if a dependency exists
   bool exists<T>({String? tag}) {

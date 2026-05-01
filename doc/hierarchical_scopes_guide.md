@@ -167,8 +167,9 @@ class AppModule extends ZenModule {
 class FeatureModule extends ZenModule {
   @override
   void register(ZenScope scope) {
-    // Access parent dependencies
-    final authService = scope.find<AuthService>()!;
+    // Access parent dependencies with require<T>() — throws a clear
+    // ZenDependencyNotFoundException if the dep is missing
+    final authService = scope.require<AuthService>();
     scope.put<FeatureService>(FeatureService(authService));
   }
 }
@@ -230,9 +231,11 @@ class DatabaseModule extends ZenModule {
 class UserModule extends ZenModule {
   @override
   void register(ZenScope scope) {
-    // Access parent dependencies (searches up the widget tree)
-    final db = scope.find<DatabaseService>()!;
-    final cache = scope.find<CacheService>()!;
+    // Use require<T>() when the dependency must exist.
+    // Throws ZenDependencyNotFoundException with scope name + fix hint
+    // instead of a cryptic null-assertion crash.
+    final db = scope.require<DatabaseService>();
+    final cache = scope.require<CacheService>();
 
     // Register child-specific dependencies
     scope.put<UserRepository>(UserRepository(db, cache));

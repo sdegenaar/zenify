@@ -101,7 +101,7 @@ The scope hierarchy automatically manages lifecycle — when you exit a feature,
 
 ```yaml
 dependencies:
-  zenify: ^1.10.0
+  zenify: ^1.10.1
 ```
 
 ### 2. Initialize
@@ -253,20 +253,31 @@ ZenObserver(() => ListView.builder(
 
 React Query patterns built on the reactive system.
 
+**Path A — Inline (no controller needed):**
 ```dart
-// Define once
-final userQuery = ZenQuery<User>(
+// One widget. No setup. Handles fetch, cache, loading, error.
+ZenQueryConsumer<User>(
   queryKey: 'user:123',
   fetcher: (_) => api.getUser(123),
-  config: ZenQueryConfig(
-    staleTime: Duration(minutes: 5),
-    cacheTime: Duration(hours: 1),
-  ),
+  data: (user) => UserProfile(user),
+  loading: () => CircularProgressIndicator(),
+  error: (error, retry) => ErrorView(error, onRetry: retry),
 );
+```
 
-// Use anywhere - automatic caching, deduplication, refetching
+**Path B — Shared (query lives in a controller, multiple widgets can read it):**
+```dart
+class UserController extends ZenController {
+  late final query = ZenQuery<User>(
+    queryKey: 'user:123',
+    fetcher: (_) => api.getUser(123),
+    config: ZenQueryConfig(staleTime: Duration(minutes: 5)),
+  );
+}
+
+// Then anywhere that needs it:
 ZenQueryBuilder<User>(
-  query: userQuery,
+  query: controller.query,
   builder: (context, user) => UserProfile(user),
   loading: () => CircularProgressIndicator(),
   error: (error, retry) => ErrorView(error, onRetry: retry),
@@ -439,7 +450,8 @@ Choose the right widget for your use case:
 | **ZenRoute** | Need module/scope per route | Route navigation |
 | **ZenObserver** | Need reactive updates | Reactive value changes |
 | **ZenBuilder** | Need manual control | `controller.update()` call |
-| **ZenQueryBuilder** | Fetching API data | Query state changes |
+| **ZenQueryConsumer** | Fetching data inline, no controller | Query state changes |
+| **ZenQueryBuilder** | Shared query instance across widgets | Query state changes |
 | **ZenStreamQueryBuilder** | Real-time data streams | Stream events |
 | **ZenEffectBuilder** | Async operations | Effect state changes |
 | **ZenConsumer** | Accessing dependencies | Manual (no auto-rebuild) |
@@ -447,7 +459,8 @@ Choose the right widget for your use case:
 **90% of the time, you'll use:**
 - `ZenView` for pages
 - `ZenObserver` for reactive UI
-- `ZenQueryBuilder` for API calls
+- `ZenQueryConsumer` for simple API calls (no controller needed)
+- `ZenQueryBuilder` when the query is shared across multiple widgets
 
 ---
 

@@ -59,7 +59,7 @@ After running the script: `dart analyze` will surface any remaining issues.
 | `GetBuilder` | `ZenBuilder` | Same API |
 | `GetView<T>` | `ZenView<T>` | Same pattern |
 | `Get.put()` | `Zen.put()` | Same |
-| `Get.find()` | `Zen.find()` or `Zen.get()` | Same |
+| `Get.find()` | `Zen.find()` or `Zen.get()` | Both throw when missing — `findOrNull()` is the nullable form |
 | `Get.delete()` | `Zen.delete()` or `Zen.remove()` | Same |
 | `Get.lazyPut()` | `Zen.putLazy()` | Same concept |
 | `Bindings` | `ZenModule` | Scoped, not global |
@@ -176,7 +176,10 @@ Zen.put(MyService(), isPermanent: true);  // note: isPermanent
 Zen.putLazy(() => MyController());
 Zen.putLazy(() => MyController(), alwaysNew: true);  // equivalent to fenix
 
-final ctrl = Zen.find<MyController>();  // or Zen.get<MyController>()
+// Get.find<T>() throws when missing — Zen.find<T>() behaves identically.
+// Use findOrNull<T>() when the dependency might not be registered:
+final ctrl = Zen.find<MyController>();          // throws if missing (like Get.find)
+final ctrlOrNull = Zen.findOrNull<MyController>(); // returns null if missing
 Zen.delete<MyController>();             // or Zen.remove<MyController>()
 ```
 
@@ -315,8 +318,8 @@ class HomeModule extends ZenModule {
   // Optional: async setup after dependencies are registered
   @override
   Future<void> onInit(ZenScope scope) async {
-    final repo = scope.find<UserRepository>();
-    await repo?.preload();
+    final repo = scope.require<UserRepository>(); // throws if not registered
+    await repo.preload();
   }
 
   // Optional: cleanup when the module's scope disposes
@@ -531,6 +534,7 @@ This is identical and works exactly the same in Zenify:
 ```dart
 // Both use the same static accessor pattern
 class CartService extends ZenService {
+  // Zen.find<T>() throws when missing — same as Get.find<T>()
   static CartService get to => Zen.find<CartService>();
 
   final items = <CartItem>[].obs();

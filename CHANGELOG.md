@@ -1,3 +1,54 @@
+## [1.10.1]
+
+### Added
+
+- **`scope.require<T>({String? tag})`** — idiomatic throwing dependency lookup on `ZenScope`.
+  This is the one genuinely new addition. `scope.find<T>()` is nullable (returns `T?`), which
+  means `scope.find<T>()!` is a silent footgun. `scope.require<T>()` is the non-nullable,
+  throwing form that surfaces a `ZenDependencyNotFoundException` with the missing type name,
+  scope name, tag, and a copy-paste registration suggestion.
+
+  ```dart
+  // ❌ Before — NPE crash, no diagnostic context
+  final svc = scope.find<AuthService>()!;
+
+  // ✅ After — ZenDependencyNotFoundException with actionable message
+  final svc = scope.require<AuthService>();
+  ```
+
+  > **Note**: `Zen.find<T>()` (global API) already throws when missing — it behaves like
+  > `Get.find<T>()`. The new `require<T>()` is only on `ZenScope` where `find` is nullable.
+
+- **`ZenQueryConsumer<T>`** — self-contained widget that creates, fetches, and renders a
+  `ZenQuery` with no controller or module boilerplate. The `useQuery` equivalent for Zenify.
+
+  ```dart
+  // No controller. No module. One widget.
+  ZenQueryConsumer<User>(
+    queryKey: 'user:123',
+    fetcher: (_) => api.getUser(123),
+    data: (user) => UserProfile(user),
+    loading: () => const CircularProgressIndicator(),
+    error: (err, retry) => ErrorView(err, onRetry: retry),
+  )
+  ```
+
+  Supports all `ZenQueryBuilder` features: `initialData`, `config`, `showStaleData`,
+  `autoFetch`, and dynamic `queryKey` changes (disposes the old query, creates a new one).
+
+### Docs Updated
+
+- `doc/hierarchical_scopes_guide.md` — `ZenModule.register` examples updated to `scope.require<T>()`.
+- `doc/real_world_patterns.md` — `NetworkModule` and `AuthModule` examples updated to `scope.require<T>()`.
+- `doc/migration_guide.md` — DI section clarifies that `Zen.find<T>()` already throws like `Get.find<T>()`, and introduces `findOrNull<T>()` as the explicit nullable escape hatch.
+
+### Tests
+
+- `test/di/zen_require_test.dart` — 21 tests: `scope.require<T>()` happy path (untagged, tagged, hierarchical, lazy), error path (exception type, type name, scope name, tag, suggestion), parity with `findRequired<T>()`, disposed scope, and `Zen.find<T>()` throwing behaviour.
+- `test/widgets/zen_query_consumer_test.dart` — 14 widget tests: happy path, `initialData`, loading state (custom + default), error state (custom + default + retry), idle state, `queryKey` change, disposal, config passthrough, typed generics, and barrel export smoke test.
+
+---
+
 ## [1.10.0]
 
 ### Added
