@@ -56,7 +56,7 @@ Don't let network issues break your app. Zenify includes **robust persistence**,
 ---
 
 > **Coming from GetX?** The reactive system (`.obs()`, `Obx()`), controller lifecycle, and DI verbs are intentionally familiar. Most migration is mechanical.
-> [GetX Migration Guide →](doc/migration_guide.md)
+> [GetX Migration Guide →](https://github.com/sdegenaar/zenify/blob/main/doc/migration_guide.md)
 
 ---
 
@@ -91,7 +91,7 @@ Zenify organizes dependencies into **three hierarchical levels** with automatic 
 
 The scope hierarchy automatically manages lifecycle — when you exit a feature, all its controllers clean up automatically. No memory leaks, no manual disposal.
 
-[Learn more about hierarchical scopes →](doc/hierarchical_scopes_guide.md)
+[Learn more about hierarchical scopes →](https://github.com/sdegenaar/zenify/blob/main/doc/hierarchical_scopes_guide.md)
 
 ---
 
@@ -207,7 +207,7 @@ ZenRoute(
 
 **Works with:** GoRouter, AutoRoute, Navigator 2.0, any router you like.
 
-[See Hierarchical Scopes Guide →](doc/hierarchical_scopes_guide.md)
+[See Hierarchical Scopes Guide →](https://github.com/sdegenaar/zenify/blob/main/doc/hierarchical_scopes_guide.md)
 
 ### 2. Zero-Boilerplate Reactivity
 
@@ -247,7 +247,7 @@ ZenObserver(() => ListView.builder(
 - Type-safe (compile-time checks)
 - Zero overhead (built on ValueNotifier)
 
-[See Reactive Core Guide →](doc/reactive_core_guide.md)
+[See Reactive Core Guide →](https://github.com/sdegenaar/zenify/blob/main/doc/reactive_core_guide.md)
 
 ### 3. Smart Async State (ZenQuery)
 
@@ -297,7 +297,7 @@ ZenQueryBuilder<User>(
 
 **Perfect for:** REST APIs, GraphQL, Firebase, any async data source.
 
-[See ZenQuery Guide →](doc/zen_query_guide.md)
+[See ZenQuery Guide →](https://github.com/sdegenaar/zenify/blob/main/doc/zen_query_guide.md)
 
 ### 4. Offline Synchronization Engine
 
@@ -327,7 +327,7 @@ final createPost = ZenMutation<Post, Post>(
 - **Optimistic updates** — Update UI immediately, sync later
 - **Network modes** — Control exactly how queries behave offline
 
-[See Offline Guide →](doc/offline_guide.md)
+[See Offline Guide →](https://github.com/sdegenaar/zenify/blob/main/doc/offline_guide.md)
 
 ---
 
@@ -379,7 +379,7 @@ if (index == postsQuery.data.length - 1) postsQuery.fetchNextPage();
 
 ### Optimistic Updates
 
-Mutations provide automatic loading/error states, optimistic UI updates, offline queueing, and cache synchronization. [Learn why mutations are better than direct API calls →](doc/offline_guide.md#35-why-use-mutations-vs-direct-api-calls)
+Mutations provide automatic loading/error states, optimistic UI updates, offline queueing, and cache synchronization. [Learn why mutations are better than direct API calls →](https://github.com/sdegenaar/zenify/blob/main/doc/offline_guide.md#35-why-use-mutations-vs-direct-api-calls)
 
 ```dart
 // Easy way: Use helpers (recommended)
@@ -405,20 +405,20 @@ final chatQuery = ZenStreamQuery<List<Message>>(
 );
 ```
 
-[See complete patterns with detailed examples →](doc/real_world_patterns.md)
+[See complete patterns with detailed examples →](https://github.com/sdegenaar/zenify/blob/main/doc/real_world_patterns.md)
 
 ---
 
 ## 🛠️ Advanced Features
 
-- **Effects** — Automatic loading/error/success state management ([guide](doc/effects_usage_guide.md))
+- **Effects** — Automatic loading/error/success state management ([guide](https://github.com/sdegenaar/zenify/blob/main/doc/effects_usage_guide.md))
 - **Computed values** — Auto-updating derived state with dependency tracking
 - **Global modules** — Register app-wide dependencies at startup
 - **Performance control** — Choose between reactive (`.obs()` + `ZenObserver`) or manual (`update()` + `ZenBuilder`)
 - **Workers** — Debounce, throttle, and interval-based reactive handlers
 - **DevTools** — Built-in inspector for debugging scopes and queries
 
-[See detailed examples →](doc/real_world_patterns.md)
+[See detailed examples →](https://github.com/sdegenaar/zenify/blob/main/doc/real_world_patterns.md)
 
 ---
 
@@ -428,15 +428,15 @@ final chatQuery = ZenStreamQuery<List<Message>>(
 
 1. **5 minutes**: [Counter Example](example/counter) — Basic reactivity
 2. **10 minutes**: [Todo Example](example/todo) — CRUD with effects
-3. **15 minutes**: [ZenQuery Guide](doc/zen_query_guide.md) — Async state management
+3. **15 minutes**: [ZenQuery Guide](https://github.com/sdegenaar/zenify/blob/main/doc/zen_query_guide.md) — Async state management
 4. **20 minutes**: [E-commerce Example](example/ecommerce) — Real-world patterns
 5. **30 minutes**: [Offline Demo](example/zen_offline) — Full offline-first app with persistence, mutation queue & SharedPreferences
 
 **Building something complex?**
 
-- [Hierarchical Scopes Guide](doc/hierarchical_scopes_guide.md) — Advanced DI patterns
-- [State Management Patterns](doc/state_management_patterns.md) — Architectural patterns
-- [Testing Guide](doc/testing_guide.md) — Unit, widget, and integration tests
+- [Hierarchical Scopes Guide](https://github.com/sdegenaar/zenify/blob/main/doc/hierarchical_scopes_guide.md) — Advanced DI patterns
+- [State Management Patterns](https://github.com/sdegenaar/zenify/blob/main/doc/state_management_patterns.md) — Architectural patterns
+- [Testing Guide](https://github.com/sdegenaar/zenify/blob/main/doc/testing_guide.md) — Unit, widget, and integration tests
 
 ---
 
@@ -521,7 +521,7 @@ void main() {
 }
 ```
 
-[See complete testing guide →](doc/testing_guide.md)
+[See complete testing guide →](https://github.com/sdegenaar/zenify/blob/main/doc/testing_guide.md)
 
 ---
 
@@ -571,15 +571,15 @@ extensions:
 ## 📚 Complete Documentation
 
 ### Core Guides
-- [Reactive Core Guide](doc/reactive_core_guide.md) — Reactive values, collections, computed properties
-- [ZenQuery Guide](doc/zen_query_guide.md) — Async state, caching, mutations
-- [Offline-First Guide](doc/offline_guide.md) — Persistence & synchronization
-- [Effects Guide](doc/effects_usage_guide.md) — Async operations with state management
-- [Hierarchical Scopes](doc/hierarchical_scopes_guide.md) — Advanced DI patterns
-- [State Management Patterns](doc/state_management_patterns.md) — Architectural patterns
-- [Testing Guide](doc/testing_guide.md) — Testing strategies and utilities
-- [GoRouter Integration](doc/gorouter_guide.md) — ZenRoute with GoRouter
-- [GetX Migration Guide](doc/migration_guide.md) — Migrating from GetX
+- [Reactive Core Guide](https://github.com/sdegenaar/zenify/blob/main/doc/reactive_core_guide.md) — Reactive values, collections, computed properties
+- [ZenQuery Guide](https://github.com/sdegenaar/zenify/blob/main/doc/zen_query_guide.md) — Async state, caching, mutations
+- [Offline-First Guide](https://github.com/sdegenaar/zenify/blob/main/doc/offline_guide.md) — Persistence & synchronization
+- [Effects Guide](https://github.com/sdegenaar/zenify/blob/main/doc/effects_usage_guide.md) — Async operations with state management
+- [Hierarchical Scopes](https://github.com/sdegenaar/zenify/blob/main/doc/hierarchical_scopes_guide.md) — Advanced DI patterns
+- [State Management Patterns](https://github.com/sdegenaar/zenify/blob/main/doc/state_management_patterns.md) — Architectural patterns
+- [Testing Guide](https://github.com/sdegenaar/zenify/blob/main/doc/testing_guide.md) — Testing strategies and utilities
+- [GoRouter Integration](https://github.com/sdegenaar/zenify/blob/main/doc/gorouter_guide.md) — ZenRoute with GoRouter
+- [GetX Migration Guide](https://github.com/sdegenaar/zenify/blob/main/doc/migration_guide.md) — Migrating from GetX
 
 ### Examples
 - [Counter](example/counter) — Simple reactive state
@@ -606,7 +606,7 @@ Zenify stands on the shoulders of giants:
 
 - **Found a bug?** [Report it](https://github.com/sdegenaar/zenify/issues)
 - **Have an idea?** [Discuss it](https://github.com/sdegenaar/zenify/discussions)
-- **Need help?** Check our [documentation](doc/)
+- **Need help?** Check our [documentation](https://github.com/sdegenaar/zenify/tree/main/doc)
 
 ---
 
@@ -624,11 +624,11 @@ flutter pub add zenify
 
 **Choose your path:**
 - New to Zenify? → [5-minute Counter Tutorial](example/counter)
-- Want async superpowers? → [ZenQuery Guide](doc/zen_query_guide.md)
-- Need offline support? → [Offline Guide](doc/offline_guide.md)
-- Using GoRouter? → [GoRouter Integration Guide](doc/gorouter_guide.md)
-- Coming from GetX? → [Migration Guide](doc/migration_guide.md)
-- Building something complex? → [Hierarchical Scopes Guide](doc/hierarchical_scopes_guide.md)
-- Setting up tests? → [Testing Guide](doc/testing_guide.md)
+- Want async superpowers? → [ZenQuery Guide](https://github.com/sdegenaar/zenify/blob/main/doc/zen_query_guide.md)
+- Need offline support? → [Offline Guide](https://github.com/sdegenaar/zenify/blob/main/doc/offline_guide.md)
+- Using GoRouter? → [GoRouter Integration Guide](https://github.com/sdegenaar/zenify/blob/main/doc/gorouter_guide.md)
+- Coming from GetX? → [Migration Guide](https://github.com/sdegenaar/zenify/blob/main/doc/migration_guide.md)
+- Building something complex? → [Hierarchical Scopes Guide](https://github.com/sdegenaar/zenify/blob/main/doc/hierarchical_scopes_guide.md)
+- Setting up tests? → [Testing Guide](https://github.com/sdegenaar/zenify/blob/main/doc/testing_guide.md)
 
 **Experience the zen of Flutter development.**

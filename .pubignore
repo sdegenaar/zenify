@@ -1,4 +1,12 @@
-# Build artifacts and test files
+# ============================================================
+# Zenify .pubignore
+#
+# Controls what is excluded from the pub.dev package upload.
+# pub.dev rewards: README, CHANGELOG, LICENSE, lib/, example/
+# Everything else should be excluded to keep the package lean.
+# ============================================================
+
+# ---- Build artifacts & tooling caches ----------------------
 build/
 coverage/
 .dart_tool/
@@ -8,11 +16,20 @@ coverage/
 .pub/
 .metadata
 
-# Exclude documentation
+# ---- Documentation (linked from README as absolute GitHub URLs) ------------
+# docs render beautifully on GitHub; no need to ship them in the package.
+doc/
+.idea/
+.DS_Store
+*.iml
+
+# ---- Internal strategy & working documents -----------------
 ARCHITECTURAL_REVIEW_2025.md
+STRATEGIC_ROADMAP_2026.md
+ROADMAP.md
+CLAUDE.md
 BUILDER_ARCHITECTURE.md
 CACHE_CLEARED.md
-CLAUDE.md
 COMMUNITY_RESPONSE.md
 COMMUNITY_RESPONSE_CONTROLLERS.md
 DEVTOOLS_FIX.md
@@ -28,40 +45,46 @@ INSPECTOR_REVIEW.md
 MIGRATION_DEVTOOLS.md
 QUERY_ARCHITECTURE_REVIEW.md
 README_REVIEW.md
-ROADMAP.md
 STRATEGIC_ROADMAP_2025.md
 V1_5_0_COMPLETE.md
 V1_5_0_IMPLEMENTATION_SUMMARY.md
 V1_5_0_MIGRATION_PLAN.md
 
-# Exclude all example platform folders
-example/ios/
-example/counter/ios/
-example/counter/android/
-example/counter/linux/
-example/counter/macos/
-example/counter/windows/
-example/counter/web/
-example/counter/build/
-example/todo/ios/
-example/todo/android/
-example/todo/build/
-example/ecommerce/ios/
-example/ecommerce/android/
-example/ecommerce/build/
-example/hierarchical_scopes/ios/
-example/hierarchical_scopes/android/
-example/hierarchical_scopes/build/
-example/zen_query/ios/
-example/zen_query/android/
-example/zen_query/build/
-example/zen_offline/ios/
-example/zen_offline/android/
-example/zen_offline/linux/
-example/zen_offline/macos/
-example/zen_offline/windows/
-example/zen_offline/web/
-example/zen_offline/build/
-example/zenify_showcase/ios/
-example/zenify_showcase/android/
-example/zenify_showcase/build/
+# ---- Test suite (not useful to consumers) ------------------
+# Tests inflate the download significantly (2000+ files).
+# Users can run tests from the GitHub source if needed.
+test/
+flutter_test_config.dart
+
+# ---- Developer tooling (useful on GitHub, not pub.dev) -----
+tool/
+.github/
+.agentdocs/
+.claude/
+
+# ---- Example sub-apps (full Flutter apps — link from GitHub, not pub.dev) --
+# pub.dev only needs example/main.dart + example/pubspec.yaml for the score.
+# The sub-apps are large, self-contained projects better accessed on GitHub.
+example/counter/
+example/todo/
+example/ecommerce/
+example/hierarchical_scopes/
+example/zen_query/
+example/zen_offline/
+example/zenify_showcase/
+example/lib/
+example/exception_demo.dart
+
+# ---- Exclude noise from the top-level example folder -------
+example/.dart_tool/
+example/.idea/
+example/.DS_Store
+example/*.iml
+example/pubspec.lock
+example/devtools_options.yaml
+
+# ---- Internal planning docs (not user-facing) --------------
+# Note: doc/ guides ARE kept — they're linked from the README and
+# resolve correctly on both GitHub and pub.dev.
+doc/PROJECT_EVALUATION.md
+
