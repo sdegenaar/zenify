@@ -27,10 +27,16 @@ class ZenInfiniteQuery<T> extends ZenQuery<List<T>> {
   /// The initial page parameter to use for the first page.
   final dynamic initialPageParam;
 
-  /// Maximum number of pages to keep in memory.
-  /// When this limit is reached, older pages will be evicted.
-  /// For fetchNextPage, pages at the start of the list are removed.
-  /// For fetchPreviousPage, pages at the end of the list are removed.
+  /// Maximum number of pages to keep in memory at any one time.
+  ///
+  /// - `null` (default) — keep all pages, no limit.
+  /// - `N > 0` — when a new page is fetched and the total exceeds N, the oldest
+  ///   page is evicted. For [fetchNextPage] the first (oldest) page is dropped;
+  ///   for [fetchPreviousPage] the last page is dropped.
+  ///
+  /// Cursors are recalculated after every eviction so bidirectional refetching
+  /// continues to work correctly. Must be a positive integer — passing `0`
+  /// will throw an [AssertionError] in debug mode.
   final int? maxPages;
 
   // Tracks if we are currently fetching the next page
@@ -68,7 +74,9 @@ class ZenInfiniteQuery<T> extends ZenQuery<List<T>> {
     super.initialData,
     super.scope,
     super.autoDispose,
-  })  : _nextPageParam = initialPageParam,
+  })  : assert(maxPages == null || maxPages > 0,
+            'maxPages must be null (unlimited) or a positive integer. Use null to keep all pages.'),
+        _nextPageParam = initialPageParam,
         _previousPageParam =
             initialPageParam, // Initially same, logic corrects it
         super(
