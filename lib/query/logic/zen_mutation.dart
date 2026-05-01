@@ -87,6 +87,14 @@ class ZenMutation<TData, TVariables> extends ZenController {
     }
   }
 
+  /// Number of currently running mutations globally.
+  static final RxInt activeMutations = RxInt(0);
+
+  /// Returns true if ANY mutation is currently running.
+  /// 
+  /// Reactive: You can use this inside a `ZenObserver` to show a global loading indicator.
+  static bool get anyMutating => activeMutations.value > 0;
+
   /// Execute the mutation.
   ///
   /// You can provide call-time callbacks [onSuccess], [onError], and [onSettled]
@@ -107,6 +115,7 @@ class ZenMutation<TData, TVariables> extends ZenController {
     error.value = null;
     update();
 
+    activeMutations.value++;
     Object? context;
 
     try {
@@ -118,7 +127,7 @@ class ZenMutation<TData, TVariables> extends ZenController {
 
       // 2. Check Offline / Queueing
       if (mutationKey != null && !ZenQueryCache.instance.isOnline) {
-        return _queueOfflineMutation(variables);
+        return await _queueOfflineMutation(variables);
       }
 
       // Execute mutation
@@ -146,7 +155,7 @@ class ZenMutation<TData, TVariables> extends ZenController {
       // Check if we should queue due to network error during execution
       // (Simple check for now, can be improved to check Exception type)
       if (mutationKey != null && !ZenQueryCache.instance.isOnline) {
-        return _queueOfflineMutation(variables);
+        return await _queueOfflineMutation(variables);
       }
 
       // Update state: Error
@@ -163,6 +172,8 @@ class ZenMutation<TData, TVariables> extends ZenController {
       onSettled?.call(null, e, variables);
 
       return null;
+    } finally {
+      activeMutations.value--;
     }
   }
 

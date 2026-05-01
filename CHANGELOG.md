@@ -1,3 +1,12 @@
+## [1.10.2]
+
+### Added
+
+- `ZenInfiniteQuery.maxPages` — memory safety limit for infinite scrolling. Automatically evicts older pages from RAM when users scroll deeply, while preserving the exact cursors needed for seamless bi-directional refetching.
+- `ZenMutation.anyMutating` & `ZenMutation.activeMutations` — global tracking hooks. Perfect for showing universal loading indicators or disabling navigation while mutations are actively in-flight anywhere in the app.
+
+---
+
 ## [1.10.1]
 
 ### Added

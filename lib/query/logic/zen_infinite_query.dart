@@ -27,6 +27,12 @@ class ZenInfiniteQuery<T> extends ZenQuery<List<T>> {
   /// The initial page parameter to use for the first page.
   final dynamic initialPageParam;
 
+  /// Maximum number of pages to keep in memory.
+  /// When this limit is reached, older pages will be evicted.
+  /// For fetchNextPage, pages at the start of the list are removed.
+  /// For fetchPreviousPage, pages at the end of the list are removed.
+  final int? maxPages;
+
   // Tracks if we are currently fetching the next page
   final RxBool isFetchingNextPage = RxBool(false);
 
@@ -57,6 +63,7 @@ class ZenInfiniteQuery<T> extends ZenQuery<List<T>> {
     required this.getNextPageParam,
     this.getPreviousPageParam,
     this.initialPageParam,
+    this.maxPages,
     super.config,
     super.initialData,
     super.scope,
@@ -104,15 +111,17 @@ class ZenInfiniteQuery<T> extends ZenQuery<List<T>> {
 
       // 2. Append to existing pages
       final currentPages = data.value ?? [];
-      final allPages = [...currentPages, newPage];
+      var allPages = [...currentPages, newPage];
+
+      if (maxPages != null && maxPages! > 0 && allPages.length > maxPages!) {
+        allPages = allPages.sublist(allPages.length - maxPages!);
+      }
 
       // 3. Update the reactive data
       _updateDataAndCache(allPages);
 
-      // 4. Calculate the cursor for the NEXT fetch
-      final nextParam = getNextPageParam(newPage, allPages);
-      _nextPageParam = nextParam;
-      hasNextPage.value = nextParam != null;
+      // 4. Calculate the cursors for the next/prev fetches
+      _updateParams(allPages);
 
       // 5. Ensure status is success
       if (status.value != ZenQueryStatus.success) {
@@ -153,7 +162,11 @@ class ZenInfiniteQuery<T> extends ZenQuery<List<T>> {
       if (isDisposed || token.isCancelled) return;
 
       final currentPages = data.value ?? [];
-      final allPages = [newPage, ...currentPages];
+      var allPages = [newPage, ...currentPages];
+
+      if (maxPages != null && maxPages! > 0 && allPages.length > maxPages!) {
+        allPages = allPages.sublist(0, maxPages!);
+      }
 
       _updateDataAndCache(allPages);
 
@@ -219,6 +232,8 @@ class ZenInfiniteQuery<T> extends ZenQuery<List<T>> {
   }
 
   void _updateParams(List<T> pages) {
+    if (pages.isEmpty) return;
+    
     // Update next param
     final nextParam = getNextPageParam(pages.last, pages);
     _nextPageParam = nextParam;
