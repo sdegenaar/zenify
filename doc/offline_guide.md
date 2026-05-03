@@ -1,4 +1,4 @@
-# 📶 Offline-First Guide (v1.6.0)
+# 📶 Offline-First Guide
 
 Zenify v1.6.0 transforms from a simple data fetcher into a robust **Offline Synchronization Engine**.
 
@@ -417,6 +417,16 @@ ZenQueryConfig(
   networkMode: NetworkMode.always,
 )
 ```
+
+> **Tip (v1.10.3+):** Pair any `NetworkMode` with `retryWhenOnline: true` to make queries that fail mid-retry automatically pause instead of entering `error` state, then self-heal when connectivity returns:
+> ```dart
+> ZenQueryConfig(
+>   networkMode: NetworkMode.always, // run even offline (e.g. for testing/LAN)
+>   retryCount: 3,
+>   retryWhenOnline: true, // pause on exhaustion if offline, auto-retry on reconnect
+> )
+> ```
+> See [Network-Aware Retry Pausing](zen_query_guide.md#network-aware-retry-pausing-v1103) in the ZenQuery Guide for full details.
 
 ---
 

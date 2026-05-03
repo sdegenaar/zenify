@@ -326,6 +326,7 @@ final createPost = ZenMutation<Post, Post>(
 - **Mutation queue** — Actions are queued and auto-replayed when online
 - **Optimistic updates** — Update UI immediately, sync later
 - **Network modes** — Control exactly how queries behave offline
+- **Auto-retry on reconnect** — `retryWhenOnline: true` pauses a query instead of erroring when retries are exhausted offline, then automatically restarts the retry cycle when connectivity returns (v1.10.3+)
 
 [See Offline Guide →](https://github.com/sdegenaar/zenify/blob/main/doc/offline_guide.md)
 

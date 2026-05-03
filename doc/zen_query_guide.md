@@ -256,6 +256,7 @@ final query = ZenQuery<User>(
 | `retryBackoffMultiplier` | 2.0 | Exponential backoff multiplier |
 | `exponentialBackoff` | true | Use exponential backoff for retries |
 | `retryWithJitter` | true | Add jitter to retry delays |
+| `retryWhenOnline` | false | Pause retrying when offline and auto-restart the retry cycle on reconnect |
 | `autoPauseOnBackground` | false | Auto-pause when app backgrounded (opt-in) |
 | `refetchOnResume` | false | Refetch stale data on resume (opt-in) |
 | `placeholderData` | null | Data to show while initial fetch is pending |
@@ -851,6 +852,40 @@ final query = ZenQuery<Data>(
 - Multiplier: 2.0 (exponential)
 - Max delay: 30s (prevents infinite growth)
 - Jitter: enabled (prevents simultaneous retries)
+
+### Network-Aware Retry Pausing (v1.10.3+)
+
+Prevents queries from exhausting all retries against a dropped network and entering a permanent error state. Enable `retryWhenOnline: true` and the query self-heals on reconnect:
+
+```dart
+final query = ZenQuery<User>(
+  queryKey: 'user:me',
+  fetcher: (_) => api.getMe(),
+  config: ZenQueryConfig(
+    retryCount: 3,
+    retryWhenOnline: true, // NEW in v1.10.3
+  ),
+);
+```
+
+**What happens:**
+1. Network drops mid-retry.
+2. After retries are exhausted **and the device is offline**, the query enters `fetchStatus = paused` instead of `status = error`.
+3. Stale cached data is returned to the UI (no blank/error screen).
+4. When connectivity returns, a **fresh full retry cycle** is automatically started — no `invalidate()` call needed.
+
+**Compared to `refetchOnReconnect`:**
+
+| Behaviour | `refetchOnReconnect` | `retryWhenOnline` |
+|---|---|---|
+| Trigger | Reconnect | Reconnect |
+| Prerequisite | Query already in `error`/stale | Query was in `paused` due to exhausted retries while offline |
+| Action | Single `refetch()` | Full retry cycle with exponential backoff |
+| Error while online | Moves to `error` | Also moves to `error` (server errors are not deferred) |
+
+> **Note:** `retryWhenOnline` only activates when the device is genuinely offline at the time retries are exhausted. If the device is online but the server is returning errors (e.g. 500s), the query correctly enters `error` state as usual.
+
+> **Note:** `ZenStreamQuery` does not use `_fetchWithRetry` and is not affected by this flag.
 
 ---
 
