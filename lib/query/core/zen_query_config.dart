@@ -107,6 +107,23 @@ class ZenQueryConfig<T> {
   /// Whether to add random jitter to retry delays (prevents thundering herd)
   final bool retryWithJitter;
 
+  /// Whether to pause retrying when offline and resume automatically on reconnect
+  ///
+  /// When `true`, if all retry attempts are exhausted while the device is offline
+  /// (or the network drops mid-retry), the query enters `paused` (not `error`) state.
+  /// It will automatically restart a fresh retry cycle the next time the network
+  /// comes back online — without requiring a manual `invalidate()` or `refetch()`.
+  ///
+  /// When `false` (default), network failures are treated like any other error:
+  /// the query enters `error` state after retries are exhausted and waits for
+  /// an explicit `refetchOnReconnect` trigger.
+  ///
+  /// **Recommended for:** Apps that rely on network data and should silently
+  /// recover from connectivity loss without showing permanent error states.
+  ///
+  /// Default: false
+  final bool retryWhenOnline;
+
   // --- Pause/Resume Configuration ---
 
   /// Whether to automatically pause queries when app goes to background
@@ -163,6 +180,7 @@ class ZenQueryConfig<T> {
     this.retryBackoffMultiplier = 2.0,
     this.exponentialBackoff = true,
     this.retryWithJitter = true,
+    this.retryWhenOnline = false,
     this.autoPauseOnBackground = false,
     this.refetchOnResume = false,
     this.persist = false,
@@ -195,6 +213,7 @@ class ZenQueryConfig<T> {
       retryBackoffMultiplier: other.retryBackoffMultiplier,
       exponentialBackoff: other.exponentialBackoff,
       retryWithJitter: other.retryWithJitter,
+      retryWhenOnline: other.retryWhenOnline,
       autoPauseOnBackground: other.autoPauseOnBackground,
       refetchOnResume: other.refetchOnResume,
       persist: other.persist,
@@ -228,6 +247,7 @@ class ZenQueryConfig<T> {
     double? retryBackoffMultiplier,
     bool? exponentialBackoff,
     bool? retryWithJitter,
+    bool? retryWhenOnline,
     bool? autoPauseOnBackground,
     bool? refetchOnResume,
     bool? persist,
@@ -254,6 +274,7 @@ class ZenQueryConfig<T> {
           retryBackoffMultiplier ?? this.retryBackoffMultiplier,
       exponentialBackoff: exponentialBackoff ?? this.exponentialBackoff,
       retryWithJitter: retryWithJitter ?? this.retryWithJitter,
+      retryWhenOnline: retryWhenOnline ?? this.retryWhenOnline,
       autoPauseOnBackground:
           autoPauseOnBackground ?? this.autoPauseOnBackground,
       refetchOnResume: refetchOnResume ?? this.refetchOnResume,
@@ -286,6 +307,7 @@ class ZenQueryConfig<T> {
       retryBackoffMultiplier: retryBackoffMultiplier,
       exponentialBackoff: exponentialBackoff,
       retryWithJitter: retryWithJitter,
+      retryWhenOnline: retryWhenOnline,
       autoPauseOnBackground: autoPauseOnBackground,
       refetchOnResume: refetchOnResume,
       persist: persist,

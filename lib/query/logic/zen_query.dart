@@ -386,6 +386,23 @@ class ZenQuery<T> extends ZenController {
         return _fetchWithRetry();
       }
 
+      // No more retries, check if we should pause for reconnect instead of erroring
+      if (config.retryWhenOnline && !ZenQueryCache.instance.isOnline) {
+        ZenLogger.logDebug(
+          'Query $queryKey: retries exhausted offline — entering paused state '
+          '(will retry automatically when back online).',
+        );
+        _isLoadingNotifier?.value = false;
+        fetchStatus.value = ZenQueryFetchStatus.paused;
+        update();
+        // Register for automatic retry when connectivity returns
+        ZenQueryCache.instance.registerRetryWhenOnline(this);
+        if (hasData) return data.value!;
+        throw const ZenOfflineException(
+          'Query paused — will retry automatically when back online.',
+        );
+      }
+
       // No more retries, update with error
       ZenLogger.logError('Query failed: $queryKey', e, s);
       error.value = e;
@@ -510,6 +527,11 @@ class ZenQuery<T> extends ZenController {
   ///
   /// This is called automatically when the app returns to foreground.
   void resume() {
+    // If this query was queued for a retry-when-online cycle, a manual
+    // resume means the caller is taking ownership of the next fetch.
+    // Remove it from the queue so the drain doesn't fire a redundant request.
+    ZenQueryCache.instance.unregisterRetryWhenOnline(this);
+
     if (fetchStatus.value == ZenQueryFetchStatus.paused) {
       fetchStatus.value = ZenQueryFetchStatus.idle;
       ZenLogger.logDebug('Query resumed: $queryKey');
@@ -691,6 +713,9 @@ class ZenQuery<T> extends ZenController {
 
     // Cancel any pending request to prevent network waste
     _cancelPendingRequest();
+
+    // Unregister from the retry-when-online queue (prevents dangling references)
+    ZenQueryCache.instance.unregisterRetryWhenOnline(this);
 
     // Unregister based on how it was registered
     if (_registerInCache) {

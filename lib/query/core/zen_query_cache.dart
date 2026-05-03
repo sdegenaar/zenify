@@ -69,6 +69,10 @@ class ZenQueryCache {
   StreamSubscription<bool>? _networkSubscription;
   bool _isOnline = true;
 
+  /// Queries that want to retry their full fetch cycle when connectivity returns.
+  /// Populated by ZenQuery when `retryWhenOnline=true` and retries are exhausted offline.
+  final Set<ZenQuery> _retryWhenOnlineQueue = {};
+
   /// Whether the app is currently connected to the network
   bool get isOnline => _isOnline;
 
@@ -101,6 +105,7 @@ class ZenQueryCache {
       if (wasOffline && isOnline) {
         ZenLogger.logDebug(
             'Network reconnected. Refetching eligible queries...');
+        _drainRetryWhenOnlineQueue();
         _refetchOnReconnect();
       }
     });
@@ -145,6 +150,41 @@ class ZenQueryCache {
           query.refetch().then((_) {}, onError: (_) {});
         }
       }
+    }
+  }
+
+  /// Register a query to retry its full fetch cycle when connectivity returns.
+  ///
+  /// Called internally by [ZenQuery] when `retryWhenOnline` is true and retries
+  /// are exhausted while the device is offline.
+  void registerRetryWhenOnline(ZenQuery query) {
+    if (!query.isDisposed) {
+      _retryWhenOnlineQueue.add(query);
+      ZenLogger.logDebug(
+          'Query "${query.queryKey}" queued for retry-when-online.');
+    }
+  }
+
+  /// Unregister a query from the retry-when-online queue (e.g., on dispose).
+  void unregisterRetryWhenOnline(ZenQuery query) {
+    _retryWhenOnlineQueue.remove(query);
+  }
+
+  /// Drain all queries waiting for connectivity and restart their retry cycles.
+  void _drainRetryWhenOnlineQueue() {
+    if (_retryWhenOnlineQueue.isEmpty) return;
+
+    final toRetry = _retryWhenOnlineQueue.toList();
+    _retryWhenOnlineQueue.clear();
+
+    ZenLogger.logDebug(
+        'Draining retry-when-online queue: ${toRetry.length} queries.');
+
+    for (final query in toRetry) {
+      if (query.isDisposed || !query.enabled.value) continue;
+      // Force a fresh fetch — this resets _retryAttempt and runs the full
+      // retry cycle again with exponential backoff.
+      query.fetch(force: true).then((_) {}, onError: (_) {});
     }
   }
 
@@ -692,6 +732,7 @@ class ZenQueryCache {
     _pendingFetches.clear();
     _scopeQueries.clear();
     _tagIndex.clear();
+    _retryWhenOnlineQueue.clear(); // Prevent stale query references after reset
   }
 
   /// Get comprehensive cache statistics

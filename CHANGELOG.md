@@ -1,3 +1,34 @@
+## [1.10.3]
+
+### Added
+
+- **`ZenQueryConfig.retryWhenOnline`** — network-aware retry pausing. When `true`, a query that exhausts
+  all its retry attempts while the device is offline (or goes offline mid-retry) enters `paused`
+  (`fetchStatus = ZenQueryFetchStatus.paused`) instead of the usual `error` state. It is automatically
+  registered in an internal retry queue and restarts a **fresh, full retry cycle** (with exponential
+  backoff) the moment connectivity returns — no manual `invalidate()` or `refetch()` required.
+
+  ```dart
+  // Query silently waits for connectivity and self-heals on reconnect
+  final query = ZenQuery<User>(
+    queryKey: 'user:me',
+    fetcher: (_) => api.getMe(),
+    config: ZenQueryConfig(
+      retryCount: 3,
+      retryWhenOnline: true, // NEW
+    ),
+  );
+  ```
+
+  Key behaviours:
+  - **Stale cache preserved**: if the query already has data, it returns the cached value while paused.
+  - **Multiple queries**: all queued queries are drained atomically when connectivity returns.
+  - **Disabled queries**: skipped at drain time if `enabled = false`.
+  - **Dispose safety**: disposed queries are automatically cleaned up from the queue.
+  - **Off by default**: `retryWhenOnline: false` preserves the existing error-on-exhaustion behaviour.
+
+---
+
 ## [1.10.2]
 
 ### Added
