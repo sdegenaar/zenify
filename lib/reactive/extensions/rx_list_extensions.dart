@@ -107,6 +107,13 @@ extension RxListExtensions<T> on Rx<List<T>> {
     }, 'add all elements to list');
   }
 
+  /// Replace all elements with error handling
+  RxResult<void> tryAssignAll(Iterable<T> elements) {
+    return RxResult.tryExecute(() {
+      value = [...elements];
+    }, 'assign all elements to list');
+  }
+
   /// Remove where with error handling
   RxResult<void> tryRemoveWhere(bool Function(T element) test) {
     return RxResult.tryExecute(() {
@@ -276,6 +283,14 @@ extension RxListExtensions<T> on Rx<List<T>> {
   /// Add all elements (convenience method that calls tryAddAll internally)
   void addAll(Iterable<T> elements) {
     final result = tryAddAll(elements);
+    if (result.isFailure) {
+      RxLogger.logError(result.errorOrNull!, context: 'List');
+    }
+  }
+
+  /// Replace all elements (convenience method that calls tryAssignAll internally)
+  void assignAll(Iterable<T> elements) {
+    final result = tryAssignAll(elements);
     if (result.isFailure) {
       RxLogger.logError(result.errorOrNull!, context: 'List');
     }

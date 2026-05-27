@@ -151,10 +151,26 @@ class ZenQueryConfig<T> {
   /// Whether to persist this query's data
   final bool persist;
 
-  /// Function to convert JSON to data (for hydration)
+  /// Function to deserialize a `Map<String, dynamic>` into data (for hydration).
+  ///
+  /// Despite the `Json` naming, the argument is a plain Dart map — not a
+  /// JSON-encoded string. This means Drift/SQLite `fromMap` constructors work
+  /// as-is, with no intermediate JSON decoding step:
+  ///
+  /// ```dart
+  /// fromJson: User.fromMap, // Drift’s native fromMap works directly
+  /// ```
   final T Function(Map<String, dynamic> json)? fromJson;
 
-  /// Function to convert data to JSON (for persistence)
+  /// Function to serialize data into a `Map<String, dynamic>` (for persistence).
+  ///
+  /// Despite the `Json` naming, this returns a plain Dart map — not a
+  /// JSON-encoded string. This means Drift/SQLite `toMap()` methods work
+  /// as-is, with no intermediate JSON encoding step:
+  ///
+  /// ```dart
+  /// toJson: (user) => user.toMap(), // Drift’s native toMap works directly
+  /// ```
   final Map<String, dynamic> Function(T data)? toJson;
 
   /// Custom storage implementation (defaults to global storage if null)

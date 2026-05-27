@@ -42,6 +42,46 @@ void main() {
   });
 
   // ══════════════════════════════════════════════════════════
+  // tryAssignAll — replace all elements
+  // ══════════════════════════════════════════════════════════
+  group('RxList.tryAssignAll', () {
+    test('replaces all elements', () {
+      final rx = RxList<int>([1, 2, 3]);
+      final result = rx.tryAssignAll([10, 20]);
+      expect(result.isSuccess, true);
+      expect(rx.value, [10, 20]);
+    });
+
+    test('replaces with empty list', () {
+      final rx = RxList<int>([1, 2, 3]);
+      final result = rx.tryAssignAll([]);
+      expect(result.isSuccess, true);
+      expect(rx.value, isEmpty);
+    });
+
+    test('replaces empty list with new elements', () {
+      final rx = RxList<int>([]);
+      final result = rx.tryAssignAll([1, 2, 3]);
+      expect(result.isSuccess, true);
+      expect(rx.value, [1, 2, 3]);
+    });
+
+    test('triggers listener notification', () {
+      final rx = RxList<int>([1, 2, 3]);
+      int notified = 0;
+      rx.addListener(() => notified++);
+      rx.tryAssignAll([10, 20]);
+      expect(notified, 1);
+    });
+
+    test('assignAll convenience replaces all elements', () {
+      final rx = RxList<String>(['a', 'b']);
+      rx.assignAll(['x', 'y', 'z']);
+      expect(rx.value, ['x', 'y', 'z']);
+    });
+  });
+
+  // ══════════════════════════════════════════════════════════
   // tryReplaceRange — L154-155 invalid end
   // ══════════════════════════════════════════════════════════
   group('RxList.tryReplaceRange', () {

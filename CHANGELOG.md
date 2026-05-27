@@ -1,3 +1,16 @@
+## [1.10.4]
+
+### Added
+
+- **`RxList.assignAll()`** — convenience method to replace all elements in a reactive list in a single call. Also adds `tryAssignAll()` for explicit error-handling.
+
+### Improved
+
+- **`ZenStorage` documentation** — clarified that `write()`/`read()` pass a plain `Map<String, dynamic>`, not a JSON-encoded string. Added a copy-paste Drift/SQLite adapter recipe alongside the existing SharedPreferences example.
+- **`ZenQueryConfig.fromJson` / `toJson` documentation** — clarified that these work with `Map<String, dynamic>` directly, making Drift's `toMap()`/`fromMap()` plug in without any extra JSON encoding step.
+
+---
+
 ## [1.10.3]
 
 ### Added
