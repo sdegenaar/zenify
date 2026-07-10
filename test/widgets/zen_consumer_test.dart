@@ -48,7 +48,8 @@ void main() {
       expect(find.text('test-service'), findsOneWidget);
     });
 
-    testWidgets('should handle missing dependency by throwing (fail fast)', (tester) async {
+    testWidgets('should handle missing dependency by throwing (fail fast)',
+        (tester) async {
       bool errorHandlerCalled = false;
       FlutterError.onError = (FlutterErrorDetails details) {
         errorHandlerCalled = true;
@@ -89,7 +90,8 @@ void main() {
       expect(find.text('service-2'), findsOneWidget);
     });
 
-    testWidgets('should handle scope hierarchy via context extension', (tester) async {
+    testWidgets('should handle scope hierarchy via context extension',
+        (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: ZenScopeWidget.create<TestService>(

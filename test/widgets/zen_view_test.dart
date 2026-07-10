@@ -65,7 +65,8 @@ class TestReactiveZenView extends ZenView<CounterController> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           ZenUpdater<CounterController>(
-            builder: (context, controller) => Text('Count: ${controller.count}'),
+            builder: (context, controller) =>
+                Text('Count: ${controller.count}'),
           ),
           ElevatedButton(
             onPressed: controller.increment,
@@ -139,7 +140,8 @@ void main() {
       expect(find.text('Context API Count: 0'), findsOneWidget);
     });
 
-    testWidgets('should allow controller interaction with manual updates', (tester) async {
+    testWidgets('should allow controller interaction with manual updates',
+        (tester) async {
       final controller = CounterController();
       Zen.put<CounterController>(controller);
 
@@ -149,13 +151,14 @@ void main() {
 
       controller.increment();
       expect(controller.count, 1);
-      
+
       // UI doesn't auto-update because ZenView is stateless and we didn't use an Observer
       await tester.pump();
-      expect(find.text('Count: 0'), findsOneWidget); 
+      expect(find.text('Count: 0'), findsOneWidget);
     });
 
-    testWidgets('should automatically update UI with ZenUpdater inside ZenView', (tester) async {
+    testWidgets('should automatically update UI with ZenUpdater inside ZenView',
+        (tester) async {
       final controller = CounterController();
       Zen.put<CounterController>(controller);
 
@@ -169,7 +172,8 @@ void main() {
       expect(find.text('Count: 1'), findsOneWidget);
     });
 
-    testWidgets('should find scoped controller via ZenScopeWidget.create', (tester) async {
+    testWidgets('should find scoped controller via ZenScopeWidget.create',
+        (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: ZenScopeWidget.create<CounterController>(
@@ -180,12 +184,13 @@ void main() {
       );
 
       expect(find.text('Count: 0'), findsOneWidget);
-      expect(Zen.findOrNull<CounterController>(), isNull); // Ensures it's NOT in global scope
+      expect(Zen.findOrNull<CounterController>(),
+          isNull); // Ensures it's NOT in global scope
     });
 
     testWidgets('should create and find controller with tag', (tester) async {
       Zen.put<CounterController>(CounterController(), tag: 'custom_tag');
-      
+
       await tester.pumpWidget(
         const MaterialApp(
           home: TaggedTestView(),
@@ -195,7 +200,9 @@ void main() {
       expect(find.text('Count: 0'), findsOneWidget);
     });
 
-    testWidgets('should use ZenScopeWidget for explicit scope (correct V2 pattern)', (tester) async {
+    testWidgets(
+        'should use ZenScopeWidget for explicit scope (correct V2 pattern)',
+        (tester) async {
       final customScope = Zen.createScope(name: "CustomScope");
       final controller = CounterController()..count = 42;
       customScope.put<CounterController>(controller);
@@ -220,7 +227,7 @@ void main() {
       };
 
       await tester.pumpWidget(const MaterialApp(home: TestZenView()));
-      
+
       expect(exceptionCaught, isTrue);
       FlutterError.onError = FlutterError.dumpErrorToConsole;
     });
@@ -231,7 +238,8 @@ void main() {
   // ──────────────────────────────────────────────────────────────────────────
 
   group('ZenView.initController (element-owned lifecycle)', () {
-    testWidgets('should create and own controller via initController', (tester) async {
+    testWidgets('should create and own controller via initController',
+        (tester) async {
       await tester.pumpWidget(
         const MaterialApp(home: SelfOwnedView(label: 'owned')),
       );
@@ -243,7 +251,8 @@ void main() {
       expect(Zen.findOrNull<CounterController>(), isNull);
     });
 
-    testWidgets('should call onInit and onClose on owned controller', (tester) async {
+    testWidgets('should call onInit and onClose on owned controller',
+        (tester) async {
       SelfOwnedController? capturedController;
 
       await tester.pumpWidget(
@@ -262,7 +271,9 @@ void main() {
       expect(capturedController!.disposeCalled, isTrue);
     });
 
-    testWidgets('should give each instance its own controller (multi-instance safe)', (tester) async {
+    testWidgets(
+        'should give each instance its own controller (multi-instance safe)',
+        (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Row(
@@ -294,7 +305,8 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: ZenScopeWidget(
-            scope: Zen.createScope(name: 'PriorityTest')..put<SelfOwnedController>(scoped),
+            scope: Zen.createScope(name: 'PriorityTest')
+              ..put<SelfOwnedController>(scoped),
             child: const SelfOwnedView(label: 'priority'),
           ),
         ),
@@ -305,7 +317,8 @@ void main() {
       expect(find.text('priority:0'), findsOneWidget);
     });
 
-    testWidgets('auto-scoped controller is accessible to child widgets', (tester) async {
+    testWidgets('auto-scoped controller is accessible to child widgets',
+        (tester) async {
       await tester.pumpWidget(
         const MaterialApp(home: ParentOwningView()),
       );
@@ -373,10 +386,10 @@ class LifecycleTrackingView extends ZenView<SelfOwnedController> {
 
   @override
   SelfOwnedController Function() get initController => () {
-    final c = SelfOwnedController();
-    onCreated(c);
-    return c;
-  };
+        final c = SelfOwnedController();
+        onCreated(c);
+        return c;
+      };
 
   @override
   Widget build(BuildContext context, SelfOwnedController controller) {
@@ -406,5 +419,3 @@ class ChildConsumer extends StatelessWidget {
     return Text('child found ctrl: ${ctrl.count.value}');
   }
 }
-
-

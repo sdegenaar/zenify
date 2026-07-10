@@ -133,7 +133,8 @@ class _ZenViewElement<T extends ZenController> extends ComponentElement {
       _ownedScope!.put<T>(_ownedController!, tag: (widget as ZenView<T>).tag);
     }
 
-    super.mount(parent, newSlot); // Triggers _firstBuild → build() — controller is ready.
+    super.mount(parent,
+        newSlot); // Triggers _firstBuild → build() — controller is ready.
 
     // Schedule onReady after the first frame — identical to V1 StatefulWidget timing.
     if (_ownedController != null) {
@@ -218,4 +219,3 @@ extension ZenViewContextExtensions on BuildContext {
     throw ZenControllerNotFoundException(typeName: T.toString());
   }
 }
-

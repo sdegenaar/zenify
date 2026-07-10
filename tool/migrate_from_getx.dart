@@ -191,7 +191,8 @@ class GetXMigrator {
       'interval(': 'Worker: use ZenWorkers.interval() inside onInit()',
       // V2: ZenView build() signature must be updated manually — script cannot
       // safely transform method signatures without an AST parser.
-      'extends ZenView':  'V2 REQUIRED: update build() signature to build(BuildContext context, T controller) — run: dart analyze to find all instances',
+      'extends ZenView':
+          'V2 REQUIRED: update build() signature to build(BuildContext context, T controller) — run: dart analyze to find all instances',
     };
 
     final flaggedReasons = <String>[];
@@ -254,8 +255,10 @@ class GetXMigrator {
       print('Next steps:');
       print('  1. Update pubspec.yaml: remove "get:", add "zenify: ^2.0.0"');
       print('  2. Run: flutter pub get');
-      print('  3. Run: dart analyze   (find remaining issues, including ZenView.build() signature errors)');
-      print('  4. Fix every ZenView subclass: build(BuildContext context) → build(BuildContext context, T controller)');
+      print(
+          '  3. Run: dart analyze   (find remaining issues, including ZenView.build() signature errors)');
+      print(
+          '  4. Fix every ZenView subclass: build(BuildContext context) → build(BuildContext context, T controller)');
       print('  5. Fix files marked [manual] above');
       print('  6. Run: flutter test');
       print('');

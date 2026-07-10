@@ -34,8 +34,7 @@ class CounterPage extends ZenView<CounterController> {
   const CounterPage({super.key});
 
   @override
-  CounterController Function()? get initController =>
-      () => CounterController();
+  CounterController Function()? get initController => () => CounterController();
 
   @override
   Widget build(BuildContext context, CounterController controller) {

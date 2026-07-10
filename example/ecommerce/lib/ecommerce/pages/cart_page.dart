@@ -127,7 +127,8 @@ class CartPage extends ZenView<CartController> {
     );
   }
 
-  Widget _buildCartItem(BuildContext context, CartController controller, CartItem cartItem) {
+  Widget _buildCartItem(
+      BuildContext context, CartController controller, CartItem cartItem) {
     final product = cartItem.product;
 
     return Card(
@@ -395,7 +396,8 @@ class CartPage extends ZenView<CartController> {
     );
   }
 
-  Future<void> _processCheckout(BuildContext context, CartController controller) async {
+  Future<void> _processCheckout(
+      BuildContext context, CartController controller) async {
     final success = await controller.checkout();
 
     if (context.mounted) {
@@ -450,7 +452,8 @@ class CartPage extends ZenView<CartController> {
   }
 
   // Recommended products section (shown when cart is empty)
-  Widget _buildRecommendedProducts(BuildContext context, CartController controller) {
+  Widget _buildRecommendedProducts(
+      BuildContext context, CartController controller) {
     return FutureBuilder<List<Product>>(
       future: controller.getRecommendedProducts(),
       builder: (context, snapshot) {

@@ -282,8 +282,8 @@ class ObxDemoPage extends ZenView<ReactiveDemoController> {
                       _buildPerformanceMetric('Message ZenObserver Rebuilds',
                           _getMessageRebuilds(controller)),
                       const SizedBox(height: 8),
-                      _buildPerformanceMetric(
-                          'Items ZenObserver Rebuilds', _getItemsRebuilds(controller)),
+                      _buildPerformanceMetric('Items ZenObserver Rebuilds',
+                          _getItemsRebuilds(controller)),
                       const SizedBox(height: 8),
                       _buildPerformanceMetric('Features ZenObserver Rebuilds',
                           _getFeaturesRebuilds(controller)),
@@ -537,9 +537,11 @@ class ObxDemoPage extends ZenView<ReactiveDemoController> {
   }
 
   // Simulated rebuild counters (in real app, these would be tracked)
-  int _getCounterRebuilds(ReactiveDemoController controller) => controller.counter.value; // Approximate
+  int _getCounterRebuilds(ReactiveDemoController controller) =>
+      controller.counter.value; // Approximate
   int _getMessageRebuilds(ReactiveDemoController controller) => 5; // Simulated
-  int _getItemsRebuilds(ReactiveDemoController controller) => controller.items.length;
+  int _getItemsRebuilds(ReactiveDemoController controller) =>
+      controller.items.length;
   int _getFeaturesRebuilds(ReactiveDemoController controller) =>
       (controller.featureA.value ? 1 : 0) + (controller.featureB.value ? 1 : 0);
 }

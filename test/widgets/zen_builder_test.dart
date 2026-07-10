@@ -19,7 +19,8 @@ void main() {
   });
 
   group('ZenUpdater Core Functionality', () {
-    testWidgets('should find existing controller in global scope and rebuild', (tester) async {
+    testWidgets('should find existing controller in global scope and rebuild',
+        (tester) async {
       final controller = TestController();
       Zen.put<TestController>(controller);
 
@@ -39,7 +40,8 @@ void main() {
       expect(find.text('Value: 1'), findsOneWidget);
     });
 
-    testWidgets('should handle missing controller gracefully with onError', (tester) async {
+    testWidgets('should handle missing controller gracefully with onError',
+        (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: ZenUpdater<TestController>(
@@ -55,7 +57,8 @@ void main() {
   });
 
   group('ZenUpdater Scoping', () {
-    testWidgets('should respect nearest scope over global scope', (tester) async {
+    testWidgets('should respect nearest scope over global scope',
+        (tester) async {
       final globalCtrl = TestController()..value = 10;
       Zen.put<TestController>(globalCtrl);
 

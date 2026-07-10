@@ -36,7 +36,8 @@ void main() {
   });
 
   group('ZenScopeWidget.create Tests', () {
-    testWidgets('should create controller and make it available to children', (tester) async {
+    testWidgets('should create controller and make it available to children',
+        (tester) async {
       bool controllerCreated = false;
 
       await tester.pumpWidget(
@@ -61,13 +62,15 @@ void main() {
 
       final BuildContext context = tester.element(find.byType(Text));
       final controller = context.controller<CounterController>();
-      
+
       controller.increment();
       await tester.pump();
       expect(find.text('Count: 1'), findsOneWidget);
     });
 
-    testWidgets('should automatically dispose controller when widget is removed', (tester) async {
+    testWidgets(
+        'should automatically dispose controller when widget is removed',
+        (tester) async {
       bool disposerCalled = false;
 
       await tester.pumpWidget(
@@ -88,7 +91,8 @@ void main() {
       expect(controller, isNotNull);
       expect(disposerCalled, isFalse);
 
-      await tester.pumpWidget(const MaterialApp(home: Text('Different Widget')));
+      await tester
+          .pumpWidget(const MaterialApp(home: Text('Different Widget')));
       await tester.pumpAndSettle();
 
       expect(disposerCalled, isTrue);

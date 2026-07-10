@@ -112,7 +112,8 @@ class TodoHomePage extends ZenView<TodoController> {
                       todo: todo,
                       onToggle: () => controller.toggleTodoStatus(todo.id),
                       onEdit: () => _navigateToDetailPage(context, todo: todo),
-                      onDelete: () => _showDeleteConfirmation(context, controller, todo),
+                      onDelete: () =>
+                          _showDeleteConfirmation(context, controller, todo),
                     );
                   },
                 ),
@@ -125,7 +126,8 @@ class TodoHomePage extends ZenView<TodoController> {
                       todo: todo,
                       onToggle: () => controller.toggleTodoStatus(todo.id),
                       onEdit: () => _navigateToDetailPage(context, todo: todo),
-                      onDelete: () => _showDeleteConfirmation(context, controller, todo),
+                      onDelete: () =>
+                          _showDeleteConfirmation(context, controller, todo),
                     );
                   },
                 ),
@@ -149,8 +151,8 @@ class TodoHomePage extends ZenView<TodoController> {
                 // Clear completed button
                 ZenObserver(() => Zen.find<TodoController>().completedCount > 0
                     ? TextButton(
-                        onPressed: () =>
-                            _showClearCompletedConfirmation(context, controller),
+                        onPressed: () => _showClearCompletedConfirmation(
+                            context, controller),
                         child: const Text('Clear completed'),
                       )
                     : const SizedBox.shrink()),
@@ -174,7 +176,8 @@ class TodoHomePage extends ZenView<TodoController> {
     );
   }
 
-  void _showDeleteConfirmation(BuildContext context, TodoController controller, Todo todo) {
+  void _showDeleteConfirmation(
+      BuildContext context, TodoController controller, Todo todo) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -197,7 +200,8 @@ class TodoHomePage extends ZenView<TodoController> {
     );
   }
 
-  void _showClearCompletedConfirmation(BuildContext context, TodoController controller) {
+  void _showClearCompletedConfirmation(
+      BuildContext context, TodoController controller) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(

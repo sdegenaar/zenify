@@ -67,7 +67,7 @@ class ZenScopeWidget extends StatefulWidget {
             'Either scope or moduleBuilder must be provided, but not both');
 
   /// Convenience method to create a scope with a single controller.
-  /// 
+  ///
   /// This is the recommended way to scope a single controller to a route or widget tree.
   static ZenScopeWidget create<T extends Object>({
     Key? key,
@@ -77,7 +77,8 @@ class ZenScopeWidget extends StatefulWidget {
   }) {
     return ZenScopeWidget(
       key: key,
-      moduleBuilder: () => _SingleItemModule<T>(create, scopeName ?? 'Scope_${T.toString()}'),
+      moduleBuilder: () =>
+          _SingleItemModule<T>(create, scopeName ?? 'Scope_${T.toString()}'),
       child: child,
     );
   }
@@ -339,7 +340,7 @@ extension ZenScopeExtension on BuildContext {
 class _SingleItemModule<T extends Object> extends ZenModule {
   @override
   final String name;
-  
+
   final T Function() _create;
 
   _SingleItemModule(this._create, this.name);
@@ -349,4 +350,3 @@ class _SingleItemModule<T extends Object> extends ZenModule {
     scope.put<T>(_create());
   }
 }
-

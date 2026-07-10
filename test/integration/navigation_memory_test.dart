@@ -13,7 +13,8 @@ void main() {
       ZenTestHelper.resetDI();
     });
 
-    testWidgets('should dispose controllers when ZenScopeWidget is removed from tree',
+    testWidgets(
+        'should dispose controllers when ZenScopeWidget is removed from tree',
         (tester) async {
       late TestController controller;
 

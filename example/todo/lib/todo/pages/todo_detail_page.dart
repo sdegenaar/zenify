@@ -216,8 +216,9 @@ class TodoDetailPage extends ZenView<TodoDetailController> {
               SizedBox(
                 width: double.infinity,
                 child: ZenObserver(() => ElevatedButton(
-                      onPressed:
-                          controller.isValid ? () => _saveTodo(context, controller) : null,
+                      onPressed: controller.isValid
+                          ? () => _saveTodo(context, controller)
+                          : null,
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         backgroundColor: Theme.of(context).colorScheme.primary,
@@ -276,7 +277,8 @@ class TodoDetailPage extends ZenView<TodoDetailController> {
     );
   }
 
-  Future<void> _selectDate(BuildContext context, TodoDetailController controller) async {
+  Future<void> _selectDate(
+      BuildContext context, TodoDetailController controller) async {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: controller.dueDate.value ?? DateTime.now(),
