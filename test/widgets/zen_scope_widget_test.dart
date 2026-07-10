@@ -243,7 +243,6 @@ void main() {
                 scopeName: 'Scope1',
                 child: Builder(
                   builder: (context) {
-                    final scope = ZenScopeWidget.of(context);
                     return ZenUpdater<CounterController>(
                       builder: (context, controller) {
                         return ElevatedButton(
@@ -261,7 +260,6 @@ void main() {
                 scopeName: 'Scope2',
                 child: Builder(
                   builder: (context) {
-                    final scope = ZenScopeWidget.of(context);
                     return ZenUpdater<CounterController>(
                       builder: (context, controller) {
                         return ElevatedButton(
