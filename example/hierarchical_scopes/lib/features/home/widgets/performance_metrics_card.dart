@@ -29,7 +29,7 @@ class PerformanceMetricsCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            Obx(() {
+            ZenObserver(() {
               final metrics = controller.performanceMetrics.value;
               final lastUpdated =
                   metrics['lastUpdated'] as String? ?? 'Not available';

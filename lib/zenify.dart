@@ -32,7 +32,7 @@ export 'widgets/builders/zen_query_when.dart';
 export 'widgets/builders/zen_infinite_query_when.dart';
 export 'widgets/builders/zen_mutation_when.dart';
 export 'widgets/components/zen_route.dart';
-export 'widgets/scope/zen_scope_widget.dart';
+export 'widgets/scope/zen_scope_widget.dart' hide ZenScopeProvider;
 export 'widgets/scope/zen_consumer.dart';
 export 'widgets/components/zen_view.dart';
 export 'widgets/builders/zen_effect_builder.dart';

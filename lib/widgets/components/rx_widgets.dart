@@ -4,20 +4,31 @@ import '../../core/zen_logger.dart';
 import '../../core/zen_config.dart';
 import '../../core/zen_metrics.dart';
 
-/// A widget that automatically rebuilds when any Rx value used in the builder changes
+/// The canonical Zenify reactive observer widget.
 ///
-/// This widget tracks which Rx values are accessed within its builder function
-/// and automatically rebuilds when any of those values change.
-class Obx extends StatefulWidget {
+/// Automatically rebuilds when any reactive value (`.obs()`) accessed inside
+/// [builder] changes. Tracks dependencies automatically — no manual subscription
+/// management needed.
+///
+/// Example:
+/// ```dart
+/// final count = 0.obs();
+///
+/// ZenObserver(() => Text('Count: ${count.value}'))
+/// ```
+///
+/// For multi-controller granular rebuilds use [ZenBuilder] instead.
+/// [Obx] is a deprecated alias kept for GetX migration compatibility.
+class ZenObserver extends StatefulWidget {
   final Widget Function() builder;
 
-  const Obx(this.builder, {super.key});
+  const ZenObserver(this.builder, {super.key});
 
   @override
-  State<Obx> createState() => _ObxState();
+  State<ZenObserver> createState() => _ZenObserverState();
 }
 
-class _ObxState extends State<Obx> {
+class _ZenObserverState extends State<ZenObserver> {
   // Track ValueNotifiers (Rx values) accessed in the build method
   final Set<ValueNotifier> _trackedValues = {};
 
@@ -29,7 +40,7 @@ class _ObxState extends State<Obx> {
   @override
   void initState() {
     super.initState();
-    ZenLogger.logRxTracking("Obx widget initialized");
+    ZenLogger.logRxTracking("ZenObserver widget initialized");
   }
 
   @override
@@ -50,7 +61,7 @@ class _ObxState extends State<Obx> {
       // Instead of immediately rebuilding, flag for rebuild
       _needsRebuild = true;
 
-      ZenLogger.logRxTracking("Obx widget scheduling rebuild");
+      ZenLogger.logRxTracking("ZenObserver widget scheduling rebuild");
 
       setState(() {});
     }
@@ -74,6 +85,14 @@ class _ObxState extends State<Obx> {
 
       ZenLogger.logRxTracking("Silently tracking value: ${value.runtimeType}");
     }
+  }
+
+  @override
+  void didUpdateWidget(covariant ZenObserver oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // When the parent rebuilds this widget, we must rebuild our child
+    // to capture any scope or closure changes.
+    _needsRebuild = true;
   }
 
   @override
@@ -126,27 +145,28 @@ class _ObxState extends State<Obx> {
     // Check if tracking was successful
     if (_trackedValues.isEmpty) {
       ZenLogger.logWarning(
-          "No tracked values found in Obx widget. Reactivity won't work.");
+          "No tracked values found in ZenObserver widget. Reactivity won't work.");
     }
 
     return result;
   }
 }
 
-/// Alias for [Obx] that follows Zenify naming conventions.
+/// Deprecated alias for [ZenObserver].
 ///
-/// A widget that automatically rebuilds when any reactive value (`.obs()`)
-/// used in the builder changes.
+/// This name is a GetX holdover. Migrate to [ZenObserver] in all new code.
 ///
-/// Example:
 /// ```dart
-/// final count = 0.obs();
+/// // Before
+/// Obx(() => Text(count.value.toString()))
 ///
-/// ZenObserver(() => Text('Count: $count'))
+/// // After
+/// ZenObserver(() => Text(count.value.toString()))
 /// ```
-///
-/// This is identical to [Obx] but uses the `Zen*` naming convention
-/// for consistency with other Zenify APIs.
-class ZenObserver extends Obx {
-  const ZenObserver(super.builder, {super.key});
+@Deprecated(
+  'Use ZenObserver instead. '
+  'Obx is a GetX naming holdover and will be removed in a future version.',
+)
+class Obx extends ZenObserver {
+  const Obx(super.builder, {super.key});
 }

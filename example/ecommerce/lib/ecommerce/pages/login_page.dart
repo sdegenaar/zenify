@@ -50,7 +50,7 @@ class LoginPage extends ZenView<LoginController> {
               const SizedBox(height: 32),
 
               // Form error message
-              Obx(() => controller.formError.value != null
+              ZenObserver(() => controller.formError.value != null
                   ? Container(
                       padding: const EdgeInsets.all(12),
                       margin: const EdgeInsets.only(bottom: 16),
@@ -90,7 +90,7 @@ class LoginPage extends ZenView<LoginController> {
               const SizedBox(height: 16),
 
               // Password field
-              Obx(() => TextField(
+              ZenObserver(() => TextField(
                     decoration: InputDecoration(
                       labelText: 'Password',
                       hintText: 'Enter your password',
@@ -105,7 +105,7 @@ class LoginPage extends ZenView<LoginController> {
               // Remember me checkbox
               Row(
                 children: [
-                  Obx(() => Checkbox(
+                  ZenObserver(() => Checkbox(
                         value: controller.rememberMe.value,
                         onChanged: (value) => controller.toggleRememberMe(),
                       )),
@@ -129,8 +129,8 @@ class LoginPage extends ZenView<LoginController> {
               const SizedBox(height: 24),
 
               // Login button
-              Obx(() => ElevatedButton(
-                    onPressed: controller.isLoading.value
+              ZenObserver(() => ElevatedButton(
+                    onPressed: Zen.find<LoginController>().isLoading.value
                         ? null
                         : () => _login(context),
                     style: ElevatedButton.styleFrom(
@@ -138,7 +138,7 @@ class LoginPage extends ZenView<LoginController> {
                       backgroundColor: Theme.of(context).colorScheme.primary,
                       foregroundColor: Theme.of(context).colorScheme.onPrimary,
                     ),
-                    child: controller.isLoading.value
+                    child: Zen.find<LoginController>().isLoading.value
                         ? const SizedBox(
                             height: 20,
                             width: 20,

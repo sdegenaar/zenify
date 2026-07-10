@@ -1,4 +1,8 @@
-# Zenify
+<div align="center">
+  <!-- TODO: Add a visually stunning hero banner image here: <img src="https://github.com/sdegenaar/zenify/raw/main/assets/banner.png" alt="Zenify Hero Banner"> -->
+  <h1>🧘 Zenify</h1>
+  <p><b>Hierarchical DI • Zero-Boilerplate Reactivity • Smart Async State</b></p>
+</div>
 
 [![pub package](https://img.shields.io/pub/v/zenify.svg)](https://pub.dev/packages/zenify)
 [![likes](https://img.shields.io/pub/likes/zenify?logo=dart)](https://pub.dev/packages/zenify/score)
@@ -62,7 +66,42 @@ Don't let network issues break your app. Zenify includes **robust persistence**,
 
 ## 🏗️ Understanding Scopes (The Foundation)
 
-Zenify organizes dependencies into **three hierarchical levels** with automatic lifecycle management:
+Zenify organizes dependencies into **three hierarchical levels** with automatic lifecycle management. When a parent scope is destroyed, all its children are automatically cleaned up—zero memory leaks.
+
+```mermaid
+flowchart TD
+    %% Define Styles
+    classDef root fill:#1A237E,stroke:#3949AB,stroke-width:2px,color:#fff,rx:8px
+    classDef module fill:#004D40,stroke:#00897B,stroke-width:2px,color:#fff,rx:8px
+    classDef page fill:#3E2723,stroke:#6D4C41,stroke-width:2px,color:#fff,rx:8px
+    
+    %% Nodes
+    A["🌐 RootScope<br>(App Lifetime)"]:::root
+    
+    subgraph Feature_A [Module Scope]
+        B["📦 AuthModule<br>(Feature Lifetime)"]:::module
+        C["📄 LoginPage<br>(Page Lifetime)"]:::page
+        D["📄 RegisterPage<br>(Page Lifetime)"]:::page
+    end
+    
+    subgraph Feature_B [Module Scope]
+        E["📦 CartModule<br>(Feature Lifetime)"]:::module
+        F["📄 CheckoutPage<br>(Page Lifetime)"]:::page
+    end
+
+    %% Connections
+    A -->|"Zen.find()"| B
+    A -->|"Zen.find()"| E
+    B --> C
+    B --> D
+    E --> F
+    
+    %% Auto-dispose Note
+    note["♻️ Auto-disposed when<br>navigating away"]
+    B -.- note
+    E -.- note
+```
+
 
 ### The Three Scope Levels
 
@@ -251,7 +290,30 @@ ZenObserver(() => ListView.builder(
 
 ### 3. Smart Async State (ZenQuery)
 
-React Query patterns built on the reactive system.
+React Query patterns built on the reactive system. Say goodbye to manual `isLoading` flags and `setState` calls.
+
+```mermaid
+sequenceDiagram
+    participant UI as ZenQueryBuilder
+    participant Cache as ZenQuery Cache
+    participant API as Network / DB
+    
+    UI->>Cache: 1. Request 'user:123'
+    alt Cache is Fresh
+        Cache-->>UI: 2. Return cached data immediately
+    else Cache is Stale (Stale-While-Revalidate)
+        Cache-->>UI: 2. Return stale data (UI shows instantly)
+        Cache->>API: 3. Fetch fresh data in background
+        API-->>Cache: 4. New data arrives
+        Cache-->>UI: 5. UI reactively updates
+    else Cache is Empty
+        Cache-->>UI: 2. Yield 'loading' state
+        Cache->>API: 3. Fetch data
+        API-->>Cache: 4. Data arrives
+        Cache-->>UI: 5. Yield 'data' state
+    end
+```
+
 
 **Path A — Inline (no controller needed):**
 ```dart
@@ -558,6 +620,9 @@ extensions:
 ```
 
 ### Features
+
+<!-- TODO: Insert animated GIFs here to show DevTools in action! -->
+<!-- Example: <img src="https://github.com/sdegenaar/zenify/raw/main/assets/devtools_inspector.gif" width="100%"> -->
 
 **3-Tab Inspector:**
 

@@ -35,7 +35,7 @@ class CartBadge extends StatelessWidget {
       );
     }
 
-    return Obx(() {
+    return ZenObserver(() {
       final itemCount = cartService.itemCount.value;
 
       return Stack(

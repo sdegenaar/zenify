@@ -453,13 +453,13 @@ class EffectDemoPage extends ZenView<EffectDemoController> {
             ),
           ),
           const SizedBox(width: 8),
-          Obx(() => _buildStateIndicator(
+          ZenObserver(() => _buildStateIndicator(
               'Loading', effect.isLoading.value, Colors.orange)),
           const SizedBox(width: 8),
-          Obx(() => _buildStateIndicator(
+          ZenObserver(() => _buildStateIndicator(
               'Success', effect.dataWasSet.value, Colors.green)),
           const SizedBox(width: 8),
-          Obx(() => _buildStateIndicator(
+          ZenObserver(() => _buildStateIndicator(
               'Error', effect.error.value != null, Colors.red)),
         ],
       ),

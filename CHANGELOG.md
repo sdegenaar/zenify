@@ -1,3 +1,50 @@
+## [1.11.0]
+
+### Fixed
+
+- **`ZenView` multi-instance registry** — replaced the flat `Map<Type, ZenController>` registry
+  with a **stack-based registry** (`Map<Type, List<ZenController>>`). Each `ZenView` instance
+  now pushes its controller on mount and pops on dispose. The `controller` getter uses `peek()`
+  to always return the innermost (most recently mounted) instance — analogous to Flutter's own
+  `InheritedWidget` nearest-ancestor semantics. This fixes state-bleed when navigating between
+  multiple instances of the same page type (e.g., navigating to `CartPage` twice in the back stack).
+
+- **`ZenRoute` scope unification** — `ZenRoute` previously maintained its own private
+  `_ZenScopeProvider` `InheritedWidget` alongside the canonical one in `ZenScopeWidget`. These
+  are now unified: `ZenRoute` uses the shared `ZenScopeProvider` and `context.zenScope` extension
+  from `zen_scope_widget.dart`. Eliminates a source of duplicate scope discovery logic.
+
+- **`ZenBuilder` import** — fixed import in `zen_builder.dart` which was incorrectly depending on
+  `zen_route.dart`'s private scope provider rather than the canonical `zen_scope_widget.dart`.
+
+- **`context.controller<T>()` resolution** — the `ZenViewContextExtensions.controller<T>()`
+  method previously had a redundant step that looked up the internal `_ZenViewRegistry`. Removed.
+  Resolution is now purely widget-tree-bound: nearest `ZenScope` → global `Zen.findOrNull<T>()`.
+  This makes `context.controller<T>()` 100% multi-instance safe with no global registry involved.
+
+### Removed
+
+- **`ZenScopeView`** — removed this never-published class. Its use case (a base class for
+  scope-consuming components) is fully covered by plain `StatelessWidget` +
+  `context.controller<T>()`. Removing it simplifies the public API surface.
+
+### Improved
+
+- **`ZenScopeProvider`** — moved from public export to implementation-internal. It was always
+  an implementation detail (the `InheritedWidget` backing `ZenScope`) and was never documented
+  for direct use. Users who need it can still access it via a direct import but it is no longer
+  part of the default package surface.
+
+- **README** — improved hero header and added a Mermaid scope-hierarchy diagram for clearer
+  onboarding.
+
+- **`doc/v2_architecture_design.md`** — added architectural design document capturing the
+  rationale for current V1.x fixes and the full V2 breaking-change roadmap (`ZenView` injected
+  build, `ZenConsumer<T>`, `ZenScopeWidget`-as-canonical-provider). Serves as the reference for
+  V2 development.
+
+---
+
 ## [1.10.4]
 
 ### Added

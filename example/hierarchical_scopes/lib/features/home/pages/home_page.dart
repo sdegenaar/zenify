@@ -24,7 +24,7 @@ class HomePage extends ZenView<HomeController> {
       foregroundColor: Colors.white,
       elevation: 2,
       actions: [
-        Obx(() => IconButton(
+        ZenObserver(() => IconButton(
               icon: controller.isRefreshing.value
                   ? const SizedBox(
                       width: 20,
@@ -197,7 +197,7 @@ class HomePage extends ZenView<HomeController> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Obx(() {
+                  ZenObserver(() {
                     final breadcrumbs =
                         controller.navigationService.breadcrumbs;
 

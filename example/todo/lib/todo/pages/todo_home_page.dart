@@ -37,7 +37,7 @@ class TodoHomePage extends ZenView<TodoController> {
           TodoFilterBar(controller: controller),
 
           // Status message
-          Obx(() => controller.statusMessage.value.isNotEmpty
+          ZenObserver(() => controller.statusMessage.value.isNotEmpty
               ? Container(
                   padding:
                       const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
@@ -54,7 +54,7 @@ class TodoHomePage extends ZenView<TodoController> {
 
           // Todo list
           Expanded(
-            child: Obx(() {
+            child: ZenObserver(() {
               if (controller.isLoading.value) {
                 return const Center(child: CircularProgressIndicator());
               }
@@ -141,13 +141,13 @@ class TodoHomePage extends ZenView<TodoController> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 // Todo counts
-                Obx(() => Text(
-                      '${controller.activeCount} active, ${controller.completedCount} completed',
+                ZenObserver(() => Text(
+                      '${Zen.find<TodoController>().activeCount} active, ${Zen.find<TodoController>().completedCount} completed',
                       style: Theme.of(context).textTheme.bodySmall,
                     )),
 
                 // Clear completed button
-                Obx(() => controller.completedCount > 0
+                ZenObserver(() => Zen.find<TodoController>().completedCount > 0
                     ? TextButton(
                         onPressed: () =>
                             _showClearCompletedConfirmation(context),
@@ -265,7 +265,7 @@ class TodoHomePage extends ZenView<TodoController> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Obx(() => RadioGroup<String>(
+            ZenObserver(() => RadioGroup<String>(
                   groupValue: controller.sortMode.value,
                   onChanged: (value) {
                     if (value != null) {

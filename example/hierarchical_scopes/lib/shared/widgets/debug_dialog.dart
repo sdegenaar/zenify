@@ -18,7 +18,7 @@ class _DebugDialogState extends State<DebugDialog> {
 
     try {
       // Get current scope from widget tree
-      final currentScope = context.mayFindScope();
+      final currentScope = context.zenScope;
       if (currentScope != null) {
         data['currentScopeName'] = currentScope.name ?? 'unnamed';
         data['currentScopeId'] = currentScope.id;

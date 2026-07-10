@@ -128,7 +128,7 @@ class ProductDetailPage extends ZenView<ProductDetailController> {
                     shape: BoxShape.circle,
                   ),
                   child: IconButton(
-                    icon: Obx(() => Icon(
+                    icon: ZenObserver(() => Icon(
                           controller.isFavorite.value
                               ? Icons.favorite
                               : Icons.favorite_border,
@@ -273,7 +273,7 @@ class ProductDetailPage extends ZenView<ProductDetailController> {
                             onPressed: controller.decrementQuantity,
                           ),
                           // Quantity
-                          Obx(() => Text(
+                          ZenObserver(() => Text(
                                 controller.quantity.value.toString(),
                                 style: const TextStyle(
                                   fontSize: 16,

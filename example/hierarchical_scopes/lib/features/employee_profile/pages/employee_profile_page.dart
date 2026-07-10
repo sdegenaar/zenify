@@ -28,7 +28,7 @@ class EmployeeProfilePage extends ZenView<EmployeeProfileController> {
     return AppBar(
       title: ZenBuilder<EmployeeProfileController>(
         builder: (context, controller) {
-          return Obx(() {
+          return ZenObserver(() {
             final employee = controller.employee.value;
             return Text(employee?.name ?? 'Employee Profile');
           });
@@ -138,7 +138,7 @@ class EmployeeProfilePage extends ZenView<EmployeeProfileController> {
         Expanded(
           child: ZenBuilder<EmployeeProfileController>(
             builder: (context, controller) {
-              return Obx(() {
+              return ZenObserver(() {
                 ZenLogger.logInfo(
                     'Building body - Loading: ${controller.isLoading.value}, Employee: ${controller.employee.value?.name}');
 
@@ -232,7 +232,7 @@ class EmployeeProfilePage extends ZenView<EmployeeProfileController> {
   }
 
   Widget _buildEffectIndicator(String label, ZenEffect effect) {
-    return Obx(() {
+    return ZenObserver(() {
       Color color;
       IconData icon;
 

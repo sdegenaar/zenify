@@ -581,7 +581,7 @@ void main() {
     });
   });
 
-  // v1.6.4 ZenObserver Alias Tests
+  // ZenObserver is the primary class; Obx is a deprecated alias that extends it.
   group('ZenObserver Alias Tests', () {
     testWidgets('ZenObserver should work identically to Obx',
         (WidgetTester tester) async {
@@ -620,7 +620,19 @@ void main() {
       expect(find.text('ZenObserver: 1'), findsOneWidget);
     });
 
-    testWidgets('ZenObserver should be an instance of Obx',
+    testWidgets('Obx should be an instance of ZenObserver (backwards compat)',
+        (WidgetTester tester) async {
+      final controller = ReactiveController();
+      Zen.put(controller);
+
+      // ignore: deprecated_member_use
+      final obx = Obx(() => Text('${controller.counter.value}'));
+
+      // Obx is a deprecated subtype of ZenObserver — confirm the relationship
+      expect(obx, isA<ZenObserver>());
+    });
+
+    testWidgets('ZenObserver should be a ZenObserver (primary class)',
         (WidgetTester tester) async {
       final controller = ReactiveController();
       Zen.put(controller);
@@ -628,8 +640,8 @@ void main() {
       final zenObserver =
           ZenObserver(() => Text('${controller.counter.value}'));
 
-      // ZenObserver should be an Obx
-      expect(zenObserver, isA<Obx>());
+      // ZenObserver is the primary canonical class
+      expect(zenObserver, isA<ZenObserver>());
     });
   });
 }

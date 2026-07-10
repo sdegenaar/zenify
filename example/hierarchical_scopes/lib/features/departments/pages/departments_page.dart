@@ -284,7 +284,7 @@ class DepartmentsPage extends ZenView<DepartmentsController> {
   }
 
   Widget _buildEffectIndicator(String label, ZenEffect effect) {
-    return Obx(() {
+    return ZenObserver(() {
       Color color;
       IconData icon;
 

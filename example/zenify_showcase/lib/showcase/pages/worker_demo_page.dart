@@ -31,7 +31,7 @@ class WorkerDemoPage extends ZenView<WorkerDemoController> {
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     children: [
-                      Obx(() => Text(
+                      ZenObserver(() => Text(
                             '${controller.counter.value}',
                             style: Theme.of(context)
                                 .textTheme
@@ -80,31 +80,31 @@ class WorkerDemoPage extends ZenView<WorkerDemoController> {
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     children: [
-                      Obx(() => _buildWorkerStats(
+                      ZenObserver(() => _buildWorkerStats(
                           'Ever Worker',
                           controller.everCount.value,
                           'Fires on every change',
                           Colors.blue)),
                       const SizedBox(height: 12),
-                      Obx(() => _buildWorkerStats(
+                      ZenObserver(() => _buildWorkerStats(
                           'Debounce Worker',
                           controller.debounceCount.value,
                           'Waits 500ms after last change',
                           Colors.orange)),
                       const SizedBox(height: 12),
-                      Obx(() => _buildWorkerStats(
+                      ZenObserver(() => _buildWorkerStats(
                           'Throttle Worker',
                           controller.throttleCount.value,
                           'Max once per 1000ms',
                           Colors.purple)),
                       const SizedBox(height: 12),
-                      Obx(() => _buildWorkerStats(
+                      ZenObserver(() => _buildWorkerStats(
                           'Once Worker',
                           controller.onceCount.value,
                           'Fires only once then stops',
                           Colors.green)),
                       const SizedBox(height: 12),
-                      Obx(() => _buildWorkerStats(
+                      ZenObserver(() => _buildWorkerStats(
                           'Condition Worker',
                           controller.conditionCount.value,
                           'Only when counter is even',
@@ -126,7 +126,7 @@ class WorkerDemoPage extends ZenView<WorkerDemoController> {
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     children: [
-                      Obx(() => Container(
+                      ZenObserver(() => Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
                               color: Colors.blue.shade50,
@@ -166,7 +166,7 @@ class WorkerDemoPage extends ZenView<WorkerDemoController> {
                         ],
                       ),
                       const SizedBox(height: 12),
-                      Obx(() => Text(
+                      ZenObserver(() => Text(
                             'String worker fired ${controller.stringWorkerCount.value} times',
                             style: TextStyle(
                               color: Colors.grey.shade600,
@@ -190,7 +190,7 @@ class WorkerDemoPage extends ZenView<WorkerDemoController> {
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     children: [
-                      Obx(() => Container(
+                      ZenObserver(() => Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
                               color: Colors.green.shade50,
@@ -262,7 +262,7 @@ class WorkerDemoPage extends ZenView<WorkerDemoController> {
                         ],
                       ),
                       const SizedBox(height: 12),
-                      Obx(() => Text(
+                      ZenObserver(() => Text(
                             'List worker fired ${controller.listWorkerCount.value} times',
                             style: TextStyle(
                               color: Colors.grey.shade600,

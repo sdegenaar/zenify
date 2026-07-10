@@ -27,7 +27,7 @@ class ReactiveDemoPage extends ZenView<ReactiveDemoController> {
               title: 'Basic Reactive Values',
               child: Column(
                 children: [
-                  // Counter with Obx
+                  // Counter with ZenObserver
                   Card(
                     child: Padding(
                       padding: const EdgeInsets.all(16),
@@ -38,7 +38,7 @@ class ReactiveDemoPage extends ZenView<ReactiveDemoController> {
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                           const SizedBox(height: 16),
-                          Obx(() => Text(
+                          ZenObserver(() => Text(
                                 '${controller.counter.value}',
                                 style: Theme.of(context)
                                     .textTheme
@@ -83,7 +83,7 @@ class ReactiveDemoPage extends ZenView<ReactiveDemoController> {
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                           const SizedBox(height: 16),
-                          Obx(() => Container(
+                          ZenObserver(() => Container(
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
                                   color: Colors.blue.shade50,
@@ -127,7 +127,7 @@ class ReactiveDemoPage extends ZenView<ReactiveDemoController> {
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                           const SizedBox(height: 16),
-                          Obx(() => Column(
+                          ZenObserver(() => Column(
                                 children: controller.items
                                     .map(
                                       (item) => Card(
@@ -185,20 +185,20 @@ class ReactiveDemoPage extends ZenView<ReactiveDemoController> {
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                           const SizedBox(height: 16),
-                          Obx(() => SwitchListTile(
+                          ZenObserver(() => SwitchListTile(
                                 title: const Text('Feature A'),
                                 value: controller.featureA.value,
                                 onChanged: (value) =>
                                     controller.featureA.value = value,
                               )),
-                          Obx(() => SwitchListTile(
+                          ZenObserver(() => SwitchListTile(
                                 title: const Text('Feature B'),
                                 value: controller.featureB.value,
                                 onChanged: (value) =>
                                     controller.featureB.value = value,
                               )),
                           const SizedBox(height: 16),
-                          Obx(() => Container(
+                          ZenObserver(() => Container(
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
                                   color: controller.bothFeaturesEnabled

@@ -76,7 +76,7 @@ class StreamQueryPage extends ZenView<StreamQueryController> {
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
-        Obx(() {
+        ZenObserver(() {
           final streamQuery = controller.notificationStream;
 
           if (streamQuery.isLoading.value) {
@@ -186,7 +186,7 @@ class StreamQueryPage extends ZenView<StreamQueryController> {
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
-        Obx(() {
+        ZenObserver(() {
           final streamQuery = controller.activeUsersStream;
 
           return Card(
@@ -247,7 +247,7 @@ class StreamQueryPage extends ZenView<StreamQueryController> {
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
-        Obx(() {
+        ZenObserver(() {
           final streamQuery = controller.postUpdatesStream;
 
           return Card(
@@ -331,7 +331,7 @@ class StreamQueryPage extends ZenView<StreamQueryController> {
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
-            Obx(() {
+            ZenObserver(() {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -370,7 +370,7 @@ class StreamQueryPage extends ZenView<StreamQueryController> {
               );
             }),
             const SizedBox(height: 12),
-            Obx(() {
+            ZenObserver(() {
               return Text(
                 controller.isSubscribed.value
                     ? '✓ All streams active'

@@ -70,7 +70,7 @@ class InfiniteQueryPage extends ZenView<InfiniteQueryController> {
 
         return RefreshIndicator(
           onRefresh: () => controller.infiniteQuery.refetch(),
-          child: Obx(() {
+          child: ZenObserver(() {
             return CustomScrollView(
               controller: controller.scrollController,
               slivers: [

@@ -37,7 +37,7 @@ class TodoDetailPage extends ZenView<TodoDetailController> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Obx(() =>
+          title: ZenObserver(() =>
               Text(controller.isEditMode.value ? 'Edit Todo' : 'Create Todo')),
           backgroundColor: Theme.of(context).colorScheme.primaryContainer,
           // Override the back button to ensure cleanup
@@ -51,7 +51,7 @@ class TodoDetailPage extends ZenView<TodoDetailController> {
           ),
           actions: [
             // Reset button for create mode
-            Obx(() => !controller.isEditMode.value &&
+            ZenObserver(() => !controller.isEditMode.value &&
                     (controller.title.value.isNotEmpty ||
                         controller.notes.value.isNotEmpty ||
                         controller.priority.value != 2 ||
@@ -77,7 +77,7 @@ class TodoDetailPage extends ZenView<TodoDetailController> {
               // Title field
               _buildSectionLabel('Title'),
               const SizedBox(height: 8),
-              Obx(() => TextField(
+              ZenObserver(() => TextField(
                     controller:
                         TextEditingController(text: controller.title.value)
                           ..selection = TextSelection.fromPosition(
@@ -103,7 +103,7 @@ class TodoDetailPage extends ZenView<TodoDetailController> {
               // Priority selection
               _buildSectionLabel('Priority'),
               const SizedBox(height: 8),
-              Obx(() => Card(
+              ZenObserver(() => Card(
                     child: Padding(
                       padding: const EdgeInsets.all(8),
                       child: SegmentedButton<int>(
@@ -140,7 +140,7 @@ class TodoDetailPage extends ZenView<TodoDetailController> {
               // Due date selection
               _buildSectionLabel('Due Date (Optional)'),
               const SizedBox(height: 8),
-              Obx(() => Card(
+              ZenObserver(() => Card(
                     child: ListTile(
                       leading: const Icon(Icons.calendar_today),
                       title: Text(
@@ -169,7 +169,7 @@ class TodoDetailPage extends ZenView<TodoDetailController> {
               // Notes field
               _buildSectionLabel('Notes (Optional)'),
               const SizedBox(height: 8),
-              Obx(() => TextField(
+              ZenObserver(() => TextField(
                     controller:
                         TextEditingController(text: controller.notes.value)
                           ..selection = TextSelection.fromPosition(
@@ -189,7 +189,7 @@ class TodoDetailPage extends ZenView<TodoDetailController> {
               const SizedBox(height: 32),
 
               // Form validation summary (helpful feedback)
-              Obx(() => !controller.isValid
+              ZenObserver(() => !controller.isValid
                   ? Container(
                       padding: const EdgeInsets.all(12),
                       margin: const EdgeInsets.only(bottom: 16),
@@ -215,7 +215,7 @@ class TodoDetailPage extends ZenView<TodoDetailController> {
               // Save button
               SizedBox(
                 width: double.infinity,
-                child: Obx(() => ElevatedButton(
+                child: ZenObserver(() => ElevatedButton(
                       onPressed:
                           controller.isValid ? () => _saveTodo(context) : null,
                       style: ElevatedButton.styleFrom(

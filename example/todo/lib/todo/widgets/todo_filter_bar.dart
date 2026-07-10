@@ -19,7 +19,7 @@ class TodoFilterBar extends StatelessWidget {
       child: Column(
         children: [
           // Search indicator
-          Obx(() => controller.searchQuery.value.isNotEmpty
+          ZenObserver(() => controller.searchQuery.value.isNotEmpty
               ? Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(vertical: 4),
@@ -50,7 +50,7 @@ class TodoFilterBar extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               Expanded(
-                child: Obx(() => _buildFilterButton(
+                child: ZenObserver(() => _buildFilterButton(
                       context,
                       label: 'All',
                       value: 'all',
@@ -59,7 +59,7 @@ class TodoFilterBar extends StatelessWidget {
                     )),
               ),
               Expanded(
-                child: Obx(() => _buildFilterButton(
+                child: ZenObserver(() => _buildFilterButton(
                       context,
                       label: 'Active',
                       value: 'active',
@@ -68,7 +68,7 @@ class TodoFilterBar extends StatelessWidget {
                     )),
               ),
               Expanded(
-                child: Obx(() => _buildFilterButton(
+                child: ZenObserver(() => _buildFilterButton(
                       context,
                       label: 'Completed',
                       value: 'completed',
@@ -80,7 +80,7 @@ class TodoFilterBar extends StatelessWidget {
           ),
 
           // Sort indicator
-          Obx(() => Padding(
+          ZenObserver(() => Padding(
                 padding: const EdgeInsets.only(top: 4),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,

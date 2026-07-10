@@ -17,7 +17,7 @@ class CartPage extends ZenView<CartController> {
         title: const Text('Shopping Cart'),
         actions: [
           // Clear cart button
-          Obx(() => controller.isEmpty
+          ZenObserver(() => controller.isEmpty
               ? const SizedBox.shrink()
               : IconButton(
                   icon: const Icon(Icons.delete_outline),
@@ -26,8 +26,8 @@ class CartPage extends ZenView<CartController> {
                 )),
         ],
       ),
-      body: Obx(() {
-        // Use Obx to make this reactive to cart changes
+      body: ZenObserver(() {
+        // Use ZenObserver to make this reactive to cart changes
         if (controller.isEmpty) {
           return _buildEmptyCart(context);
         }
@@ -275,7 +275,7 @@ class CartPage extends ZenView<CartController> {
                 'Subtotal',
                 style: TextStyle(fontSize: 16),
               ),
-              Obx(() => Text(
+              ZenObserver(() => Text(
                     '\$${controller.totalPrice.toStringAsFixed(2)}',
                     style: const TextStyle(
                       fontSize: 16,
@@ -313,7 +313,7 @@ class CartPage extends ZenView<CartController> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              Obx(() => Text(
+              ZenObserver(() => Text(
                     '\$${controller.totalPrice.toStringAsFixed(2)}',
                     style: TextStyle(
                       fontSize: 18,
@@ -328,7 +328,7 @@ class CartPage extends ZenView<CartController> {
           // Checkout button
           SizedBox(
             width: double.infinity,
-            child: Obx(() => ElevatedButton(
+            child: ZenObserver(() => ElevatedButton(
                   onPressed: controller.isProcessingCheckout.value
                       ? null
                       : () => _processCheckout(context),

@@ -172,7 +172,7 @@ class MutationPage extends ZenView<MutationController> {
               maxLines: 3,
             ),
             const SizedBox(height: 12),
-            Obx(() {
+            ZenObserver(() {
               return ElevatedButton.icon(
                 onPressed: controller.createMutation.isLoading.value
                     ? null
@@ -191,7 +191,7 @@ class MutationPage extends ZenView<MutationController> {
                 ),
               );
             }),
-            Obx(() {
+            ZenObserver(() {
               if (controller.createMutation.isError) {
                 return Padding(
                   padding: const EdgeInsets.only(top: 8),
@@ -244,7 +244,7 @@ class MutationPage extends ZenView<MutationController> {
               ),
             ),
             const SizedBox(height: 12),
-            Obx(() {
+            ZenObserver(() {
               return ElevatedButton.icon(
                 onPressed: controller.updateMutation.isLoading.value
                     ? null
@@ -286,7 +286,7 @@ class MutationPage extends ZenView<MutationController> {
               style: TextStyle(fontSize: 12, color: Colors.grey),
             ),
             const SizedBox(height: 12),
-            Obx(() {
+            ZenObserver(() {
               return ElevatedButton.icon(
                 onPressed: controller.deleteMutation.isLoading.value
                     ? null
@@ -332,7 +332,7 @@ class MutationPage extends ZenView<MutationController> {
               style: TextStyle(fontSize: 12, color: Colors.grey),
             ),
             const SizedBox(height: 12),
-            Obx(() {
+            ZenObserver(() {
               return ElevatedButton.icon(
                 onPressed: controller.likeMutation.isLoading.value
                     ? null
@@ -365,7 +365,7 @@ class MutationPage extends ZenView<MutationController> {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Obx(() {
+        child: ZenObserver(() {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

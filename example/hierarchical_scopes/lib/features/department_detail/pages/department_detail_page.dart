@@ -28,7 +28,7 @@ class DepartmentDetailPage extends ZenView<DepartmentDetailController> {
     return AppBar(
       title: ZenBuilder<DepartmentDetailController>(
         builder: (context, controller) {
-          return Obx(() {
+          return ZenObserver(() {
             final department = controller.department.value;
             return Text(department?.name ?? 'Department Details');
           });
@@ -138,7 +138,7 @@ class DepartmentDetailPage extends ZenView<DepartmentDetailController> {
         Expanded(
           child: ZenBuilder<DepartmentDetailController>(
             builder: (context, controller) {
-              return Obx(() {
+              return ZenObserver(() {
                 if (controller.isLoading.value) {
                   return const Center(
                     child: Column(
@@ -216,7 +216,7 @@ class DepartmentDetailPage extends ZenView<DepartmentDetailController> {
   }
 
   Widget _buildEffectIndicator(String label, ZenEffect effect) {
-    return Obx(() {
+    return ZenObserver(() {
       Color color;
       IconData icon;
 

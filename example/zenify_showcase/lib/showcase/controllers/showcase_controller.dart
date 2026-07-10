@@ -27,7 +27,7 @@ class ShowcaseController extends ZenController {
       route: '/reactive',
       color: 0xFF2196F3, // Blue
       description:
-          'Learn about reactive programming with Obx, Observable values, and computed properties.',
+          'Learn about reactive programming with ZenObserver, Observable values, and computed properties.',
     ),
     DemoPageInfo(
       title: 'Effects',
@@ -48,13 +48,13 @@ class ShowcaseController extends ZenController {
           'Handle reactive events with ever, debounce, throttle, and condition workers.',
     ),
     DemoPageInfo(
-      title: 'Obx Reactivity',
+      title: 'ZenObserver Reactivity',
       subtitle: 'Granular UI Updates',
       icon: 'obx',
       route: '/obx',
       color: 0xFFFF9800, // Orange
       description:
-          'Optimize performance with granular reactive UI updates using Obx.',
+          'Optimize performance with granular reactive UI updates using ZenObserver.',
     ),
     DemoPageInfo(
       title: 'ZenBuilder',

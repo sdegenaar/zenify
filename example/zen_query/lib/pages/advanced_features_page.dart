@@ -94,7 +94,7 @@ class AdvancedFeaturesPage extends ZenView<AdvancedFeaturesController> {
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
-                Obx(() {
+                ZenObserver(() {
                   final user = controller.userQuery.data.value;
                   if (user == null) {
                     return const CircularProgressIndicator();
@@ -115,7 +115,7 @@ class AdvancedFeaturesPage extends ZenView<AdvancedFeaturesController> {
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
-                Obx(() {
+                ZenObserver(() {
                   final email = controller.userEmailQuery.data.value;
                   if (email == null) {
                     return const CircularProgressIndicator();
@@ -168,7 +168,7 @@ class AdvancedFeaturesPage extends ZenView<AdvancedFeaturesController> {
                   children: [
                     const Text('Step 1: ',
                         style: TextStyle(fontWeight: FontWeight.bold)),
-                    Obx(() {
+                    ZenObserver(() {
                       final user = controller.userQuery.data.value;
                       if (user == null) {
                         return const Text('Loading user...');
@@ -176,7 +176,7 @@ class AdvancedFeaturesPage extends ZenView<AdvancedFeaturesController> {
                       return Text('User loaded (ID: ${user.id})');
                     }),
                     const SizedBox(width: 8),
-                    Obx(() => Icon(
+                    ZenObserver(() => Icon(
                           controller.userQuery.hasData
                               ? Icons.check_circle
                               : Icons.pending,
@@ -192,7 +192,7 @@ class AdvancedFeaturesPage extends ZenView<AdvancedFeaturesController> {
                   children: [
                     const Text('Step 2: ',
                         style: TextStyle(fontWeight: FontWeight.bold)),
-                    Obx(() {
+                    ZenObserver(() {
                       if (!controller.userQuery.hasData) {
                         return const Text('Waiting for user...');
                       }
@@ -203,7 +203,7 @@ class AdvancedFeaturesPage extends ZenView<AdvancedFeaturesController> {
                           'Posts loaded (${controller.userPostsQuery.data.value?.length ?? 0} posts)');
                     }),
                     const SizedBox(width: 8),
-                    Obx(() => Icon(
+                    ZenObserver(() => Icon(
                           controller.userPostsQuery.hasData
                               ? Icons.check_circle
                               : Icons.pending,
@@ -215,7 +215,7 @@ class AdvancedFeaturesPage extends ZenView<AdvancedFeaturesController> {
                   ],
                 ),
                 const SizedBox(height: 12),
-                Obx(() {
+                ZenObserver(() {
                   if (!controller.userPostsQuery.hasData) {
                     return const SizedBox.shrink();
                   }
@@ -263,7 +263,7 @@ class AdvancedFeaturesPage extends ZenView<AdvancedFeaturesController> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Obx(() {
+                ZenObserver(() {
                   return SwitchListTile(
                     title: const Text('Enable Search Query'),
                     subtitle: Text(
@@ -286,7 +286,7 @@ class AdvancedFeaturesPage extends ZenView<AdvancedFeaturesController> {
                   onChanged: controller.onSearchChanged,
                 ),
                 const SizedBox(height: 12),
-                Obx(() {
+                ZenObserver(() {
                   if (!controller.searchEnabled.value) {
                     return const Center(
                       child: Text(
@@ -362,7 +362,7 @@ class AdvancedFeaturesPage extends ZenView<AdvancedFeaturesController> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Obx(() {
+                ZenObserver(() {
                   final query = controller.slowQuery;
                   return Column(
                     children: [
@@ -452,7 +452,7 @@ class AdvancedFeaturesPage extends ZenView<AdvancedFeaturesController> {
                   style: TextStyle(fontSize: 14),
                 ),
                 const SizedBox(height: 12),
-                Obx(() {
+                ZenObserver(() {
                   return Text(
                     'Fetch Count: ${controller.fetchCount.value}',
                     style: const TextStyle(
@@ -466,7 +466,7 @@ class AdvancedFeaturesPage extends ZenView<AdvancedFeaturesController> {
                   label: const Text('Fetch 5 Times Simultaneously'),
                 ),
                 const SizedBox(height: 8),
-                Obx(() {
+                ZenObserver(() {
                   if (controller.dedupeQuery.isLoading.value) {
                     return const Center(
                       child: Column(

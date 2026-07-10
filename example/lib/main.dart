@@ -51,7 +51,7 @@ class CounterPage extends ZenView<CounterController> {
             const Text(
               'You have pushed the button this many times:',
             ),
-            Obx(() => Text(
+            ZenObserver(() => Text(
                   '${controller.count.value}',
                   style: Theme.of(context).textTheme.headlineMedium,
                 )),

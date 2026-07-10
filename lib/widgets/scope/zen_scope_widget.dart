@@ -70,8 +70,8 @@ class ZenScopeWidget extends StatefulWidget {
   ///
   /// Returns the scope or throws an exception if none is found.
   static ZenScope of(BuildContext context) {
-    final _ZenScopeProvider? provider =
-        context.dependOnInheritedWidgetOfExactType<_ZenScopeProvider>();
+    final ZenScopeProvider? provider =
+        context.dependOnInheritedWidgetOfExactType<ZenScopeProvider>();
     if (provider == null) {
       throw ZenScopeNotFoundException(widgetType: 'ZenScopeWidget');
     }
@@ -83,7 +83,7 @@ class ZenScopeWidget extends StatefulWidget {
   /// Returns the scope or null if none is found.
   static ZenScope? maybeOf(BuildContext context) {
     return context
-        .dependOnInheritedWidgetOfExactType<_ZenScopeProvider>()
+        .dependOnInheritedWidgetOfExactType<ZenScopeProvider>()
         ?.scope;
   }
 
@@ -229,7 +229,7 @@ class _ZenScopeWidgetState extends State<ZenScopeWidget> {
       return const SizedBox.shrink();
     }
 
-    return _ZenScopeProvider(
+    return ZenScopeProvider(
       scope: _scope,
       child: widget.child,
     );
@@ -240,17 +240,23 @@ class _ZenScopeWidgetState extends State<ZenScopeWidget> {
 ///
 /// This is the core mechanism for hierarchical scope discovery.
 /// Widgets can access their nearest ancestor scope using:
-/// `context.dependOnInheritedWidgetOfExactType<_ZenScopeProvider>()`.
-class _ZenScopeProvider extends InheritedWidget {
+/// `context.dependOnInheritedWidgetOfExactType<ZenScopeProvider>()`.
+///
+/// > **Note:** Although this class is public (required for cross-file
+/// > internal usage within Zenify), it is **not part of the stable
+/// > public API**. Use `context.zenScope` / `context.zenScopeRequired` instead.
+/// > It is intentionally hidden from all public barrel exports.
+class ZenScopeProvider extends InheritedWidget {
   final ZenScope scope;
 
-  const _ZenScopeProvider({
+  const ZenScopeProvider({
+    super.key,
     required this.scope,
     required super.child,
   });
 
   @override
-  bool updateShouldNotify(_ZenScopeProvider oldWidget) {
+  bool updateShouldNotify(ZenScopeProvider oldWidget) {
     // Only notify if the scope instance changed
     return scope != oldWidget.scope;
   }
@@ -258,21 +264,54 @@ class _ZenScopeProvider extends InheritedWidget {
 
 /// Extension methods for BuildContext to find a [ZenScope].
 extension ZenScopeExtension on BuildContext {
+  /// Gets the current ZenScope from the widget tree, or returns null if none is found.
+  ZenScope? get zenScope {
+    final provider = dependOnInheritedWidgetOfExactType<ZenScopeProvider>();
+    return provider?.scope;
+  }
+
+  /// Gets the current ZenScope from the widget tree (throws if not found)
+  ZenScope get zenScopeRequired {
+    final scope = zenScope;
+    if (scope == null) {
+      throw ZenScopeNotFoundException(widgetType: 'ZenScopeWidget');
+    }
+    return scope;
+  }
+
   /// Finds the nearest [ZenScope] above this context.
   ///
   /// This method will look up the widget tree and return the [ZenScope]
   /// provided by the nearest [ZenScopeWidget] ancestor.
   ///
   /// Throws an exception if no [ZenScope] is found.
-  ZenScope findScope() {
-    return ZenScopeWidget.of(this);
-  }
+  @Deprecated('Use zenScopeRequired instead')
+  ZenScope findScope() => zenScopeRequired;
 
   /// Finds the nearest [ZenScope] above this context, or returns null if none is found.
   ///
   /// Similar to [findScope], but returns null instead of throwing an exception
   /// if no scope is found.
-  ZenScope? mayFindScope() {
-    return ZenScopeWidget.maybeOf(this);
+  @Deprecated('Use zenScope instead')
+  ZenScope? mayFindScope() => zenScope;
+
+  /// Finds a dependency in the current scope
+  T findInScope<T>({String? tag}) {
+    final scope = zenScopeRequired;
+    final result = scope.find<T>(tag: tag);
+    if (result == null) {
+      throw ZenDependencyNotFoundException(
+        typeName: T.toString(),
+        scopeName: scope.name ?? 'UnnamedScope',
+        tag: tag,
+      );
+    }
+    return result;
+  }
+
+  /// Finds a dependency in the current scope, returning null if not found
+  T? findInScopeOrNull<T>({String? tag}) {
+    final scope = zenScope;
+    return scope?.find<T>(tag: tag);
   }
 }

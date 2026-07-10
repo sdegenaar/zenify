@@ -29,7 +29,7 @@ class HierarchyInfoCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            Obx(() {
+            ZenObserver(() {
               final stats = controller.hierarchyStats.value;
               final lastUpdated =
                   stats['lastUpdated'] as String? ?? 'Not available';

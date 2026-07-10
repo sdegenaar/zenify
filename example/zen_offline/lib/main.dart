@@ -181,7 +181,7 @@ class FeedPage extends ZenView<FeedController> {
                             },
                           ),
                           const SizedBox(width: 12),
-                          Obx(
+                          ZenObserver(
                             () => Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [

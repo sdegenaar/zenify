@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/core.dart';
-import '../../core/zen_exception.dart';
+
+import '../scope/zen_scope_widget.dart';
 import '../../di/zen_di.dart';
 
 /// Route-scoped dependency injection widget
@@ -107,7 +108,7 @@ class _ZenRouteState extends State<ZenRoute> {
           'ZenRoute_${widget.page.runtimeType}_${widget.page.hashCode.abs()}';
 
       // Step 2: Auto-discover parent scope from widget tree
-      final parentFromTree = _ZenScopeProvider.maybeOf(context);
+      final parentFromTree = context.zenScope;
 
       // STRATEGY: Hybrid Discovery
       // 1. Prefer explicit parent (if passed)
@@ -233,7 +234,7 @@ class _ZenRouteState extends State<ZenRoute> {
     }
 
     // Success state - provide scope to child widget via InheritedWidget
-    return _ZenScopeProvider(
+    return ZenScopeProvider(
       scope: _scope!,
       child: widget.page,
     );
@@ -293,73 +294,5 @@ class _ZenRouteState extends State<ZenRoute> {
     );
 
     return hasScaffold ? content : Scaffold(body: content);
-  }
-}
-
-/// InheritedWidget that provides ZenScope access to descendant widgets
-///
-/// This is the mechanism that enables hierarchical scope discovery.
-/// Child widgets can access their nearest ancestor scope using
-/// `_ZenScopeProvider.maybeOf(context)`.
-class _ZenScopeProvider extends InheritedWidget {
-  final ZenScope scope;
-
-  const _ZenScopeProvider({
-    required this.scope,
-    required super.child,
-  });
-
-  @override
-  bool updateShouldNotify(_ZenScopeProvider oldWidget) {
-    // Only notify if the scope instance changed
-    return scope != oldWidget.scope;
-  }
-
-  /// Find the nearest ZenScope from the widget tree
-  static ZenScope? maybeOf(BuildContext context) {
-    final provider =
-        context.dependOnInheritedWidgetOfExactType<_ZenScopeProvider>();
-    return provider?.scope;
-  }
-
-  /// Find the nearest ZenScope from the widget tree (throws if not found)
-  static ZenScope of(BuildContext context) {
-    final scope = maybeOf(context);
-    if (scope == null) {
-      throw ZenScopeNotFoundException(widgetType: 'ZenRoute');
-    }
-    return scope;
-  }
-}
-
-/// Extension methods for convenient scope access from BuildContext
-extension ZenRouteExtensions on BuildContext {
-  /// Gets the current ZenScope from the widget tree
-  ZenScope? get zenScope => _ZenScopeProvider.maybeOf(this);
-
-  /// Gets the current ZenScope from the widget tree (throws if not found)
-  ZenScope get zenScopeRequired => _ZenScopeProvider.of(this);
-
-  /// Finds a dependency in the current scope
-  T findInScope<T>({String? tag}) {
-    final scope = zenScope;
-    if (scope == null) {
-      throw ZenScopeNotFoundException(widgetType: 'ZenRoute');
-    }
-    final result = scope.find<T>(tag: tag);
-    if (result == null) {
-      throw ZenDependencyNotFoundException(
-        typeName: T.toString(),
-        scopeName: scope.name ?? 'UnnamedScope',
-        tag: tag,
-      );
-    }
-    return result;
-  }
-
-  /// Finds a dependency in the current scope, returning null if not found
-  T? findInScopeOrNull<T>({String? tag}) {
-    final scope = zenScope;
-    return scope?.find<T>(tag: tag);
   }
 }

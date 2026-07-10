@@ -305,7 +305,7 @@ class QueryBasicsPage extends ZenView<QueryBasicsController> {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Obx(() {
+        child: ZenObserver(() {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

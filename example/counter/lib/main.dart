@@ -478,7 +478,7 @@ class CounterPage extends ZenView<CounterController> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
           // Auto-save toggle
-          Obx(() => IconButton(
+          ZenObserver(() => IconButton(
                 onPressed: controller.toggleAutoSave,
                 icon: Icon(
                   controller.isAutoSaveEnabled.value
@@ -517,7 +517,7 @@ class CounterPage extends ZenView<CounterController> {
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 12),
-                    Obx(() => Row(
+                    ZenObserver(() => Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
                             Chip(
@@ -528,7 +528,7 @@ class CounterPage extends ZenView<CounterController> {
                                       ? Colors.green.shade100
                                       : Colors.grey.shade100,
                             ),
-                            Obx(() => Chip(
+                            ZenObserver(() => Chip(
                                   label: Text(
                                       'Device: ${controller.deviceStorageStatus.value}'),
                                   backgroundColor: controller
@@ -569,7 +569,7 @@ class CounterPage extends ZenView<CounterController> {
                       padding: const EdgeInsets.all(16.0),
                       child: Column(
                         children: [
-                          Obx(() => Row(
+                          ZenObserver(() => Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
@@ -581,7 +581,7 @@ class CounterPage extends ZenView<CounterController> {
                                 ],
                               )),
                           const SizedBox(height: 8),
-                          Obx(() => Row(
+                          ZenObserver(() => Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
@@ -594,7 +594,7 @@ class CounterPage extends ZenView<CounterController> {
                                 ],
                               )),
                           const SizedBox(height: 8),
-                          Obx(() => Row(
+                          ZenObserver(() => Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
@@ -629,7 +629,7 @@ class CounterPage extends ZenView<CounterController> {
               const SizedBox(height: 24),
             ],
 
-            // Reactive UI Section (Obx demonstration)
+            // Reactive UI Section (ZenObserver demonstration)
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(20.0),
@@ -641,7 +641,7 @@ class CounterPage extends ZenView<CounterController> {
                             color: Theme.of(context).primaryColor),
                         const SizedBox(width: 8),
                         const Text(
-                          'Reactive Counter (Obx Pattern)',
+                          'Reactive Counter (ZenObserver Pattern)',
                           style: TextStyle(
                               fontSize: 18, fontWeight: FontWeight.bold),
                         ),
@@ -650,7 +650,7 @@ class CounterPage extends ZenView<CounterController> {
                     const SizedBox(height: 20),
 
                     // Enhanced counter display with animation
-                    Obx(() => AnimatedContainer(
+                    ZenObserver(() => AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
@@ -679,7 +679,7 @@ class CounterPage extends ZenView<CounterController> {
                     const SizedBox(height: 12),
 
                     // Enhanced status display
-                    Obx(() => Container(
+                    ZenObserver(() => Container(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 8),
                           decoration: BoxDecoration(
@@ -1040,7 +1040,7 @@ class CounterPage extends ZenView<CounterController> {
                     const SizedBox(height: 20),
 
                     // Device storage status
-                    Obx(() => Container(
+                    ZenObserver(() => Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
                             color: Colors.amber.shade100,

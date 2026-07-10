@@ -59,7 +59,7 @@ class ShowcaseHomePage extends StatelessWidget {
               delegate: SliverChildListDelegate([
                 FeatureCard(
                   title: 'Reactive State',
-                  subtitle: 'Obx & Observable Values',
+                  subtitle: 'ZenObserver & Observable Values',
                   icon: Icons.refresh,
                   color: Colors.blue,
                   onTap: () => _navigateTo(context, const ReactiveDemoPage()),
@@ -79,7 +79,7 @@ class ShowcaseHomePage extends StatelessWidget {
                   onTap: () => _navigateTo(context, const WorkerDemoPage()),
                 ),
                 FeatureCard(
-                  title: 'Obx Widget',
+                  title: 'ZenObserver Widget',
                   subtitle: 'Granular Reactivity',
                   icon: Icons.visibility,
                   color: Colors.orange,

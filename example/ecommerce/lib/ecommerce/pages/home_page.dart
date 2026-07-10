@@ -35,7 +35,7 @@ class HomePage extends ZenView<HomeController> {
 
           // Product grid
           Expanded(
-            child: Obx(() {
+            child: ZenObserver(() {
               if (controller.isLoading.value) {
                 return const Center(child: CircularProgressIndicator());
               }
@@ -93,7 +93,7 @@ class HomePage extends ZenView<HomeController> {
   }
 
   Widget _buildCategoryFilter() {
-    return Obx(() {
+    return ZenObserver(() {
       if (controller.categories.isEmpty) {
         return const SizedBox.shrink();
       }
@@ -110,7 +110,7 @@ class HomePage extends ZenView<HomeController> {
 
             return Padding(
               padding: const EdgeInsets.only(right: 8),
-              child: Obx(() {
+              child: ZenObserver(() {
                 final isSelected =
                     category == controller.selectedCategory.value;
 

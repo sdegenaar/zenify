@@ -50,7 +50,7 @@ class RegisterPage extends ZenView<RegisterController> {
               const SizedBox(height: 32),
 
               // Form error message
-              Obx(() => controller.formError.value != null
+              ZenObserver(() => controller.formError.value != null
                   ? Container(
                       padding: const EdgeInsets.all(12),
                       margin: const EdgeInsets.only(bottom: 16),
@@ -75,7 +75,7 @@ class RegisterPage extends ZenView<RegisterController> {
                   : const SizedBox.shrink()),
 
               // Name field
-              Obx(() => TextField(
+              ZenObserver(() => TextField(
                     decoration: InputDecoration(
                       labelText: 'Full Name',
                       hintText: 'Enter your full name',
@@ -90,7 +90,7 @@ class RegisterPage extends ZenView<RegisterController> {
               const SizedBox(height: 16),
 
               // Email field
-              Obx(() => TextField(
+              ZenObserver(() => TextField(
                     decoration: InputDecoration(
                       labelText: 'Email',
                       hintText: 'Enter your email',
@@ -105,7 +105,7 @@ class RegisterPage extends ZenView<RegisterController> {
               const SizedBox(height: 16),
 
               // Password field
-              Obx(() => TextField(
+              ZenObserver(() => TextField(
                     decoration: InputDecoration(
                       labelText: 'Password',
                       hintText: 'Enter your password',
@@ -120,7 +120,7 @@ class RegisterPage extends ZenView<RegisterController> {
               const SizedBox(height: 16),
 
               // Confirm password field
-              Obx(() => TextField(
+              ZenObserver(() => TextField(
                     decoration: InputDecoration(
                       labelText: 'Confirm Password',
                       hintText: 'Confirm your password',
@@ -138,7 +138,7 @@ class RegisterPage extends ZenView<RegisterController> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Obx(() => Checkbox(
+                  ZenObserver(() => Checkbox(
                         value: controller.agreeToTerms.value,
                         onChanged: (value) => controller.toggleAgreeToTerms(),
                       )),
@@ -149,7 +149,7 @@ class RegisterPage extends ZenView<RegisterController> {
                         const Text(
                           'I agree to the Terms of Service and Privacy Policy',
                         ),
-                        Obx(() => controller.termsError.value != null
+                        ZenObserver(() => controller.termsError.value != null
                             ? Padding(
                                 padding: const EdgeInsets.only(top: 4),
                                 child: Text(
@@ -170,7 +170,7 @@ class RegisterPage extends ZenView<RegisterController> {
               const SizedBox(height: 24),
 
               // Register button
-              Obx(() => ElevatedButton(
+              ZenObserver(() => ElevatedButton(
                     onPressed: controller.isLoading.value
                         ? null
                         : () => _register(context),
