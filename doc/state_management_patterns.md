@@ -171,13 +171,15 @@ When you navigate: Company → Department → Division → Employee, all control
 - Page-specific UI state
 
 ```dart
-// Page-specific controller via createController
+// Page-specific controller via initController
 class LoginPage extends ZenView<LoginController> {
-  @override
-  LoginController Function()? initController => () => LoginController();
+  const LoginPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  LoginController Function()? get initController => () => LoginController();
+
+  @override
+  Widget build(BuildContext context, LoginController controller) {
     return Obx(() => LoginForm(
       isLoading: controller.isLoading.value,
       onSubmit: controller.login,
@@ -190,7 +192,7 @@ class LoginPage extends ZenView<LoginController> {
 
 - **Needed everywhere?** → Service (RootScope)
 - **Needed across a feature?** → Controller (Module Scope)
-- **Needed on one page?** → Controller (Page Scope via createController)
+- **Needed on one page?** → Controller via `initController` or `ZenScopeWidget.create`
 
 If you find yourself putting a "Controller" in RootScope, it's probably a Service. The name signals lifecycle intent to your team.
 
@@ -204,25 +206,29 @@ For technical details on how hierarchical scopes work (parent-child relationship
 
 ### 1. Controller Access in ZenView
 
-**When using ZenView, access controller via the `controller` getter:**
+**When using ZenView, the controller is injected as an explicit parameter:**
 
 ```dart
 class MyPage extends ZenView<MyController> {
+  const MyPage({super.key});
+
   @override
-  Widget build(BuildContext context) {
-    // ✅ Access via controller getter - NO parameter needed
+  Widget build(BuildContext context, MyController controller) {
+    // ✅ Controller is injected — compiler-enforced, no magic getter
     return Text(controller.someValue);
   }
 }
 ```
 
-**Common mistake:**
+**Common mistake — do not use the old V1 getter signature:**
 ```dart
-// ❌ WRONG - don't add controller as parameter
-Widget build(BuildContext context, MyController controller) { ... }
-
-// ✅ CORRECT - use controller getter
+// ❌ WRONG - V1 signature, no longer valid in V2
 Widget build(BuildContext context) {
+  return Text(controller.someValue); // 'controller' getter no longer exists
+}
+
+// ✅ CORRECT - explicit parameter (V2)
+Widget build(BuildContext context, MyController controller) {
   return Text(controller.someValue);
 }
 ```
@@ -347,8 +353,10 @@ class MixedController extends ZenController {
 
 // View uses BOTH (only when necessary!)
 class MixedView extends ZenView<MixedController> {
+  const MixedView({super.key});
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, MixedController controller) {
     return Column(
       children: [
         // Obx for reactive loading state
@@ -393,10 +401,12 @@ ZenRoute(
   scopeName: 'FeatureScope',
 )
 
-// 3. Page automatically finds controller - NO createController needed!
+// 3. Page automatically finds controller from module — no initController needed
 class FeaturePage extends ZenView<FeatureController> {
+  const FeaturePage({super.key});
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, FeatureController controller) {
     return Text(controller.data);
   }
 }
@@ -408,7 +418,7 @@ class FeaturePage extends ZenView<FeatureController> {
 - ✅ Hierarchical dependency injection
 - ✅ Testable (swap modules)
 
-#### SECONDARY: createController (One-Off Pages)
+#### SECONDARY: initController (Per-Instance Widgets)
 
 ```dart
 // Use when controller is page-specific
@@ -419,17 +429,17 @@ class UserProfilePage extends ZenView<UserProfileController> {
 
   // Only override when passing parameters or one-off usage
   @override
-  UserProfileController Function()? get createController =>
+  UserProfileController Function()? get initController =>
     () => UserProfileController(userId);
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, UserProfileController controller) {
     return Text(controller.userName);
   }
 }
 ```
 
-**When to use createController:**
+**When to use initController:**
 - ✅ Page-specific controller with parameters
 - ✅ One-off controller not shared
 - ✅ Quick prototyping
@@ -471,9 +481,11 @@ ZenRoute(
 
 // Page
 class CounterPage extends ZenView<CounterController> {
-  // No createController - uses module!
+  const CounterPage({super.key});
+  // No initController — module provides it
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, CounterController controller) {
     return Scaffold(
       body: Column(
         children: [
@@ -594,9 +606,11 @@ class ProductCard extends StatelessWidget {
 
 ```dart
 class ProductListPage extends ZenView<ProductListController> {
-  // No createController when using modules
+  const ProductListPage({super.key});
+  // No initController — module provides it
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, ProductListController controller) {
     return Scaffold(
       appBar: AppBar(title: Text('Products')),
       body: Obx(() => controller.isLoading.value
@@ -692,8 +706,10 @@ class FeatureModule extends ZenModule {
 
 // Page accesses both
 class FeaturePage extends ZenView<FeatureController> {
+  const FeaturePage({super.key});
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, FeatureController controller) {
     return ZenConsumer<AuthService>(  // From app scope
       builder: (auth) => Scaffold(
         appBar: AppBar(
@@ -802,8 +818,10 @@ class OptimizedController extends ZenController {
 
 // UI with targeted rebuilds
 class OptimizedView extends ZenView<OptimizedController> {
+  const OptimizedView({super.key});
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, OptimizedController controller) {
     return Column(
       children: [
         ZenUpdater<OptimizedController>(
@@ -904,10 +922,12 @@ ZenRoute(
   page: CounterPage(),
 )
 
-// 4. Page (no createController!)
+// 4. Page (no initController — module provides it)
 class CounterPage extends ZenView<CounterController> {
+  const CounterPage({super.key});
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, CounterController controller) {
     return Scaffold(
       body: Center(
         child: Column(
@@ -972,8 +992,10 @@ class ProductModule extends ZenModule {
 
 // 4. Page
 class ProductDetailPage extends ZenView<ProductDetailController> {
+  const ProductDetailPage({super.key});
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, ProductDetailController controller) {
     return Scaffold(
       appBar: AppBar(
         title: Text(controller.product.name),
@@ -1049,9 +1071,11 @@ class MyPage extends ZenView<MyController> {
 
 // ✅ GOOD - Let module handle it
 class MyPage extends ZenView<MyController> {
-  // No createController - uses module!
+  const MyPage({super.key});
+  // No initController — module provides it
+
   @override
-  Widget build(BuildContext context) { ... }
+  Widget build(BuildContext context, MyController controller) { ... }
 }
 ```
 
@@ -1082,7 +1106,7 @@ class CounterController extends ZenController {
 
 1. **Controllers hold state** (reactive or manual)
 2. **Views use Obx() or ZenUpdater** (not both unless necessary)
-3. **Registration via modules** (preferred) or createController (one-off)
+3. **Registration** via modules (preferred) or `initController` override (per-instance widgets)
 
 ### Decision Tree
 

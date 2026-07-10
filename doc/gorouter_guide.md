@@ -9,7 +9,7 @@ Zenify works with any Flutter router. This guide shows how to use `ZenRoute` wit
 ```yaml
 # pubspec.yaml
 dependencies:
-  zenify: ^1.10.0
+  zenify: ^2.0.0
   go_router: ^14.0.0
 ```
 
@@ -68,15 +68,15 @@ class ProfileModule extends ZenModule {
 
 ## Accessing Scoped Dependencies
 
-For a clean class-level syntax, the best approach is to extend `ZenView<T>`. This automatically locates your scoped controller and makes it available via the `controller` getter:
+For a clean class-level syntax, the best approach is to extend `ZenView<T>`. The scoped controller is injected directly into `build()` — no getter magic, compiler-enforced:
 
 ```dart
 class ProfilePage extends ZenView<ProfileController> {
   const ProfilePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // Controller is automatically found in the scope and ready to use!
+  Widget build(BuildContext context, ProfileController controller) {
+    // Controller is injected directly — no magic getter needed.
     return Scaffold(
       appBar: AppBar(title: const Text('Profile')),
       // ZenQuery.when handles its own reactivity so ZenUpdater isn't required here.

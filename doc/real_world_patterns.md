@@ -49,8 +49,10 @@ class PostFeedController extends ZenController {
 
 ```dart
 class PostFeedPage extends ZenView<PostFeedController> {
+  const PostFeedPage({super.key});
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, PostFeedController controller) {
     return Scaffold(
       appBar: AppBar(title: Text('Posts')),
       body: ZenQueryBuilder<List<PostPage>>(
@@ -88,8 +90,10 @@ class PostFeedPage extends ZenView<PostFeedController> {
 
 ```dart
 class PostFeedPage extends ZenView<PostFeedController> {
+  const PostFeedPage({super.key});
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, PostFeedController controller) {
     return Scaffold(
       appBar: AppBar(title: Text('Posts')),
       body: ZenQueryBuilder<List<PostPage>>(
@@ -187,8 +191,10 @@ class UserProfileController extends ZenController {
 
 ```dart
 class UserProfilePage extends ZenView<UserProfileController> {
+  const UserProfilePage({super.key});
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, UserProfileController controller) {
     return Scaffold(
       appBar: AppBar(title: Text('Profile')),
       body: ZenQueryBuilder<User>(
@@ -289,8 +295,10 @@ class ChatController extends ZenController {
 
 ```dart
 class ChatPage extends ZenView<ChatController> {
+  const ChatPage({super.key});
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, ChatController controller) {
     return Scaffold(
       appBar: AppBar(title: Text('Chat')),
       body: ZenStreamQueryBuilder<List<Message>>(
@@ -590,8 +598,10 @@ ZenEffectBuilder<User>(
 
 ```dart
 class ProfilePage extends ZenView<ProfileController> {
+  const ProfilePage({super.key});
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, ProfileController controller) {
     return Scaffold(
       appBar: AppBar(title: Text('Profile')),
       body: Column(
@@ -766,8 +776,10 @@ class DashboardController extends ZenController {
 
 // In UI - automatic rebuilds
 class DashboardView extends ZenView<DashboardController> {
+  const DashboardView({super.key});
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, DashboardController controller) {
     return Column(
       children: [
         Obx(() => PeriodSelector(
@@ -811,8 +823,10 @@ class DashboardController extends ZenController {
 
 // In UI - targeted rebuilds
 class DashboardView extends ZenView<DashboardController> {
+  const DashboardView({super.key});
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, DashboardController controller) {
     return Column(
       children: [
         ZenBuilder<DashboardController>(
@@ -861,8 +875,10 @@ class DashboardController extends ZenController {
 
 // In UI - mix both approaches
 class DashboardView extends ZenView<DashboardController> {
+  const DashboardView({super.key});
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, DashboardController controller) {
     return Column(
       children: [
         // Obx for reactive period

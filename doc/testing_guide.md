@@ -446,7 +446,7 @@ testWidgets('ZenView auto-injects and cleanly disposes controller', (tester) asy
     CounterController Function()? initController => () => CounterController();
 
     @override
-    Widget build(BuildContext context) {
+    Widget build(BuildContext context, CounterController controller) {
       return Text('Count: ${controller.count.value}');
     }
   }
