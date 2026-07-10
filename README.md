@@ -1,6 +1,6 @@
 <div align="center">
   <!-- TODO: Add a visually stunning hero banner image here: <img src="https://github.com/sdegenaar/zenify/raw/main/assets/banner.png" alt="Zenify Hero Banner"> -->
-  <h1>🧘 Zenify</h1>
+  <h1>Zenify</h1>
   <p><b>Hierarchical DI • Zero-Boilerplate Reactivity • Smart Async State</b></p>
 </div>
 
@@ -140,7 +140,7 @@ The scope hierarchy automatically manages lifecycle — when you exit a feature,
 
 ```yaml
 dependencies:
-  zenify: ^1.10.4
+  zenify: ^1.11.0
 ```
 
 ### 2. Initialize
