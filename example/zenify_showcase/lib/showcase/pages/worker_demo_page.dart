@@ -7,11 +7,11 @@ class WorkerDemoPage extends ZenView<WorkerDemoController> {
   const WorkerDemoPage({super.key});
 
   @override
-  WorkerDemoController Function()? get createController =>
+  WorkerDemoController Function()? get initController =>
       () => WorkerDemoController();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WorkerDemoController controller) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Workers Demo'),

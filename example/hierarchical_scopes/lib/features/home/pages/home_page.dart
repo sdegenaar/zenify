@@ -8,7 +8,7 @@ class HomePage extends ZenView<HomeController> {
   const HomePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, HomeController controller) {
     return Scaffold(
       appBar: _buildAppBar(context, controller),
       body: SafeArea(child: _buildBody(controller)),

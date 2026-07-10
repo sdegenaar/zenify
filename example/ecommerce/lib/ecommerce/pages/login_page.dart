@@ -8,7 +8,7 @@ class LoginPage extends ZenView<LoginController> {
   const LoginPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, LoginController controller) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Login'),

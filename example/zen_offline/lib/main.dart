@@ -52,7 +52,7 @@ class NetworkSimulator {
     // Listen to real changes
     Connectivity().onConnectivityChanged.listen((results) {
       _lastConnectivity = results;
-      _emit();
+      _emit(controller);
     });
 
     // Listen to manual toggle (reactive!)
@@ -65,7 +65,7 @@ class NetworkSimulator {
     isSimulatedOffline.value = !isSimulatedOffline.value;
   }
 
-  void _emit() {
+  void _emit(controller) {
     if (isSimulatedOffline.value) {
       _controller.add(false); // Forced Offline
     } else {
@@ -80,7 +80,7 @@ class OfflineApp extends StatelessWidget {
   const OfflineApp({super.key, required this.networkSimulator});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, FeedController controller) {
     return MaterialApp(
       title: 'Zenify Offline Demo',
       debugShowCheckedModeBanner: false,
@@ -102,11 +102,11 @@ class FeedPage extends ZenView<FeedController> {
   const FeedPage({super.key, required this.networkSimulator});
 
   @override
-  FeedController Function()? get createController =>
+  FeedController Function()? get initController =>
       () => FeedController();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, FeedController controller) {
     // Note: ZenView provides 'controller' automatically
 
     return Stack(
@@ -255,7 +255,7 @@ class PostCard extends StatelessWidget {
   const PostCard({super.key, required this.post, required this.controller});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, FeedController controller) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: ListTile(

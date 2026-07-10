@@ -13,20 +13,20 @@ class InfiniteQueryPage extends ZenView<InfiniteQueryController> {
   const InfiniteQueryPage({super.key});
 
   @override
-  InfiniteQueryController Function()? get createController =>
+  InfiniteQueryController Function()? get initController =>
       () => InfiniteQueryController();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, InfiniteQueryController controller) {
     return Column(
       children: [
-        _buildInfoCard(),
-        Expanded(child: _buildPostsList()),
+        _buildInfoCard(controller),
+        Expanded(child: _buildPostsList(controller)),
       ],
     );
   }
 
-  Widget _buildInfoCard() {
+  Widget _buildInfoCard(InfiniteQueryController controller) {
     return Card(
       margin: const EdgeInsets.all(16),
       color: Colors.purple.shade50,
@@ -61,7 +61,7 @@ class InfiniteQueryPage extends ZenView<InfiniteQueryController> {
     );
   }
 
-  Widget _buildPostsList() {
+  Widget _buildPostsList(InfiniteQueryController controller) {
     return ZenQueryBuilder<List<PaginatedResponse<Post>>>(
       query: controller.infiniteQuery,
       builder: (context, pages) {

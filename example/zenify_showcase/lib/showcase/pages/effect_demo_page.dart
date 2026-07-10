@@ -7,11 +7,11 @@ class EffectDemoPage extends ZenView<EffectDemoController> {
   const EffectDemoPage({super.key});
 
   @override
-  EffectDemoController Function()? get createController =>
+  EffectDemoController Function()? get initController =>
       () => EffectDemoController();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, EffectDemoController controller) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('ZenEffect Demo'),

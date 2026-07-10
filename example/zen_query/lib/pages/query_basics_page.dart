@@ -15,28 +15,28 @@ class QueryBasicsPage extends ZenView<QueryBasicsController> {
   const QueryBasicsPage({super.key});
 
   @override
-  QueryBasicsController Function()? get createController =>
+  QueryBasicsController Function()? get initController =>
       () => QueryBasicsController();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, QueryBasicsController controller) {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        _buildInfoCard(),
+        _buildInfoCard(controller),
         const SizedBox(height: 16),
-        _buildUserQuerySection(),
+        _buildUserQuerySection(controller),
         const SizedBox(height: 16),
-        _buildPostsQuerySection(),
+        _buildPostsQuerySection(controller),
         const SizedBox(height: 16),
-        _buildActionsSection(),
+        _buildActionsSection(controller),
         const SizedBox(height: 16),
-        _buildStatusSection(),
+        _buildStatusSection(controller),
       ],
     );
   }
 
-  Widget _buildInfoCard() {
+  Widget _buildInfoCard(QueryBasicsController controller) {
     return Card(
       color: Colors.blue.shade50,
       child: Padding(
@@ -71,7 +71,7 @@ class QueryBasicsPage extends ZenView<QueryBasicsController> {
     );
   }
 
-  Widget _buildUserQuerySection() {
+  Widget _buildUserQuerySection(QueryBasicsController controller) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -157,7 +157,7 @@ class QueryBasicsPage extends ZenView<QueryBasicsController> {
     );
   }
 
-  Widget _buildPostsQuerySection() {
+  Widget _buildPostsQuerySection(QueryBasicsController controller) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -244,7 +244,7 @@ class QueryBasicsPage extends ZenView<QueryBasicsController> {
     );
   }
 
-  Widget _buildActionsSection() {
+  Widget _buildActionsSection(QueryBasicsController controller) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -301,7 +301,7 @@ class QueryBasicsPage extends ZenView<QueryBasicsController> {
     );
   }
 
-  Widget _buildStatusSection() {
+  Widget _buildStatusSection(QueryBasicsController controller) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),

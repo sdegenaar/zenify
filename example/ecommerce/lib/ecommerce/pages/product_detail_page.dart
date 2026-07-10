@@ -17,14 +17,14 @@ class ProductDetailPage extends ZenView<ProductDetailController> {
   });
 
   @override
-  ProductDetailController Function()? get createController => () {
+  ProductDetailController Function()? get initController => () {
         return ProductDetailController(
           productService: Zen.find<ProductService>(),
         )..initialize(productId); // Initialize immediately
       };
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, ProductDetailController controller) {
     return Scaffold(
       appBar: AppBar(
         title: ZenEffectBuilder<Product>(

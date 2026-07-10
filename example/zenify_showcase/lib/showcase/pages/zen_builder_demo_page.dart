@@ -8,11 +8,11 @@ class ZenBuilderDemoPage extends ZenView<ZenBuilderDemoController> {
   const ZenBuilderDemoPage({super.key});
 
   @override
-  ZenBuilderDemoController Function()? get createController =>
+  ZenBuilderDemoController Function()? get initController =>
       () => ZenBuilderDemoController(); // Changed controller
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, ZenBuilderDemoController controller) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('ZenBuilder Demo'),
@@ -32,7 +32,7 @@ class ZenBuilderDemoPage extends ZenView<ZenBuilderDemoController> {
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     children: [
-                      ZenBuilder<ZenBuilderDemoController>(
+                      ZenUpdater<ZenBuilderDemoController>(
                         builder: (context, controller) {
                           return Container(
                             padding: const EdgeInsets.all(16),
@@ -109,7 +109,7 @@ class ZenBuilderDemoPage extends ZenView<ZenBuilderDemoController> {
                         children: [
                           // Builder 1 - Counter focused
                           Expanded(
-                            child: ZenBuilder<ZenBuilderDemoController>(
+                            child: ZenUpdater<ZenBuilderDemoController>(
                               builder: (context, controller) {
                                 return Container(
                                   padding: const EdgeInsets.all(12),
@@ -150,7 +150,7 @@ class ZenBuilderDemoPage extends ZenView<ZenBuilderDemoController> {
 
                           // Builder 2 - Message focused
                           Expanded(
-                            child: ZenBuilder<ZenBuilderDemoController>(
+                            child: ZenUpdater<ZenBuilderDemoController>(
                               builder: (context, controller) {
                                 return Container(
                                   padding: const EdgeInsets.all(12),
@@ -191,7 +191,7 @@ class ZenBuilderDemoPage extends ZenView<ZenBuilderDemoController> {
                       const SizedBox(height: 16),
 
                       // Builder 3 - Full state
-                      ZenBuilder<ZenBuilderDemoController>(
+                      ZenUpdater<ZenBuilderDemoController>(
                         builder: (context, controller) {
                           return Container(
                             padding: const EdgeInsets.all(12),

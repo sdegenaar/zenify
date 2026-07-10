@@ -8,7 +8,7 @@ class RegisterPage extends ZenView<RegisterController> {
   const RegisterPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, RegisterController controller) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Create Account'),

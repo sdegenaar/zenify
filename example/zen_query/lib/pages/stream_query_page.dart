@@ -12,28 +12,28 @@ class StreamQueryPage extends ZenView<StreamQueryController> {
   const StreamQueryPage({super.key});
 
   @override
-  StreamQueryController Function()? get createController =>
+  StreamQueryController Function()? get initController =>
       () => StreamQueryController();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, StreamQueryController controller) {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        _buildInfoCard(),
+        _buildInfoCard(controller),
         const SizedBox(height: 16),
-        _buildNotificationsSection(),
+        _buildNotificationsSection(controller),
         const SizedBox(height: 16),
-        _buildActiveUsersSection(),
+        _buildActiveUsersSection(controller),
         const SizedBox(height: 16),
-        _buildPostUpdatesSection(),
+        _buildPostUpdatesSection(controller),
         const SizedBox(height: 16),
-        _buildStreamControlsSection(),
+        _buildStreamControlsSection(controller),
       ],
     );
   }
 
-  Widget _buildInfoCard() {
+  Widget _buildInfoCard(StreamQueryController controller) {
     return Card(
       color: Colors.orange.shade50,
       child: Padding(
@@ -67,7 +67,7 @@ class StreamQueryPage extends ZenView<StreamQueryController> {
     );
   }
 
-  Widget _buildNotificationsSection() {
+  Widget _buildNotificationsSection(StreamQueryController controller) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -177,7 +177,7 @@ class StreamQueryPage extends ZenView<StreamQueryController> {
     );
   }
 
-  Widget _buildActiveUsersSection() {
+  Widget _buildActiveUsersSection(StreamQueryController controller) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -238,7 +238,7 @@ class StreamQueryPage extends ZenView<StreamQueryController> {
     );
   }
 
-  Widget _buildPostUpdatesSection() {
+  Widget _buildPostUpdatesSection(StreamQueryController controller) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -319,7 +319,7 @@ class StreamQueryPage extends ZenView<StreamQueryController> {
     );
   }
 
-  Widget _buildStreamControlsSection() {
+  Widget _buildStreamControlsSection(StreamQueryController controller) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),

@@ -11,7 +11,7 @@ class HomePage extends ZenView<HomeController> {
   const HomePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, HomeController controller) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Zenify Shop'),
@@ -31,7 +31,7 @@ class HomePage extends ZenView<HomeController> {
       body: Column(
         children: [
           // Category filter
-          _buildCategoryFilter(),
+          _buildCategoryFilter(controller),
 
           // Product grid
           Expanded(
@@ -92,7 +92,7 @@ class HomePage extends ZenView<HomeController> {
     );
   }
 
-  Widget _buildCategoryFilter() {
+  Widget _buildCategoryFilter(HomeController controller) {
     return ZenObserver(() {
       if (controller.categories.isEmpty) {
         return const SizedBox.shrink();
@@ -131,7 +131,7 @@ class HomePage extends ZenView<HomeController> {
     });
   }
 
-  Widget _buildDrawer(BuildContext context) {
+  Widget _buildDrawer(BuildContext context, HomeController controller) {
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,

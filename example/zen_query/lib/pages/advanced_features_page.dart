@@ -12,30 +12,30 @@ class AdvancedFeaturesPage extends ZenView<AdvancedFeaturesController> {
   const AdvancedFeaturesPage({super.key});
 
   @override
-  AdvancedFeaturesController Function()? get createController =>
+  AdvancedFeaturesController Function()? get initController =>
       () => AdvancedFeaturesController();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, AdvancedFeaturesController controller) {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        _buildInfoCard(),
+        _buildInfoCard(controller),
         const SizedBox(height: 16),
-        _buildQuerySelectionSection(),
+        _buildQuerySelectionSection(controller),
         const SizedBox(height: 16),
-        _buildDependentQueriesSection(),
+        _buildDependentQueriesSection(controller),
         const SizedBox(height: 16),
-        _buildConditionalQuerySection(),
+        _buildConditionalQuerySection(controller),
         const SizedBox(height: 16),
-        _buildCancellationSection(),
+        _buildCancellationSection(controller),
         const SizedBox(height: 16),
-        _buildDeduplicationSection(),
+        _buildDeduplicationSection(controller),
       ],
     );
   }
 
-  Widget _buildInfoCard() {
+  Widget _buildInfoCard(AdvancedFeaturesController controller) {
     return Card(
       color: Colors.teal.shade50,
       child: Padding(
@@ -69,7 +69,7 @@ class AdvancedFeaturesPage extends ZenView<AdvancedFeaturesController> {
     );
   }
 
-  Widget _buildQuerySelectionSection() {
+  Widget _buildQuerySelectionSection(AdvancedFeaturesController controller) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -144,7 +144,7 @@ class AdvancedFeaturesPage extends ZenView<AdvancedFeaturesController> {
     );
   }
 
-  Widget _buildDependentQueriesSection() {
+  Widget _buildDependentQueriesSection(AdvancedFeaturesController controller) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -243,7 +243,7 @@ class AdvancedFeaturesPage extends ZenView<AdvancedFeaturesController> {
     );
   }
 
-  Widget _buildConditionalQuerySection() {
+  Widget _buildConditionalQuerySection(AdvancedFeaturesController controller) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -342,7 +342,7 @@ class AdvancedFeaturesPage extends ZenView<AdvancedFeaturesController> {
     );
   }
 
-  Widget _buildCancellationSection() {
+  Widget _buildCancellationSection(AdvancedFeaturesController controller) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -427,7 +427,7 @@ class AdvancedFeaturesPage extends ZenView<AdvancedFeaturesController> {
     );
   }
 
-  Widget _buildDeduplicationSection() {
+  Widget _buildDeduplicationSection(AdvancedFeaturesController controller) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

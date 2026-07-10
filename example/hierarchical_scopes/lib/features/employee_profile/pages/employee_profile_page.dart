@@ -17,16 +17,16 @@ class EmployeeProfilePage extends ZenView<EmployeeProfileController> {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, EmployeeProfileController controller) {
     return Scaffold(
-      appBar: _buildAppBar(),
-      body: _buildBody(),
+      appBar: _buildAppBar(controller),
+      body: _buildBody(controller),
     );
   }
 
-  PreferredSizeWidget _buildAppBar() {
+  PreferredSizeWidget _buildAppBar(EmployeeProfileController controller) {
     return AppBar(
-      title: ZenBuilder<EmployeeProfileController>(
+      title: ZenUpdater<EmployeeProfileController>(
         builder: (context, controller) {
           return ZenObserver(() {
             final employee = controller.employee.value;
@@ -38,7 +38,7 @@ class EmployeeProfilePage extends ZenView<EmployeeProfileController> {
       foregroundColor: Colors.white,
       elevation: 2,
       actions: [
-        ZenBuilder<EmployeeProfileController>(
+        ZenUpdater<EmployeeProfileController>(
           builder: (context, controller) {
             return Row(
               mainAxisSize: MainAxisSize.min,
@@ -95,11 +95,11 @@ class EmployeeProfilePage extends ZenView<EmployeeProfileController> {
     );
   }
 
-  Widget _buildBody() {
+  Widget _buildBody(EmployeeProfileController controller) {
     return Column(
       children: [
         // Error banner
-        ZenBuilder<EmployeeProfileController>(
+        ZenUpdater<EmployeeProfileController>(
           builder: (context, controller) {
             final errorMessage = controller.lastError.value;
 
@@ -136,7 +136,7 @@ class EmployeeProfilePage extends ZenView<EmployeeProfileController> {
 
         // Main content
         Expanded(
-          child: ZenBuilder<EmployeeProfileController>(
+          child: ZenUpdater<EmployeeProfileController>(
             builder: (context, controller) {
               return ZenObserver(() {
                 ZenLogger.logInfo(
@@ -194,13 +194,13 @@ class EmployeeProfilePage extends ZenView<EmployeeProfileController> {
         ),
 
         // Effect status bar at bottom
-        _buildEffectStatusBar(),
+        _buildEffectStatusBar(controller),
       ],
     );
   }
 
-  Widget _buildEffectStatusBar() {
-    return ZenBuilder<EmployeeProfileController>(
+  Widget _buildEffectStatusBar(EmployeeProfileController controller) {
+    return ZenUpdater<EmployeeProfileController>(
       builder: (context, controller) {
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

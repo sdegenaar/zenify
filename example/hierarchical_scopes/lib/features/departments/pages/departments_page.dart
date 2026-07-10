@@ -9,15 +9,15 @@ class DepartmentsPage extends ZenView<DepartmentsController> {
   const DepartmentsPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, DepartmentsController controller) {
     return Scaffold(
-      appBar: _buildAppBar(),
-      body: _buildBody(),
-      floatingActionButton: _buildFloatingActionButton(),
+      appBar: _buildAppBar(controller),
+      body: _buildBody(controller),
+      floatingActionButton: _buildFloatingActionButton(controller),
     );
   }
 
-  PreferredSizeWidget _buildAppBar() {
+  PreferredSizeWidget _buildAppBar(DepartmentsController controller) {
     return AppBar(
       title: const Text('Departments'),
       backgroundColor: Colors.blue.shade700,
@@ -25,7 +25,7 @@ class DepartmentsPage extends ZenView<DepartmentsController> {
       elevation: 2,
       actions: [
         // Enhanced ZenBuilder with error handling
-        ZenBuilder<DepartmentsController>(
+        ZenUpdater<DepartmentsController>(
           builder: (context, controller) {
             final hasSearchQuery = controller.searchQuery.value.isNotEmpty;
 
@@ -94,11 +94,11 @@ class DepartmentsPage extends ZenView<DepartmentsController> {
   }
 
   // ... rest of your existing code remains the same
-  Widget _buildBody() {
+  Widget _buildBody(DepartmentsController controller) {
     return Column(
       children: [
         // Error banner using ZenBuilder
-        ZenBuilder<DepartmentsController>(
+        ZenUpdater<DepartmentsController>(
           builder: (context, controller) {
             final errorMessage = controller.lastError.value;
 
@@ -134,7 +134,7 @@ class DepartmentsPage extends ZenView<DepartmentsController> {
         ),
 
         // Search bar with ZenEffectBuilder for search state
-        ZenBuilder<DepartmentsController>(
+        ZenUpdater<DepartmentsController>(
           builder: (context, controller) {
             final searchQuery = controller.searchQuery.value;
 
@@ -186,7 +186,7 @@ class DepartmentsPage extends ZenView<DepartmentsController> {
 
         // Main content with reactive departments list
         Expanded(
-          child: ZenBuilder<DepartmentsController>(
+          child: ZenUpdater<DepartmentsController>(
             builder: (context, controller) {
               final isLoading = controller.isLoading.value;
               final departments = controller.filteredDepartments;
@@ -249,13 +249,13 @@ class DepartmentsPage extends ZenView<DepartmentsController> {
         ),
 
         // Effect status bar at bottom
-        _buildEffectStatusBar(),
+        _buildEffectStatusBar(controller),
       ],
     );
   }
 
-  Widget _buildEffectStatusBar() {
-    return ZenBuilder<DepartmentsController>(
+  Widget _buildEffectStatusBar(DepartmentsController controller) {
+    return ZenUpdater<DepartmentsController>(
       builder: (context, controller) {
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -417,8 +417,8 @@ class DepartmentsPage extends ZenView<DepartmentsController> {
     );
   }
 
-  Widget _buildFloatingActionButton() {
-    return ZenBuilder<DepartmentsController>(
+  Widget _buildFloatingActionButton(DepartmentsController controller) {
+    return ZenUpdater<DepartmentsController>(
       builder: (context, controller) {
         return FloatingActionButton(
           onPressed: controller.isLoading.value

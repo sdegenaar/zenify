@@ -11,6 +11,7 @@ import '../core/zen_logger.dart';
 /// ZenControllerScope automatically creates a controller if it doesn't exist,
 /// registers it with the appropriate scope, and disposes it when the widget
 /// is removed from the tree (unless [permanent] is set to true).
+@Deprecated('Use ZenScopeWidget.create instead for V2 architecture.')
 class ZenControllerScope<T extends ZenController> extends StatefulWidget {
   /// Function to create the controller
   final T Function() create;

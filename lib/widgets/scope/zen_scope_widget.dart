@@ -66,6 +66,22 @@ class ZenScopeWidget extends StatefulWidget {
                 (scope == null && moduleBuilder != null),
             'Either scope or moduleBuilder must be provided, but not both');
 
+  /// Convenience method to create a scope with a single controller.
+  /// 
+  /// This is the recommended way to scope a single controller to a route or widget tree.
+  static ZenScopeWidget create<T extends Object>({
+    Key? key,
+    required T Function() create,
+    String? scopeName,
+    required Widget child,
+  }) {
+    return ZenScopeWidget(
+      key: key,
+      moduleBuilder: () => _SingleItemModule<T>(create, scopeName ?? 'Scope_${T.toString()}'),
+      child: child,
+    );
+  }
+
   /// Finds the nearest [ZenScope] above the given context.
   ///
   /// Returns the scope or throws an exception if none is found.
@@ -188,9 +204,12 @@ class _ZenScopeWidgetState extends State<ZenScopeWidget> {
   void didUpdateWidget(ZenScopeWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    // Handle changes to scope or module
-    if (widget.scope != oldWidget.scope ||
-        widget.moduleBuilder != oldWidget.moduleBuilder) {
+    // Handle changes to provided scope instance.
+    // We explicitly DO NOT recreate the scope if moduleBuilder changes,
+    // because moduleBuilder is often passed as an anonymous closure which
+    // changes reference on every build. To recreate a module-based scope,
+    // developers should provide a new Key.
+    if (widget.scope != oldWidget.scope) {
       // Dispose the old scope if we own it
       if (_isOwner && !_scope.isDisposed) {
         _scope.dispose();
@@ -315,3 +334,19 @@ extension ZenScopeExtension on BuildContext {
     return scope?.find<T>(tag: tag);
   }
 }
+
+/// Internal module for single-controller scope creation via [ZenScopeWidget.create].
+class _SingleItemModule<T extends Object> extends ZenModule {
+  @override
+  final String name;
+  
+  final T Function() _create;
+
+  _SingleItemModule(this._create, this.name);
+
+  @override
+  void register(ZenScope scope) {
+    scope.put<T>(_create());
+  }
+}
+

@@ -33,7 +33,7 @@ class CounterApp extends StatelessWidget {
   const CounterApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, CounterController controller) {
     return MaterialApp(
       title: 'Zenify Counter Demo - Complete Showcase',
       debugShowCheckedModeBanner: false,
@@ -46,7 +46,7 @@ class CounterApp extends StatelessWidget {
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       ),
-      home: ZenControllerScope<CounterController>(
+      home: ZenScopeWidget.create<CounterController>(
         create: () => CounterController(),
         child: const CounterPage(),
       ),
@@ -116,7 +116,7 @@ class CounterController extends ZenController {
     // Ever worker - executes on every change (like GetX ever)
     workerGroup.add(ever(counter, (value) {
       ZenLogger.logDebug('Counter changed to: $value');
-      _incrementStateUpdateCount();
+      _incrementStateUpdateCount(controller);
 
       // Enhanced status updates with more personality
       if (value == 0) {
@@ -285,7 +285,7 @@ class CounterController extends ZenController {
   }
 
   // Performance metrics tracking
-  void _incrementStateUpdateCount() {
+  void _incrementStateUpdateCount(controller) {
     stateUpdateCount.value++;
     ZenMetrics.recordStateUpdate();
   }
@@ -471,7 +471,7 @@ class CounterPage extends ZenView<CounterController> {
   const CounterPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, CounterController controller) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Zenify Complete Demo'),
@@ -1223,7 +1223,7 @@ class CounterPage extends ZenView<CounterController> {
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: Colors.amber.shade200),
                       ),
-                      child: ZenBuilder<CounterController>(
+                      child: ZenUpdater<CounterController>(
                         builder: (context, controller) => Text(
                           '${controller.manualCounter}',
                           style: TextStyle(

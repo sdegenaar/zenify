@@ -10,10 +10,10 @@ class TodoHomePage extends ZenView<TodoController> {
   const TodoHomePage({super.key});
 
   @override
-  TodoController Function()? get createController => () => TodoController();
+  TodoController Function()? get initController => () => TodoController();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, TodoController controller) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Zenify Todo'),

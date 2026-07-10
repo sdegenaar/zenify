@@ -17,16 +17,16 @@ class DepartmentDetailPage extends ZenView<DepartmentDetailController> {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, DepartmentDetailController controller) {
     return Scaffold(
-      appBar: _buildAppBar(),
-      body: _buildBody(),
+      appBar: _buildAppBar(controller),
+      body: _buildBody(controller),
     );
   }
 
-  PreferredSizeWidget _buildAppBar() {
+  PreferredSizeWidget _buildAppBar(DepartmentDetailController controller) {
     return AppBar(
-      title: ZenBuilder<DepartmentDetailController>(
+      title: ZenUpdater<DepartmentDetailController>(
         builder: (context, controller) {
           return ZenObserver(() {
             final department = controller.department.value;
@@ -38,7 +38,7 @@ class DepartmentDetailPage extends ZenView<DepartmentDetailController> {
       foregroundColor: Colors.white,
       elevation: 2,
       actions: [
-        ZenBuilder<DepartmentDetailController>(
+        ZenUpdater<DepartmentDetailController>(
           builder: (context, controller) {
             return Row(
               mainAxisSize: MainAxisSize.min,
@@ -95,11 +95,11 @@ class DepartmentDetailPage extends ZenView<DepartmentDetailController> {
     );
   }
 
-  Widget _buildBody() {
+  Widget _buildBody(DepartmentDetailController controller) {
     return Column(
       children: [
         // Error banner
-        ZenBuilder<DepartmentDetailController>(
+        ZenUpdater<DepartmentDetailController>(
           builder: (context, controller) {
             final errorMessage = controller.lastError.value;
 
@@ -136,7 +136,7 @@ class DepartmentDetailPage extends ZenView<DepartmentDetailController> {
 
         // Main content
         Expanded(
-          child: ZenBuilder<DepartmentDetailController>(
+          child: ZenUpdater<DepartmentDetailController>(
             builder: (context, controller) {
               return ZenObserver(() {
                 if (controller.isLoading.value) {
@@ -176,13 +176,13 @@ class DepartmentDetailPage extends ZenView<DepartmentDetailController> {
         ),
 
         // Effect status bar at bottom
-        _buildEffectStatusBar(),
+        _buildEffectStatusBar(controller),
       ],
     );
   }
 
-  Widget _buildEffectStatusBar() {
-    return ZenBuilder<DepartmentDetailController>(
+  Widget _buildEffectStatusBar(DepartmentDetailController controller) {
+    return ZenUpdater<DepartmentDetailController>(
       builder: (context, controller) {
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

@@ -13,19 +13,20 @@ void main() {
       ZenTestHelper.resetDI();
     });
 
-    testWidgets('should dispose controllers when widget is removed from tree',
+    testWidgets('should dispose controllers when ZenScopeWidget is removed from tree',
         (tester) async {
       late TestController controller;
 
       await tester.pumpWidget(MaterialApp(
-        home: ZenBuilder<TestController>(
+        home: ZenScopeWidget.create<TestController>(
           create: () {
             controller = TestController('local');
             return controller;
           },
-          disposeOnRemove: true,
-          builder: (context, ctrl) => Scaffold(
-            body: Text('Value: ${ctrl.value}'),
+          child: ZenUpdater<TestController>(
+            builder: (context, ctrl) => Scaffold(
+              body: Text('Value: ${ctrl.value}'),
+            ),
           ),
         ),
       ));
@@ -39,11 +40,11 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
-      // Controller should be disposed when widget was removed
+      // Controller should be disposed when scope was removed
       expect(controller.isDisposed, true);
     });
 
-    testWidgets('should share controllers when disposeOnRemove is false',
+    testWidgets('should share controllers when using global DI',
         (tester) async {
       final controller = TestController('shared');
       Zen.put<TestController>(controller);
@@ -51,10 +52,10 @@ void main() {
       await tester.pumpWidget(MaterialApp(
         home: Column(
           children: [
-            ZenBuilder<TestController>(
+            ZenUpdater<TestController>(
               builder: (context, ctrl) => Text('A: ${ctrl.value}'),
             ),
-            ZenBuilder<TestController>(
+            ZenUpdater<TestController>(
               builder: (context, ctrl) => Text('B: ${ctrl.value}'),
             ),
           ],
@@ -64,31 +65,6 @@ void main() {
       expect(find.text('A: shared'), findsOneWidget);
       expect(find.text('B: shared'), findsOneWidget);
       expect(controller.isDisposed, false);
-    });
-
-    testWidgets('should dispose local controllers on widget disposal',
-        (tester) async {
-      late TestController controller;
-
-      await tester.pumpWidget(MaterialApp(
-        home: ZenBuilder<TestController>(
-          create: () {
-            controller = TestController('local');
-            return controller;
-          },
-          disposeOnRemove: true,
-          builder: (context, ctrl) => Text('Value: ${ctrl.value}'),
-        ),
-      ));
-
-      expect(find.text('Value: local'), findsOneWidget);
-      expect(controller.isDisposed, false);
-
-      // Remove the widget entirely
-      await tester.pumpWidget(const MaterialApp(home: SizedBox()));
-
-      // Controller should be disposed
-      expect(controller.isDisposed, true);
     });
   });
 }

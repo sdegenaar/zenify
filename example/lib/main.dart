@@ -14,7 +14,7 @@ class ZenifyExampleApp extends StatelessWidget {
   const ZenifyExampleApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, CounterController controller) {
     return const MaterialApp(
       title: 'Zenify Example',
       home: CounterPage(),
@@ -34,11 +34,11 @@ class CounterPage extends ZenView<CounterController> {
   const CounterPage({super.key});
 
   @override
-  CounterController Function()? get createController =>
+  CounterController Function()? get initController =>
       () => CounterController();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, CounterController controller) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Zenify Counter Example'),

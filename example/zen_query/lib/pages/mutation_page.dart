@@ -13,32 +13,32 @@ class MutationPage extends ZenView<MutationController> {
   const MutationPage({super.key});
 
   @override
-  MutationController Function()? get createController =>
+  MutationController Function()? get initController =>
       () => MutationController();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, MutationController controller) {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        _buildInfoCard(),
+        _buildInfoCard(controller),
         const SizedBox(height: 16),
-        _buildCurrentPostSection(),
+        _buildCurrentPostSection(controller),
         const SizedBox(height: 16),
-        _buildCreatePostSection(),
+        _buildCreatePostSection(controller),
         const SizedBox(height: 16),
-        _buildUpdatePostSection(),
+        _buildUpdatePostSection(controller),
         const SizedBox(height: 16),
-        _buildDeletePostSection(),
+        _buildDeletePostSection(controller),
         const SizedBox(height: 16),
-        _buildLikePostSection(),
+        _buildLikePostSection(controller),
         const SizedBox(height: 16),
-        _buildMutationStatusSection(),
+        _buildMutationStatusSection(controller),
       ],
     );
   }
 
-  Widget _buildInfoCard() {
+  Widget _buildInfoCard(MutationController controller) {
     return Card(
       color: Colors.green.shade50,
       child: Padding(
@@ -72,7 +72,7 @@ class MutationPage extends ZenView<MutationController> {
     );
   }
 
-  Widget _buildCurrentPostSection() {
+  Widget _buildCurrentPostSection(MutationController controller) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -143,7 +143,7 @@ class MutationPage extends ZenView<MutationController> {
     );
   }
 
-  Widget _buildCreatePostSection() {
+  Widget _buildCreatePostSection(MutationController controller) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -219,7 +219,7 @@ class MutationPage extends ZenView<MutationController> {
     );
   }
 
-  Widget _buildUpdatePostSection() {
+  Widget _buildUpdatePostSection(MutationController controller) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -269,7 +269,7 @@ class MutationPage extends ZenView<MutationController> {
     );
   }
 
-  Widget _buildDeletePostSection() {
+  Widget _buildDeletePostSection(MutationController controller) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -315,7 +315,7 @@ class MutationPage extends ZenView<MutationController> {
     );
   }
 
-  Widget _buildLikePostSection() {
+  Widget _buildLikePostSection(MutationController controller) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -361,7 +361,7 @@ class MutationPage extends ZenView<MutationController> {
     );
   }
 
-  Widget _buildMutationStatusSection() {
+  Widget _buildMutationStatusSection(MutationController controller) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),

@@ -244,8 +244,7 @@ void main() {
                 child: Builder(
                   builder: (context) {
                     final scope = ZenScopeWidget.of(context);
-                    return ZenBuilder<CounterController>(
-                      scope: scope,
+                    return ZenUpdater<CounterController>(
                       builder: (context, controller) {
                         return ElevatedButton(
                           onPressed: controller.increment,
@@ -263,8 +262,7 @@ void main() {
                 child: Builder(
                   builder: (context) {
                     final scope = ZenScopeWidget.of(context);
-                    return ZenBuilder<CounterController>(
-                      scope: scope,
+                    return ZenUpdater<CounterController>(
                       builder: (context, controller) {
                         return ElevatedButton(
                           onPressed: controller.increment,
@@ -370,58 +368,48 @@ void main() {
 
     testWidgets('should use new module when moduleBuilder changes',
         (WidgetTester tester) async {
-      // Use StatefulBuilder instead of a custom class
-      bool useTestModule = true;
-
+      // First render with TestModule: has CounterController + TestService, no serviceValue
       await tester.pumpWidget(
         MaterialApp(
-          home: StatefulBuilder(
-            builder: (context, setState) {
-              return Column(
-                children: [
-                  ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        useTestModule = !useTestModule;
-                      });
-                    },
-                    child: const Text('Toggle Module'),
-                  ),
-                  ZenScopeWidget(
-                    moduleBuilder: () =>
-                        useTestModule ? TestModule() : DependentModule(),
-                    child: Builder(
-                      builder: (context) {
-                        final scope = ZenScopeWidget.of(context);
-                        final hasServiceValue =
-                            scope.find<String>(tag: 'serviceValue') != null;
-
-                        return Text(
-                          useTestModule
-                              ? 'Using TestModule'
-                              : 'Using DependentModule: $hasServiceValue',
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              );
-            },
+          home: ZenScopeWidget(
+            key: const ValueKey('scope-test-module'),
+            moduleBuilder: () => TestModule(),
+            child: Builder(
+              builder: (context) {
+                final scope = ZenScopeWidget.of(context);
+                final hasCtrl = scope.find<CounterController>() != null;
+                final hasSvc = scope.find<String>(tag: 'serviceValue') != null;
+                return Text('ctrl=$hasCtrl,svc=$hasSvc');
+              },
+            ),
           ),
         ),
       );
-
       await tester.pumpAndSettle();
+      expect(find.text('ctrl=true,svc=false'), findsOneWidget);
 
-      // Initially should use TestModule
-      expect(find.text('Using TestModule'), findsOneWidget);
-
-      // Toggle to DependentModule
-      await tester.tap(find.text('Toggle Module'));
+      // Switch to DependentModule: has TestModule deps (CounterController + TestService) + serviceValue
+      // Different key forces a clean unmount/remount rather than didUpdateWidget.
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ZenScopeWidget(
+            key: const ValueKey('scope-dependent-module'),
+            moduleBuilder: () => DependentModule(),
+            child: Builder(
+              builder: (context) {
+                final scope = ZenScopeWidget.of(context);
+                final hasCtrl = scope.find<CounterController>() != null;
+                final hasSvc = scope.find<String>(tag: 'serviceValue') != null;
+                return Text('ctrl=$hasCtrl,svc=$hasSvc');
+              },
+            ),
+          ),
+        ),
+      );
       await tester.pumpAndSettle();
-
-      // Now should use DependentModule
-      expect(find.text('Using DependentModule: true'), findsOneWidget);
+      // DependentModule registers its TestModule dependency first (CounterController + TestService),
+      // then registers serviceValue — both should be found.
+      expect(find.text('ctrl=true,svc=true'), findsOneWidget);
     });
 
     testWidgets('ZenScopeWidget.of() should throw when no scope is found',

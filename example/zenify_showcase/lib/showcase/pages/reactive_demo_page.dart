@@ -7,11 +7,11 @@ class ReactiveDemoPage extends ZenView<ReactiveDemoController> {
   const ReactiveDemoPage({super.key});
 
   @override
-  ReactiveDemoController Function()? get createController =>
+  ReactiveDemoController Function()? get initController =>
       () => ReactiveDemoController();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, ReactiveDemoController controller) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Reactive State Demo'),

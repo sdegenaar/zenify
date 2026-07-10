@@ -11,7 +11,7 @@ class CartPage extends ZenView<CartController> {
   const CartPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, CartController controller) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Shopping Cart'),
@@ -83,7 +83,7 @@ class CartPage extends ZenView<CartController> {
     );
   }
 
-  Widget _buildEmptyCart(BuildContext context) {
+  Widget _buildEmptyCart(BuildContext context, CartController controller) {
     return SingleChildScrollView(
       child: Column(
         children: [
@@ -252,7 +252,7 @@ class CartPage extends ZenView<CartController> {
     );
   }
 
-  Widget _buildCartSummary(BuildContext context) {
+  Widget _buildCartSummary(BuildContext context, CartController controller) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -450,7 +450,7 @@ class CartPage extends ZenView<CartController> {
   }
 
   // Recommended products section (shown when cart is empty)
-  Widget _buildRecommendedProducts(BuildContext context) {
+  Widget _buildRecommendedProducts(BuildContext context, CartController controller) {
     return FutureBuilder<List<Product>>(
       future: controller.getRecommendedProducts(),
       builder: (context, snapshot) {
