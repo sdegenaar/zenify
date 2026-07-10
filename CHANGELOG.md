@@ -22,12 +22,6 @@
   Resolution is now purely widget-tree-bound: nearest `ZenScope` → global `Zen.findOrNull<T>()`.
   This makes `context.controller<T>()` 100% multi-instance safe with no global registry involved.
 
-### Removed
-
-- **`ZenScopeView`** — removed this never-published class. Its use case (a base class for
-  scope-consuming components) is fully covered by plain `StatelessWidget` +
-  `context.controller<T>()`. Removing it simplifies the public API surface.
-
 ### Improved
 
 - **`ZenScopeProvider`** — moved from public export to implementation-internal. It was always
@@ -35,8 +29,6 @@
   for direct use. Users who need it can still access it via a direct import but it is no longer
   part of the default package surface.
 
-- **README** — improved hero header and added a Mermaid scope-hierarchy diagram for clearer
-  onboarding.
 
 - **`doc/v2_architecture_design.md`** — added architectural design document capturing the
   rationale for current V1.x fixes and the full V2 breaking-change roadmap (`ZenView` injected
