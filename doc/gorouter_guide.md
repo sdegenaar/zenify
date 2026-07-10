@@ -79,8 +79,8 @@ class ProfilePage extends ZenView<ProfileController> {
     // Controller is automatically found in the scope and ready to use!
     return Scaffold(
       appBar: AppBar(title: const Text('Profile')),
-      // ZenQuery.when handles its own reactivity so ZenBuilder isn't required here.
-      // If you are relying on controller.update(), wrap reactive portions in ZenBuilder.
+      // ZenQuery.when handles its own reactivity so ZenUpdater isn't required here.
+      // If you are relying on controller.update(), wrap reactive portions in ZenUpdater.
       body: controller.userQuery.when(
         data: (user) => UserCard(user),
         loading: () => const CircularProgressIndicator(),
@@ -91,9 +91,9 @@ class ProfilePage extends ZenView<ProfileController> {
 }
 ```
 
-### Alternative: Using `StatelessWidget` with `ZenBuilder`
+### Alternative: Using `StatelessWidget` with `ZenUpdater`
 
-If your page already extends `StatelessWidget` or another widget class, you can use `ZenBuilder<T>` to automatically fetch and react to the controller:
+If your page already extends `StatelessWidget` or another widget class, you can use `ZenUpdater<T>` to rebuild when `controller.update()` is called:
 
 ```dart
 class ProfilePage extends StatelessWidget {
@@ -101,7 +101,7 @@ class ProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ZenBuilder<ProfileController>(
+    return ZenUpdater<ProfileController>(
       builder: (context, controller) {
         return Scaffold(
           appBar: AppBar(title: const Text('Profile')),

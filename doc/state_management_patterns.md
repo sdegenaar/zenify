@@ -27,7 +27,7 @@
 ┌─────────────────────────────────────────┐
 │  VIEW LAYER (UI)                        │
 │  - Obx() for reactive (.obs())          │
-│  - ZenBuilder for manual (update())     │
+│  - ZenUpdater for manual (update())     │
 └─────────────────────────────────────────┘
               ↓ uses
 ┌─────────────────────────────────────────┐
@@ -39,15 +39,15 @@
 ┌─────────────────────────────────────────┐
 │  REGISTRATION LAYER                     │
 │  PRIMARY: Modules → ZenRoute → Scopes   │
-│  FALLBACK: get createController         │
+│  FALLBACK: initController override      │
 └─────────────────────────────────────────┘
 ```
 
 ### Key Principles
 
 1. **Controllers** hold state and logic
-2. **Views** display state using `ZenView` (Preferred), `Obx()`, or `ZenBuilder`
-3. **Registration** via modules (recommended) or `createController` (one-off)
+2. **Views** display state using `ZenView` (Preferred), `Obx()`, or `ZenUpdater`
+3. **Registration** via modules (recommended) or `initController` override (per-instance)
 
 ### The "Goldilocks Zone" Philosophy
 * **Versus Riverpod**: Riverpod is an incredibly powerful, deeply flexible tool that relies on code generation (`build_runner`) and global scope binding. Zenify offers an alternative for teams looking for standard object-oriented controllers without requiring a code generation step.
@@ -174,7 +174,7 @@ When you navigate: Company → Department → Division → Employee, all control
 // Page-specific controller via createController
 class LoginPage extends ZenView<LoginController> {
   @override
-  LoginController Function()? get createController => () => LoginController();
+  LoginController Function()? initController => () => LoginController();
 
   @override
   Widget build(BuildContext context) {
@@ -227,14 +227,14 @@ Widget build(BuildContext context) {
 }
 ```
 
-### 2. Obx vs ZenBuilder
+### 2. Obx vs ZenUpdater
 
 **Two approaches for state management - choose based on your needs:**
 
 | Approach | Update Method | View Widget | Trade-offs |
 |----------|---------------|-------------|------------|
 | **Reactive** | `.obs()` values auto-update | `Obx()` | Simple code, more listeners |
-| **Manual** | `update()` triggers rebuild | `ZenBuilder` | More control, less overhead |
+| **Manual** | `update()` triggers rebuild | `ZenUpdater` | More control, less overhead |
 | **Mixed** | Both in same controller | Both | Flexibility, optimize where needed |
 
 #### Option 1: Reactive Pattern
@@ -296,14 +296,14 @@ class ManualController extends ZenController {
 class ManualView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return ZenBuilder<ManualController>(
+    return ZenUpdater<ManualController>(
       builder: (context, controller) => Column(
         children: [
-          ZenBuilder<ManualController>(
+          ZenUpdater<ManualController>(
             id: 'counter',
             builder: (context, ctrl) => Text('Count: ${ctrl.count}'),
           ),
-          ZenBuilder<ManualController>(
+          ZenUpdater<ManualController>(
             id: 'status',
             builder: (context, ctrl) => Text('Status: ${ctrl.status}'),
           ),
@@ -358,7 +358,7 @@ class MixedView extends ZenView<MixedController> {
         ),
 
         // ZenBuilder for manual item list
-        ZenBuilder<MixedController>(
+        ZenUpdater<MixedController>(
           id: 'item-list',
           builder: (context, ctrl) => ItemList(ctrl.items),
         ),
@@ -632,7 +632,7 @@ class OptionalFeature extends StatelessWidget {
 }
 ```
 
-### 3. ZenBuilder (Accessing Shared Controllers)
+### 3. ZenUpdater (Accessing Shared Controllers)
 
 **For accessing existing controllers from any widget:**
 
@@ -640,7 +640,7 @@ class OptionalFeature extends StatelessWidget {
 class CartBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return ZenBuilder<CartService>(
+    return ZenUpdater<CartService>(
       builder: (context, cart) => Obx(() => Badge(
         label: Text('${cart.cartItems.length}'),
         child: Icon(Icons.shopping_cart),
@@ -780,7 +780,7 @@ Obx(() => Text('Total: \$${controller.total.toStringAsFixed(2)}'))
 
 ## Performance Optimization
 
-### Selective Rebuilds with ZenBuilder
+### Selective Rebuilds with ZenUpdater
 
 **Use IDs for targeted rebuilds:**
 
@@ -806,11 +806,11 @@ class OptimizedView extends ZenView<OptimizedController> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        ZenBuilder<OptimizedController>(
+        ZenUpdater<OptimizedController>(
           id: 'search',
           builder: (context, ctrl) => SearchBar(query: ctrl.searchQuery),
         ),
-        ZenBuilder<OptimizedController>(
+        ZenUpdater<OptimizedController>(
           id: 'items',
           builder: (context, ctrl) => ItemList(items: ctrl.items),
         ),
@@ -1019,7 +1019,7 @@ class ProductDetailPage extends ZenView<ProductDetailController> {
 
 ```dart
 // ❌ BAD - Why use ZenBuilder if everything is reactive?
-ZenBuilder<MyController>(
+ZenUpdater<MyController>(
   builder: (context, controller) => Column(
     children: [
       Obx(() => Text(controller.name.value)),  // All reactive!
@@ -1037,13 +1037,13 @@ Column(
 )
 ```
 
-### ❌ DON'T: Use createController When Controller is in Module
+### ❌ DON'T: Use initController When Controller is in Module
 
 ```dart
 // ❌ BAD - Wasteful if controller already in module
 class MyPage extends ZenView<MyController> {
   @override
-  MyController Function()? get createController => () => MyController();
+  MyController Function()? initController => () => MyController();
   // ...
 }
 
@@ -1081,15 +1081,15 @@ class CounterController extends ZenController {
 ### Key Patterns
 
 1. **Controllers hold state** (reactive or manual)
-2. **Views use Obx() or ZenBuilder** (not both unless necessary)
+2. **Views use Obx() or ZenUpdater** (not both unless necessary)
 3. **Registration via modules** (preferred) or createController (one-off)
 
 ### Decision Tree
 
 1. **New feature?** → Create module + use ZenRoute
-2. **One-off page?** → Override `get createController`
+2. **Per-instance widget?** → Override `initController`
 3. **Reactive state?** → Use `.obs()` + `Obx()`
-4. **Manual control needed?** → Use regular vars + `update()` + `ZenBuilder`
+4. **Manual control needed?** → Use regular vars + `update()` + `ZenUpdater`
 5. **Global service?** → Add static `.to` accessor
 6. **Controller communication?** → Use shared services
 
@@ -1097,7 +1097,7 @@ class CounterController extends ZenController {
 
 - ✅ Use modules for most controllers
 - ✅ Use `.obs()` + `Obx()` for most state (simpler)
-- ✅ Reserve ZenBuilder for manual control needs
+- ✅ Reserve ZenUpdater for manual control needs
 - ✅ Don't mix patterns without clear reason
 - ✅ Services can have state (business logic)
 - ✅ Use static `.to` for global access

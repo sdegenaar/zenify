@@ -2,8 +2,10 @@
 
 **Authors**: Package Owner + Architect  
 **Date**: July 2026  
-**Status**: Approved for V2 Development — Implementation In Progress  
+**Status**: ✅ SHIPPED — V2.0.0 Released  
 **Context**: Architectural design session. Code references reflect the V1.11.x codebase as audited July 2026.
+
+> This document is the original design rationale. For the current implementation details, see the source code and [migration_v2_0_0.md](migration_v2_0_0.md).
 
 ---
 
@@ -18,12 +20,12 @@
 | `ZenController` — lifecycle, auto-track reactive/children | ✅ Done | Production-ready |
 | `ZenScope` — hierarchical, parent-child, no global state | ✅ Done | Production-ready |
 | `ZenModule` — module-based scope initialization | ✅ Done | Production-ready |
-| `ZenView<T>` — injected `build(context, T controller)` | ❌ Not started | Pending V2 work |
-| `_ZenViewRegistry` — deleted entirely | ❌ Not started | Pending V2 work |
-| `createController` — removed from `ZenView` | ❌ Not started | Pending V2 work |
-| `ZenConsumer<T>` — scope-bound (currently global-only bug) | ❌ Broken | Must be fixed in V2 |
-| `ZenScopeWidget.create:` — simple convenience constructor | ❌ Missing | Open question |
-| `ZenBuilder<T>` rename to `ZenUpdater<T>` | ❌ Not started | Open question |
+| `ZenView<T>` — injected `build(context, T controller)` | ✅ Done | Production-ready |
+| `_ZenViewRegistry` — deleted entirely | ✅ Done | No global registry |
+| `initController` — replaces `createController` on `ZenView` | ✅ Done | Production-ready |
+| `ZenConsumer<T>` — scope-bound via `didChangeDependencies` | ✅ Done | Production-ready |
+| `ZenScopeWidget.create<T>` — simple convenience constructor | ✅ Done | Production-ready |
+| `ZenBuilder<T>` renamed to `ZenUpdater<T>` | ✅ Done | `ZenBuilder` kept as deprecated alias |
 
 ---
 

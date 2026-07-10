@@ -443,7 +443,7 @@ testWidgets('ZenView auto-injects and cleanly disposes controller', (tester) asy
   
   class TestPage extends ZenView<CounterController> {
     @override
-    CounterController Function()? get createController => () => CounterController();
+    CounterController Function()? initController => () => CounterController();
 
     @override
     Widget build(BuildContext context) {
@@ -465,15 +465,15 @@ testWidgets('ZenView auto-injects and cleanly disposes controller', (tester) asy
 });
 ```
 
-Testing with ZenBuilder (Manual Control)
+Testing with ZenUpdater (Manual Control)
 
 ``` dart
-testWidgets('ZenBuilder updates on controller change', (tester) async {
+testWidgets('ZenUpdater updates on controller change', (tester) async {
   Zen.testMode().mock<ApiClient>(FakeApiClient());
   
   await tester.pumpWidget(
     MaterialApp(
-      home: ZenBuilder<CounterController>(
+      home: ZenUpdater<CounterController>(
         create: () => CounterController(),
         builder: (context, controller) {
           return Text('Count: ${controller.count.value}');
