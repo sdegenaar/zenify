@@ -22,12 +22,12 @@ class TodoHomePage extends ZenView<TodoController> {
           // Search button
           IconButton(
             icon: const Icon(Icons.search),
-            onPressed: () => _showSearchDialog(context),
+            onPressed: () => _showSearchDialog(context, controller),
           ),
           // Sort button
           IconButton(
             icon: const Icon(Icons.sort),
-            onPressed: () => _showSortDialog(context),
+            onPressed: () => _showSortDialog(context, controller),
           ),
         ],
       ),
@@ -112,7 +112,7 @@ class TodoHomePage extends ZenView<TodoController> {
                       todo: todo,
                       onToggle: () => controller.toggleTodoStatus(todo.id),
                       onEdit: () => _navigateToDetailPage(context, todo: todo),
-                      onDelete: () => _showDeleteConfirmation(context, todo),
+                      onDelete: () => _showDeleteConfirmation(context, controller, todo),
                     );
                   },
                 ),
@@ -125,7 +125,7 @@ class TodoHomePage extends ZenView<TodoController> {
                       todo: todo,
                       onToggle: () => controller.toggleTodoStatus(todo.id),
                       onEdit: () => _navigateToDetailPage(context, todo: todo),
-                      onDelete: () => _showDeleteConfirmation(context, todo),
+                      onDelete: () => _showDeleteConfirmation(context, controller, todo),
                     );
                   },
                 ),
@@ -150,7 +150,7 @@ class TodoHomePage extends ZenView<TodoController> {
                 ZenObserver(() => Zen.find<TodoController>().completedCount > 0
                     ? TextButton(
                         onPressed: () =>
-                            _showClearCompletedConfirmation(context),
+                            _showClearCompletedConfirmation(context, controller),
                         child: const Text('Clear completed'),
                       )
                     : const SizedBox.shrink()),
@@ -174,7 +174,7 @@ class TodoHomePage extends ZenView<TodoController> {
     );
   }
 
-  void _showDeleteConfirmation(BuildContext context, Todo todo) {
+  void _showDeleteConfirmation(BuildContext context, TodoController controller, Todo todo) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -197,7 +197,7 @@ class TodoHomePage extends ZenView<TodoController> {
     );
   }
 
-  void _showClearCompletedConfirmation(BuildContext context) {
+  void _showClearCompletedConfirmation(BuildContext context, TodoController controller) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -221,7 +221,7 @@ class TodoHomePage extends ZenView<TodoController> {
     );
   }
 
-  void _showSearchDialog(BuildContext context) {
+  void _showSearchDialog(BuildContext context, TodoController controller) {
     final searchController =
         TextEditingController(text: controller.searchQuery.value);
 
@@ -257,7 +257,7 @@ class TodoHomePage extends ZenView<TodoController> {
     );
   }
 
-  void _showSortDialog(BuildContext context) {
+  void _showSortDialog(BuildContext context, TodoController controller) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(

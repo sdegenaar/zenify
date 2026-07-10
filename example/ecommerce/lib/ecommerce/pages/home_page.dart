@@ -19,7 +19,7 @@ class HomePage extends ZenView<HomeController> {
           // Search button
           IconButton(
             icon: const Icon(Icons.search),
-            onPressed: () => _showSearchDialog(context),
+            onPressed: () => _showSearchDialog(context, controller),
           ),
           // Cart button
           CartBadge(
@@ -27,7 +27,7 @@ class HomePage extends ZenView<HomeController> {
           ),
         ],
       ),
-      drawer: _buildDrawer(context),
+      drawer: _buildDrawer(context, controller),
       body: Column(
         children: [
           // Category filter
@@ -205,7 +205,7 @@ class HomePage extends ZenView<HomeController> {
             title: const Text('About'),
             onTap: () {
               Navigator.pop(context);
-              _showAboutDialog(context);
+              _showAboutDialog(context, controller);
             },
           ),
         ],
@@ -220,7 +220,7 @@ class HomePage extends ZenView<HomeController> {
     );
   }
 
-  void _showSearchDialog(BuildContext context) {
+  void _showSearchDialog(BuildContext context, HomeController controller) {
     final searchController =
         TextEditingController(text: controller.searchQuery.value);
 
@@ -256,7 +256,7 @@ class HomePage extends ZenView<HomeController> {
     );
   }
 
-  void _showAboutDialog(BuildContext context) {
+  void _showAboutDialog(BuildContext context, HomeController controller) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(

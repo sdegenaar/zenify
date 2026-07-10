@@ -33,7 +33,7 @@ class CounterApp extends StatelessWidget {
   const CounterApp({super.key});
 
   @override
-  Widget build(BuildContext context, CounterController controller) {
+  Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Zenify Counter Demo - Complete Showcase',
       debugShowCheckedModeBanner: false,
@@ -116,7 +116,7 @@ class CounterController extends ZenController {
     // Ever worker - executes on every change (like GetX ever)
     workerGroup.add(ever(counter, (value) {
       ZenLogger.logDebug('Counter changed to: $value');
-      _incrementStateUpdateCount(controller);
+      _incrementStateUpdateCount();
 
       // Enhanced status updates with more personality
       if (value == 0) {
@@ -285,7 +285,7 @@ class CounterController extends ZenController {
   }
 
   // Performance metrics tracking
-  void _incrementStateUpdateCount(controller) {
+  void _incrementStateUpdateCount() {
     stateUpdateCount.value++;
     ZenMetrics.recordStateUpdate();
   }

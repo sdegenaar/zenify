@@ -85,12 +85,12 @@ class ProductDetailPage extends ZenView<ProductDetailController> {
             ],
           ),
         ),
-        onSuccess: (product) => _buildProductContent(context, product),
+        onSuccess: (product) => _buildProductContent(context, controller, product),
       ),
     );
   }
 
-  Widget _buildProductContent(BuildContext context, Product product) {
+  Widget _buildProductContent(BuildContext context, ProductDetailController controller, Product product) {
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -332,13 +332,13 @@ class ProductDetailPage extends ZenView<ProductDetailController> {
           ),
 
           // Related products
-          _buildRelatedProducts(context, product),
+          _buildRelatedProducts(context, controller, product),
         ],
       ),
     );
   }
 
-  Widget _buildRelatedProducts(BuildContext context, Product product) {
+  Widget _buildRelatedProducts(BuildContext context, ProductDetailController controller, Product product) {
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(

@@ -161,7 +161,7 @@ class TodoDetailPage extends ZenView<TodoDetailController> {
                               tooltip: 'Clear due date',
                             )
                           : null,
-                      onTap: () => _selectDate(context),
+                      onTap: () => _selectDate(context, controller),
                     ),
                   )),
               const SizedBox(height: 24),
@@ -217,7 +217,7 @@ class TodoDetailPage extends ZenView<TodoDetailController> {
                 width: double.infinity,
                 child: ZenObserver(() => ElevatedButton(
                       onPressed:
-                          controller.isValid ? () => _saveTodo(context) : null,
+                          controller.isValid ? () => _saveTodo(context, controller) : null,
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         backgroundColor: Theme.of(context).colorScheme.primary,
@@ -276,7 +276,7 @@ class TodoDetailPage extends ZenView<TodoDetailController> {
     );
   }
 
-  Future<void> _selectDate(BuildContext context) async {
+  Future<void> _selectDate(BuildContext context, TodoDetailController controller) async {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: controller.dueDate.value ?? DateTime.now(),
@@ -292,7 +292,7 @@ class TodoDetailPage extends ZenView<TodoDetailController> {
     }
   }
 
-  void _saveTodo(BuildContext context) {
+  void _saveTodo(BuildContext context, TodoDetailController controller) {
     try {
       final todoController = Zen.find<TodoController>();
       final todo = controller.createTodoFromForm();

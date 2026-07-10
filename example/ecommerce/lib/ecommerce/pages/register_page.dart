@@ -173,7 +173,7 @@ class RegisterPage extends ZenView<RegisterController> {
               ZenObserver(() => ElevatedButton(
                     onPressed: controller.isLoading.value
                         ? null
-                        : () => _register(context),
+                        : () => _register(context, controller),
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       backgroundColor: Theme.of(context).colorScheme.primary,
@@ -304,7 +304,7 @@ class RegisterPage extends ZenView<RegisterController> {
     );
   }
 
-  Future<void> _register(BuildContext context) async {
+  Future<void> _register(BuildContext context, RegisterController controller) async {
     // Hide keyboard
     FocusScope.of(context).unfocus();
 

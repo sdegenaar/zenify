@@ -27,7 +27,7 @@ class ZenifyExampleApp extends StatelessWidget {
   const ZenifyExampleApp({super.key});
 
   @override
-  Widget build(BuildContext context, CounterController controller) {
+  Widget build(BuildContext context) {
     return const MaterialApp(
       title: 'Zenify Example',
       home: CounterPage(),
