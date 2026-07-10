@@ -851,12 +851,9 @@ abstract class ZenController {
     }
   }
 
-  /// Clean up disposed listeners periodically
+  /// Clean up empty listener sets periodically
   void _cleanupUpdateListeners() {
-    _updateListeners.removeWhere((key, listeners) {
-      listeners.removeWhere((listener) => false);
-      return listeners.isEmpty;
-    });
+    _updateListeners.removeWhere((key, listeners) => listeners.isEmpty);
   }
 }
 

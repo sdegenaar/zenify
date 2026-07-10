@@ -365,10 +365,6 @@ class Zen {
   ///
   /// Provides shorter, more convenient access to the query cache.
   ///
-  /// Shorthand for [ZenQueryCache.instance].
-  ///
-  /// Provides shorter, more convenient access to the query cache.
-  ///
   /// Example:
   /// ```dart
   /// // Before
