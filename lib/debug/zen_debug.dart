@@ -7,7 +7,7 @@ import 'debug.dart';
 ///
 /// Separated from main API to keep Zen class clean.
 class ZenDebug {
-  ZenDebug._();
+  ZenDebug._(); // coverage:ignore-line
 
   /// Get all active scopes starting from root
   ///

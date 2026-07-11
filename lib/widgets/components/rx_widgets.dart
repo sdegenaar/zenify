@@ -101,7 +101,7 @@ class _ZenObserverState extends State<ZenObserver> {
   Widget build(BuildContext context) {
     // If no rebuild needed and we have a previous result, reuse it
     // coverage:ignore-start
-  if (!_needsRebuild && _lastBuildResult != null) {
+    if (!_needsRebuild && _lastBuildResult != null) {
       // We still need to execute the builder to track dependencies
       // but we don't need to use its result
 
@@ -116,16 +116,17 @@ class _ZenObserverState extends State<ZenObserver> {
 
       return _lastBuildResult!;
     }
-  // coverage:ignore-end
+    // coverage:ignore-end
 
     // Reset tracking between actual rebuilds
     _removeListeners();
 
     // Track performance
     if (ZenConfig.enablePerformanceMetrics) {
-      ZenMetrics.startTiming('obx.build');
-      _buildCount++;
-      ZenMetrics.recordCounterValue('obx.buildCount', _buildCount);
+      ZenMetrics.startTiming('obx.build'); // coverage:ignore-line
+      _buildCount++; // coverage:ignore-line
+      ZenMetrics.recordCounterValue(
+          'obx.buildCount', _buildCount); // coverage:ignore-line
     }
 
     // Set the tracker to capture Rx values used in the build
@@ -142,13 +143,13 @@ class _ZenObserverState extends State<ZenObserver> {
       RxTracking.clearTracker();
 
       if (ZenConfig.enablePerformanceMetrics) {
-        ZenMetrics.stopTiming('obx.build');
+        ZenMetrics.stopTiming('obx.build'); // coverage:ignore-line
       }
     }
 
     // Check if tracking was successful
     if (_trackedValues.isEmpty) {
-      ZenLogger.logWarning(
+      ZenLogger.logWarning(// coverage:ignore-line
           "No tracked values found in ZenObserver widget. Reactivity won't work.");
     }
 

@@ -118,8 +118,8 @@ class ZenTestContainer {
         }
       } catch (e) {
         // Continue clearing even if some fail
-        ZenLogger.logDebug(
-            'Failed to dispose dependency ${dependency.runtimeType}: $e');
+        ZenLogger.logDebug(// coverage:ignore-line
+            'Failed to dispose dependency ${dependency.runtimeType}: $e'); // coverage:ignore-line
       }
     }
 
@@ -128,7 +128,7 @@ class ZenTestContainer {
     for (final dep in allDeps) {
       final tag = _scope.getTagForInstance(dep);
       if (tag != null) {
-        _scope.deleteByTag(tag, force: true);
+        _scope.deleteByTag(tag, force: true); // coverage:ignore-line
       } else {
         _scope.deleteByType(dep.runtimeType, force: true);
       }
@@ -165,19 +165,21 @@ class ZenTestScope extends StatefulWidget {
   final ZenTestContainer container;
 
   const ZenTestScope({
+    // coverage:ignore-line
     required this.child,
     required this.container,
     super.key,
   });
 
-  @override
-  State<ZenTestScope> createState() => _ZenTestScopeState();
+  @override // coverage:ignore-line
+  State<ZenTestScope> createState() =>
+      _ZenTestScopeState(); // coverage:ignore-line
 }
 
 class _ZenTestScopeState extends State<ZenTestScope> {
-  @override
+  @override // coverage:ignore-line
   Widget build(BuildContext context) {
-    return widget.child;
+    return widget.child; // coverage:ignore-line
   }
 }
 

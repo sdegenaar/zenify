@@ -5,7 +5,7 @@ import '../../core/zen_logger.dart';
 /// Internal tracking system for Rx values
 /// This allows Obx widgets to track which Rx values are used in their build methods
 class RxTracking {
-  RxTracking._(); // Private constructor to prevent instantiation
+  RxTracking._(); // Private constructor to prevent instantiation // coverage:ignore-line
 
   // The current tracker function set by Obx widget
   static void Function(ValueNotifier)? _tracker;

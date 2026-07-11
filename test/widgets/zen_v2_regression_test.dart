@@ -238,8 +238,8 @@ void main() {
               return c;
             },
             child: Builder(
-              builder: (ctx) => Text(
-                  'val:${ctx.controller<CountController>().plainCount}'),
+              builder: (ctx) =>
+                  Text('val:${ctx.controller<CountController>().plainCount}'),
             ),
           ),
         ),

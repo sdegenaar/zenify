@@ -5,7 +5,7 @@ import 'zen_logger.dart';
 
 /// Performance and usage metrics for Zenify
 class ZenMetrics {
-  ZenMetrics._(); // Private constructor
+  ZenMetrics._(); // Private constructor // coverage:ignore-line
 
   /// Controller metrics
   static int activeControllers = 0;

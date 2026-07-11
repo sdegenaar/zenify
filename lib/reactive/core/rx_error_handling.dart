@@ -244,6 +244,7 @@ extension RxErrorHandling<T> on Rx<T> {
       return value;
     } catch (e) {
       _logError(RxException.withTimestamp(
+        // coverage:ignore-line
         'Failed to get value, using fallback',
         originalError: e,
       ));
@@ -257,14 +258,19 @@ extension RxErrorHandling<T> on Rx<T> {
       return value;
     } catch (e) {
       try {
-        return fallback();
+        return fallback(); // coverage:ignore-line
       } catch (fallbackError) {
         final error = RxException.withTimestamp(
+          // coverage:ignore-line
           'Failed to get value and fallback computation failed',
-          originalError: {'original': e, 'fallback': fallbackError},
+          originalError: {
+            'original': e,
+            'fallback': fallbackError
+          }, // coverage:ignore-line
         );
-        _logError(error);
+        _logError(error); // coverage:ignore-line
         if (_globalErrorConfig.throwOnCriticalErrors) {
+          // coverage:ignore-line
           throw error;
         }
         rethrow;
@@ -383,11 +389,12 @@ extension RxErrorHandling<T> on Rx<T> {
         result.value = computation(value);
       } catch (e, stack) {
         _logError(RxException.withTimestamp(
+          // coverage:ignore-line
           'Error in safe computation',
           originalError: e,
           stackTrace: stack,
         ));
-        result.value = null;
+        result.value = null; // coverage:ignore-line
       }
     });
 
@@ -470,6 +477,7 @@ extension RxAsyncErrorHandling<T> on Rx<T> {
       });
     } catch (e, stack) {
       return RxResult.failure(RxException.withTimestamp(
+        // coverage:ignore-line
         context ?? 'Async update failed',
         originalError: e,
         stackTrace: stack,

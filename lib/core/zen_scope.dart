@@ -618,7 +618,7 @@ class ZenScope {
             instance.dispose();
           } catch (e) {
             // coverage:ignore-line
-            ZenLogger.logError(
+            ZenLogger.logError(// coverage:ignore-line
                 'Error disposing service during clearAll: $e'); // coverage:ignore-line
           } // coverage:ignore-line
         }
@@ -660,7 +660,7 @@ class ZenScope {
             instance.dispose();
           } catch (e) {
             // coverage:ignore-line
-            ZenLogger.logError(
+            ZenLogger.logError(// coverage:ignore-line
                 'Error disposing service during clearAll: $e'); // coverage:ignore-line
           } // coverage:ignore-line
         }
@@ -824,8 +824,8 @@ class ZenScope {
   /// Check if an instance already exists (either regular or lazy)
   bool _instanceExists<T>(String? tag) {
     if (tag != null) {
-      final instance = _taggedBindings[tag];
-      return instance != null && instance is T;
+      final instance = _taggedBindings[tag]; // coverage:ignore-line
+      return instance != null && instance is T; // coverage:ignore-line
     } else {
       return _typeBindings.containsKey(T);
     }

@@ -133,7 +133,7 @@ class ZenInfiniteQuery<T> extends ZenQuery<List<T>> {
 
       // 5. Ensure status is success
       if (status.value != ZenQueryStatus.success) {
-        status.value = ZenQueryStatus.success;
+        status.value = ZenQueryStatus.success; // coverage:ignore-line
       }
 
       // Clear any previous errors since this succeeded

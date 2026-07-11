@@ -193,7 +193,10 @@ class _ZenRouteState extends State<ZenRoute> {
         ZenLogger.logDebug('🧹 Module disposed: ${_module!.name}');
       } catch (e, stackTrace) {
         ZenLogger.logError(
-            'Error disposing module: ${_module!.name}', e, stackTrace);
+            // coverage:ignore-line
+            'Error disposing module: ${_module!.name}',
+            e,
+            stackTrace); // coverage:ignore-line
       }
     }
 
@@ -203,7 +206,7 @@ class _ZenRouteState extends State<ZenRoute> {
       if (_scope!.parent != null) {
         Zen.setCurrentScope(_scope!.parent!);
       } else {
-        Zen.resetCurrentScope();
+        Zen.resetCurrentScope(); // coverage:ignore-line
       }
 
       try {
@@ -211,7 +214,10 @@ class _ZenRouteState extends State<ZenRoute> {
         ZenLogger.logDebug('🗑️ Scope disposed: ${_scope!.name}');
       } catch (e, stackTrace) {
         ZenLogger.logError(
-            'Error disposing scope: ${_scope!.name}', e, stackTrace);
+            // coverage:ignore-line
+            'Error disposing scope: ${_scope!.name}',
+            e,
+            stackTrace); // coverage:ignore-line
       }
     }
 

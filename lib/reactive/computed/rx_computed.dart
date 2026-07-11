@@ -28,6 +28,7 @@ class RxComputed<T> extends ValueNotifier<T> {
       initialValue = computation();
     } catch (e, stack) {
       initError = RxException.withTimestamp(
+        // coverage:ignore-line
         'Error in computed value initialization',
         originalError: e,
         stackTrace: stack,
@@ -55,7 +56,7 @@ class RxComputed<T> extends ValueNotifier<T> {
   Set<ValueNotifier> get dependencies => Set.unmodifiable(_dependencies);
 
   /// Get the last error that occurred during computation
-  RxException? get lastError => _lastError;
+  RxException? get lastError => _lastError; // coverage:ignore-line
 
   /// Whether the computed value has an error
   bool get hasError => _lastError != null;

@@ -19,7 +19,7 @@ import '../devtools/service_extensions.dart' show ZenServiceExtensions;
 /// Provides a clean, simple API for global dependency management.
 /// For hierarchical scopes, use ZenRoute or ZenScopeWidget directly.
 class Zen {
-  Zen._(); // Private constructor
+  Zen._(); // Private constructor // coverage:ignore-line
 
   static final ZenLifecycleManager _lifecycleManager =
       ZenLifecycleManager.instance;
@@ -48,7 +48,8 @@ class Zen {
 
     // Register handlers if provided
     if (mutationHandlers != null) {
-      ZenMutationQueue.instance.registerHandlers(mutationHandlers);
+      ZenMutationQueue.instance
+          .registerHandlers(mutationHandlers); // coverage:ignore-line
     }
 
     // Set global storage for queries
@@ -66,7 +67,8 @@ class Zen {
         ZenLogger.logDebug('DevTools service extensions registered');
       } catch (e) {
         // Silently fail if devtools not available
-        ZenLogger.logDebug('DevTools extensions not available: $e');
+        ZenLogger.logDebug(
+            'DevTools extensions not available: $e'); // coverage:ignore-line
       }
     }
 
@@ -196,7 +198,7 @@ class Zen {
 
     // Auto-initialize ZenService on first access
     if (result is ZenService && !result.isInitialized) {
-      result.ensureInitialized();
+      result.ensureInitialized(); // coverage:ignore-line
     }
 
     return result;

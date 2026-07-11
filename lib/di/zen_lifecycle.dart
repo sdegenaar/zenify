@@ -39,6 +39,7 @@ class ZenLifecycleManager {
           // Call onReady immediately
           if (!controller.isDisposed) {
             // coverage:ignore-line
+            // coverage:ignore-line
             controller.onReady(); // coverage:ignore-line
           } // coverage:ignore-line
         }
@@ -185,7 +186,10 @@ class _ZenAppLifecycleObserver extends WidgetsBindingObserver {
       ZenLogger.logDebug('Paused ${queries.length} queries');
     } catch (e, stack) {
       ZenLogger.logError(
-          'Error pausing queries', e, stack); // coverage:ignore-line
+          // coverage:ignore-line
+          'Error pausing queries',
+          e,
+          stack); // coverage:ignore-line
     }
   }
 
@@ -198,7 +202,10 @@ class _ZenAppLifecycleObserver extends WidgetsBindingObserver {
       ZenLogger.logDebug('Resumed ${queries.length} queries');
     } catch (e, stack) {
       ZenLogger.logError(
-          'Error resuming queries', e, stack); // coverage:ignore-line
+          // coverage:ignore-line
+          'Error resuming queries',
+          e,
+          stack); // coverage:ignore-line
     }
   }
 

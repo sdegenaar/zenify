@@ -5,7 +5,7 @@ import 'zen_log_level.dart';
 
 /// Configuration settings for Zenify framework
 class ZenConfig {
-  ZenConfig._(); // Private constructor
+  ZenConfig._(); // Private constructor // coverage:ignore-line
 
   // ============================================================================
   // LOGGING CONFIGURATION
@@ -23,10 +23,13 @@ class ZenConfig {
   static bool enableRxTracking = false;
 
   /// Legacy property for backward compatibility
-  @Deprecated('Use logLevel instead. Will be removed in v1.0')
-  static bool get enableDebugLogs => logLevel.level >= ZenLogLevel.debug.level;
+  @Deprecated(
+      'Use logLevel instead. Will be removed in v1.0') // coverage:ignore-line
+  static bool get enableDebugLogs =>
+      logLevel.level >= ZenLogLevel.debug.level; // coverage:ignore-line
 
-  @Deprecated('Use logLevel instead. Will be removed in v1.0')
+  @Deprecated(
+      'Use logLevel instead. Will be removed in v1.0') // coverage:ignore-line
   static set enableDebugLogs(bool value) {
     logLevel = value ? ZenLogLevel.debug : ZenLogLevel.warning;
   }

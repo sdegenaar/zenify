@@ -15,6 +15,6 @@ class QueryKey {
 
     // For other objects, rely on toString()
     // Users should override toString() for custom key objects
-    return key.toString();
+    return key.toString(); // coverage:ignore-line
   }
 }

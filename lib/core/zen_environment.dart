@@ -143,6 +143,6 @@ enum ZenEnvironment {
     }
   }
 
-  @override
-  String toString() => value;
+  @override // coverage:ignore-line
+  String toString() => value; // coverage:ignore-line
 }

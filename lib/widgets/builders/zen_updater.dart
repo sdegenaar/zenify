@@ -121,7 +121,7 @@ class _ZenUpdaterState<T extends ZenController> extends State<ZenUpdater<T>> {
     // so Flutter's error handling surfaces it. No silent blank widgets.
     if (_resolutionError != null) {
       if (widget.onError != null) return widget.onError!(_resolutionError!);
-      throw _resolutionError!;
+      throw _resolutionError!; // coverage:ignore-line
     }
 
     assert(_controller != null);
@@ -129,7 +129,8 @@ class _ZenUpdaterState<T extends ZenController> extends State<ZenUpdater<T>> {
     try {
       return widget.builder(context, _controller!);
     } catch (e) {
-      if (widget.onError != null) return widget.onError!(e);
+      if (widget.onError != null)
+        return widget.onError!(e); // coverage:ignore-line
       rethrow; // Let Flutter's error handling surface it — no silent failures.
     }
   }

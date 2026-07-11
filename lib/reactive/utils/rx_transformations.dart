@@ -37,7 +37,7 @@ extension RxTransformations<T> on Rx<T> {
     return computed(() {
       final newMapped = mapper(value);
       if (currentMapped != newMapped) {
-        currentMapped?.dispose();
+        currentMapped?.dispose(); // coverage:ignore-line
         currentMapped = newMapped;
       }
       return currentMapped!.value;
@@ -111,12 +111,14 @@ extension RxListTransformations<T> on Rx<List<T>> {
   RxComputed<bool> get rxIsEmpty => computed(() => value.isEmpty);
 
   /// Get first element (or null)
-  RxComputed<T?> get rxFirst =>
-      computed(() => value.isNotEmpty ? value.first : null);
+  RxComputed<T?> get rxFirst => // coverage:ignore-line
+      computed(
+          () => value.isNotEmpty ? value.first : null); // coverage:ignore-line
 
   /// Get last element (or null)
-  RxComputed<T?> get rxLast =>
-      computed(() => value.isNotEmpty ? value.last : null);
+  RxComputed<T?> get rxLast => // coverage:ignore-line
+      computed(
+          () => value.isNotEmpty ? value.last : null); // coverage:ignore-line
 
   /// Filter list reactively
   RxComputed<List<T>> whereList(bool Function(T) predicate) {

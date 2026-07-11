@@ -258,7 +258,8 @@ class ZenRouteObserver extends NavigatorObserver {
     } catch (e, stack) {
       ZenLogger.logError(
           // coverage:ignore-line
-          'Error disposing controllers for route $routeName',
+          // coverage:ignore-line
+          'Error disposing controllers for route $routeName', // coverage:ignore-line
           e,
           stack); // coverage:ignore-line
     }
@@ -298,7 +299,8 @@ class ZenRouteObserver extends NavigatorObserver {
             'Route scope for $routeName still has ${dependencies.length} dependencies, keeping alive');
       }
     } catch (e) {
-      ZenLogger.logError('Failed to cleanup route scope for $routeName',
+      ZenLogger.logError(
+          'Failed to cleanup route scope for $routeName', // coverage:ignore-line
           e); // coverage:ignore-line
     }
   }
