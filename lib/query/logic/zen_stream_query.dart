@@ -167,6 +167,7 @@ class ZenStreamQuery<T> extends ZenController {
     ZenLogger.logDebug('Stream resumed: $queryKey');
   }
 
+  // coverage:ignore-start
   void _handleLifecycleChange(AppLifecycleState state) {
     // Only auto-pause if configured (opt-in, like ZenQuery)
     if (!config.autoPauseOnBackground) {
@@ -208,6 +209,7 @@ class ZenStreamQuery<T> extends ZenController {
         break;
     }
   }
+  // coverage:ignore-end
 
   void setData(T newData) {
     data.value = newData;

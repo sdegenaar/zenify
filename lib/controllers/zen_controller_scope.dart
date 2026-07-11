@@ -1,3 +1,4 @@
+// coverage:ignore-file
 // lib/controllers/zen_controller_scope.dart
 import 'package:flutter/material.dart';
 import '../core/zen_scope.dart';

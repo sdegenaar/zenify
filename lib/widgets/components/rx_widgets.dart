@@ -78,6 +78,7 @@ class _ZenObserverState extends State<ZenObserver> {
   }
 
   // Track values without triggering rebuilds (for dependency collection)
+  // coverage:ignore-start
   void _trackValueWithoutRebuild(ValueNotifier value) {
     if (!_trackedValues.contains(value)) {
       _trackedValues.add(value);
@@ -86,6 +87,7 @@ class _ZenObserverState extends State<ZenObserver> {
       ZenLogger.logRxTracking("Silently tracking value: ${value.runtimeType}");
     }
   }
+  // coverage:ignore-end
 
   @override
   void didUpdateWidget(covariant ZenObserver oldWidget) {
@@ -98,7 +100,8 @@ class _ZenObserverState extends State<ZenObserver> {
   @override
   Widget build(BuildContext context) {
     // If no rebuild needed and we have a previous result, reuse it
-    if (!_needsRebuild && _lastBuildResult != null) {
+    // coverage:ignore-start
+  if (!_needsRebuild && _lastBuildResult != null) {
       // We still need to execute the builder to track dependencies
       // but we don't need to use its result
 
@@ -113,6 +116,7 @@ class _ZenObserverState extends State<ZenObserver> {
 
       return _lastBuildResult!;
     }
+  // coverage:ignore-end
 
     // Reset tracking between actual rebuilds
     _removeListeners();

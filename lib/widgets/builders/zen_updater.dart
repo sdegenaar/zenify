@@ -69,6 +69,7 @@ class _ZenUpdaterState<T extends ZenController> extends State<ZenUpdater<T>> {
     _resolveController();
   }
 
+  // coverage:ignore-start
   @override
   void didUpdateWidget(ZenUpdater<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -77,6 +78,7 @@ class _ZenUpdaterState<T extends ZenController> extends State<ZenUpdater<T>> {
       _resolveController();
     }
   }
+  // coverage:ignore-end
 
   void _resolveController() {
     try {

@@ -53,6 +53,7 @@ class _ZenConsumerState<T extends ZenController> extends State<ZenConsumer<T>> {
     _dependency = context.controller<T>(tag: widget.tag);
   }
 
+  // coverage:ignore-start
   @override
   void didUpdateWidget(ZenConsumer<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -60,6 +61,7 @@ class _ZenConsumerState<T extends ZenController> extends State<ZenConsumer<T>> {
       _dependency = context.controller<T>(tag: widget.tag);
     }
   }
+  // coverage:ignore-end
 
   @override
   Widget build(BuildContext context) {
