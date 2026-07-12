@@ -22,7 +22,14 @@ import '../../core/zen_metrics.dart';
 class ZenObserver extends StatefulWidget {
   final Widget Function() builder;
 
-  const ZenObserver(this.builder, {super.key});
+  /// When `true`, suppresses the "No tracked values" warning that fires when
+  /// the builder contains only null-guarded Rx accesses (e.g. `ctrl?.value`).
+  ///
+  /// Use this in widgets where the controller may legitimately be null during
+  /// an early build (e.g. a ZenScopeWidget is still initialising).
+  final bool suppressEmptyWarning;
+
+  const ZenObserver(this.builder, {super.key, this.suppressEmptyWarning = false});
 
   @override
   State<ZenObserver> createState() => _ZenObserverState();
@@ -147,8 +154,15 @@ class _ZenObserverState extends State<ZenObserver> {
       }
     }
 
-    // Check if tracking was successful
-    if (_trackedValues.isEmpty) {
+    // Check if tracking was successful.
+    // Suppress the warning when the caller has explicitly opted out —
+    // this is common for widgets where the reactive source (e.g. a
+    // ZenController) may be null during the first build frame because
+    // the ZenScopeWidget is still registering its module. The null-safe
+    // `?.value` idiom silently skips tracking in that case, but the widget
+    // will still react correctly once the controller is available and a
+    // real Rx value is accessed on the next rebuild.
+    if (_trackedValues.isEmpty && !widget.suppressEmptyWarning) {
       ZenLogger.logWarning(// coverage:ignore-line
           "No tracked values found in ZenObserver widget. Reactivity won't work.");
     }

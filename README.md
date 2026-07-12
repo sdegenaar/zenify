@@ -25,6 +25,13 @@ final userQuery = ZenQuery<User>(
   queryKey: 'user:123',
   fetcher: (_) => api.getUser(123),
 );  // Caching, deduplication, refetching — all handled
+
+// Infinite scroll made easy
+final feed = ZenInfiniteQuery<Post>(
+  queryKey: 'feed',
+  fetcher: (params) => api.getPosts(page: params.pageParam),
+); 
+feed.fetchNextPage(); // Automatically appends new pages
 ```
 
 ---
