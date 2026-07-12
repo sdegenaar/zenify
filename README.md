@@ -20,18 +20,21 @@ final service = scope.find<UserService>()!;
 final count = 0.obs();
 ZenObserver(() => Text('${count.value}'))  // Auto-rebuilds
 
-// Smart async with caching
-final userQuery = ZenQuery<User>(
-  queryKey: 'user:123',
-  fetcher: (_) => api.getUser(123),
-);  // Caching, deduplication, refetching — all handled
-
-// Infinite scroll made easy
+// Infinite scroll — automatic page management
 final feed = ZenInfiniteQuery<Post>(
   queryKey: 'feed',
-  fetcher: (params) => api.getPosts(page: params.pageParam),
-); 
-feed.fetchNextPage(); // Automatically appends new pages
+  initialPageParam: 1,
+  infiniteFetcher: (page, token) => api.getPosts(page: page),
+  getNextPageParam: (lastPage, all) =>
+      lastPage.hasMore ? all.length + 1 : null, // null = no more pages
+);
+
+// In your widget — auto-appends pages, tracks loading state
+ZenObserver(() => ListView.builder(
+  itemCount: feed.data.value?.expand((p) => p.items).length ?? 0,
+  itemBuilder: (ctx, i) => PostTile(feed.data.value!.expand((p) => p.items).elementAt(i)),
+))
+// Trigger at bottom: feed.fetchNextPage()  →  hasNextPage / isFetchingNextPage
 ```
 
 ---
