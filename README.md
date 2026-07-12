@@ -21,20 +21,17 @@ final count = 0.obs();
 ZenObserver(() => Text('${count.value}'))  // Auto-rebuilds
 
 // Infinite scroll — automatic page management
-final feed = ZenInfiniteQuery<Post>(
+final feed = ZenInfiniteQuery<PostPage>(
   queryKey: 'feed',
   initialPageParam: 1,
-  infiniteFetcher: (page, token) => api.getPosts(page: page),
-  getNextPageParam: (lastPage, all) =>
-      lastPage.hasMore ? all.length + 1 : null, // null = no more pages
+  infiniteFetcher: (page, _) => api.getPosts(page: page),
+  getNextPageParam: (lastPage, all) => lastPage.hasMore ? all.length + 1 : null,
 );
 
-// In your widget — auto-appends pages, tracks loading state
-ZenObserver(() => ListView.builder(
-  itemCount: feed.data.value?.expand((p) => p.items).length ?? 0,
-  itemBuilder: (ctx, i) => PostTile(feed.data.value!.expand((p) => p.items).elementAt(i)),
-))
-// Trigger at bottom: feed.fetchNextPage()  →  hasNextPage / isFetchingNextPage
+feed.fetchNextPage();             // append next page
+feed.hasNextPage.value            // know when to stop
+feed.isFetchingNextPage.value     // drive your loading footer
+feed.data.value                   // all pages, reactive
 ```
 
 ---
