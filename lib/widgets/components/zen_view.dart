@@ -5,50 +5,66 @@ import '../../core/zen_scope.dart';
 import '../../di/zen_di.dart';
 import '../scope/zen_scope_widget.dart';
 
-/// Base class for screens and pages that consume a [ZenController].
+/// Base class for screens, pages, and widgets that consume a [ZenController].
 ///
-/// ## Controller Resolution
+/// ## The Three-Step Pattern
 ///
-/// [ZenView] resolves its controller via the widget tree in this priority order:
+/// ```
+/// 1. Register  →  Zen.registerModules([AppModule()])      // app-level
+///                  ZenScopeWidget(moduleBuilder: ...)      // route-level
+///                  Zen.put<T>(...)                         // quick singleton
+///
+/// 2. Consume   →  class MyPage extends ZenView<MyController>
+///                   → controller injected into build() automatically
+///
+/// 3. React     →  ZenObserver / ZenUpdater / ZenQuery.when()
+/// ```
+///
+/// ## Controller Resolution Order
+///
+/// [ZenView] resolves its controller automatically in this priority order:
 /// 1. **[initController]** — if overridden, the element creates and owns the
-///    controller directly (lifecycle: `mount` → `onInit` → `onReady`; then
-///    `unmount` → `onClose`). Use this for per-instance widgets whose
-///    controller parameters come from the widget itself.
-/// 2. **Nearest [ZenScopeWidget]** ancestor — tree-bound, safe for multiple
-///    simultaneous instances.
-/// 3. **Global [Zen] DI** fallback — for singleton services registered at app root.
+///    controller directly. Use this for per-instance widgets (list items, cards)
+///    whose controller parameters come from the widget's own fields.
+/// 2. **Nearest [ZenScopeWidget]** ancestor — typical for route-level modules.
+/// 3. **Global [Zen] DI** fallback — for singletons registered at app startup.
 ///
-/// ## Usage — Scope-provided controller (recommended for pages/screens)
+/// ## Standard Usage — Module-registered controller (pages and screens)
+///
+/// Register in your router or app module, then just consume:
 ///
 /// ```dart
-/// // Provide via parent:
-/// ZenScopeWidget.create<CartController>(
-///   create: () => CartController(),
+/// // In your router:
+/// ZenScopeWidget(
+///   moduleBuilder: () => CartModule(),
 ///   child: const CartPage(),
 /// )
 ///
-/// // Consume in the view:
+/// // The page — zero lookup code:
 /// class CartPage extends ZenView<CartController> {
 ///   const CartPage({super.key});
 ///
 ///   @override
 ///   Widget build(BuildContext context, CartController controller) {
-///     return Text('${controller.totalItems}');
+///     return ZenObserver(() => Text('${controller.itemCount.value} items'));
 ///   }
 /// }
 /// ```
 ///
-/// ## Usage — Self-owned controller (for per-instance widgets)
+/// ## Per-instance Usage — Self-owned controller (list items, cards)
 ///
-/// Use [initController] when the controller needs constructor parameters
-/// from the widget itself (e.g., a `messageId`), making a parent
-/// [ZenScopeWidget] impractical:
+/// Use [initController] when each widget instance needs its own isolated
+/// controller, especially when the controller takes parameters from the widget:
 ///
 /// ```dart
 /// class VoiceMessageView extends ZenView<VoiceMessageController> {
 ///   final String messageId;
 ///   final String messagePath;
-///   const VoiceMessageView({required this.messageId, required this.messagePath, super.key});
+///   const VoiceMessageView({
+///     required this.messageId,
+///     required this.messagePath,
+///     super.key,
+///   });
 ///
 ///   @override
 ///   VoiceMessageController Function() get initController => () =>
@@ -56,37 +72,37 @@ import '../scope/zen_scope_widget.dart';
 ///
 ///   @override
 ///   Widget build(BuildContext context, VoiceMessageController controller) {
-///     return Stack(...); // purely UI — controller is injected
+///     return Slider(value: controller.progress.value, onChanged: (_) {});
 ///   }
 /// }
 /// ```
 ///
-/// ## Owned vs Scope-provided — Which to use?
+/// ## Which pattern to use?
 ///
 /// | Situation | Pattern |
 /// |---|---|
-/// | Page/screen, controller is app-wide or feature-scoped | `ZenScopeWidget` + tree resolution |
-/// | List-item widget, controller params from widget fields | `initController` |
-/// | Multiple identical views on screen simultaneously | Both patterns work — each gets its own |
+/// | App-level services (auth, analytics) | `Zen.registerModules([AppModule()])` at startup |
+/// | Route/feature-level controllers | `ZenScopeWidget(moduleBuilder: () => FeatureModule())` in router |
+/// | Per-instance widget (list item, card) | `initController` getter override |
+/// | Quick singleton (prototyping) | `Zen.put<T>(...)` at startup |
 ///
-/// ## Important: Owned controllers are automatically scoped
+/// ## Owned controllers and child access
 ///
-/// A controller created via [initController] is automatically wrapped in a
-/// [ZenScopeWidget]. This means child widgets can safely find it via
+/// A controller created via [initController] is automatically wrapped in an
+/// implicit [ZenScopeWidget], so child widgets can safely resolve it via
 /// `context.controller<T>()`.
 abstract class ZenView<T extends ZenController> extends Widget {
   const ZenView({super.key});
 
-  /// Optional tag for disambiguating multiple registrations of the same type
-  /// when resolving from the widget tree or global DI.
+  /// Optional tag for disambiguating multiple registrations of the same type.
   String? get tag => null;
 
   /// Optional factory that creates a controller owned by this element.
   ///
-  /// Override this when the controller needs parameters from the widget
-  /// itself. The factory runs in `mount()` (once), `onInit()` is called
-  /// immediately, `onReady()` is scheduled after the first frame, and
-  /// `onClose()` is called in `unmount()` when permanently removed.
+  /// Override this for per-instance widgets (list items, cards) where the
+  /// controller needs parameters from the widget itself. The factory runs in
+  /// `mount()` once — `onInit()` is called immediately, `onReady()` after the
+  /// first frame, and `onClose()` when the element is permanently removed.
   ///
   /// The created controller is automatically exposed to child widgets via an
   /// implicit [ZenScopeWidget].
@@ -129,7 +145,9 @@ class _ZenViewElement<T extends ZenController> extends ComponentElement {
       // tree. Use ZenScope directly (no parent) — this is a widget-tree-bound
       // scope, not a global-hierarchy scope. Zen.createScope() would incorrectly
       // parent it to rootScope, causing debug noise and violating the API contract.
-      _ownedScope = ZenScope(name: 'ZenView_${T.toString()}');
+      // Include hashCode so DevTools shows unique names for each instance
+      // (e.g. 200 PostCard items won't all show as "ZenView_PostCardController").
+      _ownedScope = ZenScope(name: 'ZenView_${T}_$hashCode');
       _ownedScope!.put<T>(_ownedController!, tag: (widget as ZenView<T>).tag);
     }
 
@@ -160,7 +178,10 @@ class _ZenViewElement<T extends ZenController> extends ComponentElement {
   Widget build() {
     final zenWidget = widget as ZenView<T>;
     if (_ownedScope != null) {
-      // Auto-scope: children CAN find this via context.controller<T>()
+      // Owned controller path: wrap in ZenScopeWidget so children can resolve
+      // via context.controller<T>(). Use a Builder so the context passed to
+      // zenWidget.build() is a fresh descendant context (same as tree-resolution
+      // path below — both paths are now consistent).
       return ZenScopeWidget(
         scope: _ownedScope,
         child: Builder(
@@ -169,9 +190,11 @@ class _ZenViewElement<T extends ZenController> extends ComponentElement {
       );
     }
 
-    // Tree-bound resolution.
+    // Tree-bound resolution. Wrap in Builder for consistent BuildContext
+    // semantics — context.controller<T>() inside build() resolves correctly
+    // regardless of which path was taken.
     final controller = _resolveFromTree(zenWidget);
-    return zenWidget.build(this, controller);
+    return Builder(builder: (ctx) => zenWidget.build(ctx, controller));
   }
 
   /// Resolves the controller from the widget tree (scope → global DI → throw).

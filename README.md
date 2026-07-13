@@ -204,33 +204,59 @@ class CounterPage extends ZenView<CounterController> {
 
 ## 🔥 Core Features
 
-### 1. ZenView — Pages & Screens
+### 1. ZenView — Pages, Screens & Widgets
 
-V2 injects the controller as an explicit parameter to `build()`. The compiler enforces correctness and multi-instance isolation is structural.
+The Zenify pattern is three steps. You only ever touch all three once per feature — after that, consuming controllers is zero boilerplate.
 
-**Pattern A — Scope-provided (recommended for pages)**
+**Step 1 — Register** (once, at the right level)
 
 ```dart
-// Route provides the controller via ZenScopeWidget:
-ZenScopeWidget.create<CartController>(
-  create: () => CartController(),
+// App-level: available everywhere, lives for the app lifetime
+await Zen.registerModules([AppModule()]);
+
+// Route-level: scoped to this route, auto-disposed on pop
+ZenScopeWidget(
+  moduleBuilder: () => CartModule(),
   child: const CartPage(),
 )
+```
 
-// Page just consumes it:
+**Step 2 — Consume** (always the same — `ZenView` resolves automatically)
+
+```dart
 class CartPage extends ZenView<CartController> {
   const CartPage({super.key});
 
   @override
   Widget build(BuildContext context, CartController controller) {
-    return Text('${controller.totalItems} items');
+    // controller is injected — no lookup, no boilerplate
+    return ZenObserver(() => Text('${controller.itemCount.value} items'));
   }
 }
 ```
 
-**Pattern B — Self-owned controller (for list items, cards, per-instance widgets)**
+**Step 3 — React** (pick your tool)
 
-Use `initController` when the widget needs constructor parameters from itself (e.g., a `messageId`). The controller is owned, scoped, and auto-disposed with the widget:
+```dart
+// Rx values (.obs()) — auto-rebuilds on change:
+ZenObserver(() => Text('${controller.count.value}'))
+
+// Manual update() calls — selective rebuilds:
+ZenUpdater<CartController>(
+  builder: (ctx, ctrl) => CartBadge(count: ctrl.itemCount),
+)
+
+// Async/API state — declarative:
+controller.productsQuery.when(
+  data: (products) => ProductList(products: products),
+  loading: () => const CircularProgressIndicator(),
+  error: (e) => Text('Error: $e'),
+)
+```
+
+**Per-instance: Self-owned controller** (list items, cards)
+
+Use `initController` when each widget instance needs its own isolated controller with parameters from the widget itself:
 
 ```dart
 class VoiceMessageView extends ZenView<VoiceMessageController> {
@@ -253,13 +279,15 @@ class VoiceMessageView extends ZenView<VoiceMessageController> {
 }
 ```
 
-**Which to use?**
+**Which pattern for which situation?**
 
 | Situation | Pattern |
 |---|---|
-| Page/screen, controller is app-wide or feature-scoped | `ZenScopeWidget.create` + `ZenView` |
-| List-item or card widget with per-instance state | `initController` override |
-| Multiple identical views on screen simultaneously | Both work — each gets its own controller |
+| App-level services (auth, analytics, config) | `Zen.registerModules([AppModule()])` at startup |
+| Route/feature-level controller | `ZenScopeWidget(moduleBuilder: () => FeatureModule())` in router |
+| Per-instance widget (list item, card) | `initController` getter override |
+| Quick singleton for prototyping | `Zen.put<T>(...)` at startup |
+
 
 ### 2. Hierarchical DI with Auto-Cleanup
 

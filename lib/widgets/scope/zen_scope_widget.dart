@@ -61,10 +61,13 @@ class ZenScopeWidget extends StatefulWidget {
     this.scope,
     this.moduleBuilder,
     this.scopeName,
-  }) : assert(
-            (scope != null && moduleBuilder == null) ||
-                (scope == null && moduleBuilder != null),
-            'Either scope or moduleBuilder must be provided, but not both');
+  })  : assert(
+            scope != null || moduleBuilder != null,
+            'ZenScopeWidget requires either a scope or a moduleBuilder. '
+            'Use ZenScopeWidget(moduleBuilder: () => MyModule(), child: ...) '
+            'or ZenScopeWidget.create<T>(create: ..., child: ...) for a single controller.'),
+        assert(!(scope != null && moduleBuilder != null),
+            'ZenScopeWidget: provide scope OR moduleBuilder, not both.');
 
   /// Convenience method to create a scope with a single controller.
   ///
@@ -181,27 +184,34 @@ class _ZenScopeWidgetState extends State<ZenScopeWidget> {
   }
 
   void _runAsyncInitialization(ZenModule module) {
-    // Run async initialization in the background
-    (() async {
-      try {
-        // Initialize dependency modules first
-        for (final dependency in module.dependencies) {
-          await dependency.onInit(_scope);
-          ZenLogger.logDebug(
-              '✅ Initialized dependency module: ${dependency.name}');
-        }
+    _doAsyncInit(module);
+  }
 
-        // Then initialize the main module
-        await module.onInit(_scope);
-        ZenLogger.logInfo('✅ Module ${module.name} fully initialized');
-      } catch (e, stack) {
-        ZenLogger.logError(
-            // coverage:ignore-line
-            'Module initialization failed for ${module.name}',
-            e,
-            stack); // coverage:ignore-line
+  Future<void> _doAsyncInit(ZenModule module) async {
+    try {
+      // Initialize dependency modules first
+      for (final dependency in module.dependencies) {
+        await dependency.onInit(_scope);
+        ZenLogger.logDebug(
+            '✅ Initialized dependency module: ${dependency.name}');
       }
-    })();
+
+      // Then initialize the main module
+      await module.onInit(_scope);
+      ZenLogger.logInfo('✅ Module ${module.name} fully initialized');
+    } catch (e, stack) {
+      // Surface to Flutter's error system — visible in the debug overlay
+      // and logged to the console in release mode.
+      FlutterError.reportError(
+        FlutterErrorDetails(
+          exception: e,
+          stack: stack,
+          library: 'zenify',
+          context: ErrorDescription(
+              'during async initialization of module ${module.name}'),
+        ),
+      );
+    }
   }
 
   @override // coverage:ignore-line
