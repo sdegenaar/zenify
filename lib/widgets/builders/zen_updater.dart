@@ -129,8 +129,9 @@ class _ZenUpdaterState<T extends ZenController> extends State<ZenUpdater<T>> {
     try {
       return widget.builder(context, _controller!);
     } catch (e) {
-      if (widget.onError != null)
+      if (widget.onError != null) {
         return widget.onError!(e); // coverage:ignore-line
+      }
       rethrow; // Let Flutter's error handling surface it — no silent failures.
     }
   }

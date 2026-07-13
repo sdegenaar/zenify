@@ -110,7 +110,6 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: ZenBuilder<CountController>(
-            // ignore: deprecated_member_use
             builder: (context, c) => Text('alias:${c.plainCount}'),
           ),
         ),
@@ -137,7 +136,6 @@ void main() {
                 builder: (ctx, c) => Text('updater:${c.plainCount}'),
               ),
               ZenBuilder<CountController>(
-                // ignore: deprecated_member_use
                 builder: (ctx, c) => Text('builder:${c.plainCount}'),
               ),
             ],
