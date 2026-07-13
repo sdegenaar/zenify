@@ -4,7 +4,7 @@ import 'reactive_demo_page.dart';
 import 'effect_demo_page.dart';
 import 'worker_demo_page.dart';
 import 'obx_demo_page.dart';
-import 'zen_builder_demo_page.dart';
+import 'zen_updater_demo_page.dart';
 
 class ShowcaseHomePage extends StatelessWidget {
   const ShowcaseHomePage({super.key});
@@ -86,11 +86,11 @@ class ShowcaseHomePage extends StatelessWidget {
                   onTap: () => _navigateTo(context, const ObxDemoPage()),
                 ),
                 FeatureCard(
-                  title: 'ZenBuilder',
+                  title: 'ZenUpdater',
                   subtitle: 'Controller Integration',
                   icon: Icons.build,
                   color: Colors.green,
-                  onTap: () => _navigateTo(context, const ZenBuilderDemoPage()),
+                  onTap: () => _navigateTo(context, const ZenUpdaterDemoPage()),
                 ),
                 FeatureCard(
                   title: 'Performance',

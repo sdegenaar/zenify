@@ -9,6 +9,37 @@ harder.
 > adding a `controller` parameter to every `ZenView.build()` override.
 > See [Migration from V1](#migration-from-v1) below.
 
+### V2 Polish Fixes (post-architecture review)
+
+#### Bug Fixes
+
+- **`ZenScopeWidget` assert** — now catches the `(null, null)` case with a
+  clear, actionable error message. Previously threw a cryptic assertion failure
+  with no guidance on how to fix it.
+- **`ZenScopeWidget` async init** — module initialization errors now surface
+  via `FlutterError.reportError()` instead of being silently swallowed into a
+  log call. Errors now appear in the Flutter debug overlay.
+- **`_ZenViewElement` BuildContext asymmetry** — the tree-resolution code path
+  now also wraps in a `Builder`, making `BuildContext` semantics consistent
+  regardless of whether the controller was owned via `initController` or
+  resolved from a parent scope.
+- **`_ZenViewElement` scope name uniqueness** — owned scopes are now named
+  `ZenView_PostCardController_1234567` (including element `hashCode`) instead
+  of all sharing the same string. DevTools scope tree is now readable when
+  many instances exist (e.g., a list with 200 items).
+
+#### API & Documentation
+
+- **`ZenView` docstring** — rewritten to lead with the three-step
+  Register → Consume → React mental model. `initController` correctly
+  positioned as the per-instance special case.
+- **README** — ZenView section rewritten to teach module-first registration
+  pattern before `initController`. Decision table updated.
+- **Barrel (`zenify.dart`)** — deprecated items moved to a clearly-labeled
+  `DEPRECATED — V2 MIGRATION ALIASES` section. `ERROR HANDLING` comment
+  renamed to `TESTING`. `Query system` comment aligned with the `=====`
+  section format used elsewhere.
+
 ---
 
 ### Breaking Changes

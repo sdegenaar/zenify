@@ -1,5 +1,5 @@
 name: zenify
-description: Powerful asynchronous state management, automatic caching, hierarchical DI, and zero-boilerplate reactivity. A holistic architecture for modern Flutter apps.
+description: "React Query for Flutter — intelligent async caching, hierarchical DI, and zero-boilerplate reactivity. The complete state management solution your app actually needs."
 
 version: 2.0.0
 homepage: https://github.com/sdegenaar/zenify

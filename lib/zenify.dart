@@ -14,7 +14,6 @@ export 'di/zen_reactive.dart';
 // ===== CONTROLLERS & SERVICES =====
 export 'controllers/zen_controller.dart';
 export 'controllers/zen_service.dart';
-export 'controllers/zen_controller_scope.dart';
 export 'controllers/zen_route_observer.dart';
 
 // ===== SCOPES & MODULES =====
@@ -25,7 +24,6 @@ export 'core/zen_module.dart';
 export 'reactive/reactive.dart';
 
 // ===== WIDGETS =====
-export 'widgets/builders/zen_builder.dart';
 export 'widgets/builders/zen_updater.dart';
 export 'widgets/builders/zen_query_builder.dart';
 export 'widgets/builders/zen_query_consumer.dart';
@@ -43,7 +41,7 @@ export 'widgets/components/rx_widgets.dart';
 export 'workers/zen_workers.dart';
 export 'effects/zen_effects.dart';
 
-// Query system
+// ===== QUERY SYSTEM =====
 export 'query/query.dart';
 
 // ===== STORAGE ADAPTERS =====
@@ -63,7 +61,7 @@ export 'core/zen_metrics.dart';
 // ===== UTILITIES =====
 export 'utils/zen_scope_inspector.dart';
 
-// ===== ERROR HANDLING =====
+// ===== TESTING =====
 export 'testing/testing.dart';
 
 // ===== MIXINS =====
@@ -80,3 +78,9 @@ export 'debug/zen_debug.dart' show ZenDebug;
 // Service extensions for DevTools integration
 // Use zenify_devtools_extension package for visual DevTools UI
 export 'devtools/devtools.dart';
+
+// ===== DEPRECATED — V2 MIGRATION ALIASES =====
+// These exist solely for backwards compatibility. Do not use in new code.
+// They will be removed in V3.
+export 'widgets/builders/zen_builder.dart'; // ZenBuilder → use ZenUpdater
+export 'controllers/zen_controller_scope.dart'; // ZenControllerScope → use ZenScopeWidget.create
