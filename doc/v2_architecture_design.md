@@ -581,3 +581,116 @@ The V2 architecture has one core principle: **every controller access is tree-bo
 The result is a framework that is architecturally equivalent to Riverpod in correctness, familiar in naming, and unique in its reactive primitives (`ZenObserver`, `ZenQuery`).
 
 This is Zenify for 2026 and beyond.
+
+---
+
+## 10. Future Discussion: Naming
+
+> **Status:** Deferred — decide before V3 or a marketing push.  
+> Code must ship first. These are branding decisions, not architectural ones.
+
+---
+
+### 10.1 `ZenView` — Is the Name Right?
+
+**The problem:** `ZenView` implies a full screen or page. But the class is also used
+for list items, cards, and per-instance widgets (via `initController`). The name is
+accurate for 70% of use cases and confusing for the other 30%.
+
+**The Riverpod parallel (industry standard naming):**
+
+| Riverpod | Zenify Equivalent | Notes |
+|---|---|---|
+| `ConsumerWidget` | `ZenView<T>` | Base class you extend |
+| `Consumer` | `ZenConsumer<T>` | Inline builder widget |
+
+Following Riverpod would mean renaming `ZenView` → `ZenConsumerWidget`.
+But that's longer and uglier. GetX uses `GetView<T>` for the same pattern
+and it's accepted in that community.
+
+**Candidate names:**
+
+| Name | Rationale | Verdict |
+|---|---|---|
+| `ZenView<T>` | Current. GetX precedent. Familiar. | Keep if not renaming package |
+| `ZenConsumerWidget<T>` | Riverpod parallel. Semantically correct. | Too verbose |
+| `ZenScreen<T>` | Clear for pages. Wrong for list items. | Too narrow |
+| `ZenWidget<T>` | Generic. Clear at least. | Too generic |
+| `ZenPage<T>` | Same issue as ZenScreen. | Too narrow |
+
+**Recommendation:** If the package is renamed (see 10.2), rename `ZenView` at the
+same time to match the new brand. If staying with Zenify, `ZenView` is acceptable.
+The cost of renaming mid-version is high — this is a V3 decision if at all.
+
+---
+
+### 10.2 Package Name: "Zenify" — Is It Right?
+
+**The problem with "Zenify":**
+- Sounds like a wellness/meditation app, not a state management framework
+- "ify" suffix implies a transformation tool (minify, uglify, bundlify) — wrong connotation
+- Low discoverability: searching "zenify flutter" is not intuitive
+- Zero signal about what the package does
+
+**What makes a good Flutter package name:**
+- Short (ideally ≤ 2 syllables)
+- Memorable and Googleable
+- Communicates purpose or personality
+- Unique on pub.dev
+- Compatible with the existing `Zen*` API prefix
+
+**Candidate package names:**
+
+| Name | Rationale | API Compat | Verdict |
+|---|---|---|---|
+| `zenify` | Current. Has some brand recognition (200 users). | ✅ | Keep if no rename |
+| `zenith` | Real word: "highest point/peak." Premium feel. Contains "zen." Short. | ✅ | ⭐ **Top pick** |
+| `zenkit` | Toolkit implication. Clear. | ✅ | Good but "kit" suffix crowded |
+| `zenscope` | Communicates the scope-first architecture. | ✅ | Good, technical |
+| `zenreact` | Reactive-first framing. Echoes React Query (ZenQuery). | ✅ | Risk: "React" confused with React.js |
+| `zen_state` | Descriptive. Underscore looks dated. | ✅ | Boring |
+| `zapp` | Short, fast-feeling. | ❌ Breaks Zen* prefix | Too big a break |
+
+**Analysis of top candidates:**
+
+**`zenith`**
+- A real, premium English word meaning "the highest point"
+- Contains "zen" naturally — all internal `Zen*` API names stay untouched
+- 6 characters, memorable, Googleable
+- Brand story: *"The peak of Flutter state management"*
+- No competing pub.dev package (verify before committing)
+- Sounds like a product name, not a utility
+
+**`zenscope`**
+- Communicates the core architecture: scope-based DI
+- Two syllables, clear
+- Slightly technical but that's the audience
+
+**`zenreact`**
+- Emphasizes the reactive + async query angle (the killer feature)
+- Risk: "React" has strong association with Facebook's React framework
+- Could be confusing to beginners
+
+---
+
+### 10.3 Decision Matrix
+
+Before any rename, answer:
+
+1. **Is now the right time?** V2 unreleased + 200 downloads = yes, lowest cost window ever.
+2. **Will the internal `Zen*` API names change?** Ideally no — keep ZenView, ZenController, ZenObserver etc.
+3. **Is this a pub.dev rename or a new package?** pub.dev supports "discontinued" + redirect. New package gets a clean slate but loses pub points history.
+4. **What's the marketing angle?** If leading with ZenQuery (React Query for Flutter), `zenreact` or `zenith` fits better than `zenscope`.
+
+---
+
+### 10.4 Recommendation
+
+**Don't rename for V2.** Ship V2 with the code fixes, correct documentation, and
+the clear three-step mental model (Register → Consume → React). Get traction.
+
+**Revisit naming before V3 or a marketing push.** At that point, if the library
+has 1000+ downloads, a rename with a pub.dev redirect is worth the effort.
+
+**If renaming: `zenith` is the strongest candidate.** Short, premium, compatible
+with all internal naming, and the brand story is clear.
