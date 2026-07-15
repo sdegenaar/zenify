@@ -19,7 +19,7 @@ CONSUME   →  ZenView<T>                 extend — controller injected into bu
               ZenConsumer<T>            compose — inline builder, no inheritance
               context.controller<T>()  imperative — from any widget or callback
 
-REACT     →  ZenObserver / Obx          Rx<T> — auto-rebuild on value change
+REACT     →  ZenObserver               Rx<T> — auto-rebuild on value change
               ZenUpdater<T>             update() — manual, ID-targeted rebuilds
               ZenQuery<T>               async — caching, loading, error, refetch
 ```
