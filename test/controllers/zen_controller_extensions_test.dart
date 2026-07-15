@@ -40,13 +40,6 @@ void main() {
       expect(() => ctrl.pauseAllWorkers(), returnsNormally);
       expect(() => ctrl.resumeAllWorkers(), returnsNormally);
     });
-
-    test('pauseWorkers convenience alias works', () {
-      final ctrl = _WorkerCtrl();
-      Zen.put<_WorkerCtrl>(ctrl);
-      expect(() => ctrl.pauseWorkers(), returnsNormally);
-      expect(() => ctrl.resumeWorkers(), returnsNormally);
-    });
   });
 
   // ══════════════════════════════════════════════════════════
@@ -215,19 +208,6 @@ void main() {
 
       rx.value = 1;
       expect(handle.isDisposed, true);
-    });
-  });
-
-  // ══════════════════════════════════════════════════════════
-  // FluentExtension.also
-  // ══════════════════════════════════════════════════════════
-  group('FluentExtension.also', () {
-    test('also applies block and returns self', () {
-      final ctrl = _WorkerCtrl();
-      bool applied = false;
-      final result = ctrl.also((_) => applied = true);
-      expect(applied, true);
-      expect(result, same(ctrl));
     });
   });
 }

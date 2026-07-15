@@ -139,21 +139,21 @@ void main() {
     test('returns true for instance registrations', () {
       final scope = ZenScope(name: 'ContainsT');
       scope.put<_TestCtrl>(_TestCtrl());
-      expect(scope.contains<_TestCtrl>(), true);
+      expect(scope.exists<_TestCtrl>(), true);
       scope.dispose();
     });
 
     test('returns true for lazy factory registrations', () {
       final scope = ZenScope(name: 'ContainsFactory');
       scope.putLazy<_TestCtrl>(() => _TestCtrl());
-      expect(scope.contains<_TestCtrl>(), true);
+      expect(scope.exists<_TestCtrl>(), true);
       scope.dispose();
     });
 
     test('returns false when disposed', () {
       final scope = ZenScope(name: 'ContainsDisposed');
       scope.dispose();
-      expect(scope.contains<_TestCtrl>(), false);
+      expect(scope.exists<_TestCtrl>(), false);
     });
   });
 

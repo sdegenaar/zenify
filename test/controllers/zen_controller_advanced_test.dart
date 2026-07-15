@@ -439,39 +439,6 @@ void main() {
   });
 
   // ══════════════════════════════════════════════════════════
-  // FluentExtension.also
-  // ══════════════════════════════════════════════════════════
-  group('FluentExtension.also', () {
-    test('also executes block and returns self', () {
-      var sideEffect = 0;
-      final result = 42.also((_) => sideEffect = 1);
-      expect(result, 42);
-      expect(sideEffect, 1);
-    });
-
-    test('also works on strings', () {
-      final result = 'hello'.also((s) => expect(s, 'hello'));
-      expect(result, 'hello');
-    });
-  });
-
-  // ══════════════════════════════════════════════════════════
-  // ZenDIIntegration mixin
-  // ══════════════════════════════════════════════════════════
-  group('ZenDIIntegration mixin', () {
-    test('onDIRegistered does not crash', () {
-      final ctrl = _DICtrl();
-      expect(() => ctrl.onDIRegistered(), returnsNormally);
-    });
-
-    test('onDIDisposing does not crash', () {
-      final ctrl = _DICtrl();
-      expect(() => ctrl.onDIDisposing(), returnsNormally);
-      ctrl.dispose();
-    });
-  });
-
-  // ══════════════════════════════════════════════════════════
   // didChangeAppLifecycleState on disposed controller
   // The top-level guard `if (_disposed) return;` prevents all lifecycle
   // hooks from being called via the normal dispatch path.
@@ -562,5 +529,3 @@ class _TrackCtrl extends ZenController {
     super.onHidden();
   }
 }
-
-class _DICtrl extends ZenController with ZenDIIntegration {}

@@ -283,9 +283,13 @@ class ZenScope {
     return result;
   }
 
-  /// Check if a dependency exists
+  /// Check if a dependency exists (instance or lazy factory) in this scope hierarchy
   bool exists<T>({String? tag}) {
-    return find<T>(tag: tag) != null;
+    if (_disposed) return false;
+    // Check resolved instances via find
+    if (find<T>(tag: tag) != null) return true;
+    // Also check unresolved lazy factories in this scope only
+    return _factories.containsKey(_makeKey<T>(tag));
   }
 
   /// Find all instances of a given type in this scope and child scopes
@@ -774,23 +778,6 @@ class ZenScope {
     return false;
   }
 
-  /// Checks if a type is registered (either as an instance or a factory)
-  bool contains<T>({String? tag}) {
-    if (_disposed) {
-      return false;
-    }
-
-    final key = _makeKey<T>(tag);
-
-    // Check for existing instance
-    if (_instanceExists<T>(tag)) {
-      return true;
-    }
-
-    // Check for factory
-    return _factories.containsKey(key);
-  }
-
   //
   // INTERNAL HELPER METHODS
   //
@@ -812,16 +799,6 @@ class ZenScope {
   /// Helper method to create a lookup key for type+tag
   String _makeKey<T>(String? tag) {
     return tag != null ? '${T.toString()}:$tag' : T.toString();
-  }
-
-  /// Check if an instance already exists (either regular or lazy)
-  bool _instanceExists<T>(String? tag) {
-    if (tag != null) {
-      final instance = _taggedBindings[tag]; // coverage:ignore-line
-      return instance != null && instance is T; // coverage:ignore-line
-    } else {
-      return _typeBindings.containsKey(T);
-    }
   }
 
   /// Create a dependency key for internal tracking

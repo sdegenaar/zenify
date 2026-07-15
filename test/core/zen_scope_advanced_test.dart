@@ -142,10 +142,10 @@ void main() {
       scope.putLazy<_ScopeCtrl>(() => _ScopeCtrl(), isPermanent: false);
 
       // Verify factory is registered
-      expect(scope.contains<_ScopeCtrl>(), true);
+      expect(scope.exists<_ScopeCtrl>(), true);
 
       scope.clearAll(force: true);
-      expect(scope.contains<_ScopeCtrl>(), false);
+      expect(scope.exists<_ScopeCtrl>(), false);
       scope.dispose();
     });
 
@@ -161,9 +161,9 @@ void main() {
 
       scope.clearAll(force: false);
       // Permanent instance should remain
-      expect(scope.contains<_ScopeCtrl2>(), true);
+      expect(scope.exists<_ScopeCtrl2>(), true);
       // Non-permanent instance is cleared
-      expect(scope.contains<_ScopeCtrl>(), false);
+      expect(scope.exists<_ScopeCtrl>(), false);
       scope.dispose();
     });
   });
@@ -335,7 +335,7 @@ void main() {
       // Delete BEFORE ever calling find (factory never instantiated)
       final result = scope.delete<_ScopeCtrl>();
       expect(result, true);
-      expect(scope.contains<_ScopeCtrl>(), false);
+      expect(scope.exists<_ScopeCtrl>(), false);
       scope.dispose();
     });
   });
@@ -368,7 +368,7 @@ void main() {
       scope.putLazy<_ScopeCtrl>(() => _ScopeCtrl(), isPermanent: false);
       scope.putLazy<_ScopeCtrl2>(() => _ScopeCtrl2(), isPermanent: false);
 
-      expect(scope.contains<_ScopeCtrl>(), true);
+      expect(scope.exists<_ScopeCtrl>(), true);
       scope.clearAll(force: false);
       // Non-permanent uninstantiated factories should be cleared
       scope.dispose();

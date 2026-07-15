@@ -336,12 +336,6 @@ abstract class ZenController {
     ZenLogger.logDebug('Controller $runtimeType: All workers resumed');
   }
 
-  /// Pause workers - convenience method for UI callbacks (no parameters)
-  void pauseWorkers() => pauseAllWorkers();
-
-  /// Resume workers - convenience method for UI callbacks (no parameters)
-  void resumeWorkers() => resumeAllWorkers();
-
   /// Get count of active watchers (useful for debugging)
   int get activeWatcherCount => _workers.where((w) => !w.isDisposed).length;
 
@@ -864,14 +858,6 @@ abstract class ZenController {
   }
 }
 
-/// Extension to add the `also` method for fluent API
-extension FluentExtension<T> on T {
-  T also(void Function(T) block) {
-    block(this);
-    return this;
-  }
-}
-
 /// Extension for more fluent worker creation and control
 extension ZenControllerWorkerExtension on ZenController {
   /// Create multiple workers in one call
@@ -898,7 +884,6 @@ extension ZenControllerWorkerExtension on ZenController {
   /// Pause specific workers
   void pauseSpecificWorkers(List<ZenWorkerHandle> workers) {
     if (isDisposed) return;
-
     for (final worker in workers) {
       if (!worker.isDisposed) {
         try {
@@ -914,7 +899,6 @@ extension ZenControllerWorkerExtension on ZenController {
   /// Resume specific workers
   void resumeSpecificWorkers(List<ZenWorkerHandle> workers) {
     if (isDisposed) return;
-
     for (final worker in workers) {
       if (!worker.isDisposed) {
         try {
@@ -940,9 +924,7 @@ extension ZenControllerAdvancedExtension on ZenController {
     handle = ever<T>(obs, (value) {
       try {
         callback(value);
-        if (disposeCondition(value)) {
-          handle.dispose();
-        }
+        if (disposeCondition(value)) handle.dispose();
       } catch (e, stack) {
         ZenLogger.logError('Error in autoDispose worker', e, stack);
         handle.dispose();
@@ -967,9 +949,7 @@ extension ZenControllerAdvancedExtension on ZenController {
         try {
           callback(value);
           count++;
-          if (count >= maxExecutions) {
-            handle.dispose();
-          }
+          if (count >= maxExecutions) handle.dispose();
         } catch (e, stack) {
           ZenLogger.logError('Error in limited worker', e, stack);
           handle.dispose();
@@ -977,16 +957,5 @@ extension ZenControllerAdvancedExtension on ZenController {
       }
     });
     return handle;
-  }
-}
-
-/// Mixin for DI integration hooks
-mixin ZenDIIntegration on ZenController {
-  void onDIRegistered() {
-    ZenLogger.logDebug('Controller $runtimeType registered in DI system');
-  }
-
-  void onDIDisposing() {
-    ZenLogger.logDebug('Controller $runtimeType disposing from DI system');
   }
 }
