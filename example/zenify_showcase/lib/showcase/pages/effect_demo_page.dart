@@ -6,9 +6,7 @@ import '../widgets/demo_section.dart';
 class EffectDemoPage extends ZenView<EffectDemoController> {
   const EffectDemoPage({super.key});
 
-  @override
-  EffectDemoController Function()? get initController =>
-      () => EffectDemoController();
+  
 
   @override
   Widget build(BuildContext context, EffectDemoController controller) {

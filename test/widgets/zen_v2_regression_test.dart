@@ -3,7 +3,7 @@
 // Regression tests for V2-specific behaviour:
 //   1. ZenBuilder deprecated alias parity with ZenUpdater
 //   2. ZenUpdater ID-targeted selective rebuilds
-//   3. ZenScopeWidget.create controller disposal on widget removal
+//   3. ZenProvider.create controller disposal on widget removal
 //   4. initController reactive (.obs()) rebuild inside ZenView
 //   5. ZenConsumer scope-bound (finds scoped controller, not global)
 //
@@ -43,9 +43,6 @@ class CountController extends ZenController {
 /// ZenView that reacts to an owned controller's .obs() value.
 class ReactiveOwnedView extends ZenView<CountController> {
   const ReactiveOwnedView({super.key});
-
-  @override
-  CountController Function() get initController => CountController.new;
 
   @override
   Widget build(BuildContext context, CountController controller) {
@@ -105,12 +102,13 @@ void main() {
     testWidgets('ZenBuilder is identical to ZenUpdater at runtime',
         (tester) async {
       final ctrl = CountController();
-      Zen.put<CountController>(ctrl);
-
       await tester.pumpWidget(
         MaterialApp(
-          home: ZenBuilder<CountController>(
-            builder: (context, c) => Text('alias:${c.plainCount}'),
+          home: ZenProvider.create(
+            create: () => ctrl,
+            child: ZenBuilder<CountController>(
+              builder: (context, c) => Text('alias:${c.plainCount}'),
+            ),
           ),
         ),
       );
@@ -126,19 +124,20 @@ void main() {
     testWidgets('ZenBuilder and ZenUpdater both respond to the same update()',
         (tester) async {
       final ctrl = CountController();
-      Zen.put<CountController>(ctrl);
-
       await tester.pumpWidget(
         MaterialApp(
-          home: Column(
-            children: [
-              ZenUpdater<CountController>(
-                builder: (ctx, c) => Text('updater:${c.plainCount}'),
-              ),
-              ZenBuilder<CountController>(
-                builder: (ctx, c) => Text('builder:${c.plainCount}'),
-              ),
-            ],
+          home: ZenProvider.create(
+            create: () => ctrl,
+            child: Column(
+              children: [
+                ZenUpdater<CountController>(
+                  builder: (ctx, c) => Text('updater:${c.plainCount}'),
+                ),
+                ZenBuilder<CountController>(
+                  builder: (ctx, c) => Text('builder:${c.plainCount}'),
+                ),
+              ],
+            ),
           ),
         ),
       );
@@ -160,30 +159,31 @@ void main() {
     testWidgets('update([id]) only rebuilds matching ZenUpdater',
         (tester) async {
       final ctrl = CountController();
-      Zen.put<CountController>(ctrl);
-
       int buildsA = 0;
       int buildsB = 0;
 
       await tester.pumpWidget(
         MaterialApp(
-          home: Column(
-            children: [
-              ZenUpdater<CountController>(
-                id: 'a',
-                builder: (ctx, c) {
-                  buildsA++;
-                  return Text('a:${c.plainCount}');
-                },
-              ),
-              ZenUpdater<CountController>(
-                id: 'b',
-                builder: (ctx, c) {
-                  buildsB++;
-                  return Text('b:${c.plainCount}');
-                },
-              ),
-            ],
+          home: ZenProvider.create(
+            create: () => ctrl,
+            child: Column(
+              children: [
+                ZenUpdater<CountController>(
+                  id: 'a',
+                  builder: (ctx, c) {
+                    buildsA++;
+                    return Text('a:${c.plainCount}');
+                  },
+                ),
+                ZenUpdater<CountController>(
+                  id: 'b',
+                  builder: (ctx, c) {
+                    buildsB++;
+                    return Text('b:${c.plainCount}');
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       );
@@ -203,10 +203,13 @@ void main() {
 
     testWidgets('ZenView with ID-targeted ZenUpdater inside', (tester) async {
       final ctrl = CountController();
-      Zen.put<CountController>(ctrl);
-
       await tester.pumpWidget(
-        const MaterialApp(home: IdUpdaterView()),
+        MaterialApp(
+          home: ZenProvider.create(
+            create: () => ctrl,
+            child: const IdUpdaterView(),
+          ),
+        ),
       );
 
       expect(find.text('a:0'), findsOneWidget);
@@ -220,16 +223,16 @@ void main() {
     });
   });
 
-  // ── 3. ZenScopeWidget.create controller disposal ─────────────────────────
+  // ── 3. ZenProvider.create controller disposal ─────────────────────────
 
-  group('ZenScopeWidget.create disposal', () {
+  group('ZenProvider.create disposal', () {
     testWidgets('disposes controller when widget leaves the tree',
         (tester) async {
       CountController? capturedCtrl;
 
       await tester.pumpWidget(
         MaterialApp(
-          home: ZenScopeWidget.create<CountController>(
+          home: ZenProvider.create<CountController>(
             create: () {
               final c = CountController();
               capturedCtrl = c;
@@ -256,7 +259,7 @@ void main() {
     testWidgets('controller is NOT in global scope', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: ZenScopeWidget.create<CountController>(
+          home: ZenProvider.create<CountController>(
             create: CountController.new,
             child: Builder(
               builder: (ctx) {
@@ -280,7 +283,12 @@ void main() {
     testWidgets('ZenObserver inside owned view rebuilds on .obs() change',
         (tester) async {
       await tester.pumpWidget(
-        const MaterialApp(home: ReactiveOwnedView()),
+        MaterialApp(
+          home: ZenProvider.create(
+            create: () => CountController(),
+            child: const ReactiveOwnedView(),
+          ),
+        ),
       );
 
       expect(find.text('reactive:0'), findsOneWidget);
@@ -293,11 +301,21 @@ void main() {
 
     testWidgets('two owned instances react independently', (tester) async {
       await tester.pumpWidget(
-        const MaterialApp(
+        MaterialApp(
           home: Row(
             children: [
-              Flexible(child: ReactiveOwnedView(key: ValueKey('left'))),
-              Flexible(child: ReactiveOwnedView(key: ValueKey('right'))),
+              Flexible(
+                child: ZenProvider.create(
+                  create: () => CountController(),
+                  child: const ReactiveOwnedView(key: ValueKey('left')),
+                ),
+              ),
+              Flexible(
+                child: ZenProvider.create(
+                  create: () => CountController(),
+                  child: const ReactiveOwnedView(key: ValueKey('right')),
+                ),
+              ),
             ],
           ),
         ),
@@ -326,7 +344,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: ZenScopeWidget.create<CountController>(
+          home: ZenProvider.create<CountController>(
             create: () => CountController()..plainCount = 99,
             child: ZenConsumer<CountController>(
               builder: (ctx, ctrl) {
@@ -344,19 +362,5 @@ void main() {
       expect(receivedCtrl, isNot(same(global)));
     });
 
-    testWidgets('falls back to global when not in a scope', (tester) async {
-      final global = CountController()..plainCount = 42;
-      Zen.put<CountController>(global);
-
-      await tester.pumpWidget(
-        MaterialApp(
-          home: ZenConsumer<CountController>(
-            builder: (ctx, ctrl) => Text('val:${ctrl.plainCount}'),
-          ),
-        ),
-      );
-
-      expect(find.text('val:42'), findsOneWidget);
-    });
   });
 }

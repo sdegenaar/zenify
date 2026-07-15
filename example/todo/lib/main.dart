@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:zenify/zenify.dart';
+import 'todo/controllers/todo_controller.dart';
 import 'todo/modules/todo_module.dart';
 import 'todo/pages/todo_home_page.dart';
 
@@ -78,7 +79,10 @@ class TodoApp extends StatelessWidget {
           ),
         ),
       ),
-      home: const TodoHomePage(),
+      home: ZenProvider.create(
+        create: () => TodoController(),
+        child: const TodoHomePage(),
+      ),
     );
   }
 }

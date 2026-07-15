@@ -32,7 +32,7 @@ Zenify's hierarchical scope system provides powerful dependency injection and li
 - ❌ Removed: `useParentScope` parameter (automatic via hybrid discovery)
 - ❌ Removed: `autoDispose` parameter (automatic widget disposal)
 - ✅ Optional: `parentScope` parameter for explicit parent (e.g., clean routes)
-- ✅ Just wrap with `ZenRoute` or `ZenScopeWidget`!
+- ✅ Just wrap with `ZenRoute` or `ZenProvider`!
 
 📦 **Cleaner Codebase**
 - 80% reduction in scope management complexity
@@ -189,12 +189,12 @@ ZenRoute(
 )
 ```
 
-### Using ZenScopeWidget (For Partial Widget Trees)
+### Using ZenProvider (For Partial Widget Trees)
 
-Use `ZenScopeWidget` when you need a scope for part of a widget tree (not a full route):
+Use `ZenProvider` when you need a scope for part of a widget tree (not a full route):
 
 ```dart
-ZenScopeWidget(
+ZenProvider(
   moduleBuilder: () => SubFeatureModule(),
   scopeName: 'SubFeatureScope',
   child: SubFeatureWidget(),
@@ -411,15 +411,15 @@ class TabbedView extends StatelessWidget {
           Expanded(
             child: TabBarView(
               children: [
-                ZenScopeWidget(
+                ZenProvider(
                   moduleBuilder: () => Tab1Module(),
                   child: Tab1View(),
                 ),
-                ZenScopeWidget(
+                ZenProvider(
                   moduleBuilder: () => Tab2Module(),
                   child: Tab2View(),
                 ),
-                ZenScopeWidget(
+                ZenProvider(
                   moduleBuilder: () => Tab3Module(),
                   child: Tab3View(),
                 ),

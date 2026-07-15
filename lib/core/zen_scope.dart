@@ -18,7 +18,7 @@ import 'zen_logger.dart';
 /// Architecture:
 /// - No global state - scopes are independent objects
 /// - Parent-child relationships managed via object references
-/// - Widget tree integration handled by ZenScopeWidget
+/// - Widget tree integration handled by ZenProvider
 /// - Automatic disposal when owner widget is disposed
 ///
 /// Example:

@@ -78,8 +78,8 @@ class CounterApp extends StatelessWidget {
         colorSchemeSeed: Colors.indigo,
         useMaterial3: true,
       ),
-      // ZenScopeWidget provides CounterModule to the entire page
-      home: ZenScopeWidget(
+      // ZenProvider provides CounterModule to the entire page
+      home: ZenProvider(
         moduleBuilder: () => CounterModule(),
         child: const CounterPage(),
       ),
@@ -203,7 +203,7 @@ class CounterPage extends ZenView<CounterController> {
                   const _Bullet(
                       'CounterModule registers CounterController into a ZenScope'),
                   const _Bullet(
-                      'ZenScopeWidget provides that scope to the widget tree'),
+                      'ZenProvider provides that scope to the widget tree'),
                   const _Bullet(
                       'ZenView<CounterController> resolves it automatically — zero lookup code'),
                   const _Bullet(

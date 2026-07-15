@@ -57,7 +57,7 @@ After running the script: `dart analyze` will surface any remaining issues.
 | `GetxController` | `ZenController` | Same lifecycle hooks |
 | `GetxService` | `ZenService` | Same, but scoped by default |
 | `.obs` | `.obs()` | Add parentheses |
-| `Obx()` | `Obx()` or `ZenObserver()` | Both work |
+| `Obx()` | `ZenObserver()` (`Obx` still works — deprecated alias) | Rename recommended |
 | `GetBuilder` | `ZenUpdater` | `ZenBuilder` is a deprecated alias — still compiles |
 | `GetView<T>` | `ZenView<T>` | Same pattern |
 | `Get.put()` | `Zen.put()` | Same |
@@ -237,25 +237,26 @@ class ProfilePage extends ZenView<ProfileController> {
 }
 ```
 
-`ZenView` optionally lets you own the controller directly on the widget (for per-instance use cases like list items or cards):
+For per-instance use cases (e.g., a widget that needs a controller with parameters from its own fields), provide the controller at the callsite via `ZenProvider.create`:
 
 ```dart
-// V2 — self-owned controller via initController
-class ProfileCard extends ZenView<ProfileController> {
-  final String userId;
-  const ProfileCard({required this.userId, super.key});
+// V2 — provide the controller at the callsite
+ZenProvider.create<ProfileController>(
+  create: () => ProfileController(userId: userId),
+  child: const ProfileCard(),
+)
 
-  @override
-  ProfileController Function() get initController => () => ProfileController(userId: userId);
+class ProfileCard extends ZenView<ProfileController> {
+  const ProfileCard({super.key});
 
   @override
   Widget build(BuildContext context, ProfileController controller) {
-    return Text(controller.name.value);  // auto-disposed when widget leaves tree
+    return Text(controller.name.value);  // controller scoped to this subtree
   }
 }
 ```
 
-> **Note:** For regular pages, prefer providing the controller via `ZenScopeWidget.create<T>()` in the route (or via `ZenRoute` + `ZenModule`) rather than using `initController`. Reserve `initController` for widgets that need per-instance state with constructor parameters.
+> **Tip:** For regular pages, prefer `ZenRoute` + `ZenModule` over `ZenProvider.create`. Use `ZenProvider.create` when the route has a single controller with no dependencies or when you are prototyping.
 
 ---
 

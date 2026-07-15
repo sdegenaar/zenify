@@ -1,36 +1,37 @@
 # Migrating from Zenify V1 to V2
 
-> **TL;DR** — The only mechanical code change is adding a `controller` parameter to every `ZenView.build()` override. Everything else is optional cleanup.
+> **TL;DR** — Two mechanical changes: (1) add a `controller` parameter to every `ZenView.build()` override, and (2) wrap your views in `ZenProvider`. Everything else follows naturally.
 
 ---
 
 ## What Changed
 
-| V1 | V2 | Notes |
+| V1 | V2 | Impact |
 |---|---|---|
 | `build(BuildContext context)` + magic `controller` getter | `build(BuildContext context, T controller)` | **Breaking** — compiler enforces it |
-| `get createController => () => MyController()` | `get initController => () => MyController()` | Renamed for clarity |
-| `ZenBuilder<T>` | `ZenUpdater<T>` | `ZenBuilder` is a deprecated alias — still compiles |
-| `ZenControllerScope<T>()` | `ZenScopeWidget.create<T>()` | Deprecated alias still compiles |
-| `ZenView` is a `StatefulWidget` | `ZenView` extends `Widget` directly | Implementation detail — no user-facing impact |
+| `get createController => () => MyController()` | Removed — use `ZenProvider.create` | **Breaking** — must migrate |
+| `ZenControllerScope<T>()` | **Removed** — use `ZenProvider.create<T>()` | **Breaking** — no fallback |
+| `ZenScopeWidget` | Renamed to `ZenProvider` | **Breaking** — rename import |
+| `ZenBuilder<T>` | `ZenUpdater<T>` (`ZenBuilder` is a deprecated alias) | Non-breaking — compiles with warning |
+| Global `Zen.put` for UI controllers | Scoped via `ZenProvider` in widget tree | Architectural shift |
 | Global `_ZenViewRegistry` | Gone — no global registry | Structural isolation |
 
 ---
 
 ## Step 1 — Update the `build()` signature (required)
 
-This is the only **required** change. In every `ZenView` subclass, add the controller type as a second parameter to `build()`.
+Add the controller type as a second explicit parameter to `build()` in every `ZenView` subclass.
 
 ```dart
-// V1
+// ❌ V1
 class CartPage extends ZenView<CartController> {
   @override
   Widget build(BuildContext context) {
-    return Text('${controller.totalItems}');   // magic getter — gone
+    return Text('${controller.totalItems}');   // magic getter — removed
   }
 }
 
-// V2
+// ✅ V2
 class CartPage extends ZenView<CartController> {
   const CartPage({super.key});
 
@@ -45,105 +46,117 @@ class CartPage extends ZenView<CartController> {
 
 ---
 
-## Step 2 — Replace `createController` with `initController` (optional)
+## Step 2 — Provide controllers via `ZenProvider` (required)
 
-If you use the self-owned controller pattern, rename the override:
-
-```dart
-// V1
-@override
-MyController Function()? get createController => () => MyController();
-
-// V2
-@override
-MyController Function()? get initController => () => MyController();
-```
-
-`createController` no longer exists — you'll get a compile error if you don't rename it.
-
----
-
-## Step 3 — Replace `ZenControllerScope` with `ZenScopeWidget.create` (optional)
+In V2, controllers are **not** created inside `ZenView`. They must be provided by a `ZenProvider` somewhere above the view in the widget tree. The most common place is the route builder.
 
 ```dart
-// V1 (deprecated, still compiles)
-ZenControllerScope<MyController>(
-  create: () => MyController(),
-  child: const MyView(),
-)
-
-// V2 (recommended)
-ZenScopeWidget.create<MyController>(
-  create: () => MyController(),
-  child: const MyView(),
-)
-```
-
----
-
-## Step 4 — Replace `ZenBuilder` with `ZenUpdater` (optional)
-
-`ZenBuilder<T>` is a deprecated `typedef` alias for `ZenUpdater<T>`. It compiles and works, but you'll get deprecation warnings. The API is identical:
-
-```dart
-// V1 (deprecated alias — still works)
-ZenBuilder<CounterController>(
-  builder: (controller) => Text('${controller.count}'),
-)
-
-// V2 (preferred)
-ZenUpdater<CounterController>(
-  builder: (context, controller) => Text('${controller.count}'),
-)
-```
-
-> **Note:** The builder signature changed — V2 adds `BuildContext context` as the first parameter.
-
----
-
-## Providing Controllers — Recommended V2 Pattern
-
-In V1, pages often used `createController` to create their own controller. In V2, the recommended pattern is to provide the controller via `ZenScopeWidget` in the route, keeping the page itself clean:
-
-```dart
-// Router (GoRouter example)
+// ✅ GoRouter example
 GoRoute(
   path: '/cart',
-  builder: (context, state) => ZenScopeWidget.create<CartController>(
+  builder: (context, state) => ZenProvider.create<CartController>(
     create: () => CartController(),
     child: const CartPage(),
   ),
 )
 
-// Page — purely declarative
-class CartPage extends ZenView<CartController> {
-  const CartPage({super.key});
-
-  @override
-  Widget build(BuildContext context, CartController controller) {
-    return Scaffold(
-      body: ZenObserver(() => Text('${controller.totalItems} items')),
-    );
-  }
-}
+// ✅ Navigator.push example
+Navigator.push(
+  context,
+  MaterialPageRoute(
+    builder: (_) => ZenProvider.create<CartController>(
+      create: () => CartController(),
+      child: const CartPage(),
+    ),
+  ),
+);
 ```
 
-For **per-instance widgets** (list items, cards) that need a controller with parameters from the widget itself, use `initController`:
+The controller is scoped to that subtree — it is automatically disposed when the route is popped.
+
+---
+
+## Step 3 — Replace `ZenControllerScope` (required if used)
+
+`ZenControllerScope` has been **removed entirely** in V2. Replace every usage with `ZenProvider.create`:
 
 ```dart
-class ChatBubble extends ZenView<ChatBubbleController> {
-  final String messageId;
-  const ChatBubble({required this.messageId, super.key});
+// ❌ V1 — ZenControllerScope (removed)
+ZenControllerScope<MyController>(
+  create: () => MyController(),
+  child: const MyView(),
+)
 
-  @override
-  ChatBubbleController Function() get initController =>
-      () => ChatBubbleController(messageId: messageId);
+// ✅ V2 — ZenProvider.create
+ZenProvider.create<MyController>(
+  create: () => MyController(),
+  child: const MyView(),
+)
+```
 
-  @override
-  Widget build(BuildContext context, ChatBubbleController controller) {
-    return ZenObserver(() => Text(controller.formattedText.value));
-  }
-}
+The APIs are intentionally identical — this is a mechanical find-and-replace.
+
+---
+
+## Step 4 — Replace `ZenScopeWidget` (required if used)
+
+`ZenScopeWidget` has been renamed to `ZenProvider`. Update any direct references:
+
+```dart
+// ❌ V1
+ZenScopeWidget.create<T>(create: ..., child: ...)
+ZenScopeWidget(scope: myScope, child: ...)
+
+// ✅ V2
+ZenProvider.create<T>(create: ..., child: ...)
+ZenProvider(scope: myScope, child: ...)
+```
+
+---
+
+## Step 5 — Replace `ZenBuilder` with `ZenUpdater` (optional)
+
+`ZenBuilder<T>` is a deprecated alias for `ZenUpdater<T>`. It still compiles but will produce deprecation warnings. The API is identical except the builder signature now includes `BuildContext`:
+
+```dart
+// ⚠️ V1 (deprecated alias — still works, shows warning)
+ZenBuilder<CounterController>(
+  builder: (controller) => Text('${controller.count}'),
+)
+
+// ✅ V2 (preferred)
+ZenUpdater<CounterController>(
+  builder: (context, controller) => Text('${controller.count}'),
+)
+```
+
+---
+
+## Understanding the Architecture Shift
+
+V2 makes one core philosophical change: **controller lifecycle belongs to the DI scope, not the widget.**
+
+```
+V1 mental model:  Widget → creates → Controller
+V2 mental model:  ZenProvider → owns → Controller → Widget reads from scope
+```
+
+This means:
+- Controllers are never created inside `build()` or widget constructors
+- A controller lives exactly as long as its `ZenProvider` is in the tree
+- Multiple widgets under the same `ZenProvider` share the same controller instance
+- Popping a route automatically disposes all controllers scoped to it
+
+For **module-level** dependencies (auth, database, analytics), use `ZenModule` with a root-level `ZenProvider` in your app widget:
+
+```dart
+// main.dart
+runApp(
+  ZenProvider(
+    moduleBuilder: () => AppModule(),
+    child: const MyApp(),
+  ),
+);
 ```
 
 ---
@@ -153,8 +166,9 @@ class ChatBubble extends ZenView<ChatBubbleController> {
 - [ ] `dart analyze` — look for `invalid_override` on `ZenView.build`
 - [ ] Add `, T controller` to every `ZenView.build()` override
 - [ ] Remove any use of the old `controller` getter (now the parameter)
-- [ ] Rename `createController` → `initController`
-- [ ] Replace `ZenControllerScope` → `ZenScopeWidget.create` (or leave — still compiles)
+- [ ] Find all `ZenControllerScope` usages → replace with `ZenProvider.create`
+- [ ] Find all `ZenScopeWidget` usages → rename to `ZenProvider`
+- [ ] Remove `createController` / `initController` overrides → move to `ZenProvider.create` at the route level
 - [ ] Replace `ZenBuilder` → `ZenUpdater` (or leave — still compiles with deprecation warning)
 - [ ] `dart analyze` — confirm 0 errors
 - [ ] `flutter test` — confirm all tests pass

@@ -48,6 +48,8 @@ class DependentService {
   DependentService(this.dependency);
 }
 
+class MyZenService extends ZenService {}
+
 void main() {
   // Initialize Flutter test framework BEFORE any tests run
   setUpAll(() {
@@ -64,6 +66,29 @@ void main() {
     tearDown(() {
       // Clean up after each test
       Zen.reset();
+    });
+
+    test('should auto-detect isPermanent: true for ZenService but not ZenController', () {
+      final service = MyZenService();
+      final controller = TestController('auto-perm');
+
+      // Put both globally
+      Zen.put<MyZenService>(service);
+      Zen.put<TestController>(controller);
+
+      expect(Zen.find<MyZenService>(), same(service));
+      expect(Zen.find<TestController>(), same(controller));
+
+      // Clear non-permanent dependencies (simulates scope cleanup)
+      Zen.deleteAll();
+
+      // ZenService should survive (auto-permanent)
+      final foundService = Zen.findOrNull<MyZenService>();
+      expect(foundService, same(service), reason: 'ZenService should default to isPermanent: true');
+
+      // ZenController should be deleted (not permanent)
+      final foundController = Zen.findOrNull<TestController>();
+      expect(foundController, isNull, reason: 'ZenController should default to isPermanent: false');
     });
 
     test('should register and find controllers in root scope', () {

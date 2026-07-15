@@ -26,19 +26,21 @@ void main() {
   group('ZenConsumer Widget Tests', () {
     testWidgets('should find and provide existing dependency', (tester) async {
       final testService = TestService('test-service');
-      Zen.put<TestService>(testService);
 
       bool builderCalled = false;
       TestService? receivedService;
 
       await tester.pumpWidget(
         MaterialApp(
-          home: ZenConsumer<TestService>(
-            builder: (context, service) {
-              builderCalled = true;
-              receivedService = service;
-              return Text(service.name);
-            },
+          home: ZenProvider.create<TestService>(
+            create: () => testService,
+            child: ZenConsumer<TestService>(
+              builder: (context, service) {
+                builderCalled = true;
+                receivedService = service;
+                return Text(service.name);
+              },
+            ),
           ),
         ),
       );
@@ -75,14 +77,18 @@ void main() {
       final service1 = TestService('service-1');
       final service2 = TestService('service-2');
 
-      Zen.put<TestService>(service1, tag: 'tag1');
-      Zen.put<TestService>(service2, tag: 'tag2');
+      final scope = Zen.createScope(name: 'TaggedScope');
+      scope.put<TestService>(service1, tag: 'tag1');
+      scope.put<TestService>(service2, tag: 'tag2');
 
       await tester.pumpWidget(
         MaterialApp(
-          home: ZenConsumer<TestService>(
-            tag: 'tag2',
-            builder: (context, service) => Text(service.name),
+          home: ZenProvider(
+            scope: scope,
+            child: ZenConsumer<TestService>(
+              tag: 'tag2',
+              builder: (context, service) => Text(service.name),
+            ),
           ),
         ),
       );
@@ -94,7 +100,7 @@ void main() {
         (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: ZenScopeWidget.create<TestService>(
+          home: ZenProvider.create<TestService>(
             create: () => TestService('hierarchical-service'),
             child: ZenConsumer<TestService>(
               builder: (context, svc) => Text(svc.name),

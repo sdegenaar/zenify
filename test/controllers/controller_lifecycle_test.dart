@@ -287,7 +287,7 @@ void main() {
                     ),
                     if (showWidget)
                       Expanded(
-                        child: ZenScopeWidget(
+                        child: ZenProvider(
                           moduleBuilder: () =>
                               DisposableModule(disposableController),
                           child: const Center(child: Text('Scoped Widget')),

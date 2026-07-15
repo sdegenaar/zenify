@@ -7,7 +7,7 @@ This example demonstrates a **production-ready** application built with Zenify, 
 - **Module-Based Architecture**: Feature modules (Auth, Product, Cart) with clean separation of concerns
 - **Static `.to` Accessor Pattern**: Global services accessible from anywhere
 - **Hybrid DI Approach**: Mix of constructor injection and `.to` pattern for optimal developer experience
-- **Reactive State Management**: Zero-boilerplate reactivity with `.obs()` and `Obx()`
+- **Reactive State Management**: Zero-boilerplate reactivity with `.obs()` and `ZenObserver()`
 - **Automatic Cleanup**: Proper scope management and memory leak prevention
 - **Controller Communication**: Multiple patterns for controllers to communicate
 - **State in Services**: Demonstrates services with business logic state
@@ -139,7 +139,7 @@ class ProductDetailController extends ZenController {
 // CartBadge widget shows cart count from anywhere
 class CartBadge extends StatelessWidget {
   Widget build(context) => ZenConsumer<CartService>(
-    builder: (cart) => Obx(() =>
+    builder: (cart) => ZenObserver(() =>
       Badge(label: Text('${cart!.itemCount.value}'))
     ),
   );
@@ -147,7 +147,7 @@ class CartBadge extends StatelessWidget {
 
 // Or use .to directly!
 class CartBadgeSimple extends StatelessWidget {
-  Widget build(context) => Obx(() =>
+  Widget build(context) => ZenObserver(() =>
     Badge(label: Text('${CartService.to.itemCount.value}'))
   );
 }
@@ -197,7 +197,7 @@ class CartController extends ZenController {
 }
 
 // In UI - automatic rebuilds
-Obx(() => Text('Total: \$${controller.totalPrice.toStringAsFixed(2)}'))
+ZenObserver(() => Text('Total: \$${controller.totalPrice.toStringAsFixed(2)}'))
 ```
 
 ## Running the Example
@@ -229,7 +229,7 @@ Obx(() => Text('Total: \$${controller.totalPrice.toStringAsFixed(2)}'))
 
 **Pages (ZenView usage):**
 - `lib/ecommerce/pages/cart_page.dart`: ZenView with controller
-- `lib/ecommerce/pages/product_detail_page.dart`: createController override
+- `lib/ecommerce/pages/product_detail_page.dart`: route-level `ZenProvider.create`
 - `lib/ecommerce/pages/home_page.dart`: Module-provided controller
 
 ## Testing Examples
@@ -277,7 +277,7 @@ test('loads product details', () async {
 |----------|---------|---------|
 | Global service accessed everywhere | Static `.to` | CartService, AuthService |
 | Service you want to mock in tests | Constructor injection | ProductService, ApiService |
-| Page-specific controller | ZenView createController | ProductDetailController |
+| Page-specific controller | ZenProvider.create at route | ProductDetailController |
 | Shared controller in module | Module registration | HomeController |
 | Optional feature | ZenConsumer | PremiumController |
 

@@ -210,7 +210,7 @@ class CheckoutController extends ZenController {
 
 // Widget C displays cart badge
 class CartBadge extends StatelessWidget {
-  Widget build(context) => Obx(() =>
+  Widget build(context) => ZenObserver(() =>
     Badge(label: Text('${CartService.to.itemCount.value}'))
   );
 }

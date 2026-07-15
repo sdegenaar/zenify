@@ -19,15 +19,17 @@ void main() {
   });
 
   group('ZenUpdater Core Functionality', () {
-    testWidgets('should find existing controller in global scope and rebuild',
+    testWidgets('should find existing controller in local scope and rebuild',
         (tester) async {
       final controller = TestController();
-      Zen.put<TestController>(controller);
 
       await tester.pumpWidget(
         MaterialApp(
-          home: ZenUpdater<TestController>(
-            builder: (context, ctrl) => Text('Value: ${ctrl.value}'),
+          home: ZenProvider.create(
+            create: () => controller,
+            child: ZenUpdater<TestController>(
+              builder: (context, ctrl) => Text('Value: ${ctrl.value}'),
+            ),
           ),
         ),
       );
@@ -57,17 +59,17 @@ void main() {
   });
 
   group('ZenUpdater Scoping', () {
-    testWidgets('should respect nearest scope over global scope',
+    testWidgets('should respect nearest scope over outer scope',
         (tester) async {
-      final globalCtrl = TestController()..value = 10;
-      Zen.put<TestController>(globalCtrl);
-
       await tester.pumpWidget(
         MaterialApp(
-          home: ZenScopeWidget.create<TestController>(
-            create: () => TestController()..value = 20,
-            child: ZenUpdater<TestController>(
-              builder: (context, ctrl) => Text('Value: ${ctrl.value}'),
+          home: ZenProvider.create<TestController>(
+            create: () => TestController()..value = 10,
+            child: ZenProvider.create<TestController>(
+              create: () => TestController()..value = 20,
+              child: ZenUpdater<TestController>(
+                builder: (context, ctrl) => Text('Value: ${ctrl.value}'),
+              ),
             ),
           ),
         ),

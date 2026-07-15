@@ -10,6 +10,9 @@ import '../pages/login_page.dart';
 import '../pages/product_detail_page.dart';
 import '../pages/register_page.dart';
 import '../pages/splash_page.dart';
+import '../controllers/product_detail_controller.dart';
+import '../../shared/services/product_service.dart';
+
 
 /// Routes for the e-commerce app
 ///
@@ -69,7 +72,16 @@ class AppRoutes {
         return MaterialPageRoute(
           builder: (_) => ZenRoute(
             moduleBuilder: () => ProductModule(),
-            page: ProductDetailPage(productId: productId),
+            page: ZenProvider.create(
+              create: () {
+                final ctrl = ProductDetailController(
+                  productService: Zen.find<ProductService>(),
+                );
+                ctrl.initialize(productId);
+                return ctrl;
+              },
+              child: ProductDetailPage(productId: productId),
+            ),
             scopeName: 'ProductDetailScope',
           ),
         );

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/core.dart';
 
-import '../scope/zen_scope_widget.dart';
+import '../scope/zen_provider.dart';
 import '../../di/zen_di.dart';
 
 /// Route-scoped dependency injection widget

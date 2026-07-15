@@ -3,14 +3,12 @@ import 'package:todo/todo/pages/todo_detail_page.dart';
 import 'package:zenify/zenify.dart';
 import '../../shared/models/todo_model.dart';
 import '../controllers/todo_controller.dart';
+import '../controllers/todo_detail_controller.dart';
 import '../widgets/todo_item.dart';
 import '../widgets/todo_filter_bar.dart';
 
 class TodoHomePage extends ZenView<TodoController> {
   const TodoHomePage({super.key});
-
-  @override
-  TodoController Function()? get initController => () => TodoController();
 
   @override
   Widget build(BuildContext context, TodoController controller) {
@@ -171,7 +169,10 @@ class TodoHomePage extends ZenView<TodoController> {
   void _navigateToDetailPage(BuildContext context, {Todo? todo}) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => TodoDetailPage(todo: todo),
+        builder: (context) => ZenProvider.create(
+          create: () => TodoDetailController(initialTodo: todo),
+          child: TodoDetailPage(todo: todo),
+        ),
       ),
     );
   }

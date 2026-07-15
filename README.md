@@ -1,6 +1,6 @@
 <div align="center">
   <h1>Zenify</h1>
-  <p><b>Hierarchical DI • Zero-Boilerplate Reactivity • Smart Async State</b></p>
+  <p><b>TanStack Query Patterns • Hierarchical Scoped DI • Offline-First Architecture • Zero Code Generation</b></p>
 </div>
 
 [![pub package](https://img.shields.io/pub/v/zenify.svg)](https://pub.dev/packages/zenify)
@@ -9,7 +9,7 @@
 [![codecov](https://codecov.io/gh/sdegenaar/zenify/branch/main/graph/badge.svg)](https://codecov.io/gh/sdegenaar/zenify)
 [![license: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**Complete state management for Flutter — hierarchical dependency injection, reactive programming, and intelligent async state. Zero boilerplate, automatic cleanup.**
+**Zenify is a complete Flutter state management framework with a built-in TanStack Query engine, offline-first resilience, and hierarchical dependency injection — with zero boilerplate and no code generation.**
 
 ```dart
 // Hierarchical DI with automatic cleanup
@@ -36,46 +36,118 @@ feed.data.value                   // all pages, reactive
 
 ---
 
-## 🎯 Why Zenify?
+## 🎯 The Problem
 
-Building async-heavy Flutter apps? You're probably fighting:
+Every Flutter developer has written this. Probably many times:
 
-- **Manual cache management** — Writing the same cache logic over and over
-- **Duplicate API calls** — Multiple widgets fetching the same data
-- **Memory leaks** — Forgetting to dispose controllers and subscriptions
-- **Boilerplate overload** — Hundreds of lines for simple async state
+```dart
+// The async state boilerplate tax — paid on every API call, in every app
+bool _isLoading = false;
+String? _error;
+User? _data;
 
-**Zenify solves all of this.**
+Future<void> loadUser() async {
+  setState(() => _isLoading = true);
+  try {
+    _data = await api.getUser(id);
+    _error = null;
+  } catch (e) {
+    _error = e.toString();
+  } finally {
+    setState(() => _isLoading = false);
+  }
+}
+
+// And if two widgets need the same data? Two separate API calls.
+// And if the user goes offline? Blank screen.
+// And if the data is stale? Manual cache invalidation logic.
+// And if you navigate away and back? Fetch it all over again.
+```
+
+Now here's the same thing with Zenify:
+
+```dart
+ZenQueryConsumer<User>(
+  queryKey: 'user:$id',
+  fetcher: (_) => api.getUser(id),
+  data: (user) => UserProfile(user),
+  loading: () => const CircularProgressIndicator(),
+  error: (e, retry) => ErrorView(e, onRetry: retry),
+);
+```
+
+**Automatic caching. Deduplication. Background refetch. Stale-while-revalidate. Offline resilience. All built in.**
+
+This is what TanStack Query brought to the web. Zenify brings it to Flutter — natively, without code generation, integrated directly into the framework's DI and reactivity system.
 
 ---
 
-## ⚡ What Makes Zenify Different
+## ⚡ Four Things Zenify Does Differently
 
-### Hierarchical Scoped Architecture
-Riverpod-inspired scoping with **automatic cleanup**. Dependencies flow naturally from parent to child, and scopes dispose themselves automatically when no longer needed. Simple API: `Zen.put()`, `Zen.find()`, `Zen.delete()`.
+### 1. Built-In TanStack Query Engine
+Most Flutter frameworks treat async state as an afterthought — a `Future` wrapped in a controller. Zenify has a first-class query engine (`ZenQuery`) with automatic caching, request deduplication, stale-while-revalidate, infinite scroll pagination, and optimistic updates. No third-party packages. No bolting things together. One coherent system.
 
-### Zero Boilerplate Reactivity
-Reactive system with `.obs()` and `ZenObserver()` (or `Obx()` for GetX users). Write less, accomplish more, keep your code clean. Built on Flutter's `ValueNotifier` for optimal performance.
+### 2. Hierarchical Scoped DI — Auto-Disposal Built In
+Every route gets its own scope. Navigate away, and the scope — plus every controller, repository, and service inside it — is automatically disposed. Navigate back, and you get a fresh scope with clean state. No `Get.delete()` calls. No memory leaks. No stale state. Parent scopes resolve services for child scopes automatically — a feature module just asks for what it needs, and the hierarchy delivers it.
 
-### React Query Style Async State
-A native-inspired implementation of **TanStack Query patterns**: automatic caching, smart refetching, request deduplication, and stale-while-revalidate — built on top of the reactive system.
+### 3. Offline-First by Design
+Zenify doesn't just handle the happy path. Queries return cached data instantly while fetching fresh data in the background. Mutations that fail offline are queued and automatically replayed when the connection restores. Storage is pluggable — Hive, SharedPreferences, SQLite, or any custom adapter. Offline support isn't a feature you add later; it's in the architecture from the start.
 
-### Offline-First Resilience
-Don't let network issues break your app. Zenify includes **robust persistence**, an **offline mutation queue**, and **optimistic updates** out of the box with minimal configuration.
+### 4. Zero Code Generation
+No `build_runner`. No `@riverpod` annotations. No generated files to commit. Write Dart, get IntelliSense, run your app. When your codebase grows to 100,000 lines, you still don't run a code generator.
 
 ---
 
-> **Coming from GetX?** The reactive system (`.obs()`, `Obx()`), controller lifecycle, and DI verbs are intentionally familiar. Most migration is mechanical.
+> **Coming from GetX?** The `.obs()` reactive syntax and DI verbs (`put`, `find`, `delete`) will feel familiar. Most migration is mechanical.
 > [GetX Migration Guide →](https://github.com/sdegenaar/zenify/blob/main/doc/migration_guide.md)
 
 > **Upgrading from V1?** The only mechanical change is adding a `controller` parameter to every `ZenView.build()` override.
-> [V2 Migration →](#-migrating-from-v1)
+> [V2 Migration →](#️-migrating-from-v1)
 
 ---
 
 ## 🏗️ Understanding Scopes (The Foundation)
 
-Zenify organizes dependencies into **three hierarchical levels** with automatic lifecycle management. When a parent scope is destroyed, all its children are automatically cleaned up — zero memory leaks.
+Every Flutter developer has also written this — usually after a mysterious bug:
+
+```dart
+// The controller lifecycle tax — paid in every app that grows beyond a prototype
+
+// GetX — global singletons, manual cleanup required
+Get.put(ProfileController());
+Get.put(UserRepository(Get.find<ApiClient>()));
+Get.put(ProfileImageService(Get.find<ApiClient>()));
+
+// Navigate away from the profile screen...
+// Did you call Get.delete<ProfileController>()?
+// Did you call Get.delete<UserRepository>()?
+// Probably not. Both are still in memory. Stale state next visit.
+
+// Navigate back — same stale instance. Old data showing.
+// User sees their previous session's data until it refreshes.
+```
+
+Now here's the same thing with Zenify:
+
+```dart
+class ProfileModule extends ZenModule {
+  @override
+  void register(ZenScope scope) {
+    final api = scope.find<ApiClient>()!;          // resolved from parent scope automatically
+    scope.putLazy<UserRepository>(() => UserRepository(api));
+    scope.putLazy<ProfileImageService>(() => ProfileImageService(api));
+    scope.put<ProfileController>(ProfileController());
+  }
+}
+
+ZenRoute(moduleBuilder: () => ProfileModule(), page: const ProfilePage())
+// Navigate away → scope disposed → all three objects cleaned up. Automatically.
+// Navigate back → fresh scope, fresh controllers, fresh state. Always.
+```
+
+**One `ZenRoute`. Zero `dispose()` calls. Zero memory leaks. Zero stale state.**
+
+This is what hierarchical scoped DI means in practice. Zenify organizes dependencies into **three levels** with automatic lifecycle management. When a scope is destroyed, all its children are automatically cleaned up — the cascade is built in.
 
 ```mermaid
 flowchart TD
@@ -163,40 +235,63 @@ class CounterController extends ZenController {
 }
 ```
 
-### 4. Provide & Build
+### 4. Provide & Consume
+
+The Zenify pattern is three steps:
+
+```
+REGISTER  →  Zen.registerModules([AppModule()])     app services — live for app lifetime
+              ZenRoute(moduleBuilder: () => M())     route-level — standard for real apps
+              ↳ scope.put<T>(T())  inside ZenModule  where controllers are actually created
+              ZenProvider.create<T>(create: ...)     simple routes without a module
+
+CONSUME   →  ZenView<T>                extend — controller injected into build()
+              ZenConsumer<T>           compose — inline builder, no inheritance
+              context.controller<T>() imperative — from any widget or callback
+
+REACT     →  ZenObserver          Rx<T> — auto-rebuild on value change
+              ZenUpdater<T>            update() — manual, ID-targeted rebuilds
+              ZenQuery<T>              async — caching, loading, error, refetch
+```
+
+> **Key rule:** `ZenView` resolves from the nearest `ZenProvider` scope automatically. Whether the controller was registered via `ZenRoute` or an explicit `ZenProvider` — consumption is always the same zero-boilerplate pattern. Global services (`Zen.put`) are accessed explicitly via `Zen.find()`.
 
 ```dart
-// Provide the controller to the page via ZenScopeWidget
-ZenScopeWidget.create<CounterController>(
-  create: () => CounterController(),
-  child: const CounterPage(),
+// 1. Register — in your module, put the controller into its scope
+class CartModule extends ZenModule {
+  @override
+  void register(ZenScope scope) {
+    scope.put<CartController>(CartController());
+  }
+}
+
+// In your router — ZenRoute creates the scope and runs the module:
+ZenRoute(
+  moduleBuilder: () => CartModule(),
+  page: const CartPage(),
 )
 
-// Consume it — controller is injected directly into build()
-class CounterPage extends ZenView<CounterController> {
-  const CounterPage({super.key});
+// 2. Consume — controller is injected directly into build(), zero lookup code
+class CartPage extends ZenView<CartController> {
+  const CartPage({super.key});
 
   @override
-  Widget build(BuildContext context, CounterController controller) {
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ZenObserver(() => Text('Count: ${controller.count.value}')),
-            ElevatedButton(
-              onPressed: controller.increment,
-              child: const Text('Increment'),
-            ),
-          ],
+  Widget build(BuildContext context, CartController controller) {
+    return Column(
+      children: [
+        // 3. React — auto-rebuilds when itemCount changes
+        ZenObserver(() => Text('${controller.itemCount.value} items')),
+        ElevatedButton(
+          onPressed: controller.checkout,
+          child: const Text('Checkout'),
         ),
-      ),
+      ],
     );
   }
 }
 ```
 
-**That's it!** Fully reactive with automatic cleanup. No `setState`, no manual disposal, no memory leaks.
+**That's it.** The controller is scoped to the route, auto-disposed on pop, multi-instance safe.
 
 [See complete example →](example/counter)
 
@@ -204,178 +299,7 @@ class CounterPage extends ZenView<CounterController> {
 
 ## 🔥 Core Features
 
-### 1. ZenView — Pages, Screens & Widgets
-
-The Zenify pattern is three steps. You only ever touch all three once per feature — after that, consuming controllers is zero boilerplate.
-
-**Step 1 — Register** (once, at the right level)
-
-```dart
-// App-level: available everywhere, lives for the app lifetime
-await Zen.registerModules([AppModule()]);
-
-// Route-level: scoped to this route, auto-disposed on pop
-ZenScopeWidget(
-  moduleBuilder: () => CartModule(),
-  child: const CartPage(),
-)
-```
-
-**Step 2 — Consume** (always the same — `ZenView` resolves automatically)
-
-```dart
-class CartPage extends ZenView<CartController> {
-  const CartPage({super.key});
-
-  @override
-  Widget build(BuildContext context, CartController controller) {
-    // controller is injected — no lookup, no boilerplate
-    return ZenObserver(() => Text('${controller.itemCount.value} items'));
-  }
-}
-```
-
-**Step 3 — React** (pick your tool)
-
-```dart
-// Rx values (.obs()) — auto-rebuilds on change:
-ZenObserver(() => Text('${controller.count.value}'))
-
-// Manual update() calls — selective rebuilds:
-ZenUpdater<CartController>(
-  builder: (ctx, ctrl) => CartBadge(count: ctrl.itemCount),
-)
-
-// Async/API state — declarative:
-controller.productsQuery.when(
-  data: (products) => ProductList(products: products),
-  loading: () => const CircularProgressIndicator(),
-  error: (e) => Text('Error: $e'),
-)
-```
-
-**Per-instance: Self-owned controller** (list items, cards)
-
-Use `initController` when each widget instance needs its own isolated controller with parameters from the widget itself:
-
-```dart
-class VoiceMessageView extends ZenView<VoiceMessageController> {
-  final String messageId;
-  final String messagePath;
-  const VoiceMessageView({
-    required this.messageId,
-    required this.messagePath,
-    super.key,
-  });
-
-  @override
-  VoiceMessageController Function() get initController => () =>
-      VoiceMessageController(messageId: messageId, messagePath: messagePath);
-
-  @override
-  Widget build(BuildContext context, VoiceMessageController controller) {
-    return Slider(value: controller.progress.value, onChanged: (_) {});
-  }
-}
-```
-
-**Which pattern for which situation?**
-
-| Situation | Pattern |
-|---|---|
-| App-level services (auth, analytics, config) | `Zen.registerModules([AppModule()])` at startup |
-| Route/feature-level controller | `ZenScopeWidget(moduleBuilder: () => FeatureModule())` in router |
-| Per-instance widget (list item, card) | `initController` getter override |
-| Quick singleton for prototyping | `Zen.put<T>(...)` at startup |
-
-
-### 2. Hierarchical DI with Auto-Cleanup
-
-Organize dependencies naturally with **feature-based modules** and parent-child scopes.
-
-```dart
-// App-level services (persistent)
-class AppModule extends ZenModule {
-  @override
-  void register(ZenScope scope) {
-    scope.put<AuthService>(AuthService(), isPermanent: true);
-    scope.put<DatabaseService>(DatabaseService(), isPermanent: true);
-  }
-}
-
-// Feature-level controllers (auto-disposed on navigation)
-class UserModule extends ZenModule {
-  @override
-  void register(ZenScope scope) {
-    final db = scope.find<DatabaseService>()!;
-    scope.putLazy<UserRepository>(() => UserRepository(db));
-    scope.putLazy<UserController>(() => UserController());
-  }
-}
-
-// Use with any router — it's just a widget
-ZenRoute(
-  moduleBuilder: () => UserModule(),
-  page: const UserPage(),
-  scopeName: 'UserScope',
-)
-```
-
-**Core API:**
-- `Zen.put<T>()` — Register in root scope
-- `Zen.find<T>()` — Retrieve (throws if missing)
-- `Zen.get<T>()` — Alias for find
-- `Zen.has<T>()` — Check existence
-- `Zen.delete<T>()` / `Zen.remove<T>()` — Remove
-
-**Works with:** GoRouter, AutoRoute, Navigator 2.0, any router.
-
-[See Hierarchical Scopes Guide →](https://github.com/sdegenaar/zenify/blob/main/doc/hierarchical_scopes_guide.md)
-
-### 3. Zero-Boilerplate Reactivity
-
-GetX-inspired reactive system built on Flutter's `ValueNotifier`. Simple, fast, no magic.
-
-```dart
-class TodoController extends ZenController {
-  final todos = <Todo>[].obs();
-  final filter = Filter.all.obs();
-
-  List<Todo> get filteredTodos {
-    switch (filter.value) {
-      case Filter.active: return todos.where((t) => !t.done).toList();
-      case Filter.completed: return todos.where((t) => t.done).toList();
-      default: return todos.toList();
-    }
-  }
-
-  void addTodo(String title) => todos.add(Todo(title));
-}
-
-// In UI — automatic, minimal rebuilds
-ZenObserver(() => Text('${controller.todos.length} todos'))
-ZenObserver(() => ListView.builder(
-  itemCount: controller.filteredTodos.length,
-  itemBuilder: (context, i) => TodoItem(controller.filteredTodos[i]),
-))
-```
-
-**For manual/selective rebuilds**, use `ZenUpdater`:
-
-```dart
-// Controller:
-controller.update(['counter']); // Only notifies 'counter' listeners
-
-// Widget:
-ZenUpdater<CounterController>(
-  id: 'counter',
-  builder: (context, ctrl) => Text('${ctrl.count}'),
-)
-```
-
-[See Reactive Core Guide →](https://github.com/sdegenaar/zenify/blob/main/doc/reactive_core_guide.md)
-
-### 4. Smart Async State (ZenQuery)
+### 1. Smart Async State (ZenQuery)
 
 React Query patterns built on the reactive system. Say goodbye to manual `isLoading` flags.
 
@@ -442,10 +366,12 @@ ZenQueryBuilder<User>(
 
 [See ZenQuery Guide →](https://github.com/sdegenaar/zenify/blob/main/doc/zen_query_guide.md)
 
-### 5. Offline Synchronization Engine
+### 2. Offline-First Resilience
+
+Offline support isn't a plugin you add. It's how Zenify's query engine is architected. Queries return stale data from disk instantly while fetching fresh data in the background. Mutations that fail when offline are queued, persisted, and automatically replayed when the connection returns.
 
 ```dart
-// Auto-persist data to disk
+// Auto-persist data to disk — survives app restarts
 final postsQuery = ZenQuery<List<Post>>(
   queryKey: 'posts',
   fetcher: (_) => api.getPosts(),
@@ -466,9 +392,168 @@ final createPost = ZenMutation<Post, Post>(
 - **Storage agnostic** — Hive, SharedPreferences, SQLite, or any `ZenStorage` implementation
 - **Mutation queue** — Actions queued and auto-replayed on reconnect
 - **Optimistic updates** — Update UI immediately, sync later
-- **Network modes** — Control how queries behave offline
+- **Network modes** — Control how queries behave offline (`offlineFirst`, `online`, `always`)
 
 [See Offline Guide →](https://github.com/sdegenaar/zenify/blob/main/doc/offline_guide.md)
+
+### 3. ZenView — Pages, Screens & Widgets
+
+By extending `ZenView<T>`, the controller is injected directly into `build()`. No `context.read<T>()`, no `BlocBuilder`, no `ref.watch()`. The controller arrives as a typed parameter.
+
+**Register** — in a real app, register inside a `ZenModule` and wire it to your route:
+
+```dart
+// CartModule — registers everything the cart feature needs
+class CartModule extends ZenModule {
+  @override
+  void register(ZenScope scope) {
+    final api = scope.find<ApiClient>()!;          // resolved from parent scope
+    scope.putLazy<CartRepository>(() => CartRepository(api));
+    scope.put<CartController>(CartController());
+  }
+}
+
+// In your router (works with GoRouter, AutoRoute, Navigator 2.0 — any router)
+ZenRoute(
+  moduleBuilder: () => CartModule(),
+  page: const CartPage(),
+)
+```
+
+For simple routes without dependencies, use the shorthand:
+
+```dart
+ZenProvider.create<CartController>(
+  create: () => CartController(),
+  child: const CartPage(),
+)
+```
+
+**Consume** — `ZenView` resolves the controller automatically. Zero lookup code:
+
+```dart
+class CartPage extends ZenView<CartController> {
+  const CartPage({super.key});
+
+  @override
+  Widget build(BuildContext context, CartController controller) {
+    return ZenObserver(() => Text('${controller.itemCount.value} items'));
+  }
+}
+```
+
+**React** — pick your reactivity tool:
+
+```dart
+// Rx<T> values — auto-rebuilds on change:
+ZenObserver(() => Text('${controller.count.value}'))
+
+// Manual update() calls — selective rebuilds:
+ZenUpdater<CartController>(
+  builder: (ctx, ctrl) => CartBadge(count: ctrl.itemCount),
+)
+
+// Async/API state — declarative:
+controller.productsQuery.when(
+  data: (products) => ProductList(products: products),
+  loading: () => const CircularProgressIndicator(),
+  error: (e) => Text('Error: $e'),
+)
+```
+
+**Which pattern for which situation?**
+
+| Situation | Pattern |
+|---|---|
+| App-level services (auth, analytics, database) | `Zen.registerModules([AppModule()])` at startup |
+| Route with multiple dependencies | `ZenRoute(moduleBuilder: () => FeatureModule())` |
+| Simple route, single controller | `ZenProvider.create<T>(create: ...)` |
+| App-level singleton (prototyping) | `Zen.put<T>(...)` at startup |
+
+### 4. Hierarchical DI with Auto-Cleanup
+
+Organize dependencies naturally with **feature-based modules** and parent-child scopes.
+
+```dart
+// App-level services (persistent)
+class AppModule extends ZenModule {
+  @override
+  void register(ZenScope scope) {
+    scope.put<AuthService>(AuthService(), isPermanent: true);
+    scope.put<DatabaseService>(DatabaseService(), isPermanent: true);
+  }
+}
+
+// Feature-level controllers (auto-disposed on navigation)
+class UserModule extends ZenModule {
+  @override
+  void register(ZenScope scope) {
+    final db = scope.find<DatabaseService>()!;
+    scope.putLazy<UserRepository>(() => UserRepository(db));
+    scope.putLazy<UserController>(() => UserController());
+  }
+}
+
+// Use with any router — it's just a widget
+ZenProvider(
+  moduleBuilder: () => UserModule(),
+  child: const UserPage(),
+)
+```
+
+**Core API:**
+- `Zen.put<T>()` — Register in root scope
+- `Zen.find<T>()` — Retrieve (throws if missing)
+- `Zen.get<T>()` — Alias for find
+- `Zen.has<T>()` — Check existence
+- `Zen.delete<T>()` / `Zen.remove<T>()` — Remove
+
+**Works with:** GoRouter, AutoRoute, Navigator 2.0, any router.
+
+[See Hierarchical Scopes Guide →](https://github.com/sdegenaar/zenify/blob/main/doc/hierarchical_scopes_guide.md)
+
+### 5. Zero-Boilerplate Reactivity
+
+Reactive system built on Flutter's `ValueNotifier`. Simple, fast, no magic.
+
+```dart
+class TodoController extends ZenController {
+  final todos = <Todo>[].obs();
+  final filter = Filter.all.obs();
+
+  List<Todo> get filteredTodos {
+    switch (filter.value) {
+      case Filter.active: return todos.where((t) => !t.done).toList();
+      case Filter.completed: return todos.where((t) => t.done).toList();
+      default: return todos.toList();
+    }
+  }
+
+  void addTodo(String title) => todos.add(Todo(title));
+}
+
+// In UI — automatic, minimal rebuilds
+ZenObserver(() => Text('${controller.todos.length} todos'))
+ZenObserver(() => ListView.builder(
+  itemCount: controller.filteredTodos.length,
+  itemBuilder: (context, i) => TodoItem(controller.filteredTodos[i]),
+))
+```
+
+**For manual/selective rebuilds**, use `ZenUpdater`:
+
+```dart
+// Controller:
+controller.update(['counter']); // Only notifies 'counter' listeners
+
+// Widget:
+ZenUpdater<CounterController>(
+  id: 'counter',
+  builder: (context, ctrl) => Text('${ctrl.count}'),
+)
+```
+
+[See Reactive Core Guide →](https://github.com/sdegenaar/zenify/blob/main/doc/reactive_core_guide.md)
 
 ---
 
@@ -490,6 +575,38 @@ Zen.put<CartService>(CartService(), isPermanent: true);
 // Use anywhere — widgets, controllers, helpers
 CartService.to.addToCart(product);
 ```
+
+### Global Reactive State (Theme, Auth, Settings)
+
+For app-wide reactive state that belongs to no single page, use `Zen.put` + the `.to` pattern + `ZenObserver`. **Do not use `ZenView` for this** — `ZenView` is strictly for page-level controllers scoped to a route.
+
+```dart
+class ThemeController extends ZenController {
+  static ThemeController get to => Zen.find<ThemeController>()!;
+
+  final isDark = false.obs();
+  final accentColor = Colors.blue.obs();
+
+  void toggleDark() => isDark.value = !isDark.value;
+}
+
+// Register once at app startup — isPermanent keeps it alive for the full app session
+Zen.put<ThemeController>(ThemeController(), isPermanent: true);
+
+// React to it anywhere in the widget tree — no ZenView, no ZenProvider needed
+ZenObserver(() => Icon(
+  ThemeController.to.isDark.value ? Icons.dark_mode : Icons.light_mode,
+))
+
+// Access imperatively in callbacks
+ElevatedButton(
+  onPressed: () => ThemeController.to.toggleDark(),
+  child: const Text('Toggle Theme'),
+)
+```
+
+> **Rule of thumb:** If a controller belongs to one route → `ZenProvider.create` + `ZenView`.
+> If a controller is truly app-wide → `Zen.put` + `.to` + `ZenObserver`.
 
 ### Infinite Scroll Pagination
 
@@ -547,7 +664,7 @@ final chatQuery = ZenStreamQuery<List<Message>>(
 |--------|----------|-------------|
 | **ZenView** | Building pages with controllers | Controller injected into `build()` |
 | **ZenRoute** | Need module/scope per route | Route navigation |
-| **ZenObserver** / **Obx** | Fine-grained reactive updates | `.obs()` value changes |
+| **ZenObserver** | Fine-grained reactive updates | `.obs()` value changes |
 | **ZenUpdater** | Manual control over rebuild timing | `controller.update()` call |
 | **ZenConsumer** | Access a controller, no rebuild | Never (manual) |
 | **ZenQueryConsumer** | Fetch data inline, no controller needed | Query state changes |
@@ -627,38 +744,40 @@ void main() {
 
 ## ⬆️ Migrating from V1
 
-V2 has **one breaking change**: `ZenView.build()` now receives the controller as an explicit parameter.
+V2 has several breaking changes. The most impactful is mechanical:
 
 ```dart
-// V1
+// ❌ V1 — magic getter, global registry
 class CartPage extends ZenView<CartController> {
   @override
   Widget build(BuildContext context) {
-    return Text('${controller.totalItems}'); // magic getter — gone
+    return Text('${controller.totalItems}');
   }
 }
 
-// V2
+// ✅ V2 — explicit injection, tree-bound
 class CartPage extends ZenView<CartController> {
   const CartPage({super.key});
 
   @override
   Widget build(BuildContext context, CartController controller) {
-    return Text('${controller.totalItems}'); // explicit, compiler-enforced
+    return Text('${controller.totalItems}');
   }
 }
 ```
 
-**Other changes:**
+**Full change summary:**
 
-| V1 | V2 | Notes |
+| V1 | V2 | Impact |
 |---|---|---|
-| `createController` override | `initController` override | Renamed for clarity |
-| `ZenBuilder` | `ZenUpdater` | `ZenBuilder` is a deprecated alias — still compiles |
-| `ZenControllerScope` | `ZenScopeWidget.create<T>()` | Deprecated alias still compiles |
-| `controller` magic getter | `controller` parameter in `build()` | Compiler-enforced |
+| `build(BuildContext context)` + magic getter | `build(BuildContext context, T controller)` | **Breaking** — compiler enforces it |
+| `ZenScopeWidget` / `ZenScopeWidget.create` | `ZenProvider` / `ZenProvider.create` | **Breaking** — rename |
+| `ZenControllerScope<T>()` | **Removed** — use `ZenProvider.create<T>()` | **Breaking** — must migrate |
+| `initController` override on `ZenView` | **Removed** — use `ZenProvider.create` at callsite | **Breaking** — must migrate |
+| `ZenBuilder<T>` | `ZenUpdater<T>` (`ZenBuilder` deprecated alias) | Non-breaking — still compiles |
+| Global `Zen.put` for UI controllers | `ZenProvider` scope — no global fallback | Architectural shift |
 
-[Full V2 Migration Guide →](https://github.com/sdegenaar/zenify/blob/main/doc/migration_guide.md)
+[Full V2 Migration Guide →](https://github.com/sdegenaar/zenify/blob/main/doc/migration_v2_0_0.md)
 
 ---
 
@@ -730,11 +849,11 @@ void main() {
 
 ---
 
-## 🙏 Inspired By
+## 🙏 Acknowledgements
 
-- **[GetX](https://pub.dev/packages/get)** by Jonny Borges — For intuitive reactive patterns
-- **[Riverpod](https://pub.dev/packages/riverpod)** by Remi Rousselet — For hierarchical scoping
-- **[React Query](https://tanstack.com/query)** by Tanner Linsley — For smart async state
+- **[TanStack Query](https://tanstack.com/query)** by Tanner Linsley — For proving that async state deserves a first-class engine
+- **[Riverpod](https://pub.dev/packages/riverpod)** by Remi Rousselet — For hierarchical scoping patterns in Flutter
+- **[GetX](https://pub.dev/packages/get)** by Jonny Borges — For pioneering terse reactive syntax in Flutter
 
 ---
 

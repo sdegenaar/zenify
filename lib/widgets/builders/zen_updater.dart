@@ -5,7 +5,7 @@ import '../components/zen_view.dart'; // for context.controller<T>()
 /// A widget that rebuilds when its controller calls [ZenController.update].
 ///
 /// Resolves the controller via the widget tree (`context.controller<T>()` —
-/// nearest [ZenScopeWidget] first, then global DI). Completely multi-instance
+/// nearest [ZenProvider] first, then global DI). Completely multi-instance
 /// safe: each [ZenUpdater] independently resolves from its own tree position.
 ///
 /// ## Fail-fast

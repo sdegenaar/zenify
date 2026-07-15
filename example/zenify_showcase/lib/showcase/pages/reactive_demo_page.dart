@@ -6,9 +6,7 @@ import '../widgets/demo_section.dart';
 class ReactiveDemoPage extends ZenView<ReactiveDemoController> {
   const ReactiveDemoPage({super.key});
 
-  @override
-  ReactiveDemoController Function()? get initController =>
-      () => ReactiveDemoController();
+  
 
   @override
   Widget build(BuildContext context, ReactiveDemoController controller) {

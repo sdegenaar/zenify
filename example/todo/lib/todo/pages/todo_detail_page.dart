@@ -21,10 +21,6 @@ class TodoDetailPage extends ZenView<TodoDetailController> {
   const TodoDetailPage({super.key, this.todo});
 
   @override
-  TodoDetailController Function()? get initController =>
-      () => TodoDetailController(initialTodo: todo);
-
-  @override
   Widget build(BuildContext context, TodoDetailController controller) {
     return PopScope(
       // Handle back navigation to clean up the controller

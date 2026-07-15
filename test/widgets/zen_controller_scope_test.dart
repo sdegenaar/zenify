@@ -35,14 +35,14 @@ void main() {
     Zen.reset();
   });
 
-  group('ZenScopeWidget.create Tests', () {
+  group('ZenProvider.create Tests', () {
     testWidgets('should create controller and make it available to children',
         (tester) async {
       bool controllerCreated = false;
 
       await tester.pumpWidget(
         MaterialApp(
-          home: ZenScopeWidget.create<CounterController>(
+          home: ZenProvider.create<CounterController>(
             create: () {
               controllerCreated = true;
               return CounterController();
@@ -75,7 +75,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: ZenScopeWidget.create<CounterController>(
+          home: ZenProvider.create<CounterController>(
             create: () {
               final controller = CounterController();
               controller.addDisposer(() => disposerCalled = true);

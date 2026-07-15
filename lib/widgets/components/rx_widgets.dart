@@ -26,7 +26,7 @@ class ZenObserver extends StatefulWidget {
   /// the builder contains only null-guarded Rx accesses (e.g. `ctrl?.value`).
   ///
   /// Use this in widgets where the controller may legitimately be null during
-  /// an early build (e.g. a ZenScopeWidget is still initialising).
+  /// an early build (e.g. a ZenProvider is still initialising).
   final bool suppressEmptyWarning;
 
   const ZenObserver(this.builder, {super.key, this.suppressEmptyWarning = false});
@@ -158,7 +158,7 @@ class _ZenObserverState extends State<ZenObserver> {
     // Suppress the warning when the caller has explicitly opted out —
     // this is common for widgets where the reactive source (e.g. a
     // ZenController) may be null during the first build frame because
-    // the ZenScopeWidget is still registering its module. The null-safe
+    // the ZenProvider is still registering its module. The null-safe
     // `?.value` idiom silently skips tracking in that case, but the widget
     // will still react correctly once the controller is available and a
     // real Rx value is accessed on the next rebuild.

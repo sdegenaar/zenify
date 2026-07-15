@@ -108,7 +108,7 @@ class PostFeedPage extends ZenView<PostFeedController> {
               itemCount: allPosts.length + 1,
               itemBuilder: (context, index) {
                 if (index == allPosts.length) {
-                  return Obx(() {
+                  return ZenObserver(() {
                     if (controller.postsQuery.hasNextPage.value) {
                       controller.postsQuery.fetchNextPage();
                       return controller.postsQuery.isFetchingNextPage.value
@@ -446,7 +446,7 @@ class ProductCard extends StatelessWidget {
             child: Text('Add to Cart'),
           ),
           // Works in reactive widgets too!
-          Obx(() => Text('Cart: ${CartService.to.items.length} items')),
+          ZenObserver(() => Text('Cart: ${CartService.to.items.length} items')),
         ],
       ),
     );
@@ -457,7 +457,7 @@ class ProductCard extends StatelessWidget {
 class CartBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Obx(() => Badge(
+    return ZenObserver(() => Badge(
       label: Text('${CartService.to.items.length}'),
       child: Icon(Icons.shopping_cart),
     ));
@@ -672,7 +672,7 @@ class ShoppingController extends ZenController {
 }
 
 // In UI - automatic updates when items, discount, or taxRate change
-Obx(() => Column(
+ZenObserver(() => Column(
   children: [
     Text('Subtotal: \$${controller.subtotal.toStringAsFixed(2)}'),
     Text('Discount: \$${controller.discountAmount.toStringAsFixed(2)}'),
@@ -782,11 +782,11 @@ class DashboardView extends ZenView<DashboardController> {
   Widget build(BuildContext context, DashboardController controller) {
     return Column(
       children: [
-        Obx(() => PeriodSelector(
+        ZenObserver(() => PeriodSelector(
           selected: controller.selectedPeriod.value,
           onChanged: controller.changePeriod,
         )),
-        Obx(() => controller.isLoading.value
+        ZenObserver(() => controller.isLoading.value
           ? LoadingSpinner()
           : StatsChart(controller.stats),
         ),
@@ -796,7 +796,7 @@ class DashboardView extends ZenView<DashboardController> {
 }
 ```
 
-### Option 2: Manual with ZenBuilder (Fine Control)
+### Option 2: Manual with ZenUpdater (Fine Control)
 
 ```dart
 class DashboardController extends ZenController {
@@ -829,18 +829,18 @@ class DashboardView extends ZenView<DashboardController> {
   Widget build(BuildContext context, DashboardController controller) {
     return Column(
       children: [
-        ZenBuilder<DashboardController>(
+        ZenUpdater<DashboardController>(
           id: 'period-selector',
           builder: (context, ctrl) => PeriodSelector(
             selected: ctrl.selectedPeriod,
             onChanged: ctrl.changePeriod,
           ),
         ),
-        ZenBuilder<DashboardController>(
+        ZenUpdater<DashboardController>(
           id: 'loading-state',
           builder: (context, ctrl) => ctrl.isLoading
             ? LoadingSpinner()
-            : ZenBuilder<DashboardController>(
+            : ZenUpdater<DashboardController>(
                 id: 'stats-chart',
                 builder: (context, ctrl) => StatsChart(ctrl.stats),
               ),
@@ -882,16 +882,16 @@ class DashboardView extends ZenView<DashboardController> {
     return Column(
       children: [
         // Obx for reactive period
-        Obx(() => PeriodSelector(
+        ZenObserver(() => PeriodSelector(
           selected: controller.selectedPeriod.value,
           onChanged: controller.changePeriod,
         )),
 
         // Obx for reactive loading
-        Obx(() => controller.isLoading.value
+        ZenObserver(() => controller.isLoading.value
           ? LoadingSpinner()
-          // ZenBuilder for manual stats
-          : ZenBuilder<DashboardController>(
+          // ZenUpdater for manual stats
+          : ZenUpdater<DashboardController>(
               id: 'stats-chart',
               builder: (context, ctrl) => StatsChart(ctrl.stats),
             ),
@@ -904,7 +904,7 @@ class DashboardView extends ZenView<DashboardController> {
 
 **When to use each:**
 - 🟢 **Obx + .obs()**: Most cases (simpler, less code)
-- 🔵 **ZenBuilder + update()**: Complex objects, precise rebuild control
+- 🔵 **ZenUpdater + update()**: Complex objects, precise rebuild control
 - 🟡 **Mixed**: Large apps, optimize hot paths only
 
 ---

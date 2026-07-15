@@ -9,6 +9,11 @@ import 'pages/mutation_page.dart';
 import 'pages/infinite_query_page.dart';
 import 'pages/stream_query_page.dart';
 import 'pages/advanced_features_page.dart';
+import 'controllers/query_basics_controller.dart';
+import 'controllers/mutation_controller.dart';
+import 'controllers/infinite_query_controller.dart';
+import 'controllers/stream_query_controller.dart';
+import 'controllers/advanced_features_controller.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -107,12 +112,12 @@ class _HomePageState extends State<HomePage>
       ),
       body: TabBarView(
         controller: _tabController,
-        children: const [
-          QueryBasicsPage(),
-          MutationPage(),
-          InfiniteQueryPage(),
-          StreamQueryPage(),
-          AdvancedFeaturesPage(),
+        children: [
+          ZenProvider.create(create: () => QueryBasicsController(), child: const QueryBasicsPage()),
+          ZenProvider.create(create: () => MutationController(), child: const MutationPage()),
+          ZenProvider.create(create: () => InfiniteQueryController(), child: const InfiniteQueryPage()),
+          ZenProvider.create(create: () => StreamQueryController(), child: const StreamQueryPage()),
+          ZenProvider.create(create: () => AdvancedFeaturesController(), child: const AdvancedFeaturesPage()),
         ],
       ),
     );

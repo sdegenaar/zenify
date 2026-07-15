@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:zenify/zenify.dart';
 import '../../shared/models/product_model.dart';
-import '../../shared/services/product_service.dart';
+
 import '../controllers/product_detail_controller.dart';
 import '../routes/app_routes.dart';
 import '../widgets/cart_badge.dart';
@@ -16,12 +16,6 @@ class ProductDetailPage extends ZenView<ProductDetailController> {
     required this.productId,
   });
 
-  @override
-  ProductDetailController Function()? get initController => () {
-        return ProductDetailController(
-          productService: Zen.find<ProductService>(),
-        )..initialize(productId); // Initialize immediately
-      };
 
   @override
   Widget build(BuildContext context, ProductDetailController controller) {

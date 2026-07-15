@@ -1,44 +1,30 @@
 ## [2.0.0] — V2 Architecture
 
-This release is a ground-up rewrite of the `ZenView` layer. It eliminates
-every pattern that caused the "GetX sins" — global mutable state, magic
-closures, and silent failures — while making the developer API simpler, not
-harder.
+This release completes the architectural shift to fully tree-bound dependency injection. Every controller access is now **resolved via `BuildContext`** — the same model Flutter uses for `Theme`, `MediaQuery`, and `Navigator`. The result is multi-instance safety by construction, perfect test isolation with zero global teardown, and a mental model that transfers directly to how Flutter works.
 
-> **Migration note:** The only mechanical change required in your code is
-> adding a `controller` parameter to every `ZenView.build()` override.
-> See [Migration from V1](#migration-from-v1) below.
+> **Migration:** See [migration_v2_0_0.md](doc/migration_v2_0_0.md) for the full guide.  
+> The mechanical change is adding a `controller` parameter to every `ZenView.build()` override.
 
-### V2 Polish Fixes (post-architecture review)
+---
 
-#### Bug Fixes
+### The Three-Step Mental Model
 
-- **`ZenScopeWidget` assert** — now catches the `(null, null)` case with a
-  clear, actionable error message. Previously threw a cryptic assertion failure
-  with no guidance on how to fix it.
-- **`ZenScopeWidget` async init** — module initialization errors now surface
-  via `FlutterError.reportError()` instead of being silently swallowed into a
-  log call. Errors now appear in the Flutter debug overlay.
-- **`_ZenViewElement` BuildContext asymmetry** — the tree-resolution code path
-  now also wraps in a `Builder`, making `BuildContext` semantics consistent
-  regardless of whether the controller was owned via `initController` or
-  resolved from a parent scope.
-- **`_ZenViewElement` scope name uniqueness** — owned scopes are now named
-  `ZenView_PostCardController_1234567` (including element `hashCode`) instead
-  of all sharing the same string. DevTools scope tree is now readable when
-  many instances exist (e.g., a list with 200 items).
+```
+REGISTER  →  Zen.registerModules([AppModule()])      app services — live for app lifetime
+              ZenRoute(moduleBuilder: () => M())      route-level — standard for real apps
+              ↳ scope.put<T>(T())  inside ZenModule   where controllers are actually created
+              ZenProvider.create<T>(create: ...)      simple routes without a module
 
-#### API & Documentation
+CONSUME   →  ZenView<T>                 extend — controller injected into build()
+              ZenConsumer<T>            compose — inline builder, no inheritance
+              context.controller<T>()  imperative — from any widget or callback
 
-- **`ZenView` docstring** — rewritten to lead with the three-step
-  Register → Consume → React mental model. `initController` correctly
-  positioned as the per-instance special case.
-- **README** — ZenView section rewritten to teach module-first registration
-  pattern before `initController`. Decision table updated.
-- **Barrel (`zenify.dart`)** — deprecated items moved to a clearly-labeled
-  `DEPRECATED — V2 MIGRATION ALIASES` section. `ERROR HANDLING` comment
-  renamed to `TESTING`. `Query system` comment aligned with the `=====`
-  section format used elsewhere.
+REACT     →  ZenObserver / Obx          Rx<T> — auto-rebuild on value change
+              ZenUpdater<T>             update() — manual, ID-targeted rebuilds
+              ZenQuery<T>               async — caching, loading, error, refetch
+```
+
+> **Key rule:** `ZenView` resolves from the nearest scope automatically. It doesn't matter whether the controller was registered via `ZenRoute`, `ZenProvider`, or `Zen.put` — consumption is always the same zero-boilerplate pattern.
 
 ---
 
@@ -46,225 +32,167 @@ harder.
 
 #### `ZenView.build()` — explicit `controller` parameter (required)
 
-V1 provided the controller via a magic `controller` getter backed by a global
-static registry. V2 injects it as an explicit parameter so the compiler
-enforces correctness and multi-instance isolation is structural.
+V1 provided the controller via a magic `controller` getter backed by a global static registry. V2 injects it as an explicit parameter — resolved from the nearest `ZenProvider` ancestor by the framework.
 
 ```dart
-// V1 — magic getter, globally resolved
+// ❌ V1 — magic getter, global registry
 class CartPage extends ZenView<CartController> {
   @override
   Widget build(BuildContext context) {
-    return Text('${controller.totalItems}'); // 'controller' was a magic getter
+    return Text('${controller.totalItems}');
   }
 }
 
-// V2 — injected parameter, compiler-enforced
+// ✅ V2 — explicit injection, compiler-enforced
 class CartPage extends ZenView<CartController> {
   const CartPage({super.key});
 
   @override
   Widget build(BuildContext context, CartController controller) {
-    return Text('${controller.totalItems}'); // explicit, unambiguous
+    return Text('${controller.totalItems}');
   }
 }
 ```
 
-The migration is mechanical: add `, CartController controller` to every
-`ZenView.build()` override and remove any use of the old `controller` getter.
+The migration is mechanical: add `, CartController controller` to every `ZenView.build()` override.
 
-#### `ZenView` is no longer a `StatefulWidget`
+#### `ZenScopeWidget` renamed to `ZenProvider`
 
-V2 `ZenView` extends `Widget` directly and is backed by a custom
-`_ZenViewElement` (`ComponentElement`). This is an implementation detail
-but it means:
-
-- `ZenView` subclasses cannot call `setState()` — use `Rx<T>` + `ZenObserver`
-  for fine-grained reactivity instead.
-- `super.build(context)` is not valid — it is now `build(context, controller)`.
-
-#### `_ZenViewRegistry` deleted
-
-The global `Map<Type, List<ZenController>>` static registry is gone entirely.
-There is nothing to migrate — it was always an implementation detail. If any
-code referenced it directly (e.g., via `ZenView.registry`), remove those calls.
-
-#### `ZenView.scope` property removed
-
-The `scope` property on `ZenView` (which forced a specific scope at the widget
-level) is removed. Scope association is now done exclusively via
-`ZenScopeWidget` in the widget tree — the correct Flutter pattern.
-
-#### `ZenControllerScope` deprecated
-
-`ZenControllerScope` is deprecated in favour of `ZenScopeWidget.create<T>()`.
-It still compiles but will be removed in a future release.
+The canonical provider widget is now `ZenProvider`. All usages of `ZenScopeWidget` must be renamed.
 
 ```dart
-// Deprecated
+// ❌ V1
+ZenScopeWidget.create<CartController>(create: () => CartController(), child: ...)
+
+// ✅ V2
+ZenProvider.create<CartController>(create: () => CartController(), child: ...)
+```
+
+#### `ZenControllerScope` — REMOVED (not deprecated)
+
+`ZenControllerScope` conflated widget lifecycle with DI lifecycle — two concerns that must be kept separate. It is **removed entirely** in V2. Replace with `ZenProvider.create`:
+
+```dart
+// ❌ V1 — removed
 ZenControllerScope<MyController>(
   create: () => MyController(),
   child: MyView(),
 )
 
-// Correct V2 pattern
-ZenScopeWidget.create<MyController>(
+// ✅ V2
+ZenProvider.create<MyController>(
   create: () => MyController(),
   child: const MyView(),
 )
 ```
 
----
+#### `initController` on `ZenView` — REMOVED
 
-### New: `ZenView.initController` — zero-boilerplate per-instance widgets
-
-For widgets that are NOT pages (e.g., list items, cards, chat bubbles) and
-need a controller whose parameters come from the widget itself, override
-`initController`:
+Per-instance self-owned controller via `initController` is removed. It tightly coupled widget and DI concerns. Use `ZenProvider.create` at the callsite instead:
 
 ```dart
-class VoiceMessageView extends ZenView<VoiceMessageController> {
+// ❌ V1 — initController override (removed)
+class ChatBubble extends ZenView<ChatBubbleController> {
   final String messageId;
-  final String messagePath;
-  const VoiceMessageView({
-    required this.messageId,
-    required this.messagePath,
-    super.key,
-  });
-
   @override
-  VoiceMessageController Function() get initController => () =>
-      VoiceMessageController(messageId: messageId, messagePath: messagePath);
-
-  @override
-  Widget build(BuildContext context, VoiceMessageController controller) {
-    return Stack(...); // purely UI
-  }
+  ChatBubbleController Function() get initController =>
+      () => ChatBubbleController(messageId: messageId);
+  ...
 }
+
+// ✅ V2 — provide at callsite
+ZenProvider.create<ChatBubbleController>(
+  create: () => ChatBubbleController(messageId: messageId),
+  child: const ChatBubble(),
+)
 ```
 
-**How it works:**
-- The factory runs exactly once in `mount()` — identical timing to
-  `State.initState()` but with no `StatefulWidget` overhead.
-- `onInit()` is called immediately; `onReady()` fires after the first frame.
-- `onClose()` is called in `unmount()` when the widget permanently leaves
-  the tree.
-- The controller is **automatically wrapped in a standalone `ZenScope`**
-  (no parent, widget-tree-bound only), so child widgets can safely find it
-  via `context.controller<T>()` — no trapped-state problem.
-- Multiple instances (e.g., 50 items in a `ListView`) each get their own
-  fully isolated controller. Zero tag management. Zero manual cleanup.
+#### `_ZenViewRegistry` — deleted
 
-**Which pattern to use:**
+The global `Map<Type, List<ZenController>>` static registry is gone entirely. There is nothing to migrate.
 
-| Situation | Pattern |
-|---|---|
-| Page/screen — controller registered at route level | `Zen.put()` at route + `ZenView` (tree resolution) |
-| Feature subtree — multiple widgets sharing one controller | `ZenScopeWidget` + `ZenView` (tree resolution) |
-| Per-instance widget — controller params from widget fields | `initController` on `ZenView` |
+#### `ZenView.scope` property — removed
+
+Scope association is done exclusively via `ZenProvider` in the widget tree.
+
+#### `context.controller<T>()` — no global fallback
+
+The global `Zen.findOrNull<T>()` fallback has been removed from `context.controller<T>()`. Resolution is **strictly tree-bound**. If no `ZenProvider` ancestor provides the type, `ZenControllerNotFoundException` is thrown with an actionable message.
 
 ---
 
-### Controller Resolution (V2 priority order)
+### Controller Resolution (V2)
 
-`ZenView` resolves its controller in this order on every build:
+`ZenView` resolves its controller in this order:
 
-1. **`initController`** — if overridden; the element-owned controller is used
-   directly. No tree traversal.
-2. **Nearest `ZenScopeWidget` ancestor** — O(1) `InheritedWidget` lookup.
-3. **Global `Zen.findOrNull<T>()`** — root-scope / singleton fallback.
-4. **`ZenControllerNotFoundException`** — thrown with actionable message.
+1. **Nearest `ZenProvider` ancestor** — O(1) `InheritedWidget` lookup.
+2. **`ZenControllerNotFoundException`** — thrown with a clear, actionable message if not found.
 
----
-
-### Performance Improvements
-
-- **No global registry** — controller resolution is O(1) via Flutter's
-  native `InheritedWidget` hash map. No map lookups, no lock contention.
-- **Fewer allocations** — `ZenView` uses `ComponentElement` instead of
-  `StatefulWidget`. Each view now allocates a `Widget` + `Element` (2 objects)
-  instead of `Widget` + `Element` + `State` (3 objects). For a chat list with
-  hundreds of rows, this is a measurable win during scrolling.
-- **Deterministic cleanup** — controller disposal is tied directly to
-  `ComponentElement.unmount()`. There are no timer-based or GC-dependent
-  cleanup paths for `initController` views.
-- **`initController` scopes are parentless** — owned scopes are created as
-  standalone `ZenScope(name:)` instances with no parent. They do not appear
-  in `rootScope._childScopes` and have zero footprint in `ZenDebug` global
-  hierarchy while mounted.
+There is no global fallback. This is intentional — silent fallbacks to global state hide architectural mistakes.
 
 ---
 
-### Fixed
+### New
 
-- **`ZenUpdater` silent failures** — `ZenUpdater` previously swallowed
-  resolution errors and rendered `SizedBox.shrink()`. It now stores the
-  error in `_resolutionError` and rethrows it in `build()`, routing to
-  `onError` if provided or re-throwing for the Flutter error handler.
-- **`ZenUpdater` listener churn** — `didChangeDependencies()` now uses an
-  `identical()` guard to avoid detaching and re-attaching listeners when the
-  resolved controller reference has not changed.
-- **`ZenConsumer` fail-fast** — `ZenConsumer` now asserts in debug mode
-  when the controller is not found, rather than silently degrading.
-- **`ZenScopeWidget` test isolation** — fixed flaky tests caused by scope
-  identity comparison during widget updates.
+#### `ZenProvider.create<T>` — single-controller shorthand
+
+The most common pattern (one controller per route) now has a dedicated constructor:
+
+```dart
+ZenProvider.create<CartController>(
+  create: () => CartController(),
+  child: const CartPage(),
+)
+```
+
+#### `ZenUpdater<T>` — renamed from `ZenBuilder<T>`
+
+`ZenBuilder<T>` is now `ZenUpdater<T>`. The name communicates the purpose: this widget rebuilds when `controller.update()` is called. `ZenBuilder` is kept as a deprecated alias — still compiles, will be removed in V3.
+
+#### `ZenConsumer<T>` — fixed and production-ready
+
+`ZenConsumer` previously used global DI only. V2 fixes it to resolve via `context.controller<T>()` in `didChangeDependencies()` — proper `InheritedWidget` subscription semantics, scope-bound, fails fast.
+
+---
+
+### Performance
+
+- **No global registry** — resolution is O(1) via Flutter's native `InheritedWidget` hash map.
+- **Fewer allocations** — `ZenView` uses `ComponentElement` instead of `StatefulWidget`. Each view allocates 2 objects (Widget + Element) instead of 3 (Widget + Element + State).
+- **`ZenUpdater` listener churn fixed** — `didChangeDependencies()` uses an `identical()` guard to avoid re-attaching listeners when the resolved controller hasn't changed.
+
+---
+
+### Bug Fixes
+
+- **`ZenUpdater` silent failures** — now stores resolution errors and rethrows in `build()`, routing to `onError` if provided.
+- **`ZenProvider` async init** — module init errors now surface via `FlutterError.reportError()` instead of being silently logged.
+- **`ZenConsumer` fail-fast** — throws clearly when controller not found instead of silently degrading.
 
 ---
 
 ### Tests
 
-- **2,166 tests, all passing.**
-- New widget test group: `ZenView.initController (element-owned lifecycle)`
-  covering: controller creation, `onInit`/`onClose` lifecycle, multi-instance
-  isolation, `initController` priority over ancestor scope, and auto-scoped
-  child resolution via `context.controller<T>()`.
+**2,170 tests, all passing.** Test suite fully migrated to V2 patterns — no global `Zen.put` for UI controllers in any widget test.
 
 ---
 
-### Migration from V1
-
-**Step 1** — Add `controller` parameter to every `ZenView.build()` override:
+### Migration Checklist
 
 ```bash
-# Quick grep to find all build overrides that need updating:
+# Find all ZenView.build() overrides that need updating:
 grep -rn "Widget build(BuildContext context)" lib/ --include="*.dart"
 ```
 
-```dart
-// Before
-@override
-Widget build(BuildContext context) {
-  return Text('${controller.count}');
-}
+1. Add `, T controller` parameter to every `ZenView.build()` override
+2. Replace `ZenScopeWidget` → `ZenProvider` (and `ZenScopeWidget.create` → `ZenProvider.create`)
+3. Replace `ZenControllerScope` → `ZenProvider.create` (removed, must migrate)
+4. Remove `initController` overrides → move controller creation to `ZenProvider.create` at callsite
+5. Replace `ZenBuilder` → `ZenUpdater` (optional — deprecated alias still compiles)
+6. `dart analyze` → confirm 0 errors
+7. `flutter test` → confirm all tests pass
 
-// After
-@override
-Widget build(BuildContext context, MyController controller) {
-  return Text('${controller.count}');
-}
-```
-
-**Step 2** — Replace `ZenControllerScope` with `ZenScopeWidget.create`:
-
-```dart
-// Before
-ZenControllerScope<MyController>(
-  create: () => MyController(),
-  child: MyView(),
-)
-
-// After
-ZenScopeWidget.create<MyController>(
-  create: () => MyController(),
-  child: const MyView(),
-)
-```
-
-**Step 3** — If you used `ZenView.scope`, move scope association to the
-wrapping `ZenScopeWidget` in the route or parent widget.
-
-**Step 4** — Any per-instance widgets that used the old `StatefulWidget`
-+ manual `onInit`/`onClose` pattern can now use `initController`.
+[Full migration guide →](doc/migration_v2_0_0.md)
 
 ---
 

@@ -31,7 +31,7 @@ export 'widgets/builders/zen_query_when.dart';
 export 'widgets/builders/zen_infinite_query_when.dart';
 export 'widgets/builders/zen_mutation_when.dart';
 export 'widgets/components/zen_route.dart';
-export 'widgets/scope/zen_scope_widget.dart' hide ZenScopeProvider;
+export 'widgets/scope/zen_provider.dart' hide ZenScopeProvider;
 export 'widgets/scope/zen_consumer.dart';
 export 'widgets/components/zen_view.dart';
 export 'widgets/builders/zen_effect_builder.dart';
@@ -81,6 +81,5 @@ export 'devtools/devtools.dart';
 
 // ===== DEPRECATED — V2 MIGRATION ALIASES =====
 // These exist solely for backwards compatibility. Do not use in new code.
-// They will be removed in V3.
 export 'widgets/builders/zen_builder.dart'; // ZenBuilder → use ZenUpdater
-export 'controllers/zen_controller_scope.dart'; // ZenControllerScope → use ZenScopeWidget.create
+// NOTE: ZenControllerScope was REMOVED in V2. Replace with ZenProvider.create<T>.

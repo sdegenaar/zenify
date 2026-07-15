@@ -329,7 +329,7 @@ loginMutation.mutate(
 Mutations provide reactive state for your UI:
 
 ```dart
-Obx(() {
+ZenObserver(() {
   if (mutation.isLoading.value) return CircularProgressIndicator();
   return ElevatedButton(onPressed: () => mutation.mutate(args), ...);
 })
@@ -1694,7 +1694,7 @@ class TodoController extends ZenController {
 
 Bind to UI easily:
 ```dart
-Obx(() => MyButton(
+ZenObserver(() => MyButton(
   isLoading: controller.toggleMutation.isLoading.value,
   onPressed: () => controller.toggle(item),
 ));

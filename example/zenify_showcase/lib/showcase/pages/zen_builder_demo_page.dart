@@ -7,9 +7,7 @@ class ZenBuilderDemoPage extends ZenView<ZenBuilderDemoController> {
   // Changed controller type
   const ZenBuilderDemoPage({super.key});
 
-  @override
-  ZenBuilderDemoController Function()? get initController =>
-      () => ZenBuilderDemoController(); // Changed controller
+   // Changed controller
 
   @override
   Widget build(BuildContext context, ZenBuilderDemoController controller) {

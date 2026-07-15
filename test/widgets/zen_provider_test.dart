@@ -70,7 +70,7 @@ void main() {
     Zen.reset();
   });
 
-  group('ZenScopeWidget Tests', () {
+  group('ZenProvider Tests', () {
     testWidgets('should create and access a scope using scope parameter',
         (WidgetTester tester) async {
       late ZenScope capturedScope;
@@ -78,11 +78,11 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: ZenScopeWidget(
+          home: ZenProvider(
             scope: customScope,
             child: Builder(
               builder: (context) {
-                capturedScope = ZenScopeWidget.of(context);
+                capturedScope = ZenProvider.of(context);
                 return const Text('Inside Scope');
               },
             ),
@@ -102,11 +102,11 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: ZenScopeWidget(
+          home: ZenProvider(
             moduleBuilder: () => TestModule(),
             child: Builder(
               builder: (context) {
-                capturedScope = ZenScopeWidget.of(context);
+                capturedScope = ZenProvider.of(context);
                 return const Text('Inside Module Scope');
               },
             ),
@@ -133,12 +133,12 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: ZenScopeWidget(
+          home: ZenProvider(
             moduleBuilder: () => TestModule(),
             scopeName: 'CustomModuleScope',
             child: Builder(
               builder: (context) {
-                capturedScope = ZenScopeWidget.of(context);
+                capturedScope = ZenProvider.of(context);
                 return const Text('Inside Custom Scope');
               },
             ),
@@ -159,11 +159,11 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: ZenScopeWidget(
+          home: ZenProvider(
             moduleBuilder: () => DependentModule(),
             child: Builder(
               builder: (context) {
-                capturedScope = ZenScopeWidget.of(context);
+                capturedScope = ZenProvider.of(context);
                 return const Text('Dependent Module Scope');
               },
             ),
@@ -191,16 +191,16 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: ZenScopeWidget(
+          home: ZenProvider(
             moduleBuilder: () => TestModule(),
             child: Builder(
               builder: (parentContext) {
-                parentScope = ZenScopeWidget.of(parentContext);
-                return ZenScopeWidget(
+                parentScope = ZenProvider.of(parentContext);
+                return ZenProvider(
                   moduleBuilder: () => DependentModule(),
                   child: Builder(
                     builder: (childContext) {
-                      childScope = ZenScopeWidget.of(childContext);
+                      childScope = ZenProvider.of(childContext);
                       return const Text('Nested Scope');
                     },
                   ),
@@ -238,7 +238,7 @@ void main() {
           home: Column(
             children: [
               // First scoped counter
-              ZenScopeWidget(
+              ZenProvider(
                 moduleBuilder: () => TestModule(),
                 scopeName: 'Scope1',
                 child: Builder(
@@ -255,7 +255,7 @@ void main() {
                 ),
               ),
               // Second scoped counter
-              ZenScopeWidget(
+              ZenProvider(
                 moduleBuilder: () => TestModule(),
                 scopeName: 'Scope2',
                 child: Builder(
@@ -315,7 +315,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: ZenScopeWidget(
+          home: ZenProvider(
             scope: testScope,
             child: const Text('Disposable'),
           ),
@@ -343,7 +343,7 @@ void main() {
       isControllerDisposed = false;
       await tester.pumpWidget(
         MaterialApp(
-          home: ZenScopeWidget(
+          home: ZenProvider(
             moduleBuilder: () => TestModule(),
             child: const Text('Owned Scope'),
           ),
@@ -369,12 +369,12 @@ void main() {
       // First render with TestModule: has CounterController + TestService, no serviceValue
       await tester.pumpWidget(
         MaterialApp(
-          home: ZenScopeWidget(
+          home: ZenProvider(
             key: const ValueKey('scope-test-module'),
             moduleBuilder: () => TestModule(),
             child: Builder(
               builder: (context) {
-                final scope = ZenScopeWidget.of(context);
+                final scope = ZenProvider.of(context);
                 final hasCtrl = scope.find<CounterController>() != null;
                 final hasSvc = scope.find<String>(tag: 'serviceValue') != null;
                 return Text('ctrl=$hasCtrl,svc=$hasSvc');
@@ -390,12 +390,12 @@ void main() {
       // Different key forces a clean unmount/remount rather than didUpdateWidget.
       await tester.pumpWidget(
         MaterialApp(
-          home: ZenScopeWidget(
+          home: ZenProvider(
             key: const ValueKey('scope-dependent-module'),
             moduleBuilder: () => DependentModule(),
             child: Builder(
               builder: (context) {
-                final scope = ZenScopeWidget.of(context);
+                final scope = ZenProvider.of(context);
                 final hasCtrl = scope.find<CounterController>() != null;
                 final hasSvc = scope.find<String>(tag: 'serviceValue') != null;
                 return Text('ctrl=$hasCtrl,svc=$hasSvc');
@@ -410,7 +410,7 @@ void main() {
       expect(find.text('ctrl=true,svc=true'), findsOneWidget);
     });
 
-    testWidgets('ZenScopeWidget.of() should throw when no scope is found',
+    testWidgets('ZenProvider.of() should throw when no scope is found',
         (WidgetTester tester) async {
       bool didThrow = false;
 
@@ -419,7 +419,7 @@ void main() {
           home: Builder(
             builder: (context) {
               try {
-                ZenScopeWidget.of(context);
+                ZenProvider.of(context);
               } catch (e) {
                 didThrow = true;
               }
@@ -436,7 +436,7 @@ void main() {
     });
 
     testWidgets(
-        'ZenScopeWidget.maybeOf() should return null when no scope is found',
+        'ZenProvider.maybeOf() should return null when no scope is found',
         (WidgetTester tester) async {
       late ZenScope? nullScope;
 
@@ -444,7 +444,7 @@ void main() {
         MaterialApp(
           home: Builder(
             builder: (context) {
-              nullScope = ZenScopeWidget.maybeOf(context);
+              nullScope = ZenProvider.maybeOf(context);
               return const Text('No Scope');
             },
           ),

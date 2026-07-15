@@ -3,7 +3,7 @@ import 'package:zenify/zenify.dart';
 
 /// Widget-scoped dependency injection provider
 ///
-/// ZenScopeWidget provides a [ZenScope] to its descendants via InheritedWidget.
+/// ZenProvider provides a [ZenScope] to its descendants via InheritedWidget.
 /// It's the foundational widget for hierarchical dependency injection in Zenify.
 ///
 /// Architecture:
@@ -19,7 +19,7 @@ import 'package:zenify/zenify.dart';
 /// final myScope = ZenScope(name: 'MyScope');
 /// myScope.put<MyService>(MyService());
 ///
-/// ZenScopeWidget(
+/// ZenProvider(
 ///   scope: myScope,
 ///   child: MyWidget(),
 /// )
@@ -27,7 +27,7 @@ import 'package:zenify/zenify.dart';
 ///
 /// **Pattern 2: Create scope from module**
 /// ```dart
-/// ZenScopeWidget(
+/// ZenProvider(
 ///   moduleBuilder: () => MyFeatureModule(),
 ///   scopeName: 'FeatureScope',
 ///   child: MyFeatureScreen(),
@@ -36,7 +36,7 @@ import 'package:zenify/zenify.dart';
 ///
 /// The scope is automatically disposed when this widget is removed from the tree
 /// (only if created by this widget, not if provided externally).
-class ZenScopeWidget extends StatefulWidget {
+class ZenProvider extends StatefulWidget {
   /// The child widget to which the scope will be provided
   final Widget child;
 
@@ -52,10 +52,10 @@ class ZenScopeWidget extends StatefulWidget {
   /// Defaults to the module name if not provided.
   final String? scopeName;
 
-  /// Creates a [ZenScopeWidget] that provides a scope to its descendants.
+  /// Creates a [ZenProvider] that provides a scope to its descendants.
   ///
   /// Either [scope] or [moduleBuilder] must be provided, but not both.
-  const ZenScopeWidget({
+  const ZenProvider({
     super.key,
     required this.child,
     this.scope,
@@ -63,22 +63,22 @@ class ZenScopeWidget extends StatefulWidget {
     this.scopeName,
   })  : assert(
             scope != null || moduleBuilder != null,
-            'ZenScopeWidget requires either a scope or a moduleBuilder. '
-            'Use ZenScopeWidget(moduleBuilder: () => MyModule(), child: ...) '
-            'or ZenScopeWidget.create<T>(create: ..., child: ...) for a single controller.'),
+            'ZenProvider requires either a scope or a moduleBuilder. '
+            'Use ZenProvider(moduleBuilder: () => MyModule(), child: ...) '
+            'or ZenProvider.create<T>(create: ..., child: ...) for a single controller.'),
         assert(!(scope != null && moduleBuilder != null),
-            'ZenScopeWidget: provide scope OR moduleBuilder, not both.');
+            'ZenProvider: provide scope OR moduleBuilder, not both.');
 
   /// Convenience method to create a scope with a single controller.
   ///
   /// This is the recommended way to scope a single controller to a route or widget tree.
-  static ZenScopeWidget create<T extends Object>({
+  static ZenProvider create<T extends Object>({
     Key? key,
     required T Function() create,
     String? scopeName,
     required Widget child,
   }) {
-    return ZenScopeWidget(
+    return ZenProvider(
       key: key,
       moduleBuilder: () =>
           _SingleItemModule<T>(create, scopeName ?? 'Scope_${T.toString()}'),
@@ -93,7 +93,7 @@ class ZenScopeWidget extends StatefulWidget {
     final ZenScopeProvider? provider =
         context.dependOnInheritedWidgetOfExactType<ZenScopeProvider>();
     if (provider == null) {
-      throw ZenScopeNotFoundException(widgetType: 'ZenScopeWidget');
+      throw ZenScopeNotFoundException(widgetType: 'ZenProvider');
     }
     return provider.scope;
   }
@@ -108,10 +108,10 @@ class ZenScopeWidget extends StatefulWidget {
   }
 
   @override
-  State<ZenScopeWidget> createState() => _ZenScopeWidgetState();
+  State<ZenProvider> createState() => _ZenProviderState();
 }
 
-class _ZenScopeWidgetState extends State<ZenScopeWidget> {
+class _ZenProviderState extends State<ZenProvider> {
   late ZenScope _scope;
   late bool _isOwner; // Track if we created the scope (and should dispose it)
   bool _isInitialized = false;
@@ -142,7 +142,7 @@ class _ZenScopeWidgetState extends State<ZenScopeWidget> {
     ZenScope? parentScope;
     try {
       if (context.mounted) {
-        parentScope = ZenScopeWidget.maybeOf(context);
+        parentScope = ZenProvider.maybeOf(context);
       }
     } catch (_) {
       // Ignore errors in getting parent scope
@@ -215,7 +215,7 @@ class _ZenScopeWidgetState extends State<ZenScopeWidget> {
   }
 
   @override // coverage:ignore-line
-  void didUpdateWidget(ZenScopeWidget oldWidget) {
+  void didUpdateWidget(ZenProvider oldWidget) {
     super.didUpdateWidget(oldWidget); // coverage:ignore-line
 
     // Handle changes to provided scope instance.
@@ -311,7 +311,7 @@ extension ZenScopeExtension on BuildContext {
   ZenScope get zenScopeRequired {
     final scope = zenScope;
     if (scope == null) {
-      throw ZenScopeNotFoundException(widgetType: 'ZenScopeWidget');
+      throw ZenScopeNotFoundException(widgetType: 'ZenProvider');
     }
     return scope;
   }
@@ -319,7 +319,7 @@ extension ZenScopeExtension on BuildContext {
   /// Finds the nearest [ZenScope] above this context.
   ///
   /// This method will look up the widget tree and return the [ZenScope]
-  /// provided by the nearest [ZenScopeWidget] ancestor.
+  /// provided by the nearest [ZenProvider] ancestor.
   ///
   /// Throws an exception if no [ZenScope] is found.
   @Deprecated('Use zenScopeRequired instead') // coverage:ignore-line
@@ -353,7 +353,7 @@ extension ZenScopeExtension on BuildContext {
   }
 }
 
-/// Internal module for single-controller scope creation via [ZenScopeWidget.create].
+/// Internal module for single-controller scope creation via [ZenProvider.create].
 class _SingleItemModule<T extends Object> extends ZenModule {
   @override
   final String name;

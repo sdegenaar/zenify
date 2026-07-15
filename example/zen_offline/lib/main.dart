@@ -92,7 +92,10 @@ class OfflineApp extends StatelessWidget {
         ),
         textTheme: GoogleFonts.outfitTextTheme(ThemeData.dark().textTheme),
       ),
-      home: FeedPage(networkSimulator: networkSimulator),
+      home: ZenProvider.create(
+        create: () => FeedController(),
+        child: FeedPage(networkSimulator: networkSimulator),
+      ),
     );
   }
 }
@@ -101,9 +104,7 @@ class FeedPage extends ZenView<FeedController> {
   final NetworkSimulator networkSimulator;
   const FeedPage({super.key, required this.networkSimulator});
 
-  @override
-  FeedController Function()? get initController =>
-      () => FeedController();
+  
 
   @override
   Widget build(BuildContext context, FeedController controller) {

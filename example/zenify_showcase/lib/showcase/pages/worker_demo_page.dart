@@ -6,9 +6,7 @@ import '../widgets/demo_section.dart';
 class WorkerDemoPage extends ZenView<WorkerDemoController> {
   const WorkerDemoPage({super.key});
 
-  @override
-  WorkerDemoController Function()? get initController =>
-      () => WorkerDemoController();
+  
 
   @override
   Widget build(BuildContext context, WorkerDemoController controller) {

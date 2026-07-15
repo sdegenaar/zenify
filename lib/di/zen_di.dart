@@ -17,7 +17,7 @@ import '../devtools/service_extensions.dart' show ZenServiceExtensions;
 /// Main Zenify API for dependency injection
 ///
 /// Provides a clean, simple API for global dependency management.
-/// For hierarchical scopes, use ZenRoute or ZenScopeWidget directly.
+/// For hierarchical scopes, use ZenRoute or ZenProvider directly.
 class Zen {
   Zen._(); // Private constructor // coverage:ignore-line
 
@@ -83,7 +83,7 @@ class Zen {
   ///
   /// If [parent] is not provided, it defaults to [rootScope].
   ///
-  /// Note: For widget-based scopes, use [ZenRoute] or [ZenScopeWidget] instead.
+  /// Note: For widget-based scopes, use [ZenRoute] or [ZenProvider] instead.
   /// This method is for programmatic scope creation outside the widget tree.
   static ZenScope createScope({String? name, ZenScope? parent}) {
     final scopeName = name ?? 'Scope_${DateTime.now().millisecondsSinceEpoch}';

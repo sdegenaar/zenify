@@ -14,12 +14,12 @@ void main() {
     });
 
     testWidgets(
-        'should dispose controllers when ZenScopeWidget is removed from tree',
+        'should dispose controllers when ZenProvider is removed from tree',
         (tester) async {
       late TestController controller;
 
       await tester.pumpWidget(MaterialApp(
-        home: ZenScopeWidget.create<TestController>(
+        home: ZenProvider.create<TestController>(
           create: () {
             controller = TestController('local');
             return controller;
@@ -45,21 +45,23 @@ void main() {
       expect(controller.isDisposed, true);
     });
 
-    testWidgets('should share controllers when using global DI',
+    testWidgets('should share controllers when using scoped DI',
         (tester) async {
       final controller = TestController('shared');
-      Zen.put<TestController>(controller);
 
       await tester.pumpWidget(MaterialApp(
-        home: Column(
-          children: [
-            ZenUpdater<TestController>(
-              builder: (context, ctrl) => Text('A: ${ctrl.value}'),
-            ),
-            ZenUpdater<TestController>(
-              builder: (context, ctrl) => Text('B: ${ctrl.value}'),
-            ),
-          ],
+        home: ZenProvider.create<TestController>(
+          create: () => controller,
+          child: Column(
+            children: [
+              ZenUpdater<TestController>(
+                builder: (context, ctrl) => Text('A: ${ctrl.value}'),
+              ),
+              ZenUpdater<TestController>(
+                builder: (context, ctrl) => Text('B: ${ctrl.value}'),
+              ),
+            ],
+          ),
         ),
       ));
 

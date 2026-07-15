@@ -440,10 +440,11 @@ Testing with ZenView (Primary)
 ``` dart
 testWidgets('ZenView auto-injects and cleanly disposes controller', (tester) async {
   Zen.testMode().mock<ApiClient>(FakeApiClient());
-  
+
+  final controller = CounterController();
+
   class TestPage extends ZenView<CounterController> {
-    @override
-    CounterController Function()? initController => () => CounterController();
+    const TestPage({super.key});
 
     @override
     Widget build(BuildContext context, CounterController controller) {
@@ -451,15 +452,21 @@ testWidgets('ZenView auto-injects and cleanly disposes controller', (tester) asy
     }
   }
 
-  await tester.pumpWidget(MaterialApp(home: TestPage()));
-  
+  await tester.pumpWidget(
+    MaterialApp(
+      home: ZenProvider.create<CounterController>(
+        create: () => controller,
+        child: const TestPage(),
+      ),
+    ),
+  );
+
   // Initial state
   expect(find.text('Count: 0'), findsOneWidget);
-  
-  // Modify via injected controller
-  final controller = Zen.find<CounterController>();
+
+  // Modify via the controller reference
   controller.increment();
-  
+
   await tester.pump();
   expect(find.text('Count: 1'), findsOneWidget);
 });
@@ -504,7 +511,7 @@ testWidgets('Obx rebuilds on reactive change', (tester) async {
 
   await tester.pumpWidget(
   MaterialApp(
-    home: Obx(() => Text('Count: ${counter.value}')),
+    home: ZenObserver(() => Text('Count: ${counter.value}')),
     ),
   );
 
@@ -862,10 +869,10 @@ Solution: Ensure proper reactive access:
 
 ``` dart
 // ❌ BAD - Doesn't track
-Obx(() => Text('Count: ${controller.count}')); // Missing .value
+ZenObserver(() => Text('Count: ${controller.count}')); // Missing .value
 
 // ✅ GOOD - Tracks reactivity
-Obx(() => Text('Count: ${controller.count.value}'));
+ZenObserver(() => Text('Count: ${controller.count.value}'));
 ```
 
 Issue: Memory Leaks in Tests

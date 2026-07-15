@@ -4,7 +4,7 @@ import '../components/zen_view.dart';
 
 /// Widget that provides a [ZenController] to a subtree via composition.
 ///
-/// Resolves the controller from the nearest [ZenScopeWidget] ancestor, with
+/// Resolves the controller from the nearest [ZenProvider] ancestor, with
 /// a fallback to global DI (`Zen.put()`). Fails fast — throws a clear error
 /// if the controller is not found, rather than rendering nothing silently.
 ///
@@ -72,7 +72,7 @@ class _ZenConsumerState<T extends ZenController> extends State<ZenConsumer<T>> {
     assert(
       _dependency != null,
       'ZenConsumer<$T>: controller not found. '
-      'Ensure ZenScopeWidget.create<$T>() or Zen.put<$T>() exists above this widget.',
+      'Ensure ZenProvider.create<$T>() or Zen.put<$T>() exists above this widget.',
     );
     if (_dependency == null) return const SizedBox.shrink();
     return widget.builder(context, _dependency!);

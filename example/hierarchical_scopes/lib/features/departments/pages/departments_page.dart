@@ -24,7 +24,7 @@ class DepartmentsPage extends ZenView<DepartmentsController> {
       foregroundColor: Colors.white,
       elevation: 2,
       actions: [
-        // Enhanced ZenBuilder with error handling
+        // Enhanced ZenUpdater with error handling
         ZenUpdater<DepartmentsController>(
           builder: (context, controller) {
             final hasSearchQuery = controller.searchQuery.value.isNotEmpty;
@@ -97,7 +97,7 @@ class DepartmentsPage extends ZenView<DepartmentsController> {
   Widget _buildBody(DepartmentsController controller) {
     return Column(
       children: [
-        // Error banner using ZenBuilder
+        // Error banner using ZenUpdater
         ZenUpdater<DepartmentsController>(
           builder: (context, controller) {
             final errorMessage = controller.lastError.value;
