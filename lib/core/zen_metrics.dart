@@ -3,36 +3,29 @@ import 'dart:async';
 import 'zen_config.dart';
 import 'zen_logger.dart';
 
-/// Performance and usage metrics for Zenify
+/// Performance and usage metrics for Zenify.
+///
+/// All recording methods are no-ops unless [ZenConfig.enablePerformanceMetrics]
+/// is `true`. Read metrics via [getReport] or individual counter accessors.
 class ZenMetrics {
   ZenMetrics._(); // Private constructor // coverage:ignore-line
 
-  /// Controller metrics
+  /// Controller lifecycle counters
   static int activeControllers = 0;
   static int totalControllersCreated = 0;
   static int totalControllersDisposed = 0;
   static Map<String, int> controllerCreationCount = {};
 
-  /// Reactive state metrics
-  static int totalRxValues = 0;
-  static int totalStateUpdates = 0;
-  static int totalProviders = 0;
-
-  /// Effect metrics
-  static int totalEffectRuns = 0;
-  static int totalEffectSuccesses = 0;
-  static int totalEffectFailures = 0;
-  static Map<String, int> effectSuccessCounts = {};
-  static Map<String, int> effectFailureCounts = {};
-
-  /// General metrics counters for tracking events and operations
+  /// General event counters — keyed by arbitrary string names.
   static final Map<String, int> _counters = {};
 
-  /// Performance metrics
+  /// Per-operation timing samples (capped at 100 per operation).
   static final Map<String, List<Duration>> _operationTimes = {};
   static final Stopwatch _stopwatch = Stopwatch();
 
-  /// Record controller creation
+  // ── Write-side (called internally by the library) ──────────────────────────
+
+  /// Record controller creation.
   static void recordControllerCreation(Type controllerType) {
     if (!ZenConfig.enablePerformanceMetrics) return;
 
@@ -43,120 +36,66 @@ class ZenMetrics {
     controllerCreationCount[name] = (controllerCreationCount[name] ?? 0) + 1;
   }
 
-  /// Record controller disposal
+  /// Record controller disposal.
   static void recordControllerDisposal(Type controllerType) {
     if (!ZenConfig.enablePerformanceMetrics) return;
 
-    activeControllers--;
+    if (activeControllers > 0) activeControllers--;
     totalControllersDisposed++;
   }
 
-  /// Record Rx value creation
-  static void recordRxCreation() {
-    if (!ZenConfig.enablePerformanceMetrics) return;
-
-    totalRxValues++;
-  }
-
-  /// Record state update
-  static void recordStateUpdate() {
-    if (!ZenConfig.enablePerformanceMetrics) return;
-
-    totalStateUpdates++;
-  }
-
-  /// Record provider creation
-  static void recordProviderCreation() {
-    if (!ZenConfig.enablePerformanceMetrics) return;
-
-    totalProviders++;
-  }
-
-  /// Record a successful effect execution
-  static void recordEffectSuccess(String effectName) {
-    if (!ZenConfig.enablePerformanceMetrics) return;
-
-    totalEffectRuns++;
-    totalEffectSuccesses++;
-    effectSuccessCounts[effectName] =
-        (effectSuccessCounts[effectName] ?? 0) + 1;
-  }
-
-  /// Record a failed effect execution
-  static void recordEffectFailure(String effectName) {
-    if (!ZenConfig.enablePerformanceMetrics) return;
-
-    totalEffectRuns++;
-    totalEffectFailures++;
-    effectFailureCounts[effectName] =
-        (effectFailureCounts[effectName] ?? 0) + 1;
-  }
-
-  /// Increment a named counter to track occurrences of an event
+  /// Increment a named event counter.
   static void incrementCounter(String name) {
     if (!ZenConfig.enablePerformanceMetrics) return;
-
     _counters[name] = (_counters[name] ?? 0) + 1;
   }
 
-  /// Record a specific value for a named counter
+  /// Set a named counter to a specific value.
   static void recordCounterValue(String name, int value) {
     if (!ZenConfig.enablePerformanceMetrics) return;
-
     _counters[name] = value;
   }
 
-  /// Start timing an operation
+  /// Begin timing an operation. Call [stopTiming] to record the sample.
   static void startTiming(String operation) {
     if (!ZenConfig.enablePerformanceMetrics) return;
-
     _stopwatch.reset();
     _stopwatch.start();
   }
 
-  /// Stop timing an operation and record the result
+  /// Stop timing an operation and record the elapsed duration.
   static void stopTiming(String operation) {
     if (!ZenConfig.enablePerformanceMetrics || !_stopwatch.isRunning) return;
 
     _stopwatch.stop();
     final duration = _stopwatch.elapsed;
+    final samples = _operationTimes.putIfAbsent(operation, () => []);
+    samples.add(duration);
 
-    if (!_operationTimes.containsKey(operation)) {
-      _operationTimes[operation] = [];
-    }
-
-    _operationTimes[operation]!.add(duration);
-
-    // If the list gets too long, keep only the most recent entries
-    if (_operationTimes[operation]!.length > 100) {
-      _operationTimes[operation] = _operationTimes[operation]!
-          .sublist(_operationTimes[operation]!.length - 100);
+    // Keep only the 100 most recent samples to bound memory usage.
+    if (samples.length > 100) {
+      _operationTimes[operation] = samples.sublist(samples.length - 100);
     }
   }
 
-  /// Get average duration for an operation
+  // ── Read-side (user-facing) ─────────────────────────────────────────────────
+
+  /// Get the average duration recorded for [operation], or `null` if no samples.
   static Duration? getAverageDuration(String operation) {
-    if (!_operationTimes.containsKey(operation) ||
-        _operationTimes[operation]!.isEmpty) {
-      return null;
-    }
+    final samples = _operationTimes[operation];
+    if (samples == null || samples.isEmpty) return null;
 
-    final durations = _operationTimes[operation]!;
-    final totalMicroseconds = durations.fold<int>(
-        0, (sum, duration) => sum + duration.inMicroseconds);
-
-    return Duration(microseconds: totalMicroseconds ~/ durations.length);
+    final totalMicroseconds =
+        samples.fold<int>(0, (sum, d) => sum + d.inMicroseconds);
+    return Duration(microseconds: totalMicroseconds ~/ samples.length);
   }
 
-  /// Get metrics report
+  /// Return a full snapshot of all recorded metrics.
   static Map<String, dynamic> getReport() {
-    // Calculate average durations
     final avgDurations = <String, String>{};
-    _operationTimes.forEach((key, durations) {
+    _operationTimes.forEach((key, _) {
       final avg = getAverageDuration(key);
-      if (avg != null) {
-        avgDurations[key] = '${avg.inMicroseconds / 1000.0}ms';
-      }
+      if (avg != null) avgDurations[key] = '${avg.inMicroseconds / 1000.0}ms';
     });
 
     return {
@@ -164,58 +103,40 @@ class ZenMetrics {
         'active': activeControllers,
         'created': totalControllersCreated,
         'disposed': totalControllersDisposed,
-        'byType': controllerCreationCount,
-      },
-      'state': {
-        'rxValues': totalRxValues,
-        'stateUpdates': totalStateUpdates,
-        'providers': totalProviders,
-      },
-      'effects': {
-        'totalRuns': totalEffectRuns,
-        'successful': totalEffectSuccesses,
-        'failed': totalEffectFailures,
-        'successByName': effectSuccessCounts,
-        'failureByName': effectFailureCounts,
+        'byType': Map.from(controllerCreationCount),
       },
       'counters': Map.from(_counters),
       'performance': {
         'averageDurations': avgDurations,
-      }
+      },
     };
   }
 
-  /// Reset all metrics
+  /// Reset all metrics to zero.
   static void reset() {
     activeControllers = 0;
     totalControllersCreated = 0;
     totalControllersDisposed = 0;
     controllerCreationCount.clear();
-    totalRxValues = 0;
-    totalStateUpdates = 0;
-    totalProviders = 0;
-    totalEffectRuns = 0;
-    totalEffectSuccesses = 0;
-    totalEffectFailures = 0;
-    effectSuccessCounts.clear();
-    effectFailureCounts.clear();
     _counters.clear();
     _operationTimes.clear();
   }
 
-  /// Periodically log metrics (for monitoring)
+  // ── Periodic logging ────────────────────────────────────────────────────────
+
   static Timer? _metricsTimer;
 
+  /// Log a [getReport] snapshot on [interval] until [stopPeriodicLogging] is called.
   static void startPeriodicLogging(Duration interval) {
     _metricsTimer?.cancel();
     _metricsTimer = Timer.periodic(interval, (_) {
       if (ZenConfig.enablePerformanceMetrics) {
-        final report = getReport();
-        ZenLogger.logInfo('ZenMetrics: ${report.toString()}');
+        ZenLogger.logInfo('ZenMetrics: ${getReport()}');
       }
     });
   }
 
+  /// Stop periodic metric logging started by [startPeriodicLogging].
   static void stopPeriodicLogging() {
     _metricsTimer?.cancel();
     _metricsTimer = null;
