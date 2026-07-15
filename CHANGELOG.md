@@ -30,6 +30,30 @@ REACT     →  ZenObserver / Obx          Rx<T> — auto-rebuild on value change
 
 ### Breaking Changes
 
+#### Global API cleanup
+
+| Removed | Replacement |
+|---|---|
+| `Zen.currentScope` / `setCurrentScope` / `resetCurrentScope` | `context.zenScope` (widget tree) or `Zen.rootScope` |
+| `Zen.get<T>()` | `Zen.find<T>()` |
+| `Zen.has<T>()` | `Zen.exists<T>()` |
+| `Zen.remove<T>()` | `Zen.delete<T>()` |
+| `Obx` widget | `ZenObserver` |
+
+`Ref<T>` is no longer exported from the public barrel. It remains available internally at `package:zenify/di/zen_refs.dart`.
+
+#### `ZenRoute` — scope resolution bug fixed
+
+`ZenRoute` no longer mutates a global `Zen.currentScope` pointer on every push. Scope resolution is now:
+
+1. Explicit `parentScope:` parameter
+2. Nearest `ZenProvider` ancestor in the widget tree (`context.zenScope`)
+3. `Zen.rootScope` — stable fallback for top-level routes
+
+Sibling routes pushed via `Navigator.push` no longer silently inherit each other's scopes.
+
+---
+
 #### `ZenView.build()` — explicit `controller` parameter (required)
 
 V1 provided the controller via a magic `controller` getter backed by a global static registry. V2 injects it as an explicit parameter — resolved from the nearest `ZenProvider` ancestor by the framework.
