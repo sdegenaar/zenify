@@ -235,7 +235,7 @@ Widget build(BuildContext context, MyController controller) {
 }
 ```
 
-### 2. Obx vs ZenUpdater
+### 2. ZenObserver vs ZenUpdater
 
 **Two approaches for state management - choose based on your needs:**
 
@@ -255,7 +255,7 @@ class ReactiveController extends ZenController {
   final count = 0.obs();  // Reactive
   final name = ''.obs();  // Reactive
 
-  void increment() => count.value++;  // Auto-updates Obx widgets
+  void increment() => count.value++;  // Auto-updates ZenObserver widgets
 }
 
 // View uses ZenObserver()
@@ -344,12 +344,12 @@ class MixedController extends ZenController {
   List<Item> items = [];
 
   Future<void> loadItems() async {
-    isLoading.value = true;  // Auto-updates Obx
+    isLoading.value = true;  // Auto-updates ZenObserver
 
     items = await fetchItems();
     update(['item-list']);  // Manually update ZenUpdater
 
-    isLoading.value = false;  // Auto-updates Obx
+    isLoading.value = false;  // Auto-updates ZenObserver
   }
 }
 
@@ -361,7 +361,7 @@ class MixedView extends ZenView<MixedController> {
   Widget build(BuildContext context, MixedController controller) {
     return Column(
       children: [
-        // Obx for reactive loading state
+        // ZenObserver for reactive loading state
         ZenObserver(() => controller.isLoading.value
           ? CircularProgressIndicator()
           : Text('Loaded')
@@ -884,7 +884,7 @@ testWidgets('displays products', (tester) async {
 
   // Register test module
   final testModule = TestProductModule();
-  testModule.register(Zen.currentScope);
+  testModule.register(Zen.rootScope);
 
   await tester.pumpWidget(
     MaterialApp(home: ProductListPage()),
@@ -1039,7 +1039,7 @@ class ProductDetailPage extends ZenView<ProductDetailController> {
 
 ## Anti-Patterns to Avoid
 
-### ❌ DON'T: Mix Obx and ZenUpdater Without Reason
+### ❌ DON'T: Mix ZenObserver and ZenUpdater Without Reason
 
 ```dart
 // ❌ BAD - Why use ZenUpdater if everything is reactive?
@@ -1052,7 +1052,7 @@ ZenUpdater<MyController>(
   ),
 )
 
-// ✅ GOOD - Just use Obx directly
+// ✅ GOOD - Just use ZenObserver directly
 Column(
   children: [
     ZenObserver(() => Text(controller.name.value)),

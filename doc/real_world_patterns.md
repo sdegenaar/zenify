@@ -756,7 +756,7 @@ void main() async {
 
 ## Performance Control Patterns
 
-### Option 1: Reactive with Obx (Recommended - Simpler)
+### Option 1: Reactive with ZenObserver (Recommended - Simpler)
 
 ```dart
 class DashboardController extends ZenController {
@@ -765,7 +765,7 @@ class DashboardController extends ZenController {
   final selectedPeriod = Period.week.obs();
 
   void updateStats(List<Stat> newStats) {
-    stats.value = newStats;  // Auto-updates Obx widgets
+    stats.value = newStats;  // Auto-updates ZenObserver widgets
   }
 
   void changePeriod(Period period) {
@@ -868,7 +868,7 @@ class DashboardController extends ZenController {
   }
 
   void changePeriod(Period period) {
-    selectedPeriod.value = period;  // Auto-updates Obx
+    selectedPeriod.value = period;  // Auto-updates ZenObserver
     loadStats(period);
   }
 }
@@ -881,13 +881,13 @@ class DashboardView extends ZenView<DashboardController> {
   Widget build(BuildContext context, DashboardController controller) {
     return Column(
       children: [
-        // Obx for reactive period
+        // ZenObserver for reactive period
         ZenObserver(() => PeriodSelector(
           selected: controller.selectedPeriod.value,
           onChanged: controller.changePeriod,
         )),
 
-        // Obx for reactive loading
+        // ZenObserver for reactive loading
         ZenObserver(() => controller.isLoading.value
           ? LoadingSpinner()
           // ZenUpdater for manual stats
@@ -903,7 +903,7 @@ class DashboardView extends ZenView<DashboardController> {
 ```
 
 **When to use each:**
-- 🟢 **Obx + .obs()**: Most cases (simpler, less code)
+- 🟢 **ZenObserver + .obs()**: Most cases (simpler, less code)
 - 🔵 **ZenUpdater + update()**: Complex objects, precise rebuild control
 - 🟡 **Mixed**: Large apps, optimize hot paths only
 

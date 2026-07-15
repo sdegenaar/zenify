@@ -30,7 +30,7 @@ dart tool/migrate_from_getx.dart /path/to/your/project
 - `GetxController` / `GetxService` → `ZenController` / `ZenService`
 - `.obs` → `.obs()` (adds parentheses throughout)
 - `Get.put` / `Get.find` / `Get.delete` / `Get.lazyPut` → Zen equivalents
-- `Get.isRegistered` → `Zen.has`
+- `Get.isRegistered` → `Zen.exists`
 - `GetBuilder` / `GetX<T>` → `ZenUpdater` (V2 name; `ZenBuilder` is a deprecated alias)
 - `GetView<T>` → `ZenView<T>`
 - `permanent:` → `isPermanent:` (parameter rename)
@@ -57,12 +57,12 @@ After running the script: `dart analyze` will surface any remaining issues.
 | `GetxController` | `ZenController` | Same lifecycle hooks |
 | `GetxService` | `ZenService` | Same, but scoped by default |
 | `.obs` | `.obs()` | Add parentheses |
-| `Obx()` | `ZenObserver()` (`Obx` still works — deprecated alias) | Rename recommended |
+| `Obx()` | `ZenObserver()` (`Obx` **removed in V2**) | Required rename |
 | `GetBuilder` | `ZenUpdater` | `ZenBuilder` is a deprecated alias — still compiles |
 | `GetView<T>` | `ZenView<T>` | Same pattern |
 | `Get.put()` | `Zen.put()` | Same |
-| `Get.find()` | `Zen.find()` or `Zen.get()` | Both throw when missing — `findOrNull()` is the nullable form |
-| `Get.delete()` | `Zen.delete()` or `Zen.remove()` | Same |
+| `Get.find()` | `Zen.find()` | Throws when missing — `findOrNull()` is the nullable form |
+| `Get.delete()` | `Zen.delete()` | Same |
 | `Get.lazyPut()` | `Zen.putLazy()` | Same concept |
 | `Bindings` | `ZenModule` | Scoped, not global |
 | `GetMaterialApp` | `MaterialApp` | No wrapper needed |
@@ -182,7 +182,7 @@ Zen.putLazy(() => MyController(), alwaysNew: true);  // equivalent to fenix
 // Use findOrNull<T>() when the dependency might not be registered:
 final ctrl = Zen.find<MyController>();          // throws if missing (like Get.find)
 final ctrlOrNull = Zen.findOrNull<MyController>(); // returns null if missing
-Zen.delete<MyController>();             // or Zen.remove<MyController>()
+Zen.delete<MyController>();
 ```
 
 ---
@@ -203,7 +203,6 @@ GetBuilder<MyController>(
 
 // After
 ZenObserver(() => Text('${controller.count.value}'))  // reactive
-// or Obx() still works — Zenify keeps it as an alias
 
 ZenUpdater<MyController>(
   builder: (context, controller) => Text('${controller.count.value}'),

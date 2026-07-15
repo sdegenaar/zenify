@@ -503,10 +503,10 @@ testWidgets('ZenUpdater updates on controller change', (tester) async {
 });
 ```
 
-Testing with Obx
+Testing with ZenObserver
 
 ``` dart
-testWidgets('Obx rebuilds on reactive change', (tester) async {
+testWidgets('ZenObserver rebuilds on reactive change', (tester) async {
   final counter = 0.obs;
 
   await tester.pumpWidget(

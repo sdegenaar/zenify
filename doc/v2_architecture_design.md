@@ -22,7 +22,7 @@
 | `initController` on `ZenView` — per-instance self-owned controller | ❌ Removed | Use `ZenProvider.create` at callsite |
 | `ZenControllerScope<T>` | ❌ Removed | Use `ZenProvider.create<T>` |
 | `ZenConsumer<T>` — scope-bound, `didChangeDependencies` | ✅ Shipped | Fails fast, fully tree-bound |
-| `ZenObserver` (alias `Obx`) — reactive auto-tracking | ✅ Shipped | |
+| `ZenObserver` — reactive auto-tracking (`Obx` removed in V2) | ✅ Shipped | |
 | `ZenController` — lifecycle, auto-track reactive/children | ✅ Shipped | |
 | `ZenScope` — hierarchical, parent-child, no global state | ✅ Shipped | |
 | `ZenModule` — module-based scope initialization | ✅ Shipped | |
@@ -334,7 +334,7 @@ CONSUME   →  ZenView<T>                 extend — controller injected into bu
               context.controller<T>()  imperative — from any widget or callback
               Zen.find<T>()             inside controllers and services (non-widget code)
 
-REACT     →  ZenObserver / Obx          Rx<T> — auto-rebuild on value change
+REACT     →  ZenObserver               Rx<T> — auto-rebuild on value change
               ZenUpdater<T>             update() — manual, ID-targeted rebuilds
               ZenQuery<T>               async — caching, loading, error, refetch
 ```
@@ -368,8 +368,8 @@ parentScope = ZenProvider.maybeOf(context); // finds other ZenProviders only
 
 **`ZenRoute` DOES connect to `Zen.rootScope` as fallback.** ([`zen_route.dart:118`](zen_route.dart))
 ```dart
-final parentScope = widget.parentScope ?? parentFromTree ?? Zen.currentScope;
-// Zen.currentScope defaults to Zen.rootScope — so ZenRoute scope's parent chain includes root
+final parentScope = widget.parentScope ?? parentFromTree ?? Zen.rootScope;
+// Zen.rootScope is a stable, immutable anchor — not a mutable global pointer
 ```
 
 **Practical consequences:**

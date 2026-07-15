@@ -22,9 +22,9 @@ Zenify's hierarchical scope system provides powerful dependency injection and li
 
 **Phase 1 Refactoring** (Current Version) brings major simplifications:
 
-✨ **Hybrid Discovery Architecture**
+✨ **Tree-Bound Discovery Architecture**
 - Parent scopes discovered automatically via `InheritedWidget` (within routes)
-- Navigation gap bridged via `Zen.currentScope` pointer (across routes)
+- Navigator-pushed routes fall back to `Zen.rootScope` (stable, immutable anchor)
 - Optional explicit `parentScope` parameter for full control
 - Scopes dispose automatically when widgets are removed
 
@@ -114,26 +114,24 @@ Hierarchical scopes allow you to organize your application's dependencies in a t
 
 ### How It Works
 
-Zenify uses a **hybrid discovery strategy** that combines widget tree discovery with a navigation bridge:
+Zenify uses **strict widget-tree scope resolution** — no mutable global pointer:
 
 1. **Automatic Parent Discovery (3 fallback levels)**
    - **Level 1**: Explicit `parentScope` parameter (when provided)
-   - **Level 2**: Widget tree via `InheritedWidget` (for nested widgets)
-   - **Level 3**: `Zen.currentScope` bridge (for Navigator routes)
+   - **Level 2**: Widget tree via `InheritedWidget` (for nested widgets in the same route)
+   - **Level 3**: `Zen.rootScope` — stable, immutable fallback for Navigator-pushed routes
    - Works automatically in 99% of cases, with explicit control when needed
 
-2. **The Navigation Bridge**
-   - Flutter's `Navigator` pushes routes as siblings, breaking the widget tree
-   - `Zen.currentScope` acts as a pointer to bridge this gap
-   - When Route A creates a scope, it becomes the "current" scope
-   - When Route B is pushed, it finds Route A's scope via this pointer
-   - Automatic and transparent - you don't need to think about it!
+2. **Navigator routes and scope**
+   - Flutter's `Navigator` pushes routes as siblings, outside the originating widget tree
+   - In V2, Navigator-pushed routes that have no `ZenProvider` ancestor automatically parent to `Zen.rootScope`
+   - For explicit cross-route scope chaining, pass `parentScope:` directly to `ZenRoute`
+   - This is intentional — the V1 `Zen.currentScope` mutable pointer caused hidden cross-route coupling
 
 3. **Automatic Lifecycle**
    - Scopes are created when widgets are built
    - Scopes are disposed when widgets are removed
-   - Parent scope is restored as "current" on disposal
-   - Follows Flutter's natural lifecycle
+   - Follows Flutter's natural widget lifecycle
 
 ### Visual Representation
 
