@@ -94,32 +94,32 @@ class ZenWorker {
 
 /// Group of workers that can be disposed together
 class ZenWorkerGroup {
-  final List<ZenWorker> _handles = [];
+  final List<ZenWorker> _workers = [];
   bool _disposed = false;
 
   /// Add a worker to this group
-  void add(ZenWorker handle) {
+  void add(ZenWorker worker) {
     if (_disposed) return;
-    _handles.add(handle);
+    _workers.add(worker);
   }
 
   /// Get all workers in this group (for statistics)
-  List<ZenWorker> get workers => List.unmodifiable(_handles);
+  List<ZenWorker> get workers => List.unmodifiable(_workers);
 
   /// Pause all workers in the group
   void pauseAll() {
-    for (final handle in _handles) {
-      if (!handle.isDisposed) {
-        handle.pause();
+    for (final worker in _workers) {
+      if (!worker.isDisposed) {
+        worker.pause();
       }
     }
   }
 
   /// Resume all workers in the group
   void resumeAll() {
-    for (final handle in _handles) {
-      if (!handle.isDisposed) {
-        handle.resume();
+    for (final worker in _workers) {
+      if (!worker.isDisposed) {
+        worker.resume();
       }
     }
   }
@@ -128,24 +128,24 @@ class ZenWorkerGroup {
   void dispose() {
     if (_disposed) return;
     _disposed = true;
-    for (final handle in _handles) {
-      handle.dispose();
+    for (final worker in _workers) {
+      worker.dispose();
     }
-    _handles.clear();
+    _workers.clear();
   }
 
   /// Whether the group is disposed
   bool get isDisposed => _disposed;
 
   /// Number of active workers in the group (not disposed, not paused)
-  int get activeCount => _handles.where((h) => h.isActive).length;
+  int get activeCount => _workers.where((w) => w.isActive).length;
 
   /// Number of total workers in the group (not disposed)
-  int get length => _handles.where((h) => !h.isDisposed).length;
+  int get length => _workers.where((w) => !w.isDisposed).length;
 
   /// Number of paused workers in the group
   int get pausedCount =>
-      _handles.where((h) => !h.isDisposed && h.isPaused).length;
+      _workers.where((w) => !w.isDisposed && w.isPaused).length;
 }
 
 /// Core worker implementation with improved type safety and pause/resume support
@@ -161,7 +161,7 @@ class _ZenWorker<T> {
   bool _paused = false;
   void Function()? _disposer;
   bool _hasExecutedOnce = false; // Track if 'once' worker has executed
-  ZenWorker? _handle; // Reference to the handle for auto-disposal
+  ZenWorker? _worker; // Reference to the worker for auto-disposal
 
   _ZenWorker({
     required this.type,
@@ -170,9 +170,9 @@ class _ZenWorker<T> {
     this.condition,
   });
 
-  /// Set the handle reference for auto-disposal
-  void setHandle(ZenWorker handle) {
-    _handle = handle;
+  /// Set the worker reference for auto-disposal
+  void setWorker(ZenWorker worker) {
+    _worker = worker;
   }
 
   /// Whether the worker is paused
@@ -228,8 +228,8 @@ class _ZenWorker<T> {
       _hasExecutedOnce = true;
       _execute(obs.value);
       obs.removeListener(listener);
-      // Auto-dispose the handle which will trigger worker disposal
-      _handle?.dispose();
+      // Auto-dispose the worker which will trigger worker disposal
+      _worker?.dispose();
     }
 
     obs.addListener(listener);
@@ -358,8 +358,8 @@ class ZenWorkers {
       condition: condition,
     );
 
-    // Create handle with proper delegation
-    final handle = ZenWorker(
+    // Create a ZenWorker (public API) that delegates to the internal worker
+    final zenWorker = ZenWorker(
       () => worker.dispose(),
       pauseFunction: () => worker.pause(),
       resumeFunction: () => worker.resume(),
@@ -367,11 +367,11 @@ class ZenWorkers {
       isDisposedGetter: () => worker.isDisposed,
     );
 
-    // Set handle reference in worker for auto-disposal
-    worker.setHandle(handle);
+    // Set worker reference for auto-disposal
+    worker.setWorker(zenWorker);
 
     worker.listenTo(observable);
-    return handle;
+    return zenWorker;
   }
 
   /// Convenience methods with improved type inference
