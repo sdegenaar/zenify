@@ -159,29 +159,6 @@ class ZenTestContainer {
   bool get isDisposed => _scope.isDisposed;
 }
 
-/// Widget for wrapping test widgets with the test container
-class ZenTestScope extends StatefulWidget {
-  final Widget child;
-  final ZenTestContainer container;
-
-  const ZenTestScope({
-    // coverage:ignore-line
-    required this.child,
-    required this.container,
-    super.key,
-  });
-
-  @override // coverage:ignore-line
-  State<ZenTestScope> createState() =>
-      _ZenTestScopeState(); // coverage:ignore-line
-}
-
-class _ZenTestScopeState extends State<ZenTestScope> {
-  @override // coverage:ignore-line
-  Widget build(BuildContext context) {
-    return widget.child; // coverage:ignore-line
-  }
-}
 
 /// Utility functions for testing
 class ZenTestUtils {

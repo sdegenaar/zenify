@@ -20,10 +20,6 @@ void main() {
       expect(ZenConfig.enablePerformanceMetrics, false);
     });
 
-    test('enableAutoDispose is true by default', () {
-      expect(ZenConfig.enableAutoDispose, true);
-    });
-
     test('strictMode is false by default', () {
       expect(ZenConfig.strictMode, false);
     });
@@ -78,7 +74,6 @@ void main() {
       expect(m.containsKey('enableRxTracking'), true);
       expect(m.containsKey('verboseErrors'), true);
       expect(m.containsKey('enablePerformanceMetrics'), true);
-      expect(m.containsKey('enableAutoDispose'), true);
       expect(m.containsKey('strictMode'), true);
     });
 
@@ -109,16 +104,15 @@ void main() {
       expect(ZenConfig.logLevel, ZenLogLevel.info);
     });
 
-    test('test env enables strictMode and disables autoDispose', () {
+    test('test env enables strictMode and disables metrics', () {
       ZenConfig.applyEnvironment(ZenEnvironment.test);
       expect(ZenConfig.strictMode, true);
-      expect(ZenConfig.enableAutoDispose, false);
+      expect(ZenConfig.enablePerformanceMetrics, false);
     });
 
     test('staging env enables metrics', () {
       ZenConfig.applyEnvironment(ZenEnvironment.staging);
       expect(ZenConfig.enablePerformanceMetrics, true);
-      expect(ZenConfig.enableMetrics, true);
     });
 
     test('debug env sets debug log level', () {
@@ -187,26 +181,6 @@ void main() {
       expect(ZenConfig.enablePerformanceMetrics, true);
     });
 
-    test('sets metrics', () {
-      ZenConfig.configure(metrics: true);
-      expect(ZenConfig.enableMetrics, true);
-    });
-
-    test('sets autoDispose', () {
-      ZenConfig.configure(autoDispose: false);
-      expect(ZenConfig.enableAutoDispose, false);
-    });
-
-    test('sets cacheExpiry', () {
-      ZenConfig.configure(cacheExpiry: const Duration(hours: 1));
-      expect(ZenConfig.controllerCacheExpiry.inHours, 1);
-    });
-
-    test('sets disposeTimeout', () {
-      ZenConfig.configure(disposeTimeout: 9999);
-      expect(ZenConfig.disposeTimeoutMs, 9999);
-    });
-
     test('sets strict mode', () {
       ZenConfig.configure(strict: true);
       expect(ZenConfig.strictMode, true);
@@ -220,11 +194,6 @@ void main() {
     test('sets dependencyVisualization', () {
       ZenConfig.configure(dependencyVisualization: true);
       expect(ZenConfig.enableDependencyVisualization, true);
-    });
-
-    test('sets useRxTrack', () {
-      ZenConfig.configure(useRxTrack: false);
-      expect(ZenConfig.useRxTracking, false);
     });
 
     test('null params leave existing values unchanged', () {
@@ -252,7 +221,7 @@ void main() {
 
     test('configureTest applies test config', () {
       ZenConfig.configureTest();
-      expect(ZenConfig.enableAutoDispose, false);
+      expect(ZenConfig.enablePerformanceMetrics, false);
       expect(ZenConfig.strictMode, true);
     });
   });
@@ -267,16 +236,16 @@ void main() {
       expect(ZenConfig.strictMode, false);
     });
 
-    test('reset restores enableAutoDispose to true', () {
-      ZenConfig.enableAutoDispose = false;
-      ZenConfig.reset();
-      expect(ZenConfig.enableAutoDispose, true);
-    });
-
     test('reset restores enablePerformanceMetrics to false', () {
       ZenConfig.enablePerformanceMetrics = true;
       ZenConfig.reset();
       expect(ZenConfig.enablePerformanceMetrics, false);
+    });
+
+    test('reset restores enableRxTracking to false', () {
+      ZenConfig.enableRxTracking = true;
+      ZenConfig.reset();
+      expect(ZenConfig.enableRxTracking, false);
     });
   });
 }
