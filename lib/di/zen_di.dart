@@ -5,7 +5,6 @@ import '../core/zen_exception.dart';
 import '../core/zen_logger.dart';
 import '../core/zen_scope.dart';
 import '../core/zen_module.dart';
-import '../controllers/zen_controller.dart';
 import '../query/core/zen_query_cache.dart';
 import '../testing/zen_test_mode.dart';
 import 'zen_lifecycle.dart';
@@ -111,21 +110,11 @@ class Zen {
   /// ZenService instances are permanent by default, others are not.
   static T put<T>(T instance, {String? tag, bool? isPermanent}) {
     final permanent = isPermanent ?? (instance is ZenService);
-
-    final result = rootScope.put<T>(
+    return rootScope.put<T>(
       instance,
       tag: tag,
       isPermanent: permanent,
     );
-
-    // Initialize via lifecycle manager
-    if (instance is ZenController) {
-      _lifecycleManager.initializeController(instance);
-    } else if (instance is ZenService) {
-      _lifecycleManager.initializeService(instance);
-    }
-
-    return result;
   }
 
   /// Register a lazy factory in root scope

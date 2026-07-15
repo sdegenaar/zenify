@@ -88,7 +88,7 @@ class ZenTestContainer {
   }
 
   /// Find a dependency and throw if not found
-  T get<T>({String? tag}) {
+  T require<T>({String? tag}) {
     final result = find<T>(tag: tag);
     if (result == null) {
       throw Exception(

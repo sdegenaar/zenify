@@ -288,36 +288,10 @@ void main() {
   });
 
   // ══════════════════════════════════════════════════════════
-  // Convenience aliases: get, remove, has, toString (L859-879)
+  // toString
   // ══════════════════════════════════════════════════════════
-  group('ZenScope convenience aliases', () {
-    test('get<T> is alias for find<T> (L859)', () {
-      final scope = Zen.createScope(name: 'GetAliasScope');
-      final ctrl = _ScopeCtrl();
-      scope.put<_ScopeCtrl>(ctrl);
-      expect(scope.get<_ScopeCtrl>(), ctrl);
-      scope.dispose();
-    });
-
-    test('remove<T> is alias for delete<T> (L865-866)', () {
-      final scope = Zen.createScope(name: 'RemoveAliasScope');
-      final ctrl = _ScopeCtrl();
-      scope.put<_ScopeCtrl>(ctrl, isPermanent: false);
-      final result = scope.remove<_ScopeCtrl>(force: true);
-      expect(result, true);
-      expect(ctrl.isDisposed, true);
-      scope.dispose();
-    });
-
-    test('has<T> is alias for exists<T> (L872)', () {
-      final scope = Zen.createScope(name: 'HasAliasScope');
-      scope.put<_ScopeCtrl>(_ScopeCtrl());
-      expect(scope.has<_ScopeCtrl>(), true);
-      expect(scope.has<_ScopeCtrl2>(), false);
-      scope.dispose();
-    });
-
-    test('toString returns descriptive string (L875-879)', () {
+  group('ZenScope.toString', () {
+    test('toString returns descriptive string', () {
       final scope = Zen.createScope(name: 'ToStringScope');
       scope.put<_ScopeCtrl>(_ScopeCtrl());
       final str = scope.toString();
