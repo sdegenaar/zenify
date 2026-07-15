@@ -124,7 +124,6 @@ void main() {
       expect(() => ZenTestMode().reset(), returnsNormally);
     });
   });
-
 }
 
 abstract class _Service {

@@ -159,7 +159,6 @@ class ZenTestContainer {
   bool get isDisposed => _scope.isDisposed;
 }
 
-
 /// Utility functions for testing
 class ZenTestUtils {
   /// Create a test environment with optional setup

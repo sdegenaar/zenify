@@ -234,12 +234,12 @@ class ZenControllerNotFoundException extends ZenException {
           context: {'Type': typeName},
           suggestion: customSuggestion ??
               'Two common causes:\n'
-              '   1. Forgot ZenProvider? Wrap your route:\n'
-              '      ZenProvider.create<$typeName>(create: () => $typeName(), child: const YourPage())\n'
-              '   2. Used Zen.put<$typeName>() for a controller? That registers it globally but\n'
-              '      ZenView only resolves from the widget tree — not the global scope.\n'
-              '      • For page controllers: use ZenProvider.create<$typeName>() at your route.\n'
-              '      • For global reactive state: use Zen.put + .to + ZenObserver instead of ZenView.',
+                  '   1. Forgot ZenProvider? Wrap your route:\n'
+                  '      ZenProvider.create<$typeName>(create: () => $typeName(), child: const YourPage())\n'
+                  '   2. Used Zen.put<$typeName>() for a controller? That registers it globally but\n'
+                  '      ZenView only resolves from the widget tree — not the global scope.\n'
+                  '      • For page controllers: use ZenProvider.create<$typeName>() at your route.\n'
+                  '      • For global reactive state: use Zen.put + .to + ZenObserver instead of ZenView.',
           docLink:
               'https://github.com/sdegenaar/zenify/blob/main/doc/hierarchical_scopes_guide.md',
         );

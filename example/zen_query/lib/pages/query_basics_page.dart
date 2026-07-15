@@ -14,8 +14,6 @@ import '../models/models.dart';
 class QueryBasicsPage extends ZenView<QueryBasicsController> {
   const QueryBasicsPage({super.key});
 
-  
-
   @override
   Widget build(BuildContext context, QueryBasicsController controller) {
     return ListView(

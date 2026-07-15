@@ -68,7 +68,9 @@ void main() {
       Zen.reset();
     });
 
-    test('should auto-detect isPermanent: true for ZenService but not ZenController', () {
+    test(
+        'should auto-detect isPermanent: true for ZenService but not ZenController',
+        () {
       final service = MyZenService();
       final controller = TestController('auto-perm');
 
@@ -84,11 +86,13 @@ void main() {
 
       // ZenService should survive (auto-permanent)
       final foundService = Zen.findOrNull<MyZenService>();
-      expect(foundService, same(service), reason: 'ZenService should default to isPermanent: true');
+      expect(foundService, same(service),
+          reason: 'ZenService should default to isPermanent: true');
 
       // ZenController should be deleted (not permanent)
       final foundController = Zen.findOrNull<TestController>();
-      expect(foundController, isNull, reason: 'ZenController should default to isPermanent: false');
+      expect(foundController, isNull,
+          reason: 'ZenController should default to isPermanent: false');
     });
 
     test('should register and find controllers in root scope', () {

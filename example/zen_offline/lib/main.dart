@@ -104,8 +104,6 @@ class FeedPage extends ZenView<FeedController> {
   final NetworkSimulator networkSimulator;
   const FeedPage({super.key, required this.networkSimulator});
 
-  
-
   @override
   Widget build(BuildContext context, FeedController controller) {
     // Note: ZenView provides 'controller' automatically

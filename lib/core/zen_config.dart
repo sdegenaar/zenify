@@ -22,7 +22,6 @@ class ZenConfig {
   /// - Developing the Zenify framework itself
   static bool enableRxTracking = false;
 
-
   /// Navigation and routing logging
   static bool enableNavigationLogging = false;
   static bool enableRouteLogging = false;
@@ -285,10 +284,13 @@ class ZenConfig {
     if (rxTracking != null) enableRxTracking = rxTracking;
     if (navigationLogging != null) enableNavigationLogging = navigationLogging;
     if (routeLogging != null) enableRouteLogging = routeLogging;
-    if (performanceTracking != null) enablePerformanceMetrics = performanceTracking;
+    if (performanceTracking != null)
+      enablePerformanceMetrics = performanceTracking;
     if (strict != null) strictMode = strict;
-    if (circularDependencyCheck != null) checkForCircularDependencies = circularDependencyCheck;
-    if (dependencyVisualization != null) enableDependencyVisualization = dependencyVisualization;
+    if (circularDependencyCheck != null)
+      checkForCircularDependencies = circularDependencyCheck;
+    if (dependencyVisualization != null)
+      enableDependencyVisualization = dependencyVisualization;
   }
 
   // ============================================================================

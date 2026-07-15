@@ -6,8 +6,6 @@ import '../widgets/demo_section.dart';
 class WorkerDemoPage extends ZenView<WorkerDemoController> {
   const WorkerDemoPage({super.key});
 
-  
-
   @override
   Widget build(BuildContext context, WorkerDemoController controller) {
     return Scaffold(

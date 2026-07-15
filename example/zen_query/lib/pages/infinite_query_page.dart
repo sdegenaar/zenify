@@ -12,8 +12,6 @@ import '../models/models.dart';
 class InfiniteQueryPage extends ZenView<InfiniteQueryController> {
   const InfiniteQueryPage({super.key});
 
-  
-
   @override
   Widget build(BuildContext context, InfiniteQueryController controller) {
     return Column(

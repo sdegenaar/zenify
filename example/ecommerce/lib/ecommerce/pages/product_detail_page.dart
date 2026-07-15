@@ -16,7 +16,6 @@ class ProductDetailPage extends ZenView<ProductDetailController> {
     required this.productId,
   });
 
-
   @override
   Widget build(BuildContext context, ProductDetailController controller) {
     return Scaffold(

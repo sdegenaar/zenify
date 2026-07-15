@@ -117,18 +117,18 @@ class CounterPage extends ZenView<CounterController> {
             child: Column(
               children: [
                 ZenObserver(() => Text(
-                  '${controller.count.value}',
-                  style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.primary,
-                    fontWeight: FontWeight.bold,
-                  ),
-                )),
+                      '${controller.count.value}',
+                      style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                            color: Theme.of(context).colorScheme.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                    )),
                 const SizedBox(height: 8),
                 ZenObserver(() => Chip(
-                  label: Text(controller.status.value),
-                  backgroundColor:
-                      Theme.of(context).colorScheme.primaryContainer,
-                )),
+                      label: Text(controller.status.value),
+                      backgroundColor:
+                          Theme.of(context).colorScheme.primaryContainer,
+                    )),
                 const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -163,9 +163,9 @@ class CounterPage extends ZenView<CounterController> {
                   builder: (ctx, ctrl) => Text(
                     '${ctrl.manualCount}',
                     style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                      color: Theme.of(context).colorScheme.secondary,
-                      fontWeight: FontWeight.bold,
-                    ),
+                          color: Theme.of(context).colorScheme.secondary,
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -196,8 +196,8 @@ class CounterPage extends ZenView<CounterController> {
                   Text(
                     'How it works',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                   const SizedBox(height: 8),
                   const _Bullet(
@@ -279,8 +279,7 @@ class _Bullet extends StatelessWidget {
         children: [
           const Text('• ', style: TextStyle(fontWeight: FontWeight.bold)),
           Expanded(
-            child: Text(text,
-                style: Theme.of(context).textTheme.bodySmall),
+            child: Text(text, style: Theme.of(context).textTheme.bodySmall),
           ),
         ],
       ),

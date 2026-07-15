@@ -13,7 +13,6 @@ import '../pages/splash_page.dart';
 import '../controllers/product_detail_controller.dart';
 import '../../shared/services/product_service.dart';
 
-
 /// Routes for the e-commerce app
 ///
 /// This class demonstrates how to use ZenModulePage for routing and automatic

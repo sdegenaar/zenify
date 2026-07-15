@@ -12,8 +12,6 @@ import '../models/models.dart';
 class MutationPage extends ZenView<MutationController> {
   const MutationPage({super.key});
 
-  
-
   @override
   Widget build(BuildContext context, MutationController controller) {
     return ListView(

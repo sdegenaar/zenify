@@ -248,7 +248,9 @@ void main() {
       FlutterError.onError = FlutterError.dumpErrorToConsole;
     });
 
-    testWidgets('should fail with ZenControllerNotFoundException if controller registered globally via Zen.put', (tester) async {
+    testWidgets(
+        'should fail with ZenControllerNotFoundException if controller registered globally via Zen.put',
+        (tester) async {
       // GetX anti-pattern: registering UI controller globally
       Zen.put<CounterController>(CounterController());
 
@@ -261,9 +263,9 @@ void main() {
 
       await tester.pumpWidget(const MaterialApp(home: TestZenView()));
 
-      expect(exceptionCaught, isTrue, reason: 'ZenView should not fallback to Zen.rootScope');
+      expect(exceptionCaught, isTrue,
+          reason: 'ZenView should not fallback to Zen.rootScope');
       FlutterError.onError = FlutterError.dumpErrorToConsole;
     });
   });
-
 }

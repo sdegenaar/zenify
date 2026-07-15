@@ -55,7 +55,8 @@ void main() {
                 ZenObserver(() => Text('Counter: ${controller.counter.value}')),
                 ZenObserver(() => Text('Name: ${controller.name.value}')),
                 ZenObserver(() => Text('Active: ${controller.isActive.value}')),
-                ZenObserver(() => Text('Items: ${controller.items.value.length}')),
+                ZenObserver(
+                    () => Text('Items: ${controller.items.value.length}')),
                 ElevatedButton(
                   onPressed: controller.incrementCounter,
                   child: const Text('Increment'),
@@ -330,7 +331,8 @@ void main() {
           home: Scaffold(
             body: Column(
               children: [
-                ZenObserver(() => Text('Items: ${controller.items.value.join(", ")}')),
+                ZenObserver(
+                    () => Text('Items: ${controller.items.value.join(", ")}')),
                 ElevatedButton(
                   onPressed: () => controller
                       .addItem('Item ${controller.items.value.length + 1}'),
@@ -543,8 +545,10 @@ void main() {
           home: Scaffold(
             body: Column(
               children: [
-                ZenObserver(() => Text('C1 Counter: ${controller1.counter.value}')),
-                ZenObserver(() => Text('C2 Counter: ${controller2.counter.value}')),
+                ZenObserver(
+                    () => Text('C1 Counter: ${controller1.counter.value}')),
+                ZenObserver(
+                    () => Text('C2 Counter: ${controller2.counter.value}')),
                 ElevatedButton(
                   onPressed: controller1.incrementCounter,
                   child: const Text('Increment C1'),
@@ -615,8 +619,7 @@ void main() {
       expect(find.text('Name: John'), findsOneWidget);
     });
 
-    testWidgets('ZenObserver is a StatefulWidget',
-        (WidgetTester tester) async {
+    testWidgets('ZenObserver is a StatefulWidget', (WidgetTester tester) async {
       final controller = ReactiveController();
       Zen.put(controller);
 
@@ -625,4 +628,3 @@ void main() {
     });
   });
 }
-

@@ -79,4 +79,3 @@ export 'debug/zen_debug.dart' show ZenDebug;
 // Service extensions for DevTools integration
 // Use zenify_devtools_extension package for visual DevTools UI
 export 'devtools/devtools.dart';
-

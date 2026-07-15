@@ -29,7 +29,8 @@ class ZenObserver extends StatefulWidget {
   /// an early build (e.g. a ZenProvider is still initialising).
   final bool suppressEmptyWarning;
 
-  const ZenObserver(this.builder, {super.key, this.suppressEmptyWarning = false});
+  const ZenObserver(this.builder,
+      {super.key, this.suppressEmptyWarning = false});
 
   @override
   State<ZenObserver> createState() => _ZenObserverState();
@@ -170,5 +171,3 @@ class _ZenObserverState extends State<ZenObserver> {
     return result;
   }
 }
-
-

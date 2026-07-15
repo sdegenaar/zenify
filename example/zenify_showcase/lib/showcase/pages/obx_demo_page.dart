@@ -6,8 +6,6 @@ import '../widgets/demo_section.dart';
 class ObxDemoPage extends ZenView<ReactiveDemoController> {
   const ObxDemoPage({super.key});
 
-  
-
   @override
   Widget build(BuildContext context, ReactiveDemoController controller) {
     return Scaffold(

@@ -113,11 +113,20 @@ class _HomePageState extends State<HomePage>
       body: TabBarView(
         controller: _tabController,
         children: [
-          ZenProvider.create(create: () => QueryBasicsController(), child: const QueryBasicsPage()),
-          ZenProvider.create(create: () => MutationController(), child: const MutationPage()),
-          ZenProvider.create(create: () => InfiniteQueryController(), child: const InfiniteQueryPage()),
-          ZenProvider.create(create: () => StreamQueryController(), child: const StreamQueryPage()),
-          ZenProvider.create(create: () => AdvancedFeaturesController(), child: const AdvancedFeaturesPage()),
+          ZenProvider.create(
+              create: () => QueryBasicsController(),
+              child: const QueryBasicsPage()),
+          ZenProvider.create(
+              create: () => MutationController(), child: const MutationPage()),
+          ZenProvider.create(
+              create: () => InfiniteQueryController(),
+              child: const InfiniteQueryPage()),
+          ZenProvider.create(
+              create: () => StreamQueryController(),
+              child: const StreamQueryPage()),
+          ZenProvider.create(
+              create: () => AdvancedFeaturesController(),
+              child: const AdvancedFeaturesPage()),
         ],
       ),
     );

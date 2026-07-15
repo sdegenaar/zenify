@@ -11,8 +11,6 @@ import '../controllers/advanced_features_controller.dart';
 class AdvancedFeaturesPage extends ZenView<AdvancedFeaturesController> {
   const AdvancedFeaturesPage({super.key});
 
-  
-
   @override
   Widget build(BuildContext context, AdvancedFeaturesController controller) {
     return ListView(

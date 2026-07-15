@@ -98,7 +98,6 @@ void main() {
 
   // ── 1. ZenBuilder deprecated alias ───────────────────────────────────────
 
-
   // ── 2. ZenUpdater ID-targeted selective rebuilds ─────────────────────────
 
   group('ZenUpdater ID-targeted rebuilds', () {
@@ -307,6 +306,5 @@ void main() {
       expect(receivedCtrl?.plainCount, 99);
       expect(receivedCtrl, isNot(same(global)));
     });
-
   });
 }

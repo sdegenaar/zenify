@@ -11,8 +11,6 @@ import '../controllers/stream_query_controller.dart';
 class StreamQueryPage extends ZenView<StreamQueryController> {
   const StreamQueryPage({super.key});
 
-  
-
   @override
   Widget build(BuildContext context, StreamQueryController controller) {
     return ListView(
