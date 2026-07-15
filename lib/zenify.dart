@@ -7,7 +7,6 @@ library;
 
 // ===== CORE DI SYSTEM =====
 export 'di/zen_di.dart' show Zen;
-export 'di/zen_refs.dart' show Ref;
 export 'di/zen_lifecycle.dart';
 export 'di/zen_reactive.dart';
 
@@ -83,3 +82,4 @@ export 'devtools/devtools.dart';
 // These exist solely for backwards compatibility. Do not use in new code.
 export 'widgets/builders/zen_builder.dart'; // ZenBuilder → use ZenUpdater
 // NOTE: ZenControllerScope was REMOVED in V2. Replace with ZenProvider.create<T>.
+// NOTE: Obx was REMOVED in V2. Replace with ZenObserver.

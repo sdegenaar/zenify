@@ -15,7 +15,7 @@ class Rx<T> extends ValueNotifier<T> implements ReactiveValue<T> {
   // Override the value getter to automatically track access
   @override
   T get value {
-    // Automatically track when value is accessed within an Obx widget
+    // Automatically track when value is accessed within an ZenObserver widget
     RxTracking.track(this);
     return super.value;
   }

@@ -27,9 +27,6 @@ class Zen {
   // Root scope singleton for global dependencies
   static ZenScope? _rootScope;
 
-  // Current scope tracking (for backward compatibility)
-  static ZenScope? _currentScope;
-
   //
   // INITIALIZATION
   //
@@ -103,25 +100,6 @@ class Zen {
       ZenLogger.logDebug('✨ Created root scope');
     }
     return _rootScope!;
-  }
-
-  /// Get the current active scope (for internal use)
-  ///
-  /// Falls back to rootScope if no current scope is set.
-  static ZenScope get currentScope => _currentScope ?? rootScope;
-
-  /// Set current scope (used by routing/navigation)
-  ///
-  /// This is maintained for backward compatibility. In the new architecture,
-  /// scopes are managed via the widget tree.
-  static void setCurrentScope(ZenScope scope) {
-    _currentScope = scope;
-    ZenLogger.logDebug('Current scope: ${scope.name}');
-  }
-
-  /// Reset current scope to root
-  static void resetCurrentScope() {
-    _currentScope = null;
   }
 
   //
@@ -298,7 +276,6 @@ class Zen {
     ZenModuleRegistry.clear();
     ZenReactiveSystem.instance.clearListeners();
     _lifecycleManager.dispose();
-    _currentScope = null;
 
     // Dispose root scope if it exists
     if (_rootScope != null && !_rootScope!.isDisposed) {
@@ -325,54 +302,12 @@ class Zen {
     ZenLogger.logInfo('🗑️ Query cache cleared');
   }
 
-  // =========================================================================
-  // CONVENIENCE ALIASES (v1.6.3+)
-  // =========================================================================
-
-  /// Alias for [find]. Gets a dependency from the container.
-  ///
-  /// This is a convenience alias that provides consistent verb naming
-  /// across the Zenify API (get/put/remove/has).
-  ///
-  /// Example:
-  /// ```dart
-  /// final service = Zen.get<UserService>();
-  /// ```
-  static T get<T>({String? tag}) => find<T>(tag: tag);
-
-  /// Alias for [delete]. Removes a dependency from the container.
-  ///
-  /// This is a convenience alias that provides consistent verb naming
-  /// across the Zenify API (get/put/remove/has).
-  ///
-  /// Example:
-  /// ```dart
-  /// Zen.remove<UserService>();
-  /// ```
-  static bool remove<T>({String? tag, bool force = false}) =>
-      delete<T>(tag: tag, force: force);
-
-  /// Alias for [exists]. Checks if a dependency exists in the container.
-  ///
-  /// This is a convenience alias that provides consistent verb naming
-  /// across the Zenify API (get/put/remove/has).
-  ///
-  /// Example:
-  /// ```dart
-  /// if (Zen.has<UserService>()) { ... }
-  /// ```
-  static bool has<T>({String? tag}) => exists<T>(tag: tag);
-
   /// Shorthand for [ZenQueryCache.instance].
   ///
   /// Provides shorter, more convenient access to the query cache.
   ///
   /// Example:
   /// ```dart
-  /// // Before
-  /// ZenQueryCache.instance.setQueryData('users', (_) => users);
-  ///
-  /// // After
   /// Zen.queryCache.setQueryData('users', (_) => users);
   /// ```
   static ZenQueryCache get queryCache => ZenQueryCache.instance;

@@ -39,23 +39,23 @@ void main() {
     Zen.deleteAll(force: true);
   });
 
-  group('Obx Widget Tests', () {
+  group('ZenObserver Widget Tests', () {
     testWidgets('should rebuild when Rx values change',
         (WidgetTester tester) async {
       // Create controller
       final controller = ReactiveController();
       Zen.put(controller);
 
-      // Build widgets with Obx
+      // Build widgets with ZenObserver
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
             body: Column(
               children: [
-                Obx(() => Text('Counter: ${controller.counter.value}')),
-                Obx(() => Text('Name: ${controller.name.value}')),
-                Obx(() => Text('Active: ${controller.isActive.value}')),
-                Obx(() => Text('Items: ${controller.items.value.length}')),
+                ZenObserver(() => Text('Counter: ${controller.counter.value}')),
+                ZenObserver(() => Text('Name: ${controller.name.value}')),
+                ZenObserver(() => Text('Active: ${controller.isActive.value}')),
+                ZenObserver(() => Text('Items: ${controller.items.value.length}')),
                 ElevatedButton(
                   onPressed: controller.incrementCounter,
                   child: const Text('Increment'),
@@ -115,7 +115,7 @@ void main() {
       expect(find.text('Items: 1'), findsOneWidget);
     });
 
-    testWidgets('should only rebuild specific Obx widgets',
+    testWidgets('should only rebuild specific ZenObserver widgets',
         (WidgetTester tester) async {
       // Create controller
       final controller = ReactiveController();
@@ -125,18 +125,18 @@ void main() {
       int counterRebuildCount = 0;
       int nameRebuildCount = 0;
 
-      // Build widgets with Obx that track rebuilds
+      // Build widgets with ZenObserver that track rebuilds
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
             body: Column(
               children: [
-                Obx(() {
+                ZenObserver(() {
                   counterRebuildCount++;
                   return Text(
                       'Counter: ${controller.counter.value} (Rebuilds: $counterRebuildCount)');
                 }),
-                Obx(() {
+                ZenObserver(() {
                   nameRebuildCount++;
                   return Text(
                       'Name: ${controller.name.value} (Rebuilds: $nameRebuildCount)');
@@ -163,7 +163,7 @@ void main() {
       await tester.tap(find.text('Increment Counter'));
       await tester.pump();
 
-      // Only counter Obx should rebuild
+      // Only counter ZenObserver should rebuild
       expect(counterRebuildCount, 2);
       expect(nameRebuildCount, 1); // Unchanged
 
@@ -171,7 +171,7 @@ void main() {
       await tester.tap(find.text('Update Name'));
       await tester.pump();
 
-      // Only name Obx should rebuild
+      // Only name ZenObserver should rebuild
       expect(counterRebuildCount, 2); // Unchanged
       expect(nameRebuildCount, 2);
     });
@@ -189,7 +189,7 @@ void main() {
             body: Column(
               children: [
                 // Complex expression combining multiple observables
-                Obx(() => Text(
+                ZenObserver(() => Text(
                       'Status: ${controller.isActive.value ? "Active" : "Inactive"} user ${controller.name.value} has ${controller.counter.value} points',
                     )),
                 ElevatedButton(
@@ -231,7 +231,7 @@ void main() {
           home: Scaffold(
             body: Column(
               children: [
-                Obx(() => controller.isActive.value
+                ZenObserver(() => controller.isActive.value
                     ? Text('Welcome ${controller.name.value}')
                     : const Text('Please activate your account')),
                 ElevatedButton(
@@ -257,7 +257,7 @@ void main() {
       expect(find.text('Welcome John'), findsOneWidget);
     });
 
-    testWidgets('should work with nested Obx widgets',
+    testWidgets('should work with nested ZenObserver widgets',
         (WidgetTester tester) async {
       // Create controller
       final controller = ReactiveController();
@@ -267,18 +267,18 @@ void main() {
       int outerRebuildCount = 0;
       int innerRebuildCount = 0;
 
-      // Build widget with nested Obx
+      // Build widget with nested ZenObserver
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
             body: Column(
               children: [
-                Obx(() {
+                ZenObserver(() {
                   outerRebuildCount++;
                   return Column(
                     children: [
                       Text('Outer: ${controller.counter.value}'),
-                      Obx(() {
+                      ZenObserver(() {
                         innerRebuildCount++;
                         return Text('Inner: ${controller.name.value}');
                       }),
@@ -330,7 +330,7 @@ void main() {
           home: Scaffold(
             body: Column(
               children: [
-                Obx(() => Text('Items: ${controller.items.value.join(", ")}')),
+                ZenObserver(() => Text('Items: ${controller.items.value.join(", ")}')),
                 ElevatedButton(
                   onPressed: () => controller
                       .addItem('Item ${controller.items.value.length + 1}'),
@@ -382,13 +382,13 @@ void main() {
       final controller = ReactiveController();
       Zen.put(controller);
 
-      // Build widget using Obx
+      // Build widget using ZenObserver
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
             body: Column(
               children: [
-                Obx(() => Text('Counter: ${controller.counter.value}')),
+                ZenObserver(() => Text('Counter: ${controller.counter.value}')),
                 ElevatedButton(
                   // Use operator syntax directly
                   onPressed: () => controller.counter.value += 1,
@@ -434,7 +434,7 @@ void main() {
           home: Scaffold(
             body: Column(
               children: [
-                Obx(() => Text('Active: ${controller.isActive.value}')),
+                ZenObserver(() => Text('Active: ${controller.isActive.value}')),
                 ElevatedButton(
                   onPressed: () => controller.isActive.toggle(),
                   child: const Text('Toggle'),
@@ -465,12 +465,12 @@ void main() {
       final controller = ReactiveController();
       Zen.put(controller);
 
-      // Add Obx widget
+      // Add ZenObserver widget
       await tester.pumpWidget(
         MaterialApp(
           home: Column(
             children: [
-              Obx(() => Text('Counter: ${controller.counter.value}')),
+              ZenObserver(() => Text('Counter: ${controller.counter.value}')),
               ElevatedButton(
                 onPressed: () {
                   controller.dispose();
@@ -503,13 +503,13 @@ void main() {
       // Track object identity changes
       final initialCounter = controller.counter;
 
-      // Build widget using Obx
+      // Build widget using ZenObserver
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
             body: Column(
               children: [
-                Obx(() => Text('Counter: ${controller.counter.value}')),
+                ZenObserver(() => Text('Counter: ${controller.counter.value}')),
                 ElevatedButton(
                   onPressed: controller.incrementCounter,
                   child: const Text('Increment'),
@@ -528,7 +528,7 @@ void main() {
       expect(identical(initialCounter, controller.counter), isTrue);
     });
 
-    testWidgets('should work with multiple independent Obx widgets',
+    testWidgets('should work with multiple independent ZenObserver widgets',
         (WidgetTester tester) async {
       // Create multiple controllers
       final controller1 = ReactiveController();
@@ -537,14 +537,14 @@ void main() {
       Zen.put(controller1, tag: 'c1');
       Zen.put(controller2, tag: 'c2');
 
-      // Build widgets with Obx
+      // Build widgets with ZenObserver
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
             body: Column(
               children: [
-                Obx(() => Text('C1 Counter: ${controller1.counter.value}')),
-                Obx(() => Text('C2 Counter: ${controller2.counter.value}')),
+                ZenObserver(() => Text('C1 Counter: ${controller1.counter.value}')),
+                ZenObserver(() => Text('C2 Counter: ${controller2.counter.value}')),
                 ElevatedButton(
                   onPressed: controller1.incrementCounter,
                   child: const Text('Increment C1'),
@@ -581,9 +581,9 @@ void main() {
     });
   });
 
-  // ZenObserver is the primary class; Obx is a deprecated alias that extends it.
-  group('ZenObserver Alias Tests', () {
-    testWidgets('ZenObserver should work identically to Obx',
+  // V2: ZenObserver is the sole reactive widget. Obx alias is removed.
+  group('ZenObserver (primary reactive widget)', () {
+    testWidgets('ZenObserver is the canonical reactive widget',
         (WidgetTester tester) async {
       final controller = ReactiveController();
       Zen.put(controller);
@@ -593,10 +593,8 @@ void main() {
           home: Scaffold(
             body: Column(
               children: [
-                // Test both Obx and ZenObserver side by side
-                Obx(() => Text('Obx: ${controller.counter.value}')),
-                ZenObserver(
-                    () => Text('ZenObserver: ${controller.counter.value}')),
+                ZenObserver(() => Text('Count: ${controller.counter.value}')),
+                ZenObserver(() => Text('Name: ${controller.name.value}')),
                 ElevatedButton(
                   onPressed: controller.incrementCounter,
                   child: const Text('Increment'),
@@ -607,41 +605,24 @@ void main() {
         ),
       );
 
-      // Verify initial state
-      expect(find.text('Obx: 0'), findsOneWidget);
-      expect(find.text('ZenObserver: 0'), findsOneWidget);
+      expect(find.text('Count: 0'), findsOneWidget);
+      expect(find.text('Name: John'), findsOneWidget);
 
-      // Increment
       await tester.tap(find.text('Increment'));
       await tester.pump();
 
-      // Both should update
-      expect(find.text('Obx: 1'), findsOneWidget);
-      expect(find.text('ZenObserver: 1'), findsOneWidget);
+      expect(find.text('Count: 1'), findsOneWidget);
+      expect(find.text('Name: John'), findsOneWidget);
     });
 
-    testWidgets('Obx should be an instance of ZenObserver (backwards compat)',
+    testWidgets('ZenObserver is a StatefulWidget',
         (WidgetTester tester) async {
       final controller = ReactiveController();
       Zen.put(controller);
 
-      // ignore: deprecated_member_use
-      final obx = Obx(() => Text('${controller.counter.value}'));
-
-      // Obx is a deprecated subtype of ZenObserver — confirm the relationship
-      expect(obx, isA<ZenObserver>());
-    });
-
-    testWidgets('ZenObserver should be a ZenObserver (primary class)',
-        (WidgetTester tester) async {
-      final controller = ReactiveController();
-      Zen.put(controller);
-
-      final zenObserver =
-          ZenObserver(() => Text('${controller.counter.value}'));
-
-      // ZenObserver is the primary canonical class
-      expect(zenObserver, isA<ZenObserver>());
+      final widget = ZenObserver(() => Text('${controller.counter.value}'));
+      expect(widget, isA<ZenObserver>());
     });
   });
 }
+

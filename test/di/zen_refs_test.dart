@@ -1,5 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zenify/zenify.dart';
+// Ref<T> is an internal helper removed from the public barrel in V2.
+// Import directly from its source file for internal testing.
+// ignore: implementation_imports
+import 'package:zenify/di/zen_refs.dart';
 
 class _TestService {
   final String label;

@@ -3,14 +3,14 @@ import 'package:flutter/foundation.dart';
 import '../../core/zen_logger.dart';
 
 /// Internal tracking system for Rx values
-/// This allows Obx widgets to track which Rx values are used in their build methods
+/// This allows ZenObserver widgets to track which Rx values are used in their build methods
 class RxTracking {
   RxTracking._(); // Private constructor to prevent instantiation // coverage:ignore-line
 
-  // The current tracker function set by Obx widget
+  // The current tracker function set by ZenObserver widget
   static void Function(ValueNotifier)? _tracker;
 
-  /// Set the current tracker, called by Obx before building
+  /// Set the current tracker, called by ZenObserver before building
   static void setTracker(void Function(ValueNotifier) trackFunc) {
     _tracker = trackFunc;
     // Use new ZenLogger.logRxTracking method
@@ -19,7 +19,7 @@ class RxTracking {
 
   /// Set a tracker that doesn't log tracking events
   ///
-  /// This method is specifically designed for the optimized Obx widget to silently
+  /// This method is specifically designed for the optimized ZenObserver widget to silently
   /// track dependencies without logging or triggering additional rebuilds.
   /// It's used when we need to collect dependencies but don't want to rebuild
   /// the widget if the output hasn't changed.
@@ -30,7 +30,7 @@ class RxTracking {
     // No logging here to avoid cluttering logs during dependency collection
   }
 
-  /// Clear the tracker, called by Obx after building
+  /// Clear the tracker, called by ZenObserver after building
   static void clearTracker() {
     _tracker = null;
     // Use new ZenLogger.logRxTracking method

@@ -968,95 +968,89 @@ void main() {
     });
   });
 
-  group('ZenRoute - Navigation & Hybrid Discovery', () {
-    testWidgets('Sibling routes inherit scope via Zen.currentScope bridge',
+  group('ZenRoute - Navigation & Scope Chaining', () {
+    testWidgets(
+        'Nested ZenRoutes chain parent scopes via widget tree (not global state)',
         (WidgetTester tester) async {
-      final parentModule = ParentModule();
-      final childModule = ChildModule();
-
+      // A ZenRoute that is a widget-tree descendant of another ZenRoute
+      // should correctly pick up the parent's scope via InheritedWidget lookup.
       ZenScope? parentScope;
       ZenScope? childScope;
 
       await tester.pumpWidget(
         MaterialApp(
-          home: Builder(
-            builder: (context) {
-              return ElevatedButton(
-                onPressed: () {
-                  // 1. Push Parent Route
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => ZenRoute(
-                        moduleBuilder: () => parentModule,
-                        scopeName: 'ParentScope',
-                        page: Builder(builder: (parentCtx) {
-                          parentScope = parentCtx.zenScope;
-                          // Added Scaffold to host the button properly
-                          return Scaffold(
-                            body: ElevatedButton(
-                              onPressed: () {
-                                // 2. Push Child Route (Sibling in Overlay)
-                                Navigator.of(parentCtx).push(
-                                  MaterialPageRoute(
-                                    builder: (_) => ZenRoute(
-                                      moduleBuilder: () => childModule,
-                                      scopeName: 'ChildScope',
-                                      page: Builder(builder: (childCtx) {
-                                        childScope = childCtx.zenScope;
-                                        // FIX: Added Scaffold+AppBar so tester.pageBack() can find the back button
-                                        return Scaffold(
-                                          appBar: AppBar(
-                                              title: const Text('Child')),
-                                          body: const Text('Child Page'),
-                                        );
-                                      }),
-                                    ),
-                                  ),
-                                );
-                              },
-                              child: const Text('Go to Child'),
-                            ),
-                          );
-                        }),
-                      ),
-                    ),
-                  );
-                },
-                child: const Text('Start'),
+          home: ZenRoute(
+            moduleBuilder: () => ParentModule(),
+            scopeName: 'ParentScope',
+            page: Builder(builder: (parentCtx) {
+              parentScope = parentCtx.zenScope;
+              return ZenRoute(
+                moduleBuilder: () => ChildModule(),
+                scopeName: 'ChildScope',
+                page: Builder(builder: (childCtx) {
+                  childScope = childCtx.zenScope;
+                  return const Text('Child');
+                }),
               );
-            },
+            }),
           ),
         ),
       );
 
-      // Navigate to Parent
-      await tester.tap(find.text('Start'));
       await tester.pumpAndSettle();
+
       expect(parentScope, isNotNull);
-      expect(Zen.currentScope, parentScope,
-          reason: 'Bridge should point to Parent');
-
-      // Navigate to Child
-      await tester.tap(find.text('Go to Child'));
-      await tester.pumpAndSettle();
-
-      // VERIFICATION 1: Child found Parent despite being a sibling
       expect(childScope, isNotNull);
+      // Child scope's parent is the parent's scope — resolved via widget tree,
+      // not via any global pointer.
       expect(childScope!.parent, same(parentScope),
-          reason: 'Child should link to Parent via currentScope bridge');
+          reason: 'Child scope should link to parent via widget tree');
+    });
 
-      // VERIFICATION 2: Bridge updated to Child
-      expect(Zen.currentScope, childScope);
+    testWidgets(
+        'ZenRoute pushed via Navigator with no ZenProvider ancestor parents to rootScope',
+        (WidgetTester tester) async {
+      // A route pushed via MaterialPageRoute is outside the original widget tree.
+      // Without a ZenProvider ancestor or explicit parentScope, it should default
+      // to Zen.rootScope — a stable, well-known anchor.
+      // It must NOT silently track a mutable Zen.currentScope pointer.
+      ZenScope? pushedScope;
 
-      // Pop Child (Now works because AppBar is present)
-      await tester.pageBack();
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) => ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => ZenRoute(
+                      moduleBuilder: () => ParentModule(),
+                      scopeName: 'PushedScope',
+                      page: Builder(builder: (ctx) {
+                        pushedScope = ctx.zenScope;
+                        return Scaffold(
+                          appBar: AppBar(title: const Text('Pushed')),
+                          body: const Text('Pushed Page'),
+                        );
+                      }),
+                    ),
+                  ),
+                );
+              },
+              child: const Text('Push'),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Push'));
       await tester.pumpAndSettle();
 
-      // VERIFICATION 3: Cleanup and Restoration
-      expect(childScope!.isDisposed, true,
-          reason: 'Child should be disposed on pop');
-      expect(Zen.currentScope, parentScope,
-          reason: 'Bridge should restore pointer to Parent');
+      expect(pushedScope, isNotNull);
+      // No parent in the widget tree and no explicit parentScope — scope
+      // parents to Zen.rootScope (immutable anchor), NOT a mutable global pointer.
+      expect(pushedScope!.parent, same(Zen.rootScope),
+          reason: 'Top-level pushed route should parent to Zen.rootScope');
     });
 
     testWidgets('Can override inheritance using parentScope parameter',
@@ -1081,7 +1075,7 @@ void main() {
                         builder: (_) => ZenRoute(
                           moduleBuilder: () => ParentModule(),
                           scopeName: 'IsolatedScope',
-                          // 🔥 EXPLICIT OVERRIDE
+                          // Explicit override to root — ignores widget tree parent
                           parentScope: Zen.rootScope,
                           page: Builder(builder: (ctx) {
                             isolatedScope = ctx.zenScope;
@@ -1103,17 +1097,16 @@ void main() {
       );
 
       await tester.pumpAndSettle();
-
-      // Navigate to Isolated Page
       await tester.tap(find.text('Go Isolated'));
       await tester.pumpAndSettle();
 
-      // VERIFICATION: Parent is Root, NOT the previous page
+      // VERIFICATION: Parent is Root, NOT the parentScope from the widget tree
       expect(isolatedScope!.parent, same(Zen.rootScope));
       expect(isolatedScope!.parent, isNot(parentScope));
     });
   });
 }
+
 
 // =============================================================================
 // ERROR MODULE FOR TESTING

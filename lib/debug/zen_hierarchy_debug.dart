@@ -25,7 +25,6 @@ class ZenHierarchyDebug {
     final allScopes = ZenDebug.allScopes;
 
     return {
-      'currentScope': ZenScopeInspector.toDebugMap(Zen.currentScope),
       'rootScope': ZenScopeInspector.toDebugMap(rootScope),
       'hierarchy': buildHierarchyTree(rootScope),
       'scopeStats': {

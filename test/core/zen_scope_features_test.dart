@@ -12,7 +12,6 @@ import 'package:zenify/zenify.dart';
 ///
 /// And di/zen_di.dart:
 /// - Zen.init() with storage/handlers (L50-70)
-/// - Zen.setCurrentScope / resetCurrentScope (L115-123)
 /// - Zen.putLazy (L172-184)
 /// - Zen.findOrNull (L206-208)
 /// - Zen.exists (L211-213)
@@ -207,23 +206,6 @@ void main() {
     });
   });
 
-  // ══════════════════════════════════════════════════════════
-  // Zen.setCurrentScope / resetCurrentScope
-  // ══════════════════════════════════════════════════════════
-  group('Zen.setCurrentScope and resetCurrentScope', () {
-    test('setCurrentScope changes currentScope', () {
-      final scope = Zen.createScope(name: 'Current');
-      Zen.setCurrentScope(scope);
-      expect(Zen.currentScope, same(scope));
-      Zen.resetCurrentScope();
-      scope.dispose();
-    });
-
-    test('resetCurrentScope falls back to rootScope', () {
-      Zen.resetCurrentScope();
-      expect(Zen.currentScope, same(Zen.rootScope));
-    });
-  });
 
   // ══════════════════════════════════════════════════════════
   // Zen.putLazy

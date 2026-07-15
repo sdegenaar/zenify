@@ -575,68 +575,50 @@ void main() {
       expect(controller.readyCalled, isTrue);
     });
 
-    // v1.6.3 Alias Tests
-    group('v1.6.3 Convenience Aliases', () {
-      test('Zen.get should be alias for Zen.find', () {
-        final service = TestService('alias-test');
+    // V2: Canonical verb tests (aliases Zen.get/has/remove removed)
+    group('V2 Canonical Verb API', () {
+      test('Zen.find returns registered dependency', () {
+        final service = TestService('canonical-find');
         Zen.put<TestService>(service);
-
-        final foundViaFind = Zen.find<TestService>();
-        final foundViaGet = Zen.get<TestService>();
-
-        expect(foundViaGet, same(foundViaFind));
-        expect(foundViaGet, same(service));
+        expect(Zen.find<TestService>(), same(service));
       });
 
-      test('Zen.get with tag should work', () {
-        final service = TestService('tagged-alias');
+      test('Zen.find with tag returns tagged dependency', () {
+        final service = TestService('tagged-find');
         Zen.put<TestService>(service, tag: 'mytag');
-
-        final found = Zen.get<TestService>(tag: 'mytag');
-        expect(found, same(service));
-        expect(found.value, 'tagged-alias');
+        expect(Zen.find<TestService>(tag: 'mytag'), same(service));
       });
 
-      test('Zen.remove should be alias for Zen.delete', () {
-        final service = TestService('remove-test');
+      test('Zen.delete removes dependency', () {
+        final service = TestService('delete-test');
         Zen.put<TestService>(service);
-
-        expect(Zen.has<TestService>(), isTrue);
-
-        final removed = Zen.remove<TestService>();
-        expect(removed, isTrue);
+        expect(Zen.exists<TestService>(), isTrue);
+        expect(Zen.delete<TestService>(), isTrue);
         expect(Zen.findOrNull<TestService>(), isNull);
       });
 
-      test('Zen.remove with force should work', () {
-        final service = TestService('force-remove');
+      test('Zen.delete with force removes permanent dependency', () {
+        final service = TestService('force-delete');
         Zen.put<TestService>(service, isPermanent: true);
-
-        // Should fail without force
-        expect(Zen.remove<TestService>(), isFalse);
-        expect(Zen.has<TestService>(), isTrue);
-
-        // Should succeed with force
-        expect(Zen.remove<TestService>(force: true), isTrue);
-        expect(Zen.has<TestService>(), isFalse);
+        expect(Zen.delete<TestService>(), isFalse); // fails without force
+        expect(Zen.exists<TestService>(), isTrue);
+        expect(Zen.delete<TestService>(force: true), isTrue);
+        expect(Zen.exists<TestService>(), isFalse);
       });
 
-      test('Zen.has should be alias for Zen.exists', () {
-        expect(Zen.has<TestService>(), isFalse);
+      test('Zen.exists returns false when not registered', () {
+        expect(Zen.exists<TestService>(), isFalse);
+      });
 
-        final service = TestService('exists-test');
-        Zen.put<TestService>(service);
-
-        expect(Zen.has<TestService>(), isTrue);
+      test('Zen.exists returns true when registered', () {
+        Zen.put<TestService>(TestService('exists-test'));
         expect(Zen.exists<TestService>(), isTrue);
       });
 
-      test('Zen.has with tag should work', () {
-        expect(Zen.has<TestService>(tag: 'special'), isFalse);
-
+      test('Zen.exists with tag works', () {
+        expect(Zen.exists<TestService>(tag: 'special'), isFalse);
         Zen.put<TestService>(TestService('tagged'), tag: 'special');
-
-        expect(Zen.has<TestService>(tag: 'special'), isTrue);
+        expect(Zen.exists<TestService>(tag: 'special'), isTrue);
       });
 
       test('Zen.queryCache should be shorthand for ZenQueryCache.instance', () {

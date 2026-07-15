@@ -18,7 +18,7 @@ import '../../core/zen_metrics.dart';
 /// ```
 ///
 /// For multi-controller granular rebuilds use [ZenBuilder] instead.
-/// [Obx] is a deprecated alias kept for GetX migration compatibility.
+/// [ZenObserver] is a deprecated alias kept for GetX migration compatibility.
 class ZenObserver extends StatefulWidget {
   final Widget Function() builder;
 
@@ -171,21 +171,4 @@ class _ZenObserverState extends State<ZenObserver> {
   }
 }
 
-/// Deprecated alias for [ZenObserver].
-///
-/// This name is a GetX holdover. Migrate to [ZenObserver] in all new code.
-///
-/// ```dart
-/// // Before
-/// Obx(() => Text(count.value.toString()))
-///
-/// // After
-/// ZenObserver(() => Text(count.value.toString()))
-/// ```
-@Deprecated(
-  'Use ZenObserver instead. '
-  'Obx is a GetX naming holdover and will be removed in a future version.',
-)
-class Obx extends ZenObserver {
-  const Obx(super.builder, {super.key});
-}
+
