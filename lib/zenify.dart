@@ -80,6 +80,5 @@ export 'devtools/devtools.dart';
 
 // ===== DEPRECATED — V2 MIGRATION ALIASES =====
 // These exist solely for backwards compatibility. Do not use in new code.
-export 'widgets/builders/zen_builder.dart'; // ZenBuilder → use ZenUpdater
 // NOTE: ZenControllerScope was REMOVED in V2. Replace with ZenProvider.create<T>.
 // NOTE: Obx was REMOVED in V2. Replace with ZenObserver.

@@ -22,17 +22,6 @@ class ZenConfig {
   /// - Developing the Zenify framework itself
   static bool enableRxTracking = false;
 
-  /// Legacy property for backward compatibility
-  @Deprecated(
-      'Use logLevel instead. Will be removed in v1.0') // coverage:ignore-line
-  static bool get enableDebugLogs =>
-      logLevel.level >= ZenLogLevel.debug.level; // coverage:ignore-line
-
-  @Deprecated(
-      'Use logLevel instead. Will be removed in v1.0') // coverage:ignore-line
-  static set enableDebugLogs(bool value) {
-    logLevel = value ? ZenLogLevel.debug : ZenLogLevel.warning;
-  }
 
   /// Navigation and routing logging
   static bool enableNavigationLogging = false;
@@ -434,9 +423,6 @@ class ZenConfig {
     bool? circularDependencyCheck,
     bool? dependencyVisualization,
     bool? useRxTrack,
-
-    // Legacy support
-    @Deprecated('Use level parameter instead') bool? debugLogs,
   }) {
     // Logging
     if (level != null) logLevel = level;
@@ -465,10 +451,7 @@ class ZenConfig {
     }
     if (useRxTrack != null) useRxTracking = useRxTrack;
 
-    // Legacy support
-    if (debugLogs != null) {
-      logLevel = debugLogs ? ZenLogLevel.debug : ZenLogLevel.warning;
-    }
+
   }
 
   // ============================================================================

@@ -317,21 +317,6 @@ extension ZenScopeExtension on BuildContext {
   }
 
   /// Finds the nearest [ZenScope] above this context.
-  ///
-  /// This method will look up the widget tree and return the [ZenScope]
-  /// provided by the nearest [ZenProvider] ancestor.
-  ///
-  /// Throws an exception if no [ZenScope] is found.
-  @Deprecated('Use zenScopeRequired instead') // coverage:ignore-line
-  ZenScope findScope() => zenScopeRequired; // coverage:ignore-line
-
-  /// Finds the nearest [ZenScope] above this context, or returns null if none is found.
-  ///
-  /// Similar to [findScope], but returns null instead of throwing an exception
-  /// if no scope is found.
-  @Deprecated('Use zenScope instead') // coverage:ignore-line
-  ZenScope? mayFindScope() => zenScope; // coverage:ignore-line
-
   /// Finds a dependency in the current scope
   T findInScope<T>({String? tag}) {
     final scope = zenScopeRequired;

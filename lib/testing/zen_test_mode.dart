@@ -91,43 +91,6 @@ class ZenTestMode {
     return Zen.createScope(name: scopeName);
   }
 
-  /// Mock multiple dependencies at once.
-  ///
-  /// ⚠️ **DEPRECATED — This method is broken and cannot be fixed.**
-  ///
-  /// Due to Dart's type erasure, calling `Zen.put(instance)` with a
-  /// `Map<Type, dynamic>` value loses the generic type parameter `T`.
-  /// The instance is always registered under `dynamic` instead of the
-  /// intended interface type, so `Zen.find<AuthService>()` will return
-  /// `null` even after `mockAll({AuthService: FakeAuthService()})`.
-  ///
-  /// **Use chained `.mock<T>()` calls instead:**
-  /// ```dart
-  /// Zen.testMode()
-  ///   .mock<AuthService>(FakeAuthService())
-  ///   .mock<ApiClient>(MockApiClient());
-  /// ```
-  @Deprecated(
-    'mockAll cannot register dependencies under their interface types due to '
-    'Dart type erasure. Use chained .mock<T>() calls instead.',
-  )
-  ZenTestMode mockAll(Map<Type, dynamic> mocks) {
-    ZenLogger.logWarning(
-      '🧪 ZenTestMode.mockAll() is broken: instances are registered under '
-      '`dynamic` not the interface type. Use .mock<T>() chains instead.',
-    );
-
-    for (final entry in mocks.entries) {
-      ZenLogger.logDebug('🧪 Test Mode: Mocking ${entry.key}');
-      // BUG: Dart infers T=dynamic here, not entry.key.
-      // This registers under `dynamic`, making find<T>() always return null.
-      final instance = entry.value;
-      Zen.put(instance);
-    }
-
-    return this;
-  }
-
   /// Clear query cache (useful between tests)
   ///
   /// Example:

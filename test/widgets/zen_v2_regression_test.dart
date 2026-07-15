@@ -98,60 +98,6 @@ void main() {
 
   // ── 1. ZenBuilder deprecated alias ───────────────────────────────────────
 
-  group('ZenBuilder deprecated alias', () {
-    testWidgets('ZenBuilder is identical to ZenUpdater at runtime',
-        (tester) async {
-      final ctrl = CountController();
-      await tester.pumpWidget(
-        MaterialApp(
-          home: ZenProvider.create(
-            create: () => ctrl,
-            child: ZenBuilder<CountController>(
-              builder: (context, c) => Text('alias:${c.plainCount}'),
-            ),
-          ),
-        ),
-      );
-
-      expect(find.text('alias:0'), findsOneWidget);
-
-      ctrl.incrementPlain(); // broadcast update() — notifies all
-      await tester.pump();
-
-      expect(find.text('alias:1'), findsOneWidget);
-    });
-
-    testWidgets('ZenBuilder and ZenUpdater both respond to the same update()',
-        (tester) async {
-      final ctrl = CountController();
-      await tester.pumpWidget(
-        MaterialApp(
-          home: ZenProvider.create(
-            create: () => ctrl,
-            child: Column(
-              children: [
-                ZenUpdater<CountController>(
-                  builder: (ctx, c) => Text('updater:${c.plainCount}'),
-                ),
-                ZenBuilder<CountController>(
-                  builder: (ctx, c) => Text('builder:${c.plainCount}'),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-
-      expect(find.text('updater:0'), findsOneWidget);
-      expect(find.text('builder:0'), findsOneWidget);
-
-      ctrl.incrementPlain(); // broadcast
-      await tester.pump();
-
-      expect(find.text('updater:1'), findsOneWidget);
-      expect(find.text('builder:1'), findsOneWidget);
-    });
-  });
 
   // ── 2. ZenUpdater ID-targeted selective rebuilds ─────────────────────────
 

@@ -184,44 +184,6 @@ void main() {
     });
 
     // -----------------------------------------------------------------------
-    // findRequired<T>() is now deprecated — require<T>() is canonical
-    // -----------------------------------------------------------------------
-
-    test('require<T>() and findRequired<T>() return the same instance (compat)',
-        () {
-      final svc = _ServiceA('same');
-      scope.put<_ServiceA>(svc);
-
-      // ignore: deprecated_member_use
-      expect(scope.require<_ServiceA>(), same(scope.findRequired<_ServiceA>()));
-    });
-
-    test('findRequired<T>() is a deprecated alias — delegates to require<T>()',
-        () {
-      ZenDependencyNotFoundException? fromRequire;
-      ZenDependencyNotFoundException? fromFindRequired;
-
-      try {
-        scope.require<_ServiceB>();
-      } on ZenDependencyNotFoundException catch (e) {
-        fromRequire = e;
-      }
-
-      try {
-        // ignore: deprecated_member_use
-        scope.findRequired<_ServiceB>();
-      } on ZenDependencyNotFoundException catch (e) {
-        fromFindRequired = e;
-      }
-
-      expect(fromRequire, isNotNull);
-      expect(fromFindRequired, isNotNull);
-      // Same context keys — findRequired delegates to require, same exception
-      expect(
-          fromRequire!.context?.keys, equals(fromFindRequired!.context?.keys));
-    });
-
-    // -----------------------------------------------------------------------
     // Disposed scope
     // -----------------------------------------------------------------------
 

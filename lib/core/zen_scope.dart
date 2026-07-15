@@ -283,12 +283,7 @@ class ZenScope {
     return result;
   }
 
-  /// Find a dependency (throws if not found).
-  ///
-  /// @deprecated Use [require] instead — same behaviour, clearer name.
-  @Deprecated(
-      'Use require<T>() instead. It is identical but more discoverable.')
-  T findRequired<T>({String? tag}) => require<T>(tag: tag);
+
 
   /// Check if a dependency exists
   bool exists<T>({String? tag}) {
