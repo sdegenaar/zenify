@@ -52,13 +52,8 @@ class ZenConfig {
   // PERFORMANCE & METRICS CONFIGURATION
   // ============================================================================
 
-  /// Enable performance tracking (primary name)
-  static bool enablePerformanceTracking = false;
-
-  /// Alias for enablePerformanceTracking to match naming in other areas
-  static bool get enablePerformanceMetrics => enablePerformanceTracking;
-  static set enablePerformanceMetrics(bool value) =>
-      enablePerformanceTracking = value;
+  /// Enable performance metrics collection
+  static bool enablePerformanceMetrics = false;
 
   /// Enable general metrics collection
   static bool enableMetrics = false;
@@ -69,10 +64,6 @@ class ZenConfig {
 
   /// Enable automatic disposal of controllers
   static bool enableAutoDispose = true;
-
-  /// Alias for backward compatibility
-  static bool get autoDispose => enableAutoDispose;
-  static set autoDispose(bool value) => enableAutoDispose = value;
 
   /// How long to cache controllers before disposal
   static Duration controllerCacheExpiry = const Duration(minutes: 10);
@@ -86,10 +77,6 @@ class ZenConfig {
 
   /// Strict mode - throw exceptions for misuse
   static bool strictMode = false;
-
-  /// Alias for consistency
-  static bool get enableStrictMode => strictMode;
-  static set enableStrictMode(bool value) => strictMode = value;
 
   /// Whether to check for circular dependencies
   static bool checkForCircularDependencies = true;
@@ -126,7 +113,7 @@ class ZenConfig {
     verboseErrors = false;
 
     // Performance & Metrics
-    enablePerformanceTracking = false;
+    enablePerformanceMetrics = false;
     enableMetrics = false;
 
     // Lifecycle
@@ -149,15 +136,12 @@ class ZenConfig {
       'enableNavigationLogging': enableNavigationLogging,
       'enableRouteLogging': enableRouteLogging,
       'verboseErrors': verboseErrors,
-      'enablePerformanceTracking': enablePerformanceTracking,
       'enablePerformanceMetrics': enablePerformanceMetrics,
       'enableMetrics': enableMetrics,
       'enableAutoDispose': enableAutoDispose,
-      'autoDispose': autoDispose,
       'controllerCacheExpiry': controllerCacheExpiry.toString(),
       'disposeTimeoutMs': disposeTimeoutMs,
       'strictMode': strictMode,
-      'enableStrictMode': enableStrictMode,
       'checkForCircularDependencies': checkForCircularDependencies,
       'enableDependencyVisualization': enableDependencyVisualization,
       'useRxTracking': useRxTracking,
@@ -235,7 +219,7 @@ class ZenConfig {
     enableRouteLogging = false;
 
     // No performance tracking
-    enablePerformanceTracking = false;
+    enablePerformanceMetrics = false;
     enableMetrics = false;
 
     // Standard lifecycle
@@ -258,7 +242,7 @@ class ZenConfig {
     enableRouteLogging = false;
 
     // Some metrics for monitoring
-    enablePerformanceTracking = true;
+    enablePerformanceMetrics = true;
     enableMetrics = true;
 
     // Standard lifecycle
@@ -281,7 +265,7 @@ class ZenConfig {
     enableRouteLogging = false;
 
     // Some metrics for monitoring
-    enablePerformanceTracking = true;
+    enablePerformanceMetrics = true;
     enableMetrics = true;
 
     // Standard lifecycle
@@ -304,7 +288,7 @@ class ZenConfig {
     enableRouteLogging = true;
 
     // Full metrics
-    enablePerformanceTracking = true;
+    enablePerformanceMetrics = true;
     enableMetrics = true;
 
     // Standard lifecycle
@@ -327,7 +311,7 @@ class ZenConfig {
     enableRouteLogging = true;
 
     // Full metrics
-    enablePerformanceTracking = true;
+    enablePerformanceMetrics = true;
     enableMetrics = true;
 
     // Standard lifecycle
@@ -350,7 +334,7 @@ class ZenConfig {
     enableRouteLogging = true;
 
     // Full metrics
-    enablePerformanceTracking = true;
+    enablePerformanceMetrics = true;
     enableMetrics = true;
 
     // Standard lifecycle
@@ -373,7 +357,7 @@ class ZenConfig {
     enableRouteLogging = false;
 
     // No metrics in tests
-    enablePerformanceTracking = false;
+    enablePerformanceMetrics = false;
     enableMetrics = false;
 
     // Disable auto-dispose for test stability
@@ -432,7 +416,7 @@ class ZenConfig {
 
     // Performance & Metrics
     if (performanceTracking != null) {
-      enablePerformanceTracking = performanceTracking;
+      enablePerformanceMetrics = performanceTracking;
     }
     if (metrics != null) enableMetrics = metrics;
 

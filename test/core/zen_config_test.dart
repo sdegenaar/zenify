@@ -16,8 +16,8 @@ void main() {
       expect(ZenConfig.verboseErrors, false);
     });
 
-    test('enablePerformanceTracking is false by default', () {
-      expect(ZenConfig.enablePerformanceTracking, false);
+    test('enablePerformanceMetrics is false by default', () {
+      expect(ZenConfig.enablePerformanceMetrics, false);
     });
 
     test('enableAutoDispose is true by default', () {
@@ -34,26 +34,16 @@ void main() {
   });
 
   // ══════════════════════════════════════════════════════════
-  // Aliases round-trip
+  // enablePerformanceMetrics
   // ══════════════════════════════════════════════════════════
-  group('ZenConfig aliases', () {
-    test('enablePerformanceMetrics alias maps to enablePerformanceTracking',
-        () {
+  group('ZenConfig performance metrics', () {
+    test('enablePerformanceMetrics defaults to false', () {
+      expect(ZenConfig.enablePerformanceMetrics, false);
+    });
+
+    test('enablePerformanceMetrics can be enabled', () {
       ZenConfig.enablePerformanceMetrics = true;
-      expect(ZenConfig.enablePerformanceTracking, true);
       expect(ZenConfig.enablePerformanceMetrics, true);
-    });
-
-    test('autoDispose alias maps to enableAutoDispose', () {
-      ZenConfig.autoDispose = false;
-      expect(ZenConfig.enableAutoDispose, false);
-      expect(ZenConfig.autoDispose, false);
-    });
-
-    test('enableStrictMode alias maps to strictMode', () {
-      ZenConfig.enableStrictMode = true;
-      expect(ZenConfig.strictMode, true);
-      expect(ZenConfig.enableStrictMode, true);
     });
   });
 
@@ -87,7 +77,7 @@ void main() {
       expect(m.containsKey('logLevel'), true);
       expect(m.containsKey('enableRxTracking'), true);
       expect(m.containsKey('verboseErrors'), true);
-      expect(m.containsKey('enablePerformanceTracking'), true);
+      expect(m.containsKey('enablePerformanceMetrics'), true);
       expect(m.containsKey('enableAutoDispose'), true);
       expect(m.containsKey('strictMode'), true);
     });
@@ -107,14 +97,14 @@ void main() {
   group('ZenConfig.applyEnvironment', () {
     test('production env disables metrics and strict mode', () {
       ZenConfig.applyEnvironment(ZenEnvironment.production);
-      expect(ZenConfig.enablePerformanceTracking, false);
+      expect(ZenConfig.enablePerformanceMetrics, false);
       expect(ZenConfig.strictMode, false);
       expect(ZenConfig.logLevel, ZenLogLevel.error);
     });
 
     test('development env enables metrics and strict mode', () {
       ZenConfig.applyEnvironment(ZenEnvironment.development);
-      expect(ZenConfig.enablePerformanceTracking, true);
+      expect(ZenConfig.enablePerformanceMetrics, true);
       expect(ZenConfig.strictMode, true);
       expect(ZenConfig.logLevel, ZenLogLevel.info);
     });
@@ -127,7 +117,7 @@ void main() {
 
     test('staging env enables metrics', () {
       ZenConfig.applyEnvironment(ZenEnvironment.staging);
-      expect(ZenConfig.enablePerformanceTracking, true);
+      expect(ZenConfig.enablePerformanceMetrics, true);
       expect(ZenConfig.enableMetrics, true);
     });
 
@@ -144,7 +134,7 @@ void main() {
 
     test('productionVerbose env enables metrics without strict', () {
       ZenConfig.applyEnvironment(ZenEnvironment.productionVerbose);
-      expect(ZenConfig.enablePerformanceTracking, true);
+      expect(ZenConfig.enablePerformanceMetrics, true);
       expect(ZenConfig.strictMode, false);
     });
 
@@ -194,7 +184,7 @@ void main() {
 
     test('sets performanceTracking', () {
       ZenConfig.configure(performanceTracking: true);
-      expect(ZenConfig.enablePerformanceTracking, true);
+      expect(ZenConfig.enablePerformanceMetrics, true);
     });
 
     test('sets metrics', () {
@@ -283,10 +273,10 @@ void main() {
       expect(ZenConfig.enableAutoDispose, true);
     });
 
-    test('reset restores enablePerformanceTracking to false', () {
-      ZenConfig.enablePerformanceTracking = true;
+    test('reset restores enablePerformanceMetrics to false', () {
+      ZenConfig.enablePerformanceMetrics = true;
       ZenConfig.reset();
-      expect(ZenConfig.enablePerformanceTracking, false);
+      expect(ZenConfig.enablePerformanceMetrics, false);
     });
   });
 }

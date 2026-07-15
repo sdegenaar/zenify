@@ -283,8 +283,6 @@ class ZenScope {
     return result;
   }
 
-
-
   /// Check if a dependency exists
   bool exists<T>({String? tag}) {
     return find<T>(tag: tag) != null;
