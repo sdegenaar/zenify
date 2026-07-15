@@ -23,10 +23,6 @@ void main() {
     test('strictMode is false by default', () {
       expect(ZenConfig.strictMode, false);
     });
-
-    test('checkForCircularDependencies is true by default', () {
-      expect(ZenConfig.checkForCircularDependencies, true);
-    });
   });
 
   // ══════════════════════════════════════════════════════════
@@ -186,15 +182,6 @@ void main() {
       expect(ZenConfig.strictMode, true);
     });
 
-    test('sets circularDependencyCheck', () {
-      ZenConfig.configure(circularDependencyCheck: false);
-      expect(ZenConfig.checkForCircularDependencies, false);
-    });
-
-    test('sets dependencyVisualization', () {
-      ZenConfig.configure(dependencyVisualization: true);
-      expect(ZenConfig.enableDependencyVisualization, true);
-    });
 
     test('null params leave existing values unchanged', () {
       ZenConfig.configure(strict: true);

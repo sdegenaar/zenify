@@ -61,12 +61,6 @@ class ZenConfig {
   /// Strict mode - throw exceptions for misuse
   static bool strictMode = false;
 
-  /// Whether to check for circular dependencies
-  static bool checkForCircularDependencies = true;
-
-  /// Whether to enable dependency visualization
-  static bool enableDependencyVisualization = false;
-
   // ============================================================================
   // UTILITY GETTERS
   // ============================================================================
@@ -97,8 +91,6 @@ class ZenConfig {
 
     // Development Features
     strictMode = false;
-    checkForCircularDependencies = true;
-    enableDependencyVisualization = false;
   }
 
   /// Get current configuration as a map (for debugging)
@@ -111,8 +103,6 @@ class ZenConfig {
       'verboseErrors': verboseErrors,
       'enablePerformanceMetrics': enablePerformanceMetrics,
       'strictMode': strictMode,
-      'checkForCircularDependencies': checkForCircularDependencies,
-      'enableDependencyVisualization': enableDependencyVisualization,
       'shouldLogRoutes': shouldLogRoutes,
       'shouldLogNavigation': shouldLogNavigation,
     };
@@ -186,8 +176,6 @@ class ZenConfig {
     enableRouteLogging = false;
     enablePerformanceMetrics = false;
     strictMode = false;
-    checkForCircularDependencies = false;
-    enableDependencyVisualization = false;
   }
 
   static void _applyProductionVerboseConfig() {
@@ -197,8 +185,6 @@ class ZenConfig {
     enableRouteLogging = false;
     enablePerformanceMetrics = true;
     strictMode = false;
-    checkForCircularDependencies = true;
-    enableDependencyVisualization = false;
   }
 
   static void _applyStagingConfig() {
@@ -208,8 +194,6 @@ class ZenConfig {
     enableRouteLogging = false;
     enablePerformanceMetrics = true;
     strictMode = false;
-    checkForCircularDependencies = true;
-    enableDependencyVisualization = false;
   }
 
   static void _applyDevelopmentConfig() {
@@ -219,8 +203,6 @@ class ZenConfig {
     enableRouteLogging = true;
     enablePerformanceMetrics = true;
     strictMode = true;
-    checkForCircularDependencies = true;
-    enableDependencyVisualization = true;
   }
 
   static void _applyDebugConfig() {
@@ -230,8 +212,6 @@ class ZenConfig {
     enableRouteLogging = true;
     enablePerformanceMetrics = true;
     strictMode = true;
-    checkForCircularDependencies = true;
-    enableDependencyVisualization = true;
   }
 
   static void _applyTraceConfig() {
@@ -241,8 +221,6 @@ class ZenConfig {
     enableRouteLogging = true;
     enablePerformanceMetrics = true;
     strictMode = true;
-    checkForCircularDependencies = true;
-    enableDependencyVisualization = true;
   }
 
   static void _applyTestConfig() {
@@ -252,8 +230,6 @@ class ZenConfig {
     enableRouteLogging = false;
     enablePerformanceMetrics = false;
     strictMode = true;
-    checkForCircularDependencies = true;
-    enableDependencyVisualization = false;
   }
 
   // ============================================================================
@@ -277,20 +253,13 @@ class ZenConfig {
     bool? routeLogging,
     bool? performanceTracking,
     bool? strict,
-    bool? circularDependencyCheck,
-    bool? dependencyVisualization,
   }) {
     if (level != null) logLevel = level;
     if (rxTracking != null) enableRxTracking = rxTracking;
     if (navigationLogging != null) enableNavigationLogging = navigationLogging;
     if (routeLogging != null) enableRouteLogging = routeLogging;
-    if (performanceTracking != null)
-      enablePerformanceMetrics = performanceTracking;
+    if (performanceTracking != null) enablePerformanceMetrics = performanceTracking;
     if (strict != null) strictMode = strict;
-    if (circularDependencyCheck != null)
-      checkForCircularDependencies = circularDependencyCheck;
-    if (dependencyVisualization != null)
-      enableDependencyVisualization = dependencyVisualization;
   }
 
   // ============================================================================
