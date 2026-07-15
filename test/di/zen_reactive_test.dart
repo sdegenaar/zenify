@@ -1,6 +1,7 @@
 // test/di/zen_reactive_test.dart
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zenify/zenify.dart';
+import 'package:zenify/di/zen_reactive.dart';
 
 // Test classes
 class ReactiveTestService {

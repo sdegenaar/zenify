@@ -1,6 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zenify/zenify.dart';
+import 'package:zenify/di/zen_reactive.dart';
+import 'package:zenify/di/zen_lifecycle.dart';
 
 /// Tests for di/zen_reactive.dart and di/zen_lifecycle.dart
 void main() {

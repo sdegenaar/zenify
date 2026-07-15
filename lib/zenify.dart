@@ -7,8 +7,10 @@ library;
 
 // ===== CORE DI SYSTEM =====
 export 'di/zen_di.dart' show Zen;
-export 'di/zen_lifecycle.dart';
-export 'di/zen_reactive.dart';
+// ZenLifecycleManager is internal — not part of the public API.
+export 'di/zen_lifecycle.dart' hide ZenLifecycleManager;
+// ZenReactiveSystem is internal; ZenSubscription is the public surface.
+export 'di/zen_reactive.dart' show ZenSubscription;
 
 // ===== CONTROLLERS & SERVICES =====
 export 'controllers/zen_controller.dart';

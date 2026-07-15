@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zenify/zenify.dart';
+import 'package:zenify/di/zen_reactive.dart';
 
 /// Tests for ZenReactiveSystem targeting uncovered lines in di/zen_reactive.dart:
 /// - _performMaintenanceCheck (line 72, after 100 notifications)

@@ -14,18 +14,6 @@ void main() {
       final b = ZenTestMode();
       expect(identical(a, b), true);
     });
-
-    test('zenTestMode() returns the same singleton', () {
-      final a = zenTestMode();
-      final b = ZenTestMode();
-      expect(identical(a, b), true);
-    });
-
-    test('ZenTestingExtension.testMode() returns the same singleton', () {
-      final a = ZenTestingExtension.testMode();
-      final b = ZenTestMode();
-      expect(identical(a, b), true);
-    });
   });
 
   // ══════════════════════════════════════════════════════════

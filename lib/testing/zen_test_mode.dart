@@ -118,25 +118,3 @@ class ZenTestMode {
   }
 }
 
-/// Helper function to access test mode (alternative to extension)
-///
-/// This is exported globally so you can use:
-/// ```dart
-/// zenTestMode().mock<AuthService>(FakeAuthService());
-/// ```
-ZenTestMode zenTestMode() => ZenTestMode();
-
-/// Extension on Zen class to provide test mode access
-///
-/// Note: This needs to be a static extension since Zen is used as a static class.
-extension ZenTestingExtension on Zen {
-  /// Enter test mode for easy mocking and test setup
-  ///
-  /// Example:
-  /// ```dart
-  /// Zen.testMode()
-  ///   .mock<AuthService>(FakeAuthService())
-  ///   .mock<ApiClient>(MockApiClient());
-  /// ```
-  static ZenTestMode testMode() => ZenTestMode();
-}

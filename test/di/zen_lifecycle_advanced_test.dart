@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zenify/zenify.dart';
+import 'package:zenify/di/zen_lifecycle.dart';
 
 /// Tests targeting uncovered lines in zen_lifecycle.dart:
 /// - L33-34, 40-41: WidgetsBinding path for onReady
