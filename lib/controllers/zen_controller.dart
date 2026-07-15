@@ -22,7 +22,7 @@ abstract class ZenController {
   final List<ZenController> _childControllers = [];
 
   // Resource collections with optimized management
-  final List<ZenWorkerHandle> _workers = [];
+  final List<ZenWorker> _workers = [];
   final List<ZenWorkerGroup> _workerGroups = [];
   final List<ZenEffect> _effects = [];
   final List<void Function()> _disposers = [];
@@ -343,7 +343,7 @@ abstract class ZenController {
   Map<String, dynamic> getWorkerStats() {
     _cleanupDisposedWorkers();
 
-    final workersInGroups = <ZenWorkerHandle>{};
+    final workersInGroups = <ZenWorker>{};
     for (final group in _workerGroups) {
       if (!group.isDisposed) {
         workersInGroups.addAll(group.workers);
@@ -407,7 +407,7 @@ abstract class ZenController {
   //
 
   /// Create workers that auto-dispose with controller
-  ZenWorkerHandle watch<T>(
+  ZenWorker watch<T>(
     ValueNotifier<T> observable,
     void Function(T) callback, {
     WorkerType type = WorkerType.ever,
@@ -426,15 +426,15 @@ abstract class ZenController {
   }
 
   /// Type-safe convenience worker methods
-  ZenWorkerHandle ever<T>(ValueNotifier<T> obs, void Function(T) callback) {
+  ZenWorker ever<T>(ValueNotifier<T> obs, void Function(T) callback) {
     return _createWorker(() => ZenWorkers.ever<T>(obs, callback), 'ever');
   }
 
-  ZenWorkerHandle once<T>(ValueNotifier<T> obs, void Function(T) callback) {
+  ZenWorker once<T>(ValueNotifier<T> obs, void Function(T) callback) {
     return _createWorker(() => ZenWorkers.once<T>(obs, callback), 'once');
   }
 
-  ZenWorkerHandle debounce<T>(
+  ZenWorker debounce<T>(
     ValueNotifier<T> obs,
     void Function(T) callback,
     Duration duration,
@@ -446,7 +446,7 @@ abstract class ZenController {
         () => ZenWorkers.debounce<T>(obs, callback, duration), 'debounce');
   }
 
-  ZenWorkerHandle throttle<T>(
+  ZenWorker throttle<T>(
     ValueNotifier<T> obs,
     void Function(T) callback,
     Duration duration,
@@ -458,7 +458,7 @@ abstract class ZenController {
         () => ZenWorkers.throttle<T>(obs, callback, duration), 'throttle');
   }
 
-  ZenWorkerHandle interval<T>(
+  ZenWorker interval<T>(
     ValueNotifier<T> obs,
     void Function(T) callback,
     Duration duration,
@@ -470,7 +470,7 @@ abstract class ZenController {
         () => ZenWorkers.interval<T>(obs, callback, duration), 'interval');
   }
 
-  ZenWorkerHandle condition<T>(
+  ZenWorker condition<T>(
     ValueNotifier<T> obs,
     bool Function(T) condition,
     void Function(T) callback,
@@ -741,7 +741,7 @@ abstract class ZenController {
   }
 
   /// Optimized worker creation with validation and tracking
-  ZenWorkerHandle _createWorker(ZenWorkerHandle Function() creator,
+  ZenWorker _createWorker(ZenWorker Function() creator,
       [String? workerType]) {
     if (_checkDisposed('worker creation')) {
       throw StateError(
@@ -756,7 +756,7 @@ abstract class ZenController {
 
   /// Batch worker operations for better performance
   void _batchWorkerOperation(
-    void Function(ZenWorkerHandle) workerOp,
+    void Function(ZenWorker) workerOp,
     void Function(ZenWorkerGroup) groupOp,
   ) {
     _cleanupDisposedWorkers();
@@ -861,8 +861,8 @@ abstract class ZenController {
 /// Extension for more fluent worker creation and control
 extension ZenControllerWorkerExtension on ZenController {
   /// Create multiple workers in one call
-  List<ZenWorkerHandle> createWorkers(
-      List<ZenWorkerHandle Function()> creators) {
+  List<ZenWorker> createWorkers(
+      List<ZenWorker Function()> creators) {
     if (isDisposed) {
       throw StateError('Cannot create workers on disposed controller');
     }
@@ -870,7 +870,7 @@ extension ZenControllerWorkerExtension on ZenController {
   }
 
   /// Dispose specific workers
-  void disposeWorkers(List<ZenWorkerHandle> workers) {
+  void disposeWorkers(List<ZenWorker> workers) {
     for (final worker in workers) {
       try {
         worker.dispose();
@@ -882,7 +882,7 @@ extension ZenControllerWorkerExtension on ZenController {
   }
 
   /// Pause specific workers
-  void pauseSpecificWorkers(List<ZenWorkerHandle> workers) {
+  void pauseSpecificWorkers(List<ZenWorker> workers) {
     if (isDisposed) return;
     for (final worker in workers) {
       if (!worker.isDisposed) {
@@ -897,7 +897,7 @@ extension ZenControllerWorkerExtension on ZenController {
   }
 
   /// Resume specific workers
-  void resumeSpecificWorkers(List<ZenWorkerHandle> workers) {
+  void resumeSpecificWorkers(List<ZenWorker> workers) {
     if (isDisposed) return;
     for (final worker in workers) {
       if (!worker.isDisposed) {
@@ -915,12 +915,12 @@ extension ZenControllerWorkerExtension on ZenController {
 /// Advanced extension for specialized worker patterns
 extension ZenControllerAdvancedExtension on ZenController {
   /// Worker that auto-disposes when a condition is met
-  ZenWorkerHandle autoDispose<T>(
+  ZenWorker autoDispose<T>(
     ValueNotifier<T> obs,
     bool Function(T) disposeCondition,
     void Function(T) callback,
   ) {
-    late ZenWorkerHandle handle;
+    late ZenWorker handle;
     handle = ever<T>(obs, (value) {
       try {
         callback(value);
@@ -934,7 +934,7 @@ extension ZenControllerAdvancedExtension on ZenController {
   }
 
   /// Worker that executes a limited number of times
-  ZenWorkerHandle limited<T>(
+  ZenWorker limited<T>(
     ValueNotifier<T> obs,
     void Function(T) callback,
     int maxExecutions,
@@ -943,7 +943,7 @@ extension ZenControllerAdvancedExtension on ZenController {
       throw ArgumentError('maxExecutions must be positive');
     }
     int count = 0;
-    late ZenWorkerHandle handle;
+    late ZenWorker handle;
     handle = ever<T>(obs, (value) {
       if (count < maxExecutions) {
         try {

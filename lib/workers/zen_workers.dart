@@ -25,7 +25,7 @@ enum WorkerType {
 }
 
 /// Handle for controlling worker lifecycle
-class ZenWorkerHandle {
+class ZenWorker {
   final void Function() _disposer;
   final void Function()? _pauseFunction;
   final void Function()? _resumeFunction;
@@ -35,7 +35,7 @@ class ZenWorkerHandle {
   bool _disposed = false;
   bool _paused = false;
 
-  ZenWorkerHandle(
+  ZenWorker(
     this._disposer, {
     void Function()? pauseFunction,
     void Function()? resumeFunction,
@@ -94,17 +94,17 @@ class ZenWorkerHandle {
 
 /// Group of workers that can be disposed together
 class ZenWorkerGroup {
-  final List<ZenWorkerHandle> _handles = [];
+  final List<ZenWorker> _handles = [];
   bool _disposed = false;
 
   /// Add a worker to this group
-  void add(ZenWorkerHandle handle) {
+  void add(ZenWorker handle) {
     if (_disposed) return;
     _handles.add(handle);
   }
 
   /// Get all workers in this group (for statistics)
-  List<ZenWorkerHandle> get workers => List.unmodifiable(_handles);
+  List<ZenWorker> get workers => List.unmodifiable(_handles);
 
   /// Pause all workers in the group
   void pauseAll() {
@@ -161,7 +161,7 @@ class _ZenWorker<T> {
   bool _paused = false;
   void Function()? _disposer;
   bool _hasExecutedOnce = false; // Track if 'once' worker has executed
-  ZenWorkerHandle? _handle; // Reference to the handle for auto-disposal
+  ZenWorker? _handle; // Reference to the handle for auto-disposal
 
   _ZenWorker({
     required this.type,
@@ -171,7 +171,7 @@ class _ZenWorker<T> {
   });
 
   /// Set the handle reference for auto-disposal
-  void setHandle(ZenWorkerHandle handle) {
+  void setHandle(ZenWorker handle) {
     _handle = handle;
   }
 
@@ -328,7 +328,7 @@ class _ZenWorker<T> {
 /// Clean, composable ZenWorkers API with improved type inference and pause/resume support
 class ZenWorkers {
   /// Universal worker creation method with explicit generic type preservation
-  static ZenWorkerHandle watch<T>(
+  static ZenWorker watch<T>(
     ValueNotifier<T> observable,
     void Function(T) callback, {
     WorkerType type = WorkerType.ever,
@@ -359,7 +359,7 @@ class ZenWorkers {
     );
 
     // Create handle with proper delegation
-    final handle = ZenWorkerHandle(
+    final handle = ZenWorker(
       () => worker.dispose(),
       pauseFunction: () => worker.pause(),
       resumeFunction: () => worker.resume(),
@@ -375,21 +375,21 @@ class ZenWorkers {
   }
 
   /// Convenience methods with improved type inference
-  static ZenWorkerHandle ever<T>(
+  static ZenWorker ever<T>(
     ValueNotifier<T> obs,
     void Function(T) callback,
   ) {
     return watch<T>(obs, callback, type: WorkerType.ever);
   }
 
-  static ZenWorkerHandle once<T>(
+  static ZenWorker once<T>(
     ValueNotifier<T> obs,
     void Function(T) callback,
   ) {
     return watch<T>(obs, callback, type: WorkerType.once);
   }
 
-  static ZenWorkerHandle debounce<T>(
+  static ZenWorker debounce<T>(
     ValueNotifier<T> obs,
     void Function(T) callback,
     Duration duration,
@@ -401,7 +401,7 @@ class ZenWorkers {
         type: WorkerType.debounce, duration: duration);
   }
 
-  static ZenWorkerHandle throttle<T>(
+  static ZenWorker throttle<T>(
     ValueNotifier<T> obs,
     void Function(T) callback,
     Duration duration,
@@ -413,7 +413,7 @@ class ZenWorkers {
         type: WorkerType.throttle, duration: duration);
   }
 
-  static ZenWorkerHandle interval<T>(
+  static ZenWorker interval<T>(
     ValueNotifier<T> obs,
     void Function(T) callback,
     Duration duration,
@@ -425,7 +425,7 @@ class ZenWorkers {
         type: WorkerType.interval, duration: duration);
   }
 
-  static ZenWorkerHandle condition<T>(
+  static ZenWorker condition<T>(
     ValueNotifier<T> obs,
     bool Function(T) condition,
     void Function(T) callback,
@@ -435,8 +435,8 @@ class ZenWorkers {
   }
 
   /// Composable worker for multiple observables
-  static ZenWorkerHandle combine(List<ZenWorkerHandle> workers) {
-    return ZenWorkerHandle(() {
+  static ZenWorker combine(List<ZenWorker> workers) {
+    return ZenWorker(() {
       for (final worker in workers) {
         worker.dispose();
       }

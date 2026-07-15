@@ -25,8 +25,8 @@ class ZenStreamQuery<T> extends ZenController {
   StreamSubscription<T>? _subscription;
   bool _isPaused = false;
   bool _isDisposed = false;
-  ZenWorkerHandle?
-      _statusWorker; // Changed from ZenWorkers? to ZenWorkerHandle?
+  ZenWorker?
+      _statusWorker; // Changed from ZenWorkers? to ZenWorker?
 
   // Derived State
   RxBool get isLoading =>

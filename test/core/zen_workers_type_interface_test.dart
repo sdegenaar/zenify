@@ -256,7 +256,7 @@ void main() {
         final capturedValues = <String>[];
 
         // Test all worker types with the same observable
-        final handles = <ZenWorkerHandle>[
+        final handles = <ZenWorker>[
           controller.ever(controller.stringValue, (value) {
             capturedValues.add('ever:$value');
             expect(value.runtimeType, String);

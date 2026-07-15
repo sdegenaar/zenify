@@ -143,7 +143,7 @@ extension ZenEffectWatch<T> on ZenEffect<T> {
       return () {}; // Return no-op disposer for disposed effects
     }
 
-    final disposers = <ZenWorkerHandle>[];
+    final disposers = <ZenWorker>[];
 
     if (onData != null) {
       final handle = ZenWorkers.ever<T?>(_data, onData);
