@@ -741,8 +741,7 @@ abstract class ZenController {
   }
 
   /// Optimized worker creation with validation and tracking
-  ZenWorker _createWorker(ZenWorker Function() creator,
-      [String? workerType]) {
+  ZenWorker _createWorker(ZenWorker Function() creator, [String? workerType]) {
     if (_checkDisposed('worker creation')) {
       throw StateError(
           'Cannot create ${workerType ?? 'worker'} on disposed controller');
@@ -861,8 +860,7 @@ abstract class ZenController {
 /// Extension for more fluent worker creation and control
 extension ZenControllerWorkerExtension on ZenController {
   /// Create multiple workers in one call
-  List<ZenWorker> createWorkers(
-      List<ZenWorker Function()> creators) {
+  List<ZenWorker> createWorkers(List<ZenWorker Function()> creators) {
     if (isDisposed) {
       throw StateError('Cannot create workers on disposed controller');
     }

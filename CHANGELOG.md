@@ -40,7 +40,48 @@ REACT     →  ZenObserver               Rx<T> — auto-rebuild on value change
 | `Zen.remove<T>()` | `Zen.delete<T>()` |
 | `Obx` widget | `ZenObserver` |
 
-`Ref<T>` is no longer exported from the public barrel. It remains available internally at `package:zenify/di/zen_refs.dart`.
+`Ref<T>` is removed entirely. It was a thin wrapper over `scope.find()` with no additional value.
+
+#### `ZenWorkerHandle` renamed to `ZenWorker`
+
+The handle returned by all `ZenWorkers.*` factory methods and `ZenController.*` worker methods is now named `ZenWorker`. Update any type annotations in your code:
+
+```dart
+// ❌ V1-style name (removed)
+ZenWorkerHandle handle = ZenWorkers.ever(count, (_) => update());
+
+// ✅ V2
+ZenWorker worker = ZenWorkers.ever(count, (_) => update());
+```
+
+`ZenWorkerGroup` is unchanged.
+
+#### `ZenDependencyAnalyzer` — REMOVED
+
+`ZenDependencyAnalyzer` is removed. It contained only stubbed, non-functional implementations. There is no replacement.
+
+#### `ZenConfig` — two flags removed
+
+| Removed field | Reason |
+|---|---|
+| `checkForCircularDependencies` | No runtime implementation existed — the flag had no effect |
+| `enableDependencyVisualization` | No runtime implementation existed — the flag had no effect |
+
+The corresponding `configure()` parameters `circularDependencyCheck:` and `dependencyVisualization:` are also removed.
+
+#### `ZenMetrics` — instrumentation methods and fields removed
+
+The following methods were never called by the library itself (the counters they wrote to were always zero):
+
+| Removed method | Removed field |
+|---|---|
+| `recordRxCreation()` | `totalRxValues` |
+| `recordStateUpdate()` | `totalStateUpdates` |
+| `recordProviderCreation()` | `totalProviders` |
+| `recordEffectSuccess()` | `totalEffectRuns`, `totalEffectSuccesses`, `effectSuccessCounts` |
+| `recordEffectFailure()` | `totalEffectFailures`, `effectFailureCounts` |
+
+`getReport()` no longer includes a `state` or `effects` block (both were always zeros). The remaining API — `incrementCounter`, `recordCounterValue`, `startTiming`, `stopTiming`, `getAverageDuration`, `getReport`, `startPeriodicLogging`, `stopPeriodicLogging`, `reset` — is unchanged.
 
 #### `ZenRoute` — scope resolution bug fixed
 
