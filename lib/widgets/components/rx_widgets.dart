@@ -48,7 +48,7 @@ class _ZenObserverState extends State<ZenObserver> {
   @override
   void initState() {
     super.initState();
-    ZenLogger.logRxTracking("ZenObserver widget initialized");
+    ZenLogger.logRxTracking('ZenObserver widget initialized');
   }
 
   @override
@@ -69,7 +69,7 @@ class _ZenObserverState extends State<ZenObserver> {
       // Instead of immediately rebuilding, flag for rebuild
       _needsRebuild = true;
 
-      ZenLogger.logRxTracking("ZenObserver widget scheduling rebuild");
+      ZenLogger.logRxTracking('ZenObserver widget scheduling rebuild');
 
       setState(() {});
     }
@@ -81,7 +81,7 @@ class _ZenObserverState extends State<ZenObserver> {
       _trackedValues.add(value);
       value.addListener(_onValueChanged);
 
-      ZenLogger.logRxTracking("Tracking a new value: ${value.runtimeType}");
+      ZenLogger.logRxTracking('Tracking a new value: ${value.runtimeType}');
     }
   }
 
@@ -92,7 +92,7 @@ class _ZenObserverState extends State<ZenObserver> {
       _trackedValues.add(value);
       value.addListener(_onValueChanged);
 
-      ZenLogger.logRxTracking("Silently tracking value: ${value.runtimeType}");
+      ZenLogger.logRxTracking('Silently tracking value: ${value.runtimeType}');
     }
   }
   // coverage:ignore-end

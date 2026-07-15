@@ -219,7 +219,7 @@ void main() {
     testWidgets(
         'should use ZenProvider for explicit scope (correct V2 pattern)',
         (tester) async {
-      final customScope = Zen.createScope(name: "CustomScope");
+      final customScope = Zen.createScope(name: 'CustomScope');
       final controller = CounterController()..count = 42;
       customScope.put<CounterController>(controller);
 

@@ -258,7 +258,9 @@ class ZenConfig {
     if (rxTracking != null) enableRxTracking = rxTracking;
     if (navigationLogging != null) enableNavigationLogging = navigationLogging;
     if (routeLogging != null) enableRouteLogging = routeLogging;
-    if (performanceTracking != null) enablePerformanceMetrics = performanceTracking;
+    if (performanceTracking != null) {
+      enablePerformanceMetrics = performanceTracking;
+    }
     if (strict != null) strictMode = strict;
   }
 

@@ -182,7 +182,6 @@ void main() {
       expect(ZenConfig.strictMode, true);
     });
 
-
     test('null params leave existing values unchanged', () {
       ZenConfig.configure(strict: true);
       ZenConfig.configure(level: ZenLogLevel.warning); // only level changes

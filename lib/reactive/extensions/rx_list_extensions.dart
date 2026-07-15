@@ -556,7 +556,7 @@ extension RxListExtensions<T> on Rx<List<T>> {
     return value.toSet();
   }
 
-  String join([String separator = ""]) {
+  String join([String separator = '']) {
     RxTracking.track(this);
     return value.join(separator);
   }
