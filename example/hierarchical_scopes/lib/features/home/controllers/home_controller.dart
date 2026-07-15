@@ -116,25 +116,25 @@ class HomeController extends ZenController with ZenTickerProvider {
   void _updateHierarchyStats() {
     if (isDisposed) return;
 
-    final currentScope = Zen.currentScope;
+    // V2: locate this controller's scope via ZenDebug (Zen.currentScope removed)
+    final controllerScope = ZenDebug.findScopeContaining(this);
 
     // Calculate hierarchy depth
     int depth = 0;
-    ZenScope? scope = currentScope;
-    while (scope?.parent != null) {
+    ZenScope? s = controllerScope;
+    while (s?.parent != null) {
       depth++;
-      scope = scope!.parent;
+      s = s!.parent;
     }
 
     // Get all services in the hierarchy
     final allServices = <String>[];
-    scope = currentScope;
-    while (scope != null) {
-      // Use ZenScopeInspector.getAllInstances() instead of scope.getAllInstances()
-      allServices.addAll(ZenScopeInspector.getAllInstances(scope)
+    s = controllerScope;
+    while (s != null) {
+      allServices.addAll(ZenScopeInspector.getAllInstances(s)
           .keys
           .map((key) => key.toString()));
-      scope = scope.parent;
+      s = s.parent;
     }
 
     _hierarchyStats.value = {

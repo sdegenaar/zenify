@@ -14,7 +14,7 @@ class ScopeDebugPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final currentScope = Zen.currentScope;
+    final currentScope = context.zenScope ?? Zen.rootScope;
 
     return Card(
       margin: EdgeInsets.all(8),
