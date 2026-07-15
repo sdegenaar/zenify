@@ -26,8 +26,13 @@
 | `ZenController` — lifecycle, auto-track reactive/children | ✅ Shipped | |
 | `ZenScope` — hierarchical, parent-child, no global state | ✅ Shipped | |
 | `ZenModule` — module-based scope initialization | ✅ Shipped | |
-| `ZenUpdater<T>` — rebuilds on `update()` | ✅ Shipped | `ZenBuilder` kept as deprecated alias |
-| `ZenBuilder<T>` | ⚠️ Deprecated | Alias for `ZenUpdater` — remove in V3 |
+| `ZenUpdater<T>` — rebuilds on `update()` | ✅ Shipped | Renamed from `ZenBuilder` |
+| `ZenBuilder<T>` | ❌ Removed | Renamed to `ZenUpdater` — not a true Flutter Builder pattern |
+| `ZenWorkerHandle` | ❌ Removed | Renamed to `ZenWorker` — idiomatic Dart noun pattern |
+| `ZenDependencyAnalyzer` | ❌ Removed | Contained only stubs; no replacement |
+| `Ref<T>` | ❌ Removed | Thin wrapper over `scope.find()` with no utility |
+| `ZenConfig.checkForCircularDependencies` | ❌ Removed | Flag had no runtime implementation |
+| `ZenConfig.enableDependencyVisualization` | ❌ Removed | Flag had no runtime implementation |
 | Global `Zen.put()` for UI controllers | ❌ Anti-pattern | Valid only for true singleton services |
 
 ---
@@ -482,9 +487,28 @@ The README was substantially rewritten for the V2 launch. Key structural decisio
 | `ZenRootScope` widget wrapping `runApp` | Eliminates all global static state for perfect test isolation. V3. |
 | `ZenObserver` alias name | `Watch`/`Observe` considered — keep `ZenObserver` for V2 for naming consistency. Revisit with package rename. |
 | Package rename (`zenith`?) | Do not rename for V2. Ship and gain traction. Revisit before V3. |
+| `ZenQueryConsumer` / `ZenQueryBuilder` naming | Mild intuition inversion: `Consumer` creates its own query (like React's `useQuery`); `Builder` observes an existing one (like `StreamBuilder`). Current naming is defensible via Provider's `Consumer<T>` analogy. If renaming in V3: `Consumer` → `ZenQueryBuilder`, `Builder` → `ZenQueryObserver`. |
+| `ZenMetrics` re-instrumentation | Recording hooks (`recordRxCreation`, `recordEffectSuccess`, etc.) removed in V2 — never wired up by the library. If real instrumentation is added in V3, implement as internal-only calls, not public API. |
 
 ---
 
-### 9.7 Test Status at V2 Release
+### 9.7 `ZenWorkerHandle` → `ZenWorker` — Final Rename Rationale
 
-All tests passing: **2170 tests, 0 failures** as of July 15, 2026.
+Dart's convention uses clean nouns for subscriptions (`StreamSubscription`, `Timer`). "Handle" is reserved for FFI/C-interop. The rename makes the factory/instance pair self-explanatory:
+
+```dart
+// ZenWorkers (plural) = static factory
+// ZenWorker  (singular) = live, controllable instance
+// ZenWorkerGroup = collection of ZenWorkers
+ZenWorker worker = ZenWorkers.ever(count, (_) => update());
+worker.pause();
+worker.dispose();
+```
+
+All internal variable names updated: `_handles` → `_workers`, `setHandle` → `setWorker`.
+
+---
+
+### 9.8 Test Status at V2 Release
+
+All tests passing: **2,117 tests, 0 failures** as of July 15, 2026.
