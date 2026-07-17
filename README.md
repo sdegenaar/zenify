@@ -88,7 +88,7 @@ This is what TanStack Query brought to the web. Zenify brings it to Flutter — 
 Most Flutter frameworks treat async state as an afterthought — a `Future` wrapped in a controller. Zenify has a first-class query engine (`ZenQuery`) with automatic caching, request deduplication, stale-while-revalidate, infinite scroll pagination, and optimistic updates. No third-party packages. No bolting things together. One coherent system.
 
 ### 2. Hierarchical Scoped DI — Auto-Disposal Built In
-Every route gets its own scope. Navigate away, and the scope — plus every controller, repository, and service inside it — is automatically disposed. Navigate back, and you get a fresh scope with clean state. No `Get.delete()` calls. No memory leaks. No stale state. Parent scopes resolve services for child scopes automatically — a feature module just asks for what it needs, and the hierarchy delivers it.
+Every route gets its own scope. Navigate away, and the scope — plus every controller, repository, and service inside it — is automatically disposed. Navigate back, and you get a fresh scope with clean state. No manual disposal. No memory leaks. No stale state. Parent scopes resolve services for child scopes automatically — a feature module just asks for what it needs, and the hierarchy delivers it.
 
 ### 3. Offline-First by Design
 Zenify doesn't just handle the happy path. Queries return cached data instantly while fetching fresh data in the background. Mutations that fail offline are queued and automatically replayed when the connection restores. Storage is pluggable — Hive, SharedPreferences, SQLite, or any custom adapter. Offline support isn't a feature you add later; it's in the architecture from the start.
@@ -108,23 +108,33 @@ No `build_runner`. No annotations. No generated files to commit. Write Dart, get
 
 ## 🏗️ Understanding Scopes (The Foundation)
 
-Every Flutter developer has also written this — usually after a mysterious bug:
+Every Flutter developer has written this — the manual lifecycle tax:
 
 ```dart
-// The controller lifecycle tax — paid in every app that grows beyond a prototype
+// Without scoped DI — every feature carries this burden
+class _ProfilePageState extends State<ProfilePage> {
+  late final ProfileController _controller;
+  late final UserRepository _repo;
+  late final ProfileImageService _imageService;
 
-// GetX — global singletons, manual cleanup required
-Get.put(ProfileController());
-Get.put(UserRepository(Get.find<ApiClient>()));
-Get.put(ProfileImageService(Get.find<ApiClient>()));
+  @override
+  void initState() {
+    super.initState();
+    _controller = ProfileController();
+    _repo = UserRepository(apiClient);
+    _imageService = ProfileImageService(apiClient);
+  }
 
-// Navigate away from the profile screen...
-// Did you call Get.delete<ProfileController>()?
-// Did you call Get.delete<UserRepository>()?
-// Probably not. Both are still in memory. Stale state next visit.
-
-// Navigate back — same stale instance. Old data showing.
-// User sees their previous session's data until it refreshes.
+  @override
+  void dispose() {
+    _controller.dispose(); // ← easy to forget
+    _repo.dispose();       // ← easy to forget
+    _imageService.dispose(); // ← easy to forget
+    super.dispose();
+    // Add a fourth dependency tomorrow? Add another dispose() call.
+    // Forget one? Silent memory leak. Good luck finding it in production.
+  }
+}
 ```
 
 Now here's the same thing with Zenify:
