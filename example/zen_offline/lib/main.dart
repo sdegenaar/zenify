@@ -106,7 +106,7 @@ class FeedPage extends ZenView<FeedController> {
 
   @override
   Widget build(BuildContext context, FeedController controller) {
-    // Note: ZenView provides 'controller' automatically
+    // V2: controller is explicitly injected as a typed parameter by ZenView
 
     return Stack(
       children: [
