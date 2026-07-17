@@ -94,7 +94,7 @@ Every route gets its own scope. Navigate away, and the scope — plus every cont
 Zenify doesn't just handle the happy path. Queries return cached data instantly while fetching fresh data in the background. Mutations that fail offline are queued and automatically replayed when the connection restores. Storage is pluggable — Hive, SharedPreferences, SQLite, or any custom adapter. Offline support isn't a feature you add later; it's in the architecture from the start.
 
 ### 4. Zero Code Generation
-No `build_runner`. No `@riverpod` annotations. No generated files to commit. Write Dart, get IntelliSense, run your app. When your codebase grows to 100,000 lines, you still don't run a code generator.
+No `build_runner`. No annotations. No generated files to commit. Write Dart, get IntelliSense, run your app. When your codebase grows to 100,000 lines, you still don't run a code generator.
 
 ---
 
