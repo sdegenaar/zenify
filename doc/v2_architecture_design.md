@@ -460,7 +460,7 @@ The exception message was made actionable. It now covers both common failure mod
 
 The README was substantially rewritten for the V2 launch. Key structural decisions:
 
-1. **Hero tagline:** `TanStack Query Patterns • Hierarchical Scoped DI • Offline-First Architecture • Zero Code Generation`
+1. **Hero tagline:** `Automatic Query Caching • Scoped DI with Auto-Disposal • Offline-First • No Code Generation` — benefit-first; TanStack reference lives in the body explanation where it lands harder for readers who already understand the value prop.
 
 2. **Two emotional "before/after" hooks** — not one:
    - Hook 1 (async state): `bool _isLoading = false` boilerplate → `ZenQueryConsumer` one-liner

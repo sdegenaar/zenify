@@ -1,6 +1,6 @@
 <div align="center">
   <h1>Zenify</h1>
-  <p><b>TanStack Query Patterns • Hierarchical Scoped DI • Offline-First Architecture • Zero Code Generation</b></p>
+  <p><b>Automatic Query Caching • Scoped DI with Auto-Disposal • Offline-First • No Code Generation</b></p>
 </div>
 
 [![pub package](https://img.shields.io/pub/v/zenify.svg)](https://pub.dev/packages/zenify)
