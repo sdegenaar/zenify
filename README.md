@@ -504,9 +504,10 @@ ZenProvider(
 **Core API:**
 - `Zen.put<T>()` — Register in root scope
 - `Zen.find<T>()` — Retrieve (throws if missing)
-- `Zen.get<T>()` — Alias for find
-- `Zen.has<T>()` — Check existence
-- `Zen.delete<T>()` / `Zen.remove<T>()` — Remove
+- `Zen.findOrNull<T>()` — Retrieve (returns null if missing)
+- `Zen.exists<T>()` — Check existence
+- `Zen.delete<T>()` — Remove from scope
+- `Zen.putLazy<T>()` — Register a lazy factory
 
 **Works with:** GoRouter, AutoRoute, Navigator 2.0, any router.
 
@@ -774,7 +775,7 @@ class CartPage extends ZenView<CartController> {
 | `ZenScopeWidget` / `ZenScopeWidget.create` | `ZenProvider` / `ZenProvider.create` | **Breaking** — rename |
 | `ZenControllerScope<T>()` | **Removed** — use `ZenProvider.create<T>()` | **Breaking** — must migrate |
 | `initController` override on `ZenView` | **Removed** — use `ZenProvider.create` at callsite | **Breaking** — must migrate |
-| `ZenBuilder<T>` | `ZenUpdater<T>` (`ZenBuilder` deprecated alias) | Non-breaking — still compiles |
+| `ZenBuilder<T>` | `ZenUpdater<T>` — fully renamed | **Breaking** — rename required |
 | Global `Zen.put` for UI controllers | `ZenProvider` scope — no global fallback | Architectural shift |
 
 [Full V2 Migration Guide →](https://github.com/sdegenaar/zenify/blob/main/doc/migration_v2_0_0.md)

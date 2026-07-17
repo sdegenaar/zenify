@@ -305,7 +305,7 @@ No `Zen.reset()`. No leaked controllers. No state bleeding between tests.
 The single-controller shorthand is so common it warranted its own API surface.
 
 ### ✅ `ZenUpdater<T>` rename — Done
-`ZenBuilder` is now `ZenUpdater`. The old name stays as a deprecated alias (`ZenBuilder`) to smooth migration. It will be removed in V3.
+`ZenBuilder` is renamed to `ZenUpdater`. The old name is **fully removed** in V2 — any usage is a compile error.
 
 ### ✅ `ZenControllerScope` — Removed (not deprecated)
 Hard removal in V2. No deprecation period. Migration: replace with `ZenProvider.create<T>`.

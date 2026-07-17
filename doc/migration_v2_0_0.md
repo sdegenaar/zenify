@@ -12,7 +12,7 @@
 | `get createController => () => MyController()` | Removed — use `ZenProvider.create` | **Breaking** — must migrate |
 | `ZenControllerScope<T>()` | **Removed** — use `ZenProvider.create<T>()` | **Breaking** — no fallback |
 | `ZenScopeWidget` | Renamed to `ZenProvider` | **Breaking** — rename import |
-| `ZenBuilder<T>` | `ZenUpdater<T>` (`ZenBuilder` is a deprecated alias) | Non-breaking — compiles with warning |
+| `ZenBuilder<T>` | `ZenUpdater<T>` — fully renamed | **Breaking** — must rename |
 | Global `Zen.put` for UI controllers | Scoped via `ZenProvider` in widget tree | Architectural shift |
 | Global `_ZenViewRegistry` | Gone — no global registry | Structural isolation |
 
@@ -114,17 +114,17 @@ ZenProvider(scope: myScope, child: ...)
 
 ---
 
-## Step 5 — Replace `ZenBuilder` with `ZenUpdater` (optional)
+## Step 5 — Replace `ZenBuilder` with `ZenUpdater` (required)
 
-`ZenBuilder<T>` is a deprecated alias for `ZenUpdater<T>`. It still compiles but will produce deprecation warnings. The API is identical except the builder signature now includes `BuildContext`:
+`ZenBuilder<T>` is **fully removed** in V2. Any usage will cause a compile error. Rename to `ZenUpdater` — the builder signature now also includes `BuildContext`:
 
 ```dart
-// ⚠️ V1 (deprecated alias — still works, shows warning)
+// ❌ V1 (removed — compile error in V2)
 ZenBuilder<CounterController>(
   builder: (controller) => Text('${controller.count}'),
 )
 
-// ✅ V2 (preferred)
+// ✅ V2
 ZenUpdater<CounterController>(
   builder: (context, controller) => Text('${controller.count}'),
 )
@@ -169,7 +169,7 @@ runApp(
 - [ ] Find all `ZenControllerScope` usages → replace with `ZenProvider.create`
 - [ ] Find all `ZenScopeWidget` usages → rename to `ZenProvider`
 - [ ] Remove `createController` / `initController` overrides → move to `ZenProvider.create` at the route level
-- [ ] Replace `ZenBuilder` → `ZenUpdater` (or leave — still compiles with deprecation warning)
+- [ ] Replace `ZenBuilder` → `ZenUpdater` (**required** — `ZenBuilder` is fully removed, will not compile)
 - [ ] `dart analyze` — confirm 0 errors
 - [ ] `flutter test` — confirm all tests pass
 

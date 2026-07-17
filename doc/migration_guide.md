@@ -31,7 +31,7 @@ dart tool/migrate_from_getx.dart /path/to/your/project
 - `.obs` → `.obs()` (adds parentheses throughout)
 - `Get.put` / `Get.find` / `Get.delete` / `Get.lazyPut` → Zen equivalents
 - `Get.isRegistered` → `Zen.exists`
-- `GetBuilder` / `GetX<T>` → `ZenUpdater` (V2 name; `ZenBuilder` is a deprecated alias)
+- `GetBuilder` / `GetX<T>` → `ZenUpdater` (`ZenBuilder` is fully removed in V2)
 - `GetView<T>` → `ZenView<T>`
 - `permanent:` → `isPermanent:` (parameter rename)
 
@@ -58,7 +58,7 @@ After running the script: `dart analyze` will surface any remaining issues.
 | `GetxService` | `ZenService` | Same, but scoped by default |
 | `.obs` | `.obs()` | Add parentheses |
 | `Obx()` | `ZenObserver()` (`Obx` **removed in V2**) | Required rename |
-| `GetBuilder` | `ZenUpdater` | `ZenBuilder` is a deprecated alias — still compiles |
+| `GetBuilder` | `ZenUpdater` | `ZenBuilder` fully removed — rename required |
 | `GetView<T>` | `ZenView<T>` | Same pattern |
 | `Get.put()` | `Zen.put()` | Same |
 | `Get.find()` | `Zen.find()` | Throws when missing — `findOrNull()` is the nullable form |
@@ -209,7 +209,7 @@ ZenUpdater<MyController>(
 )
 // ZenUpdater rebuilds when controller.update() is called.
 // Use ZenObserver for automatic reactive rebuilds on .obs() changes.
-// Note: ZenBuilder is a deprecated alias for ZenUpdater — still compiles.
+// Note: ZenBuilder is fully removed in V2 — rename to ZenUpdater required.
 ```
 
 ---
@@ -583,7 +583,7 @@ If your app relies heavily on GetX navigation or i18n, factor that into your mig
 - [ ] Add parentheses: `.obs` → `.obs()`
 - [ ] Rename `GetView` → `ZenView`
 - [ ] **Add controller parameter to every `ZenView.build()` override:** `build(BuildContext context)` → `build(BuildContext context, T controller)`
-- [ ] Rename `GetBuilder` → `ZenUpdater` (or keep `ZenBuilder` — deprecated alias still compiles)
+- [ ] Rename `GetBuilder` → `ZenUpdater` (**required** — `ZenBuilder` fully removed, will not compile)
 - [ ] Rename `Get.put/find/delete` → `Zen.put/find/delete`
 - [ ] Convert `Bindings` → `ZenModule` with `ZenRoute`
 - [ ] Migrate `Get.to/back/off` to Flutter Navigator or GoRouter

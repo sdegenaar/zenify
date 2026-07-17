@@ -212,7 +212,7 @@ ZenProvider.create<CartController>(
 
 #### `ZenUpdater<T>` — renamed from `ZenBuilder<T>`
 
-`ZenBuilder<T>` is now `ZenUpdater<T>`. The name communicates the purpose: this widget rebuilds when `controller.update()` is called. `ZenBuilder` is kept as a deprecated alias — still compiles, will be removed in V3.
+`ZenBuilder<T>` is now `ZenUpdater<T>`. The name communicates the purpose: this widget rebuilds when `controller.update()` is called. `ZenBuilder` is **fully removed** — any remaining usage is a compile error.
 
 #### `ZenConsumer<T>` — fixed and production-ready
 
@@ -238,7 +238,7 @@ ZenProvider.create<CartController>(
 
 ### Tests
 
-**2,170 tests, all passing.** Test suite fully migrated to V2 patterns — no global `Zen.put` for UI controllers in any widget test.
+**2,117 tests, all passing.** Test suite fully migrated to V2 patterns — no global `Zen.put` for UI controllers in any widget test.
 
 ---
 
@@ -253,7 +253,7 @@ grep -rn "Widget build(BuildContext context)" lib/ --include="*.dart"
 2. Replace `ZenScopeWidget` → `ZenProvider` (and `ZenScopeWidget.create` → `ZenProvider.create`)
 3. Replace `ZenControllerScope` → `ZenProvider.create` (removed, must migrate)
 4. Remove `initController` overrides → move controller creation to `ZenProvider.create` at callsite
-5. Replace `ZenBuilder` → `ZenUpdater` (optional — deprecated alias still compiles)
+5. Replace `ZenBuilder` → `ZenUpdater` (**required** — `ZenBuilder` is fully removed, will not compile)
 6. `dart analyze` → confirm 0 errors
 7. `flutter test` → confirm all tests pass
 
