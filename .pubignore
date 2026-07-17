@@ -88,3 +88,6 @@ example/devtools_options.yaml
 # resolve correctly on both GitHub and pub.dev.
 doc/PROJECT_EVALUATION.md
 
+# ---- Scratch / one-off scripts ----------------------------
+scratch_migrate.py
+
