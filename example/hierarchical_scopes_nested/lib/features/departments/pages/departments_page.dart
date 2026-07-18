@@ -23,6 +23,15 @@ class DepartmentsPage extends ZenView<DepartmentsController> {
       backgroundColor: Colors.blue.shade700,
       foregroundColor: Colors.white,
       elevation: 2,
+      // ShellRoute creates a nested Navigator which hides the default back button.
+      // We manually add it back by checking the root navigation stack.
+      leading: controller.navigationService.canGoBack()
+          ? IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () => controller.navigationService.goBack(),
+              tooltip: 'Back',
+            )
+          : null,
       actions: [
         // Enhanced ZenUpdater with error handling
         ZenUpdater<DepartmentsController>(
