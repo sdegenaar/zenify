@@ -450,7 +450,8 @@ class DepartmentDetailPage extends ZenView<DepartmentDetailController> {
                     onError: (_) =>
                         Icon(Icons.error, size: 16, color: Colors.red.shade600),
                   ),
-                  onTap: () => controller.navigateToEmployeeProfile(employee.id),
+                  onTap: () =>
+                      controller.navigateToEmployeeProfile(employee.id),
                 ),
               );
             },

@@ -16,10 +16,12 @@ import '../services/navigation_service.dart';
 class AppRoutes {
   static const String home = '/';
   static const String departments = '/departments';
-  
+
   // Navigation helper methods
-  static String departmentDetail(String departmentId) => '/departments/detail/$departmentId';
-  static String employeeProfile(String departmentId, String employeeId) => '/departments/detail/$departmentId/employee/$employeeId';
+  static String departmentDetail(String departmentId) =>
+      '/departments/detail/$departmentId';
+  static String employeeProfile(String departmentId, String employeeId) =>
+      '/departments/detail/$departmentId/employee/$employeeId';
 
   /// GoRouter configuration with declarative hierarchical scopes
   static final GoRouter router = GoRouter(
@@ -46,7 +48,7 @@ class AppRoutes {
             scopeName: 'DepartmentsScope',
             // The child is the nested Navigator containing the sub-routes.
             // Because it renders inside ZenRoute, everything in the child navigator can find DepartmentsScope natively!
-            page: child, 
+            page: child,
           );
         },
         routes: [
@@ -59,12 +61,13 @@ class AppRoutes {
                 path: 'detail/:id',
                 builder: (context, state) {
                   final departmentId = state.pathParameters['id'] ?? '';
-                  
+
                   return ZenRoute(
-                    moduleBuilder: () => DepartmentDetailModule(departmentId: departmentId),
+                    moduleBuilder: () =>
+                        DepartmentDetailModule(departmentId: departmentId),
                     scopeName: 'DepartmentDetailScope',
                     page: DepartmentDetailPage(departmentId: departmentId),
-                    // 🔥 Zero Config! No need to explicitly pass `parentScope` because 
+                    // 🔥 Zero Config! No need to explicitly pass `parentScope` because
                     // this route is built inside the ShellRoute's nested Navigator!
                   );
                 },
@@ -74,7 +77,7 @@ class AppRoutes {
                     builder: (context, state) {
                       final employeeId = state.pathParameters['empId'] ?? '';
                       final departmentId = state.pathParameters['id'] ?? '';
-                      
+
                       return ZenRoute(
                         moduleBuilder: () => EmployeeProfileModule(
                             employeeId: employeeId, departmentId: departmentId),

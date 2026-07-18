@@ -231,7 +231,8 @@ class DepartmentDetailController extends ZenController {
   void navigateToEmployeeProfile(String employeeId) {
     navigationEffect.run(() async {
       _employeeService.selectEmployee(employeeId);
-      _navigationService.navigateTo(AppRoutes.employeeProfile(departmentId, employeeId));
+      _navigationService
+          .navigateTo(AppRoutes.employeeProfile(departmentId, employeeId));
     });
   }
 

@@ -7,7 +7,6 @@ import 'package:zenify/zenify.dart';
 import 'app/modules/app_module.dart';
 import 'app/routes/app_routes.dart';
 
-
 Future<void> main() async {
   // Initialize Flutter binding
   WidgetsFlutterBinding.ensureInitialized();
