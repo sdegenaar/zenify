@@ -5,6 +5,10 @@ This release completes the architectural shift to fully tree-bound dependency in
 > **Migration:** See [migration_v2_0_0.md](doc/migration_v2_0_0.md) for the full guide.  
 > The mechanical change is adding a `controller` parameter to every `ZenView.build()` override.
 
+### Breaking Changes
+
+- **`ZenRouteObserver` removed.** The V1 `NavigatorObserver`-based controller disposal has been removed. Use `ZenRoute` instead — it disposes its scope automatically when the widget leaves the tree, with zero manual registration required.
+
 ---
 
 ### The Three-Step Mental Model
