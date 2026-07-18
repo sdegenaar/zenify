@@ -119,15 +119,21 @@ class ProfilePage extends StatelessWidget {
 
 ---
 
-## Nested Routes (ShellRoute)
+## Nested Routes (ShellRoute) — Canonical V2 Pattern
 
-For nested navigation with a shared shell (e.g. bottom nav bar), use `ShellRoute`
-with a root `ZenRoute` at the shell level:
+For nested navigation with a shared shell (e.g., bottom nav bar, split views, or deep sub-flows), use `ShellRoute` with a parent `ZenRoute` at the shell level.
+
+> [!TIP]
+> **Why is this important in V2?** 
+> Standard flat routes (like `context.push` or `GoRoute` without a shell) create detached overlays that break the widget tree. If you use flat routes, you must explicitly pass `parentScope` to inherit dependencies.
+> 
+> Because `ShellRoute` renders its children *inside* the widget tree, Zenify can automatically walk up the tree to discover parent scopes. **This is the canonical, zero-config way to implement deep hierarchical dependency injection in Zenify V2.**
 
 ```dart
 GoRouter(
   routes: [
     ShellRoute(
+      // 1. The Parent Scope is established here
       builder: (context, state, child) => ZenRoute(
         moduleBuilder: () => AppShellModule(),
         page: AppShell(child: child),
@@ -136,6 +142,8 @@ GoRouter(
       routes: [
         GoRoute(
           path: '/feed',
+          // 2. Child scopes automatically inherit from AppShell!
+          // Zero-config: No need to explicitly pass `parentScope`
           builder: (context, state) => ZenRoute(
             moduleBuilder: () => FeedModule(),
             page: const FeedPage(),
@@ -154,8 +162,7 @@ GoRouter(
 )
 ```
 
-The `FeedModule` and `SettingsModule` scopes automatically inherit from the
-`AppShell` scope, so they can access anything registered in `AppShellModule`.
+Because the widget tree remains intact, the `FeedModule` and `SettingsModule` scopes automatically inherit from the `AppShell` scope. Any services registered in `AppShellModule` are instantly available to them and their controllers!
 
 ---
 
