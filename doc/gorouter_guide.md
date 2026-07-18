@@ -129,40 +129,63 @@ For nested navigation with a shared shell (e.g., bottom nav bar, split views, or
 > 
 > Because `ShellRoute` renders its children *inside* the widget tree, Zenify can automatically walk up the tree to discover parent scopes. **This is the canonical, zero-config way to implement deep hierarchical dependency injection in Zenify V2.**
 
+The `ShellRoute`'s `child` argument can be passed directly as `page` — the `ZenRoute` scope wraps it, and all child routes inherit automatically. For apps with a persistent scaffold (e.g., bottom nav bar), you wrap `child` in your shell widget instead:
+
 ```dart
-GoRouter(
+// --- Variant A: Deep sub-flow (no persistent shell UI) ---
+ShellRoute(
+  builder: (context, state, child) => ZenRoute(
+    moduleBuilder: () => DepartmentsModule(),
+    scopeName: 'DepartmentsScope',
+    page: child, // child is the nested Navigator — rendered inside the scope!
+  ),
   routes: [
-    ShellRoute(
-      // 1. The Parent Scope is established here
-      builder: (context, state, child) => ZenRoute(
-        moduleBuilder: () => AppShellModule(),
-        page: AppShell(child: child),
-        scopeName: 'AppShell',
+    GoRoute(
+      path: '/departments',
+      builder: (context, state) => const DepartmentsPage(),
+    ),
+    GoRoute(
+      path: '/departments/detail/:id',
+      // Zero-config: automatically inherits DepartmentsScope!
+      builder: (context, state) => ZenRoute(
+        moduleBuilder: () => DepartmentDetailModule(state.pathParameters['id']!),
+        page: DepartmentDetailPage(departmentId: state.pathParameters['id']!),
       ),
-      routes: [
-        GoRoute(
-          path: '/feed',
-          // 2. Child scopes automatically inherit from AppShell!
-          // Zero-config: No need to explicitly pass `parentScope`
-          builder: (context, state) => ZenRoute(
-            moduleBuilder: () => FeedModule(),
-            page: const FeedPage(),
-          ),
-        ),
-        GoRoute(
-          path: '/settings',
-          builder: (context, state) => ZenRoute(
-            moduleBuilder: () => SettingsModule(),
-            page: const SettingsPage(),
-          ),
-        ),
-      ],
     ),
   ],
 )
 ```
 
-Because the widget tree remains intact, the `FeedModule` and `SettingsModule` scopes automatically inherit from the `AppShell` scope. Any services registered in `AppShellModule` are instantly available to them and their controllers!
+```dart
+// --- Variant B: Bottom nav bar (persistent shell UI) ---
+ShellRoute(
+  builder: (context, state, child) => ZenRoute(
+    moduleBuilder: () => AppShellModule(),
+    scopeName: 'AppShell',
+    page: AppShell(child: child), // wrap child in your shell widget
+  ),
+  routes: [
+    GoRoute(
+      path: '/feed',
+      // Automatically inherits AppShell scope
+      builder: (context, state) => ZenRoute(
+        moduleBuilder: () => FeedModule(),
+        page: const FeedPage(),
+      ),
+    ),
+    GoRoute(
+      path: '/settings',
+      builder: (context, state) => ZenRoute(
+        moduleBuilder: () => SettingsModule(),
+        page: const SettingsPage(),
+      ),
+    ),
+  ],
+)
+```
+
+In both variants, because the widget tree remains intact inside the shell, all child `ZenRoute` scopes automatically inherit from the parent scope — no explicit `parentScope` needed.
+
 
 ---
 
