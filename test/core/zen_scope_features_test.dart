@@ -296,10 +296,7 @@ class _TestCtrl extends ZenController {}
 
 class _NotRegistered extends ZenController {}
 
-class _LazyService extends ZenService {
-  @override
-  void onInit() => super.onInit();
-}
+class _LazyService extends ZenService {}
 
 class _TestModule extends ZenModule {
   _TestModule(this._name);

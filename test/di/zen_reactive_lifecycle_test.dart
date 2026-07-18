@@ -277,7 +277,4 @@ class _ThrowingCtrl extends ZenController {
   }
 }
 
-class _LifecycleService extends ZenService {
-  @override
-  void onInit() => super.onInit();
-}
+class _LifecycleService extends ZenService {}

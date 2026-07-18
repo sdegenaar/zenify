@@ -1,7 +1,6 @@
 // lib/core/zen_scope.dart
 import 'package:flutter/foundation.dart';
 import '../controllers/zen_controller.dart';
-import '../di/zen_lifecycle.dart';
 import 'zen_exception.dart';
 import 'zen_logger.dart';
 
@@ -61,9 +60,6 @@ class ZenScope {
   // Store custom disposal functions
   final List<Function()> _disposers = [];
 
-  // Add lifecycle manager access
-  static final ZenLifecycleManager _lifecycleManager =
-      ZenLifecycleManager.instance;
 
   /// Creates a new scope
   ZenScope({
