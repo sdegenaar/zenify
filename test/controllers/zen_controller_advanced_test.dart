@@ -385,7 +385,6 @@ void main() {
     });
   });
 
-
   // ══════════════════════════════════════════════════════════
   // didChangeAppLifecycleState on disposed controller
   // The top-level guard `if (_disposed) return;` prevents all lifecycle

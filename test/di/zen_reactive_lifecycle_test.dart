@@ -234,10 +234,11 @@ void main() {
     });
   });
 
-  group('ZenLifecycleManager.initializeService', () {
-    test('calls ensureInitialized', () {
+  group('ZenService initialisation (unified path)', () {
+    test('ZenService is initialized via initializeController when put', () {
       final svc = _LifecycleService();
-      ZenLifecycleManager.instance.initializeService(svc);
+      expect(svc.isInitialized, false);
+      Zen.put<_LifecycleService>(svc);
       expect(svc.isInitialized, true);
     });
   });

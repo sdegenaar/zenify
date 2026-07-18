@@ -107,8 +107,11 @@ class Zen {
 
   /// Register a dependency in root scope
   ///
-  /// ZenService instances are permanent by default, others are not.
+  /// [ZenService] instances default to permanent=true.
+  /// All other types default to permanent=false.
   static T put<T>(T instance, {String? tag, bool? isPermanent}) {
+    // ZenService extends ZenController, so we check the marker type at the
+    // call site (zen_service.dart is still importable for the type check).
     final permanent = isPermanent ?? (instance is ZenService);
     return rootScope.put<T>(
       instance,
@@ -161,11 +164,6 @@ class Zen {
         scopeName: 'RootScope',
         tag: tag,
       );
-    }
-
-    // Auto-initialize ZenService on first access
-    if (result is ZenService && !result.isInitialized) {
-      result.ensureInitialized(); // coverage:ignore-line
     }
 
     return result;

@@ -10,6 +10,7 @@ This release completes the architectural shift to fully tree-bound dependency in
 - **`ZenRouteObserver` removed.** The V1 `NavigatorObserver`-based controller disposal has been removed. Use `ZenRoute` instead — it disposes its scope automatically when the widget leaves the tree, with zero manual registration required.
 - **`ZenController.autoDispose` and `limited` workers removed.** These were trivially composable using `ever()` and `once()`.
 - **`getResourceStats()['memory_overhead_estimate']` removed.** The hardcoded estimate was misleading without a real heap profiler.
+- **`ZenService` now extends `ZenController`.** The standalone duplicate lifecycle implementation has been replaced. `ZenService` is now `abstract class ZenService extends ZenController {}`. Consumer code (`class MyService extends ZenService`) is unchanged. Removed: `ZenService.disposeAllServices()`, `ZenService.activeServiceCount`, `ZenService.getActiveServiceTypes()`, `ZenService._activeServices`, `ensureInitialized()`. Services now benefit from full `Rx` tracking and worker auto-disposal via the `ZenController` base. Use `Zen.reset()` in tests instead of `ZenService.disposeAllServices()`.
 
 ---
 

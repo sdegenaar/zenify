@@ -143,12 +143,14 @@ void main() {
   });
 
   // ══════════════════════════════════════════════════════════
-  // initializeService (L52-55)
+  // ZenService initialisation (via unified ZenController path)
+  // ZenService extends ZenController — no separate initializeService needed
   // ══════════════════════════════════════════════════════════
-  group('ZenLifecycleManager.initializeService', () {
-    test('initializeService calls ensureInitialized', () {
+  group('ZenService initialisation', () {
+    test('ZenService is initialized via initializeController when put', () {
       final svc = _TrackingSvc();
-      ZenLifecycleManager.instance.initializeService(svc);
+      expect(svc.isInitialized, false);
+      Zen.put<_TrackingSvc>(svc);
       expect(svc.isInitialized, true);
     });
   });

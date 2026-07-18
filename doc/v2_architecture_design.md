@@ -387,22 +387,25 @@ final parentScope = widget.parentScope ?? parentFromTree ?? Zen.rootScope;
 
 ### 9.2 `ZenService` — Verified Behaviour
 
-`ZenService` is an `abstract class` (not an interface). It provides:
+`ZenService` is `abstract class ZenService extends ZenController`. It inherits **everything** from `ZenController`:
 - `onInit()` / `onClose()` lifecycle hooks
-- `ensureInitialized()` re-entrant-safe init guard
+- `onReady()`, `onPause()`, `onResume()`, app lifecycle dispatch
+- Automatic `Rx` tracking via `obs()` — **prevents memory leaks in services**
+- Worker and effect tracking with auto-disposal
 - `isInitialized`, `isDisposed` flags
-- Global tracking via `ZenService._activeServices` Set (used by DevTools)
 
-**`Zen.put()` auto-detects `ZenService`:**
+The only distinction: **`Zen.put()` defaults `isPermanent` to `true` for `ZenService` instances.**
+
 ```dart
-// zen_di.dart:135
+// zen_di.dart
 final permanent = isPermanent ?? (instance is ZenService);
 ```
+
 **A `ZenService` is automatically `isPermanent: true`.** You do not need to specify it.
 
-**A `ZenController` (extending `ZenController`, not `ZenService`) is NOT auto-permanent.** If you register a `ZenController` globally via `Zen.put()`, you MUST pass `isPermanent: true` explicitly if you want it to survive for the app lifetime.
+**A `ZenController` is NOT auto-permanent.** Register globally via `Zen.put()` with `isPermanent: true` explicitly if needed.
 
-**Plain Dart classes work with `Zen.put()` too.** `T` is `Object` — no type constraint. Use plain classes for simple stateless helpers that have no lifecycle needs.
+**Plain Dart classes work with `Zen.put()` too.** Use them for simple stateless helpers with no lifecycle needs.
 
 ---
 

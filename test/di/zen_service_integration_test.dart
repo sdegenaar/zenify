@@ -20,7 +20,6 @@ class TestController extends ZenController {
 void main() {
   group('ZenService Integration', () {
     tearDown(() {
-      ZenService.disposeAllServices();
       Zen.reset();
     });
 

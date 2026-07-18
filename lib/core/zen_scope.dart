@@ -1,7 +1,6 @@
 // lib/core/zen_scope.dart
 import 'package:flutter/foundation.dart';
 import '../controllers/zen_controller.dart';
-import '../controllers/zen_service.dart';
 import '../di/zen_lifecycle.dart';
 import 'zen_exception.dart';
 import 'zen_logger.dart';
@@ -98,17 +97,14 @@ class ZenScope {
       );
     }
 
-    // Smart default: ZenService instances default to permanent (same as Zen.put)
-    final permanent = instance is ZenService ? true : isPermanent;
-
-    // Auto-initialize ZenController instances
+    // Auto-initialize ZenController instances (ZenService extends ZenController)
     if (instance is ZenController) {
       _initializeController(instance);
     }
-    // Auto-initialize ZenService instances via lifecycle manager (same as Zen.put)
-    else if (instance is ZenService) {
-      _lifecycleManager.initializeService(instance);
-    }
+
+    // Smart default: isPermanent is passed through from Zen.put which sets it
+    // based on whether the instance is a ZenService.
+    final permanent = isPermanent;
 
     if (tag != null) {
       // Check if we're replacing a dependency
@@ -401,10 +397,7 @@ class ZenScope {
     // Remove from use count tracking
     _useCount.remove(key);
 
-    // Dispose if it's a controller OR service
     if (instanceToDelete is ZenController && !instanceToDelete.isDisposed) {
-      instanceToDelete.dispose();
-    } else if (instanceToDelete is ZenService && !instanceToDelete.isDisposed) {
       instanceToDelete.dispose();
     }
 
@@ -447,10 +440,7 @@ class ZenScope {
     // Remove from use count tracking
     _useCount.remove(key);
 
-    // Dispose if it's a controller OR service
     if (instance is ZenController && !instance.isDisposed) {
-      instance.dispose();
-    } else if (instance is ZenService && !instance.isDisposed) {
       instance.dispose();
     }
 
@@ -483,10 +473,7 @@ class ZenScope {
     // Remove from use count tracking
     _useCount.remove(key);
 
-    // Dispose if it's a controller OR service
     if (instance is ZenController && !instance.isDisposed) {
-      instance.dispose();
-    } else if (instance is ZenService && !instance.isDisposed) {
       instance.dispose();
     }
 
@@ -543,19 +530,15 @@ class ZenScope {
       }
     }
 
-    // Dispose all controllers AND services
+    // Dispose all controllers (ZenService extends ZenController)
     for (final dep in _typeBindings.values) {
       if (dep is ZenController && !dep.isDisposed) {
-        dep.dispose();
-      } else if (dep is ZenService && !dep.isDisposed) {
         dep.dispose();
       }
     }
 
     for (final dep in _taggedBindings.values) {
       if (dep is ZenController && !dep.isDisposed) {
-        dep.dispose();
-      } else if (dep is ZenService && !dep.isDisposed) {
         dep.dispose();
       }
     }
@@ -601,7 +584,6 @@ class ZenScope {
         _typeBindings.remove(type);
         _useCount.remove(key);
 
-        // Dispose if it's a controller OR service
         if (instance is ZenController && !instance.isDisposed) {
           try {
             instance.dispose();
@@ -609,14 +591,6 @@ class ZenScope {
             // coverage:ignore-line
             ZenLogger.logError(// coverage:ignore-line
                 'Error disposing controller during clearAll: $e'); // coverage:ignore-line
-          } // coverage:ignore-line
-        } else if (instance is ZenService && !instance.isDisposed) {
-          try {
-            instance.dispose();
-          } catch (e) {
-            // coverage:ignore-line
-            ZenLogger.logError(// coverage:ignore-line
-                'Error disposing service during clearAll: $e'); // coverage:ignore-line
           } // coverage:ignore-line
         }
       }
@@ -643,7 +617,6 @@ class ZenScope {
           _typeToTags.remove(type);
         }
 
-        // Dispose if it's a controller OR service
         if (instance is ZenController && !instance.isDisposed) {
           try {
             instance.dispose();
@@ -651,14 +624,6 @@ class ZenScope {
             // coverage:ignore-line
             ZenLogger.logError(// coverage:ignore-line
                 'Error disposing controller during clearAll: $e'); // coverage:ignore-line
-          } // coverage:ignore-line
-        } else if (instance is ZenService && !instance.isDisposed) {
-          try {
-            instance.dispose();
-          } catch (e) {
-            // coverage:ignore-line
-            ZenLogger.logError(// coverage:ignore-line
-                'Error disposing service during clearAll: $e'); // coverage:ignore-line
           } // coverage:ignore-line
         }
       }
@@ -811,13 +776,9 @@ class ZenScope {
     final factory = _factories[key] as T Function();
     final instance = factory();
 
-    // Auto-initialize ZenController instances
+    // Auto-initialize ZenController instances (ZenService extends ZenController)
     if (instance is ZenController) {
       _initializeController(instance);
-    }
-    // Auto-initialize ZenService instances via lifecycle manager (same as Zen.put)
-    else if (instance is ZenService) {
-      _lifecycleManager.initializeService(instance);
     }
 
     // Check if this is a singleton factory or always-new factory

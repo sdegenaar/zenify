@@ -125,8 +125,6 @@ void main() {
       expect(() => ctrl.resumeSpecificWorkers([w]), returnsNormally);
     });
   });
-
-
 }
 
 class _WorkerCtrl extends ZenController {}
