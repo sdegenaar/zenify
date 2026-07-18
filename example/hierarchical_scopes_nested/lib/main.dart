@@ -1,0 +1,112 @@
+import 'dart:developer' as developer;
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:zenify/zenify.dart';
+
+import 'app/modules/app_module.dart';
+import 'app/routes/app_routes.dart';
+
+
+Future<void> main() async {
+  // Initialize Flutter binding
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Zenify with DevTools support
+  // To use the visual DevTools extension, add zenify_devtools_extension as a dev dependency
+  await Zen.init(registerDevTools: true);
+
+  ZenConfig.configure(
+    level: kDebugMode ? ZenLogLevel.info : ZenLogLevel.warning,
+    performanceTracking: kDebugMode,
+    strict: kDebugMode,
+  );
+
+  // Set up logger
+  ZenLogger.init(
+    logHandler: (message, level) {
+      if (kDebugMode) {
+        developer.log(
+          'ZEN [${level.toString().split('.').last.toUpperCase()}]: $message',
+          name: 'Zenify',
+        );
+      }
+    },
+  );
+
+  // Register the app module which contains shared services
+  await Zen.registerModules([
+    AppModule(), // Global module containing shared services
+  ]);
+
+  // Run the app
+  runApp(const CompanyApp());
+}
+
+/// Main application widget
+class CompanyApp extends StatelessWidget {
+  const CompanyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp.router(
+      title: 'Zenify Hierarchical Scope Demo',
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF3F51B5), // Indigo
+          brightness: Brightness.dark,
+        ),
+        useMaterial3: true,
+        appBarTheme: const AppBarTheme(
+          centerTitle: true,
+          elevation: 0,
+        ),
+        cardTheme: CardThemeData(
+          elevation: 2,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        // 🔥 ADD THIS: Better chip theme for readability
+        chipTheme: ChipThemeData(
+          backgroundColor: Colors.blue.shade100,
+          labelStyle: TextStyle(
+            color: Colors.blue.shade800,
+            fontWeight: FontWeight.w500,
+          ),
+          iconTheme: IconThemeData(
+            color: Colors.blue.shade700,
+          ),
+          side: BorderSide(
+            color: Colors.blue.shade300,
+            width: 1,
+          ),
+        ),
+      ),
+      darkTheme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF3F51B5),
+          brightness: Brightness.dark,
+        ),
+        useMaterial3: true,
+        // 🔥 ADD THIS: Dark theme chip support
+        chipTheme: ChipThemeData(
+          backgroundColor: Colors.blue.shade800,
+          labelStyle: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w500,
+          ),
+          iconTheme: const IconThemeData(
+            color: Colors.white,
+          ),
+          side: BorderSide(
+            color: Colors.blue.shade600,
+            width: 1,
+          ),
+        ),
+      ),
+      routerConfig: AppRoutes.router,
+      debugShowCheckedModeBanner: false,
+    );
+  }
+}

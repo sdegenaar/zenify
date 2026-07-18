@@ -853,7 +853,8 @@ void main() {
 - [Counter](example/counter) — Simple reactive state
 - [Todo App](example/todo) — CRUD operations
 - [E-commerce](example/ecommerce) — Real-world patterns
-- [Hierarchical Scopes Demo](example/hierarchical_scopes) — Advanced DI
+- [Hierarchical Scopes (Flat)](example/hierarchical_scopes_flat) — Explicit passing of parent scopes for standard Navigator
+- [Hierarchical Scopes (Nested)](example/hierarchical_scopes_nested) — Canonical Zero-Config DI using go_router ShellRoute
 - [ZenQuery Demo](example/zen_query) — Async state management
 - [Offline Demo](example/zen_offline) — Full offline-first app
 - [Showcase](example/zenify_showcase) — All features
