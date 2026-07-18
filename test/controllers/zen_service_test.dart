@@ -169,13 +169,12 @@ void main() {
       test('should handle exception in onInit gracefully', () {
         final service = _BadInitService();
 
-        // ZenLifecycleManager.initializeController catches & logs errors from
-        // onInit without rethrowing — Zen.put returns normally.
-        expect(() => Zen.put<_BadInitService>(service), returnsNormally);
-        // Because onInit threw AFTER super.onInit() set _initialized=true,
-        // _initialized is true but the user's init logic did not complete.
-        // (Implementation detail — the important thing is no crash on put)
-        expect(service.isDisposed, false);
+        // ZenScope._initializeController calls onInit() without a try-catch,
+        // so exceptions from onInit propagate through Zen.put.
+        expect(
+          () => Zen.put<_BadInitService>(service),
+          throwsException,
+        );
       });
 
       test('should handle exception in onClose gracefully', () {
