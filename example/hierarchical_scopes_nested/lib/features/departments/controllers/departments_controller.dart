@@ -24,6 +24,7 @@ class DepartmentsController extends ZenController {
   RxString get searchQuery => _searchQuery;
   RxBool get isRefreshing => _isRefreshing;
   RxString get lastError => _lastError;
+  NavigationService get navigationService => _navigationService;
 
   // Computed properties that delegate to the service
   RxList<Department> get departments => _departmentService.departments;
