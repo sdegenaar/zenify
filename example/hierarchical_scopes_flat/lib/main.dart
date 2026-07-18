@@ -112,8 +112,6 @@ class CompanyApp extends StatelessWidget {
       initialRoute: AppRoutes.home,
       onGenerateRoute: AppRoutes.onGenerateRoute,
 
-      // Register ZenRouteObserver to automatically clean up scopes on navigation
-      // navigatorObservers: [ZenRouteObserver()],
       debugShowCheckedModeBanner: false,
     );
   }

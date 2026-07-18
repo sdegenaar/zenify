@@ -591,6 +591,7 @@ If your app relies heavily on GetX navigation or i18n, factor that into your mig
 - [ ] Replace GetStorage with a `ZenStorage` implementation
 - [ ] Replace manual async state with `ZenQuery`/`ZenMutation`
 - [ ] Update workers: `ever/debounce/interval` → `ZenWorkers.*`
+- [ ] **Remove any `ZenRouteObserver` usage** — it was removed in V2. Use `ZenRoute` instead; it handles controller lifecycle automatically when the widget leaves the tree.
 - [ ] Run `dart analyze` — fix any `invalid_override` errors on `ZenView.build`
 - [ ] Run `flutter test`
 

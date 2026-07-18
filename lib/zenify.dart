@@ -15,7 +15,6 @@ export 'di/zen_reactive.dart' show ZenSubscription;
 // ===== CONTROLLERS & SERVICES =====
 export 'controllers/zen_controller.dart';
 export 'controllers/zen_service.dart';
-export 'controllers/zen_route_observer.dart';
 
 // ===== SCOPES & MODULES =====
 export 'core/zen_scope.dart';
