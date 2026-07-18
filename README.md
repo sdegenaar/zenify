@@ -98,6 +98,22 @@ No `build_runner`. No annotations. No generated files to commit. Write Dart, get
 
 ---
 
+## 🏛️ Built on Flutter's Foundations — No Hidden Global Magic
+
+This isn't just a design goal — it's enforced throughout the entire framework.
+
+**Scoped DI** resolves dependencies by walking Flutter's native `InheritedWidget` tree. There is no mutable `currentScope` global pointer that changes on every navigation event.
+
+**Controller lifecycle** is tied directly to `State.dispose()`. When the widget leaves the tree, the controller is disposed — no framework-level singleton registry involved.
+
+**Query cache** is scoped per `ZenRoute`. Navigating away disposes the cache with the scope. There is no shared global cache that leaks state across different user sessions or routes.
+
+**Reactivity** (`.obs()`, `ZenObserver`, `ZenUpdater`) is built on plain Dart objects and `InheritedWidget` notifications. There is no global event bus and no hidden dependency tracking.
+
+The result: what you see in your widget tree is *exactly* what resolves your dependencies. Zenify is predictable, deeply linkable, and fully `BuildContext`-safe from the ground up — not as a documented limitation, but as an architectural guarantee.
+
+---
+
 > **Coming from GetX?** The `.obs()` reactive syntax and DI verbs (`put`, `find`, `delete`) will feel familiar. Most migration is mechanical.
 > [GetX Migration Guide →](https://github.com/sdegenaar/zenify/blob/main/doc/migration_guide.md)
 
@@ -105,6 +121,7 @@ No `build_runner`. No annotations. No generated files to commit. Write Dart, get
 > [V2 Migration →](#️-migrating-from-v1)
 
 ---
+
 
 ## 🏗️ Understanding Scopes (The Foundation)
 
