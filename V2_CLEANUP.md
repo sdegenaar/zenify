@@ -126,5 +126,5 @@ The following were reviewed and are well-justified. No changes needed:
 | Item | Risk | Effort | Action |
 |---|---|---|---|
 | ~~`ZenRouteObserver`~~ | ~~🔴 High — architectural contradiction~~ | ~~Low~~ | ✅ **Removed in V2** |
-| `ZenControllerAdvancedExtension` | 🟡 Medium — API bloat | Very Low | Remove both methods |
-| `_estimateMemoryUsage()` | 🟡 Medium — false confidence | Very Low | Remove, drop from `getResourceStats()` |
+| ~~`ZenControllerAdvancedExtension`~~ | ~~🟡 Medium — API bloat~~ | ~~Very Low~~ | ✅ **Removed in V2** |
+| ~~`_estimateMemoryUsage()`~~ | ~~🟡 Medium — false confidence~~ | ~~Very Low~~ | ✅ **Removed in V2** |

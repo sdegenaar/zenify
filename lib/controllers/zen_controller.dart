@@ -564,46 +564,11 @@ abstract class ZenController {
           _updateListeners.values.fold<int>(0, (sum, set) => sum + set.length),
       'update_count': _updateCount,
       'worker_creation_count': _workerCreationCount,
-      'memory_overhead_estimate': _estimateMemoryUsage(),
       'is_disposed': _disposed,
       'is_initialized': _initialized,
       'is_ready': _ready,
       'uptime_seconds': DateTime.now().difference(_createdAt).inSeconds,
     };
-  }
-
-  /// Estimate memory usage in bytes (rough approximation)
-  int _estimateMemoryUsage() {
-    // 1. Tracked Reactive Objects (~100 bytes each)
-    final reactiveSize = _reactiveObjects.length * 100;
-
-    // 2. Workers (~100 bytes each)
-    final workersSize = _workers.length * 100;
-
-    // 3. Worker Groups (~200 bytes for structure)
-    final groupsSize = _workerGroups.length * 200;
-
-    // 4. Effects (~150 bytes each)
-    final effectsSize = _effects.length * 150;
-
-    // 5. Disposers (~50 bytes per closure)
-    final disposersSize = _disposers.length * 50;
-
-    // 6. Update Listeners Map (~100 bytes per entry key + structure)
-    final mapStructureSize = _updateListeners.length * 100;
-
-    // 7. Actual Listener Callbacks (~50 bytes each)
-    final totalListenersCount =
-        _updateListeners.values.fold<int>(0, (sum, set) => sum + set.length);
-    final listenersSize = totalListenersCount * 50;
-
-    return reactiveSize +
-        workersSize +
-        groupsSize +
-        effectsSize +
-        disposersSize +
-        mapStructureSize +
-        listenersSize;
   }
 
   //
@@ -910,50 +875,3 @@ extension ZenControllerWorkerExtension on ZenController {
   }
 }
 
-/// Advanced extension for specialized worker patterns
-extension ZenControllerAdvancedExtension on ZenController {
-  /// Worker that auto-disposes when a condition is met
-  ZenWorker autoDispose<T>(
-    ValueNotifier<T> obs,
-    bool Function(T) disposeCondition,
-    void Function(T) callback,
-  ) {
-    late ZenWorker handle;
-    handle = ever<T>(obs, (value) {
-      try {
-        callback(value);
-        if (disposeCondition(value)) handle.dispose();
-      } catch (e, stack) {
-        ZenLogger.logError('Error in autoDispose worker', e, stack);
-        handle.dispose();
-      }
-    });
-    return handle;
-  }
-
-  /// Worker that executes a limited number of times
-  ZenWorker limited<T>(
-    ValueNotifier<T> obs,
-    void Function(T) callback,
-    int maxExecutions,
-  ) {
-    if (maxExecutions <= 0) {
-      throw ArgumentError('maxExecutions must be positive');
-    }
-    int count = 0;
-    late ZenWorker handle;
-    handle = ever<T>(obs, (value) {
-      if (count < maxExecutions) {
-        try {
-          callback(value);
-          count++;
-          if (count >= maxExecutions) handle.dispose();
-        } catch (e, stack) {
-          ZenLogger.logError('Error in limited worker', e, stack);
-          handle.dispose();
-        }
-      }
-    });
-    return handle;
-  }
-}

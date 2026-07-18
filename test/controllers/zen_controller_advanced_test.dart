@@ -385,58 +385,6 @@ void main() {
     });
   });
 
-  // ══════════════════════════════════════════════════════════
-  // ZenControllerAdvancedExtension
-  // ══════════════════════════════════════════════════════════
-  group('ZenControllerAdvancedExtension.limited', () {
-    test('limited throws when maxExecutions <= 0', () {
-      final ctrl = _NoopCtrl();
-      expect(
-        () => ctrl.limited(0.obs(), (_) {}, 0),
-        throwsArgumentError,
-      );
-      ctrl.dispose();
-    });
-
-    test('limited fires callback exactly N times', () async {
-      final ctrl = _NoopCtrl();
-      final rx = 0.obs();
-      var count = 0;
-      ctrl.limited(rx, (_) => count++, 2);
-      rx.value = 1;
-      rx.value = 2;
-      rx.value = 3; // should not fire
-      await Future.delayed(Duration.zero);
-      expect(count, 2);
-      ctrl.dispose();
-    });
-  });
-
-  group('ZenControllerAdvancedExtension.autoDispose', () {
-    test('auto-disposes handle when condition is met', () async {
-      final ctrl = _NoopCtrl();
-      final rx = 0.obs();
-      final handle = ctrl.autoDispose(
-        rx,
-        (v) => v >= 5,
-        (_) {}, // callback
-      );
-      rx.value = 5;
-      await Future.delayed(Duration.zero);
-      expect(handle.isDisposed, true);
-      ctrl.dispose();
-    });
-
-    test('handle stays active when condition not met', () async {
-      final ctrl = _NoopCtrl();
-      final rx = 0.obs();
-      final handle = ctrl.autoDispose(rx, (v) => v >= 100, (_) {});
-      rx.value = 1;
-      await Future.delayed(Duration.zero);
-      expect(handle.isDisposed, false);
-      ctrl.dispose();
-    });
-  });
 
   // ══════════════════════════════════════════════════════════
   // didChangeAppLifecycleState on disposed controller
