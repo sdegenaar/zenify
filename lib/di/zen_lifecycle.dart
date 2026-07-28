@@ -1,7 +1,6 @@
 // lib/di/zen_lifecycle.dart
 import 'package:flutter/widgets.dart';
 import '../controllers/zen_controller.dart';
-import '../controllers/zen_service.dart';
 import '../core/zen_logger.dart';
 import '../core/zen_scope.dart';
 import '../query/core/zen_query_cache.dart';
@@ -39,6 +38,7 @@ class ZenLifecycleManager {
           // Call onReady immediately
           if (!controller.isDisposed) {
             // coverage:ignore-line
+            // coverage:ignore-line
             controller.onReady(); // coverage:ignore-line
           } // coverage:ignore-line
         }
@@ -47,12 +47,6 @@ class ZenLifecycleManager {
       ZenLogger.logError(
           'Error initializing controller ${controller.runtimeType}', e, stack);
     }
-  }
-
-  // New: provide a consistent entry point for services
-  void initializeService(ZenService service) {
-    // Initialize immediately (services are long-lived)
-    service.ensureInitialized();
   }
 
   /// Initialize the app lifecycle observer
@@ -185,7 +179,10 @@ class _ZenAppLifecycleObserver extends WidgetsBindingObserver {
       ZenLogger.logDebug('Paused ${queries.length} queries');
     } catch (e, stack) {
       ZenLogger.logError(
-          'Error pausing queries', e, stack); // coverage:ignore-line
+          // coverage:ignore-line
+          'Error pausing queries',
+          e,
+          stack); // coverage:ignore-line
     }
   }
 
@@ -198,7 +195,10 @@ class _ZenAppLifecycleObserver extends WidgetsBindingObserver {
       ZenLogger.logDebug('Resumed ${queries.length} queries');
     } catch (e, stack) {
       ZenLogger.logError(
-          'Error resuming queries', e, stack); // coverage:ignore-line
+          // coverage:ignore-line
+          'Error resuming queries',
+          e,
+          stack); // coverage:ignore-line
     }
   }
 

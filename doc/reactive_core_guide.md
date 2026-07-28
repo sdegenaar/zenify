@@ -52,7 +52,7 @@ class CounterView extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = context.find<CounterController>();
     
-    return Obx(() => Column(
+    return ZenObserver(() => Column(
       children: [
         Text('${controller.count.value}'), // Auto-rebuilds on change
         ...controller.items.map((item) => Text(item)), // Reactive list
@@ -75,7 +75,7 @@ final items = <String>[].obs();   // RxList<String>
 Widgets or functions that listen to reactive values and automatically update when values change.
 ``` dart
 // UI automatically rebuilds when count changes
-Obx(() => Text('Count: ${count.value}'))
+ZenObserver(() => Text('Count: ${count.value}'))
 ```
 ### 3. **Reactivity Chain**
 Changes propagate automatically through the reactive system without manual notification.
@@ -208,7 +208,7 @@ int currentCount = count.value;
 // Call operator (alternative)
 int currentCount = count();
 
-// In UI (within Obx or reactive context)
+// In UI (within ZenObserver or reactive context)
 Text('${count.value}') // Automatically tracks changes
 ```
 ### **Writing Values**
@@ -358,7 +358,7 @@ class DataController extends ZenController {
 }
 
 // In UI
-Obx(() {
+ZenObserver(() {
   return userData.when(
     loading: () => CircularProgressIndicator(),
     success: (user) => UserProfile(user),
@@ -392,10 +392,10 @@ class ApiController extends ZenController {
 ### **Minimal Rebuilds**
 ``` dart
 // Good: Specific reactive updates
-Obx(() => Text('Count: ${counter.count.value}'))
+ZenObserver(() => Text('Count: ${counter.count.value}'))
 
 // Avoid: Unnecessary reactive scope
-Obx(() => Column(
+ZenObserver(() => Column(
   children: [
     Text('Static text'), // This doesn't need to be reactive
     Text('Count: ${counter.count.value}'), // Only this needs reactivity
@@ -406,7 +406,7 @@ Obx(() => Column(
 Column(
   children: [
     Text('Static text'),
-    Obx(() => Text('Count: ${counter.count.value}')),
+    ZenObserver(() => Text('Count: ${counter.count.value}')),
   ],
 )
 ```
@@ -680,7 +680,7 @@ class CounterWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = context.find<CounterController>();
-    return Obx(() => Text('${controller.count.value}'));
+    return ZenObserver(() => Text('${controller.count.value}'));
   }
 }
 ```
@@ -714,7 +714,7 @@ class CounterController extends ZenController {
 }
 
 // Usage
-Obx(() => Text('${controller.count.value}'))
+ZenObserver(() => Text('${controller.count.value}'))
 ```
 ## Summary
 Zenify's reactive system provides:

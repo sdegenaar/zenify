@@ -14,7 +14,7 @@ enum LogLevel {
 
 /// Logging utility for Zenify framework
 class ZenLogger {
-  ZenLogger._();
+  ZenLogger._(); // coverage:ignore-line
 
   static const String _prefix = '[Zenify]';
 

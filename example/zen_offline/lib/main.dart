@@ -92,7 +92,10 @@ class OfflineApp extends StatelessWidget {
         ),
         textTheme: GoogleFonts.outfitTextTheme(ThemeData.dark().textTheme),
       ),
-      home: FeedPage(networkSimulator: networkSimulator),
+      home: ZenProvider.create(
+        create: () => FeedController(),
+        child: FeedPage(networkSimulator: networkSimulator),
+      ),
     );
   }
 }
@@ -102,12 +105,8 @@ class FeedPage extends ZenView<FeedController> {
   const FeedPage({super.key, required this.networkSimulator});
 
   @override
-  FeedController Function()? get createController =>
-      () => FeedController();
-
-  @override
-  Widget build(BuildContext context) {
-    // Note: ZenView provides 'controller' automatically
+  Widget build(BuildContext context, FeedController controller) {
+    // V2: controller is explicitly injected as a typed parameter by ZenView
 
     return Stack(
       children: [
@@ -135,7 +134,7 @@ class FeedPage extends ZenView<FeedController> {
             ),
           ),
           floatingActionButton: FloatingActionButton.extended(
-            onPressed: () => _showAddPostDialog(context),
+            onPressed: () => _showAddPostDialog(context, controller),
             icon: const Icon(Icons.add),
             label: const Text('New Post'),
           ),
@@ -216,7 +215,7 @@ class FeedPage extends ZenView<FeedController> {
     );
   }
 
-  void _showAddPostDialog(BuildContext context) {
+  void _showAddPostDialog(BuildContext context, FeedController controller) {
     final textController = TextEditingController();
     showDialog(
       context: context,

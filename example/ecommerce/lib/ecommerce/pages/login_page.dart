@@ -8,7 +8,7 @@ class LoginPage extends ZenView<LoginController> {
   const LoginPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, LoginController controller) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Login'),
@@ -132,7 +132,7 @@ class LoginPage extends ZenView<LoginController> {
               ZenObserver(() => ElevatedButton(
                     onPressed: Zen.find<LoginController>().isLoading.value
                         ? null
-                        : () => _login(context),
+                        : () => _login(context, controller),
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       backgroundColor: Theme.of(context).colorScheme.primary,
@@ -263,7 +263,7 @@ class LoginPage extends ZenView<LoginController> {
     );
   }
 
-  Future<void> _login(BuildContext context) async {
+  Future<void> _login(BuildContext context, LoginController controller) async {
     // Hide keyboard
     FocusScope.of(context).unfocus();
 

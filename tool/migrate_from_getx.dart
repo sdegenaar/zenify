@@ -124,28 +124,33 @@ class GetXMigrator {
         'Zen.delete',
       ),
       Migration(
-        'Get.isRegistered → Zen.has',
+        'Get.isRegistered → Zen.exists',
         RegExp(r'\bGet\.isRegistered\b'),
-        'Zen.has',
+        'Zen.exists',
       ),
 
       // ── Widgets ──────────────────────────────────────────────────────────
       Migration(
-        'GetBuilder → ZenBuilder',
+        'Obx → ZenObserver',
+        RegExp(r'\bObx\b'),
+        'ZenObserver',
+      ),
+      Migration(
+        'GetBuilder → ZenUpdater',
         RegExp(r'\bGetBuilder\b'),
-        'ZenBuilder',
+        'ZenUpdater',
       ),
       Migration(
         'GetView → ZenView',
         RegExp(r'\bGetView\b'),
         'ZenView',
       ),
-      // GetX<T> reactive widget — maps to ZenBuilder<T>
+      // GetX<T> reactive widget — maps to ZenUpdater<T>
       // Note: only matches the widget usage, not the package name
       Migration(
-        'GetX widget → ZenBuilder',
+        'GetX widget → ZenUpdater',
         RegExp(r'\bGetX<'),
-        'ZenBuilder<',
+        'ZenUpdater<',
       ),
 
       // ── Parameter renames ────────────────────────────────────────────────
@@ -168,36 +173,61 @@ class GetXMigrator {
     }
 
     // ── Flag patterns requiring manual rewrite ────────────────────────────
-    final manualPatterns = {
-      'Get.to(': 'Navigation: use Navigator.push() or GoRouter',
-      'Get.back(': 'Navigation: use Navigator.pop()',
-      'Get.off(': 'Navigation: use Navigator.pushReplacement()',
-      'Get.offAll(': 'Navigation: use Navigator.pushAndRemoveUntil()',
-      'GetMaterialApp': 'Replace with MaterialApp — no wrapper needed',
-      'extends Bindings': 'Convert to ZenModule with register(ZenScope scope)',
-      'Get.putAsync': 'Use Zen.put() with await in onInit() instead',
-      'Get.defaultDialog': 'Use showDialog() from Flutter',
-      'Get.snackbar': 'Use ScaffoldMessenger.of(context).showSnackBar()',
-      'Get.bottomSheet': 'Use showModalBottomSheet() from Flutter',
-      'Get.context':
-          'No global context in Zenify — pass BuildContext explicitly',
-      'GetStorage':
-          'Implement ZenStorage interface — see doc/migration_guide.md',
-      '.tr': 'GetX i18n not available in Zenify — use flutter_localizations',
-      // Top-level GetX worker functions need ZenWorkers. prefix
-      'ever(': 'Worker: use ZenWorkers.ever() inside onInit()',
-      'once(': 'Worker: use ZenWorkers.once() inside onInit()',
-      'debounce(': 'Worker: use ZenWorkers.debounce() inside onInit()',
-      'interval(': 'Worker: use ZenWorkers.interval() inside onInit()',
-    };
+    // Uses RegExp for all patterns — avoids false positives from substring
+    // matches (e.g. '.tr' matching '.trim', 'ever(' matching 'whatever(').
+    final manualPatterns = [
+      _Manual(RegExp(r'\bGet\.to\('), 'Get.to(',
+          'Navigation: use Navigator.push() or GoRouter'),
+      _Manual(RegExp(r'\bGet\.back\('), 'Get.back(',
+          'Navigation: use Navigator.pop()'),
+      _Manual(RegExp(r'\bGet\.off\('), 'Get.off(',
+          'Navigation: use Navigator.pushReplacement()'),
+      _Manual(RegExp(r'\bGet\.offAll\('), 'Get.offAll(',
+          'Navigation: use Navigator.pushAndRemoveUntil()'),
+      _Manual(RegExp(r'\bGetMaterialApp\b'), 'GetMaterialApp',
+          'Replace with MaterialApp — no wrapper needed'),
+      _Manual(RegExp(r'\bextends Bindings\b'), 'extends Bindings',
+          'Convert to ZenModule with register(ZenScope scope)'),
+      _Manual(RegExp(r'\bGet\.putAsync\b'), 'Get.putAsync',
+          'Use Zen.put() with await in onInit() instead'),
+      _Manual(RegExp(r'\bGet\.defaultDialog\b'), 'Get.defaultDialog',
+          'Use showDialog() from Flutter'),
+      _Manual(RegExp(r'\bGet\.snackbar\b'), 'Get.snackbar',
+          'Use ScaffoldMessenger.of(context).showSnackBar()'),
+      _Manual(RegExp(r'\bGet\.bottomSheet\b'), 'Get.bottomSheet',
+          'Use showModalBottomSheet() from Flutter'),
+      _Manual(RegExp(r'\bGet\.context\b'), 'Get.context',
+          'No global context in Zenify — pass BuildContext explicitly'),
+      _Manual(RegExp(r'\bGetStorage\b'), 'GetStorage',
+          'Implement ZenStorage interface — see doc/migration_guide.md'),
+      // Word-boundary match: .tr property access only — avoids .trim, .transform, .track etc.
+      _Manual(RegExp(r'\.tr\b'), '.tr',
+          'GetX i18n not available in Zenify — use flutter_localizations'),
+      // Top-level GetX worker functions — word boundary avoids matching e.g. 'forever(' or 'interval_ms'
+      _Manual(RegExp(r'\bever\('), 'ever(',
+          'Worker: use ZenWorkers.ever() inside onInit()'),
+      _Manual(RegExp(r'\bonce\('), 'once(',
+          'Worker: use ZenWorkers.once() inside onInit()'),
+      _Manual(RegExp(r'\bdebounce\('), 'debounce(',
+          'Worker: use ZenWorkers.debounce() inside onInit()'),
+      _Manual(RegExp(r'\binterval\('), 'interval(',
+          'Worker: use ZenWorkers.interval() inside onInit()'),
+      // V2: ZenView build() signature must be updated manually — script cannot
+      // safely transform method signatures without an AST parser.
+      _Manual(
+        RegExp(r'\bextends ZenView\b'),
+        'extends ZenView',
+        'V2 REQUIRED: update build() signature to build(BuildContext context, T controller) — run: dart analyze to find all instances',
+      ),
+    ];
 
     final flaggedReasons = <String>[];
-    for (final entry in manualPatterns.entries) {
-      if (content.contains(entry.key)) {
+    for (final manual in manualPatterns) {
+      if (manual.pattern.hasMatch(content)) {
         if (!manualReviewNeeded.contains(file.path)) {
           manualReviewNeeded.add(file.path);
         }
-        flaggedReasons.add('  → ${entry.key.trim()}: ${entry.value}');
+        flaggedReasons.add('  → ${manual.label}: ${manual.message}');
       }
     }
 
@@ -249,11 +279,14 @@ class GetXMigrator {
       print('Remove --dry-run to apply changes.');
     } else {
       print('Next steps:');
-      print('  1. Update pubspec.yaml: remove "get:", add "zenify: ^1.9.1"');
+      print('  1. Update pubspec.yaml: remove "get:", add "zenify: ^2.0.0"');
       print('  2. Run: flutter pub get');
-      print('  3. Run: dart analyze   (find any remaining issues)');
-      print('  4. Fix files marked [manual] above');
-      print('  5. Run: flutter test');
+      print(
+          '  3. Run: dart analyze   (find remaining issues, including ZenView.build() signature errors)');
+      print(
+          '  4. Fix every ZenView subclass: build(BuildContext context) → build(BuildContext context, T controller)');
+      print('  5. Fix files marked [manual] above');
+      print('  6. Run: flutter test');
       print('');
       print('Migration complete. See doc/migration_guide.md for manual steps.');
     }
@@ -266,4 +299,12 @@ class Migration {
   final String replacement;
 
   Migration(this.name, this.pattern, this.replacement);
+}
+
+class _Manual {
+  final RegExp pattern;
+  final String label;
+  final String message;
+
+  _Manual(this.pattern, this.label, this.message);
 }

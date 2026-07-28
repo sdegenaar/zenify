@@ -386,92 +386,6 @@ void main() {
   });
 
   // ══════════════════════════════════════════════════════════
-  // ZenControllerAdvancedExtension
-  // ══════════════════════════════════════════════════════════
-  group('ZenControllerAdvancedExtension.limited', () {
-    test('limited throws when maxExecutions <= 0', () {
-      final ctrl = _NoopCtrl();
-      expect(
-        () => ctrl.limited(0.obs(), (_) {}, 0),
-        throwsArgumentError,
-      );
-      ctrl.dispose();
-    });
-
-    test('limited fires callback exactly N times', () async {
-      final ctrl = _NoopCtrl();
-      final rx = 0.obs();
-      var count = 0;
-      ctrl.limited(rx, (_) => count++, 2);
-      rx.value = 1;
-      rx.value = 2;
-      rx.value = 3; // should not fire
-      await Future.delayed(Duration.zero);
-      expect(count, 2);
-      ctrl.dispose();
-    });
-  });
-
-  group('ZenControllerAdvancedExtension.autoDispose', () {
-    test('auto-disposes handle when condition is met', () async {
-      final ctrl = _NoopCtrl();
-      final rx = 0.obs();
-      final handle = ctrl.autoDispose(
-        rx,
-        (v) => v >= 5,
-        (_) {}, // callback
-      );
-      rx.value = 5;
-      await Future.delayed(Duration.zero);
-      expect(handle.isDisposed, true);
-      ctrl.dispose();
-    });
-
-    test('handle stays active when condition not met', () async {
-      final ctrl = _NoopCtrl();
-      final rx = 0.obs();
-      final handle = ctrl.autoDispose(rx, (v) => v >= 100, (_) {});
-      rx.value = 1;
-      await Future.delayed(Duration.zero);
-      expect(handle.isDisposed, false);
-      ctrl.dispose();
-    });
-  });
-
-  // ══════════════════════════════════════════════════════════
-  // FluentExtension.also
-  // ══════════════════════════════════════════════════════════
-  group('FluentExtension.also', () {
-    test('also executes block and returns self', () {
-      var sideEffect = 0;
-      final result = 42.also((_) => sideEffect = 1);
-      expect(result, 42);
-      expect(sideEffect, 1);
-    });
-
-    test('also works on strings', () {
-      final result = 'hello'.also((s) => expect(s, 'hello'));
-      expect(result, 'hello');
-    });
-  });
-
-  // ══════════════════════════════════════════════════════════
-  // ZenDIIntegration mixin
-  // ══════════════════════════════════════════════════════════
-  group('ZenDIIntegration mixin', () {
-    test('onDIRegistered does not crash', () {
-      final ctrl = _DICtrl();
-      expect(() => ctrl.onDIRegistered(), returnsNormally);
-    });
-
-    test('onDIDisposing does not crash', () {
-      final ctrl = _DICtrl();
-      expect(() => ctrl.onDIDisposing(), returnsNormally);
-      ctrl.dispose();
-    });
-  });
-
-  // ══════════════════════════════════════════════════════════
   // didChangeAppLifecycleState on disposed controller
   // The top-level guard `if (_disposed) return;` prevents all lifecycle
   // hooks from being called via the normal dispatch path.
@@ -562,5 +476,3 @@ class _TrackCtrl extends ZenController {
     super.onHidden();
   }
 }
-
-class _DICtrl extends ZenController with ZenDIIntegration {}

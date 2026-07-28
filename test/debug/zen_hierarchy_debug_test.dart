@@ -51,8 +51,8 @@ void main() {
       // Act
       final info = ZenHierarchyDebug.getCompleteHierarchyInfo();
 
-      // Assert
-      expect(info['currentScope'], isNotNull);
+      // Assert — V2: currentScope removed from the public API;
+      // hierarchy info now surfaces only rootScope and the tree below it.
       expect(info['rootScope'], isNotNull);
       expect(info['hierarchy'], isNotNull);
       expect(info['scopeStats'], isNotNull);

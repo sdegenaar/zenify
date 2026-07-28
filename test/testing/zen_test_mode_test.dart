@@ -14,18 +14,6 @@ void main() {
       final b = ZenTestMode();
       expect(identical(a, b), true);
     });
-
-    test('zenTestMode() returns the same singleton', () {
-      final a = zenTestMode();
-      final b = ZenTestMode();
-      expect(identical(a, b), true);
-    });
-
-    test('ZenTestingExtension.testMode() returns the same singleton', () {
-      final a = ZenTestingExtension.testMode();
-      final b = ZenTestMode();
-      expect(identical(a, b), true);
-    });
   });
 
   // ══════════════════════════════════════════════════════════
@@ -134,31 +122,6 @@ void main() {
   group('ZenTestMode.reset', () {
     test('reset does not crash', () {
       expect(() => ZenTestMode().reset(), returnsNormally);
-    });
-  });
-
-  // ══════════════════════════════════════════════════════════
-  // mockAll — documented bug test
-  // ══════════════════════════════════════════════════════════
-  group('ZenTestMode.mockAll (deprecated, broken)', () {
-    test('mockAll is deprecated and returns self', () {
-      // ignore: deprecated_member_use
-      final mode = ZenTestMode().mockAll({_Service: _ServiceImpl('broken')});
-      expect(mode, isA<ZenTestMode>());
-    });
-
-    test('mockAll does NOT register under the interface type (known bug)', () {
-      // ignore: deprecated_member_use
-      ZenTestMode().mockAll({_Service: _ServiceImpl('broken')});
-      // BUG: Zen.findOrNull<_Service>() returns null because Dart infers T=dynamic
-      // when calling Zen.put(instance) with a dynamic-typed variable.
-      // The instance is registered under `dynamic`, not `_Service`.
-      expect(
-        Zen.findOrNull<_Service>(),
-        isNull, // This proves the bug — mock wasn't registered correctly
-        reason: 'mockAll registers under dynamic due to Dart type erasure. '
-            'This is the documented behavior. Use .mock<T>() instead.',
-      );
     });
   });
 }

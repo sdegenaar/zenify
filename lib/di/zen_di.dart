@@ -5,7 +5,6 @@ import '../core/zen_exception.dart';
 import '../core/zen_logger.dart';
 import '../core/zen_scope.dart';
 import '../core/zen_module.dart';
-import '../controllers/zen_controller.dart';
 import '../query/core/zen_query_cache.dart';
 import '../testing/zen_test_mode.dart';
 import 'zen_lifecycle.dart';
@@ -17,18 +16,15 @@ import '../devtools/service_extensions.dart' show ZenServiceExtensions;
 /// Main Zenify API for dependency injection
 ///
 /// Provides a clean, simple API for global dependency management.
-/// For hierarchical scopes, use ZenRoute or ZenScopeWidget directly.
+/// For hierarchical scopes, use ZenRoute or ZenProvider directly.
 class Zen {
-  Zen._(); // Private constructor
+  Zen._(); // Private constructor // coverage:ignore-line
 
   static final ZenLifecycleManager _lifecycleManager =
       ZenLifecycleManager.instance;
 
   // Root scope singleton for global dependencies
   static ZenScope? _rootScope;
-
-  // Current scope tracking (for backward compatibility)
-  static ZenScope? _currentScope;
 
   //
   // INITIALIZATION
@@ -48,7 +44,8 @@ class Zen {
 
     // Register handlers if provided
     if (mutationHandlers != null) {
-      ZenMutationQueue.instance.registerHandlers(mutationHandlers);
+      ZenMutationQueue.instance
+          .registerHandlers(mutationHandlers); // coverage:ignore-line
     }
 
     // Set global storage for queries
@@ -66,7 +63,8 @@ class Zen {
         ZenLogger.logDebug('DevTools service extensions registered');
       } catch (e) {
         // Silently fail if devtools not available
-        ZenLogger.logDebug('DevTools extensions not available: $e');
+        ZenLogger.logDebug(
+            'DevTools extensions not available: $e'); // coverage:ignore-line
       }
     }
 
@@ -81,7 +79,7 @@ class Zen {
   ///
   /// If [parent] is not provided, it defaults to [rootScope].
   ///
-  /// Note: For widget-based scopes, use [ZenRoute] or [ZenScopeWidget] instead.
+  /// Note: For widget-based scopes, use [ZenRoute] or [ZenProvider] instead.
   /// This method is for programmatic scope creation outside the widget tree.
   static ZenScope createScope({String? name, ZenScope? parent}) {
     final scopeName = name ?? 'Scope_${DateTime.now().millisecondsSinceEpoch}';
@@ -103,49 +101,23 @@ class Zen {
     return _rootScope!;
   }
 
-  /// Get the current active scope (for internal use)
-  ///
-  /// Falls back to rootScope if no current scope is set.
-  static ZenScope get currentScope => _currentScope ?? rootScope;
-
-  /// Set current scope (used by routing/navigation)
-  ///
-  /// This is maintained for backward compatibility. In the new architecture,
-  /// scopes are managed via the widget tree.
-  static void setCurrentScope(ZenScope scope) {
-    _currentScope = scope;
-    ZenLogger.logDebug('Current scope: ${scope.name}');
-  }
-
-  /// Reset current scope to root
-  static void resetCurrentScope() {
-    _currentScope = null;
-  }
-
   //
   // ROOT SCOPE CONVENIENCE - Simple API for common cases
   //
 
   /// Register a dependency in root scope
   ///
-  /// ZenService instances are permanent by default, others are not.
+  /// [ZenService] instances default to permanent=true.
+  /// All other types default to permanent=false.
   static T put<T>(T instance, {String? tag, bool? isPermanent}) {
+    // ZenService extends ZenController, so we check the marker type at the
+    // call site (zen_service.dart is still importable for the type check).
     final permanent = isPermanent ?? (instance is ZenService);
-
-    final result = rootScope.put<T>(
+    return rootScope.put<T>(
       instance,
       tag: tag,
       isPermanent: permanent,
     );
-
-    // Initialize via lifecycle manager
-    if (instance is ZenController) {
-      _lifecycleManager.initializeController(instance);
-    } else if (instance is ZenService) {
-      _lifecycleManager.initializeService(instance);
-    }
-
-    return result;
   }
 
   /// Register a lazy factory in root scope
@@ -192,11 +164,6 @@ class Zen {
         scopeName: 'RootScope',
         tag: tag,
       );
-    }
-
-    // Auto-initialize ZenService on first access
-    if (result is ZenService && !result.isInitialized) {
-      result.ensureInitialized();
     }
 
     return result;
@@ -296,7 +263,6 @@ class Zen {
     ZenModuleRegistry.clear();
     ZenReactiveSystem.instance.clearListeners();
     _lifecycleManager.dispose();
-    _currentScope = null;
 
     // Dispose root scope if it exists
     if (_rootScope != null && !_rootScope!.isDisposed) {
@@ -323,58 +289,12 @@ class Zen {
     ZenLogger.logInfo('🗑️ Query cache cleared');
   }
 
-  // =========================================================================
-  // CONVENIENCE ALIASES (v1.6.3+)
-  // =========================================================================
-
-  /// Alias for [find]. Gets a dependency from the container.
-  ///
-  /// This is a convenience alias that provides consistent verb naming
-  /// across the Zenify API (get/put/remove/has).
-  ///
-  /// Example:
-  /// ```dart
-  /// final service = Zen.get<UserService>();
-  /// ```
-  static T get<T>({String? tag}) => find<T>(tag: tag);
-
-  /// Alias for [delete]. Removes a dependency from the container.
-  ///
-  /// This is a convenience alias that provides consistent verb naming
-  /// across the Zenify API (get/put/remove/has).
-  ///
-  /// Example:
-  /// ```dart
-  /// Zen.remove<UserService>();
-  /// ```
-  static bool remove<T>({String? tag, bool force = false}) =>
-      delete<T>(tag: tag, force: force);
-
-  /// Alias for [exists]. Checks if a dependency exists in the container.
-  ///
-  /// This is a convenience alias that provides consistent verb naming
-  /// across the Zenify API (get/put/remove/has).
-  ///
-  /// Example:
-  /// ```dart
-  /// if (Zen.has<UserService>()) { ... }
-  /// ```
-  static bool has<T>({String? tag}) => exists<T>(tag: tag);
-
-  /// Shorthand for [ZenQueryCache.instance].
-  ///
-  /// Provides shorter, more convenient access to the query cache.
-  ///
   /// Shorthand for [ZenQueryCache.instance].
   ///
   /// Provides shorter, more convenient access to the query cache.
   ///
   /// Example:
   /// ```dart
-  /// // Before
-  /// ZenQueryCache.instance.setQueryData('users', (_) => users);
-  ///
-  /// // After
   /// Zen.queryCache.setQueryData('users', (_) => users);
   /// ```
   static ZenQueryCache get queryCache => ZenQueryCache.instance;

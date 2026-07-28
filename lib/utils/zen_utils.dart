@@ -1,6 +1,6 @@
 /// Utility methods for Zenify
 class ZenUtils {
-  ZenUtils._();
+  ZenUtils._(); // coverage:ignore-line
 
   /// Checks if two objects are structurally equal.
   ///

@@ -22,7 +22,7 @@ abstract class ZenController {
   final List<ZenController> _childControllers = [];
 
   // Resource collections with optimized management
-  final List<ZenWorkerHandle> _workers = [];
+  final List<ZenWorker> _workers = [];
   final List<ZenWorkerGroup> _workerGroups = [];
   final List<ZenEffect> _effects = [];
   final List<void Function()> _disposers = [];
@@ -336,12 +336,6 @@ abstract class ZenController {
     ZenLogger.logDebug('Controller $runtimeType: All workers resumed');
   }
 
-  /// Pause workers - convenience method for UI callbacks (no parameters)
-  void pauseWorkers() => pauseAllWorkers();
-
-  /// Resume workers - convenience method for UI callbacks (no parameters)
-  void resumeWorkers() => resumeAllWorkers();
-
   /// Get count of active watchers (useful for debugging)
   int get activeWatcherCount => _workers.where((w) => !w.isDisposed).length;
 
@@ -349,7 +343,7 @@ abstract class ZenController {
   Map<String, dynamic> getWorkerStats() {
     _cleanupDisposedWorkers();
 
-    final workersInGroups = <ZenWorkerHandle>{};
+    final workersInGroups = <ZenWorker>{};
     for (final group in _workerGroups) {
       if (!group.isDisposed) {
         workersInGroups.addAll(group.workers);
@@ -413,7 +407,7 @@ abstract class ZenController {
   //
 
   /// Create workers that auto-dispose with controller
-  ZenWorkerHandle watch<T>(
+  ZenWorker watch<T>(
     ValueNotifier<T> observable,
     void Function(T) callback, {
     WorkerType type = WorkerType.ever,
@@ -432,15 +426,15 @@ abstract class ZenController {
   }
 
   /// Type-safe convenience worker methods
-  ZenWorkerHandle ever<T>(ValueNotifier<T> obs, void Function(T) callback) {
+  ZenWorker ever<T>(ValueNotifier<T> obs, void Function(T) callback) {
     return _createWorker(() => ZenWorkers.ever<T>(obs, callback), 'ever');
   }
 
-  ZenWorkerHandle once<T>(ValueNotifier<T> obs, void Function(T) callback) {
+  ZenWorker once<T>(ValueNotifier<T> obs, void Function(T) callback) {
     return _createWorker(() => ZenWorkers.once<T>(obs, callback), 'once');
   }
 
-  ZenWorkerHandle debounce<T>(
+  ZenWorker debounce<T>(
     ValueNotifier<T> obs,
     void Function(T) callback,
     Duration duration,
@@ -452,7 +446,7 @@ abstract class ZenController {
         () => ZenWorkers.debounce<T>(obs, callback, duration), 'debounce');
   }
 
-  ZenWorkerHandle throttle<T>(
+  ZenWorker throttle<T>(
     ValueNotifier<T> obs,
     void Function(T) callback,
     Duration duration,
@@ -464,7 +458,7 @@ abstract class ZenController {
         () => ZenWorkers.throttle<T>(obs, callback, duration), 'throttle');
   }
 
-  ZenWorkerHandle interval<T>(
+  ZenWorker interval<T>(
     ValueNotifier<T> obs,
     void Function(T) callback,
     Duration duration,
@@ -476,7 +470,7 @@ abstract class ZenController {
         () => ZenWorkers.interval<T>(obs, callback, duration), 'interval');
   }
 
-  ZenWorkerHandle condition<T>(
+  ZenWorker condition<T>(
     ValueNotifier<T> obs,
     bool Function(T) condition,
     void Function(T) callback,
@@ -570,46 +564,11 @@ abstract class ZenController {
           _updateListeners.values.fold<int>(0, (sum, set) => sum + set.length),
       'update_count': _updateCount,
       'worker_creation_count': _workerCreationCount,
-      'memory_overhead_estimate': _estimateMemoryUsage(),
       'is_disposed': _disposed,
       'is_initialized': _initialized,
       'is_ready': _ready,
       'uptime_seconds': DateTime.now().difference(_createdAt).inSeconds,
     };
-  }
-
-  /// Estimate memory usage in bytes (rough approximation)
-  int _estimateMemoryUsage() {
-    // 1. Tracked Reactive Objects (~100 bytes each)
-    final reactiveSize = _reactiveObjects.length * 100;
-
-    // 2. Workers (~100 bytes each)
-    final workersSize = _workers.length * 100;
-
-    // 3. Worker Groups (~200 bytes for structure)
-    final groupsSize = _workerGroups.length * 200;
-
-    // 4. Effects (~150 bytes each)
-    final effectsSize = _effects.length * 150;
-
-    // 5. Disposers (~50 bytes per closure)
-    final disposersSize = _disposers.length * 50;
-
-    // 6. Update Listeners Map (~100 bytes per entry key + structure)
-    final mapStructureSize = _updateListeners.length * 100;
-
-    // 7. Actual Listener Callbacks (~50 bytes each)
-    final totalListenersCount =
-        _updateListeners.values.fold<int>(0, (sum, set) => sum + set.length);
-    final listenersSize = totalListenersCount * 50;
-
-    return reactiveSize +
-        workersSize +
-        groupsSize +
-        effectsSize +
-        disposersSize +
-        mapStructureSize +
-        listenersSize;
   }
 
   //
@@ -629,7 +588,8 @@ abstract class ZenController {
         reactive.dispose();
       } catch (e, stack) {
         ZenLogger.logError(
-            'Error disposing reactive object ${reactive.runtimeType}',
+            // coverage:ignore-line
+            'Error disposing reactive object ${reactive.runtimeType}', // coverage:ignore-line
             e,
             stack);
       }
@@ -657,7 +617,8 @@ abstract class ZenController {
         }
       } catch (e, stack) {
         ZenLogger.logError(
-            'Error disposing child controller ${controller.runtimeType}',
+            // coverage:ignore-line
+            'Error disposing child controller ${controller.runtimeType}', // coverage:ignore-line
             e,
             stack);
       }
@@ -745,8 +706,7 @@ abstract class ZenController {
   }
 
   /// Optimized worker creation with validation and tracking
-  ZenWorkerHandle _createWorker(ZenWorkerHandle Function() creator,
-      [String? workerType]) {
+  ZenWorker _createWorker(ZenWorker Function() creator, [String? workerType]) {
     if (_checkDisposed('worker creation')) {
       throw StateError(
           'Cannot create ${workerType ?? 'worker'} on disposed controller');
@@ -760,7 +720,7 @@ abstract class ZenController {
 
   /// Batch worker operations for better performance
   void _batchWorkerOperation(
-    void Function(ZenWorkerHandle) workerOp,
+    void Function(ZenWorker) workerOp,
     void Function(ZenWorkerGroup) groupOp,
   ) {
     _cleanupDisposedWorkers();
@@ -770,7 +730,8 @@ abstract class ZenController {
         try {
           workerOp(worker);
         } catch (e, stack) {
-          ZenLogger.logError('Error in worker operation', e, stack);
+          ZenLogger.logError(
+              'Error in worker operation', e, stack); // coverage:ignore-line
         }
       }
     }
@@ -780,7 +741,8 @@ abstract class ZenController {
         try {
           groupOp(group);
         } catch (e, stack) {
-          ZenLogger.logError('Error in worker group operation', e, stack);
+          ZenLogger.logError('Error in worker group operation', e,
+              stack); // coverage:ignore-line
         }
       }
     }
@@ -798,7 +760,8 @@ abstract class ZenController {
       try {
         worker.dispose();
       } catch (e, stack) {
-        ZenLogger.logError('Error disposing worker', e, stack);
+        ZenLogger.logError(
+            'Error disposing worker', e, stack); // coverage:ignore-line
       }
     }
     _workers.clear();
@@ -807,7 +770,8 @@ abstract class ZenController {
       try {
         group.dispose();
       } catch (e, stack) {
-        ZenLogger.logError('Error disposing worker group', e, stack);
+        ZenLogger.logError(
+            'Error disposing worker group', e, stack); // coverage:ignore-line
       }
     }
     _workerGroups.clear();
@@ -819,7 +783,8 @@ abstract class ZenController {
       try {
         effect.dispose();
       } catch (e, stack) {
-        ZenLogger.logError('Error disposing effect', e, stack);
+        ZenLogger.logError(
+            'Error disposing effect', e, stack); // coverage:ignore-line
       }
     }
     _effects.clear();
@@ -851,28 +816,16 @@ abstract class ZenController {
     }
   }
 
-  /// Clean up disposed listeners periodically
+  /// Clean up empty listener sets periodically
   void _cleanupUpdateListeners() {
-    _updateListeners.removeWhere((key, listeners) {
-      listeners.removeWhere((listener) => false);
-      return listeners.isEmpty;
-    });
-  }
-}
-
-/// Extension to add the `also` method for fluent API
-extension FluentExtension<T> on T {
-  T also(void Function(T) block) {
-    block(this);
-    return this;
+    _updateListeners.removeWhere((key, listeners) => listeners.isEmpty);
   }
 }
 
 /// Extension for more fluent worker creation and control
 extension ZenControllerWorkerExtension on ZenController {
   /// Create multiple workers in one call
-  List<ZenWorkerHandle> createWorkers(
-      List<ZenWorkerHandle Function()> creators) {
+  List<ZenWorker> createWorkers(List<ZenWorker Function()> creators) {
     if (isDisposed) {
       throw StateError('Cannot create workers on disposed controller');
     }
@@ -880,106 +833,44 @@ extension ZenControllerWorkerExtension on ZenController {
   }
 
   /// Dispose specific workers
-  void disposeWorkers(List<ZenWorkerHandle> workers) {
+  void disposeWorkers(List<ZenWorker> workers) {
     for (final worker in workers) {
       try {
         worker.dispose();
       } catch (e, stack) {
-        ZenLogger.logError('Error disposing worker', e, stack);
+        ZenLogger.logError(
+            'Error disposing worker', e, stack); // coverage:ignore-line
       }
     }
   }
 
   /// Pause specific workers
-  void pauseSpecificWorkers(List<ZenWorkerHandle> workers) {
+  void pauseSpecificWorkers(List<ZenWorker> workers) {
     if (isDisposed) return;
-
     for (final worker in workers) {
       if (!worker.isDisposed) {
         try {
           worker.pause();
         } catch (e, stack) {
-          ZenLogger.logError('Error pausing worker', e, stack);
+          ZenLogger.logError(
+              'Error pausing worker', e, stack); // coverage:ignore-line
         }
       }
     }
   }
 
   /// Resume specific workers
-  void resumeSpecificWorkers(List<ZenWorkerHandle> workers) {
+  void resumeSpecificWorkers(List<ZenWorker> workers) {
     if (isDisposed) return;
-
     for (final worker in workers) {
       if (!worker.isDisposed) {
         try {
           worker.resume();
         } catch (e, stack) {
-          ZenLogger.logError('Error resuming worker', e, stack);
+          ZenLogger.logError(
+              'Error resuming worker', e, stack); // coverage:ignore-line
         }
       }
     }
-  }
-}
-
-/// Advanced extension for specialized worker patterns
-extension ZenControllerAdvancedExtension on ZenController {
-  /// Worker that auto-disposes when a condition is met
-  ZenWorkerHandle autoDispose<T>(
-    ValueNotifier<T> obs,
-    bool Function(T) disposeCondition,
-    void Function(T) callback,
-  ) {
-    late ZenWorkerHandle handle;
-    handle = ever<T>(obs, (value) {
-      try {
-        callback(value);
-        if (disposeCondition(value)) {
-          handle.dispose();
-        }
-      } catch (e, stack) {
-        ZenLogger.logError('Error in autoDispose worker', e, stack);
-        handle.dispose();
-      }
-    });
-    return handle;
-  }
-
-  /// Worker that executes a limited number of times
-  ZenWorkerHandle limited<T>(
-    ValueNotifier<T> obs,
-    void Function(T) callback,
-    int maxExecutions,
-  ) {
-    if (maxExecutions <= 0) {
-      throw ArgumentError('maxExecutions must be positive');
-    }
-    int count = 0;
-    late ZenWorkerHandle handle;
-    handle = ever<T>(obs, (value) {
-      if (count < maxExecutions) {
-        try {
-          callback(value);
-          count++;
-          if (count >= maxExecutions) {
-            handle.dispose();
-          }
-        } catch (e, stack) {
-          ZenLogger.logError('Error in limited worker', e, stack);
-          handle.dispose();
-        }
-      }
-    });
-    return handle;
-  }
-}
-
-/// Mixin for DI integration hooks
-mixin ZenDIIntegration on ZenController {
-  void onDIRegistered() {
-    ZenLogger.logDebug('Controller $runtimeType registered in DI system');
-  }
-
-  void onDIDisposing() {
-    ZenLogger.logDebug('Controller $runtimeType disposing from DI system');
   }
 }

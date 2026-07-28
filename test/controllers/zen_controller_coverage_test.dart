@@ -158,24 +158,24 @@ void main() {
   });
 
   // ══════════════════════════════════════════════════════════
-  // pauseWorkers/resumeWorkers (convenience aliases)
+  // pauseAllWorkers / resumeAllWorkers
   // ══════════════════════════════════════════════════════════
-  group('ZenController.pauseWorkers / resumeWorkers', () {
-    test('pauseWorkers alias works on live controller', () {
+  group('ZenController.pauseAllWorkers / resumeAllWorkers', () {
+    test('pauseAllWorkers works on live controller', () {
       final ctrl = _NoopCtrl();
       final rx = 0.obs();
       ctrl.ever(rx, (_) {});
-      expect(() => ctrl.pauseWorkers(), returnsNormally);
+      expect(() => ctrl.pauseAllWorkers(), returnsNormally);
       rx.dispose();
       ctrl.dispose();
     });
 
-    test('resumeWorkers alias works on live controller', () {
+    test('resumeAllWorkers works on live controller', () {
       final ctrl = _NoopCtrl();
       final rx = 0.obs();
       ctrl.ever(rx, (_) {});
-      ctrl.pauseWorkers();
-      expect(() => ctrl.resumeWorkers(), returnsNormally);
+      ctrl.pauseAllWorkers();
+      expect(() => ctrl.resumeAllWorkers(), returnsNormally);
       rx.dispose();
       ctrl.dispose();
     });

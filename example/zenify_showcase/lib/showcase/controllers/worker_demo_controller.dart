@@ -17,14 +17,14 @@ class WorkerDemoController extends ZenController {
   final RxInt listWorkerCount = 0.obs();
 
   // Worker handles for lifecycle management
-  late final ZenWorkerHandle _everHandle;
-  late final ZenWorkerHandle _debounceHandle;
-  late final ZenWorkerHandle _throttleHandle;
-  late final ZenWorkerHandle _onceHandle;
-  late final ZenWorkerHandle _conditionHandle;
-  late final ZenWorkerHandle _intervalHandle;
-  late final ZenWorkerHandle _stringHandle;
-  late final ZenWorkerHandle _listHandle;
+  late final ZenWorker _everHandle;
+  late final ZenWorker _debounceHandle;
+  late final ZenWorker _throttleHandle;
+  late final ZenWorker _onceHandle;
+  late final ZenWorker _conditionHandle;
+  late final ZenWorker _intervalHandle;
+  late final ZenWorker _stringHandle;
+  late final ZenWorker _listHandle;
 
   final List<String> _messageOptions = [
     'Hello Workers!',

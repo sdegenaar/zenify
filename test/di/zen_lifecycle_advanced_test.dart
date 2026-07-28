@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zenify/zenify.dart';
+import 'package:zenify/di/zen_lifecycle.dart';
 
 /// Tests targeting uncovered lines in zen_lifecycle.dart:
 /// - L33-34, 40-41: WidgetsBinding path for onReady
@@ -142,12 +143,14 @@ void main() {
   });
 
   // ══════════════════════════════════════════════════════════
-  // initializeService (L52-55)
+  // ZenService initialisation (via unified ZenController path)
+  // ZenService extends ZenController — no separate initializeService needed
   // ══════════════════════════════════════════════════════════
-  group('ZenLifecycleManager.initializeService', () {
-    test('initializeService calls ensureInitialized', () {
+  group('ZenService initialisation', () {
+    test('ZenService is initialized via initializeController when put', () {
       final svc = _TrackingSvc();
-      ZenLifecycleManager.instance.initializeService(svc);
+      expect(svc.isInitialized, false);
+      Zen.put<_TrackingSvc>(svc);
       expect(svc.isInitialized, true);
     });
   });

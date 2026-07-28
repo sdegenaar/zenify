@@ -11,7 +11,7 @@ class CartPage extends ZenView<CartController> {
   const CartPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, CartController controller) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Shopping Cart'),
@@ -21,7 +21,7 @@ class CartPage extends ZenView<CartController> {
               ? const SizedBox.shrink()
               : IconButton(
                   icon: const Icon(Icons.delete_outline),
-                  onPressed: () => _showClearCartDialog(context),
+                  onPressed: () => _showClearCartDialog(context, controller),
                   tooltip: 'Clear cart',
                 )),
         ],
@@ -29,7 +29,7 @@ class CartPage extends ZenView<CartController> {
       body: ZenObserver(() {
         // Use ZenObserver to make this reactive to cart changes
         if (controller.isEmpty) {
-          return _buildEmptyCart(context);
+          return _buildEmptyCart(context, controller);
         }
 
         return ZenEffectBuilder<List<CartItem>>(
@@ -68,13 +68,13 @@ class CartPage extends ZenView<CartController> {
                     itemCount: controller.cartItems.length,
                     itemBuilder: (context, index) {
                       final cartItem = controller.cartItems[index];
-                      return _buildCartItem(context, cartItem);
+                      return _buildCartItem(context, controller, cartItem);
                     },
                   ),
                 ),
 
                 // Cart summary
-                _buildCartSummary(context),
+                _buildCartSummary(context, controller),
               ],
             );
           },
@@ -83,7 +83,7 @@ class CartPage extends ZenView<CartController> {
     );
   }
 
-  Widget _buildEmptyCart(BuildContext context) {
+  Widget _buildEmptyCart(BuildContext context, CartController controller) {
     return SingleChildScrollView(
       child: Column(
         children: [
@@ -121,13 +121,14 @@ class CartPage extends ZenView<CartController> {
           ),
 
           // Recommended products section
-          _buildRecommendedProducts(context),
+          _buildRecommendedProducts(context, controller),
         ],
       ),
     );
   }
 
-  Widget _buildCartItem(BuildContext context, CartItem cartItem) {
+  Widget _buildCartItem(
+      BuildContext context, CartController controller, CartItem cartItem) {
     final product = cartItem.product;
 
     return Card(
@@ -252,7 +253,7 @@ class CartPage extends ZenView<CartController> {
     );
   }
 
-  Widget _buildCartSummary(BuildContext context) {
+  Widget _buildCartSummary(BuildContext context, CartController controller) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -331,7 +332,7 @@ class CartPage extends ZenView<CartController> {
             child: ZenObserver(() => ElevatedButton(
                   onPressed: controller.isProcessingCheckout.value
                       ? null
-                      : () => _processCheckout(context),
+                      : () => _processCheckout(context, controller),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     backgroundColor: Theme.of(context).colorScheme.primary,
@@ -368,7 +369,7 @@ class CartPage extends ZenView<CartController> {
     );
   }
 
-  void _showClearCartDialog(BuildContext context) {
+  void _showClearCartDialog(BuildContext context, CartController controller) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -395,7 +396,8 @@ class CartPage extends ZenView<CartController> {
     );
   }
 
-  Future<void> _processCheckout(BuildContext context) async {
+  Future<void> _processCheckout(
+      BuildContext context, CartController controller) async {
     final success = await controller.checkout();
 
     if (context.mounted) {
@@ -450,7 +452,8 @@ class CartPage extends ZenView<CartController> {
   }
 
   // Recommended products section (shown when cart is empty)
-  Widget _buildRecommendedProducts(BuildContext context) {
+  Widget _buildRecommendedProducts(
+      BuildContext context, CartController controller) {
     return FutureBuilder<List<Product>>(
       future: controller.getRecommendedProducts(),
       builder: (context, snapshot) {

@@ -4,7 +4,12 @@ import 'reactive_demo_page.dart';
 import 'effect_demo_page.dart';
 import 'worker_demo_page.dart';
 import 'obx_demo_page.dart';
-import 'zen_builder_demo_page.dart';
+import 'zen_updater_demo_page.dart';
+import 'package:zenify/zenify.dart';
+import '../controllers/reactive_demo_controller.dart';
+import '../controllers/effect_demo_controller.dart';
+import '../controllers/worker_demo_controller.dart';
+import '../controllers/zen_updater_demo_controller.dart';
 
 class ShowcaseHomePage extends StatelessWidget {
   const ShowcaseHomePage({super.key});
@@ -62,35 +67,55 @@ class ShowcaseHomePage extends StatelessWidget {
                   subtitle: 'ZenObserver & Observable Values',
                   icon: Icons.refresh,
                   color: Colors.blue,
-                  onTap: () => _navigateTo(context, const ReactiveDemoPage()),
+                  onTap: () => _navigateTo(
+                      context,
+                      ZenProvider.create(
+                          create: () => ReactiveDemoController(),
+                          child: const ReactiveDemoPage())),
                 ),
                 FeatureCard(
                   title: 'ZenEffects',
                   subtitle: 'Async State Management',
                   icon: Icons.bolt,
                   color: Colors.purple,
-                  onTap: () => _navigateTo(context, const EffectDemoPage()),
+                  onTap: () => _navigateTo(
+                      context,
+                      ZenProvider.create(
+                          create: () => EffectDemoController(),
+                          child: const EffectDemoPage())),
                 ),
                 FeatureCard(
                   title: 'Workers',
                   subtitle: 'Reactive Side Effects',
                   icon: Icons.work,
                   color: Colors.teal,
-                  onTap: () => _navigateTo(context, const WorkerDemoPage()),
+                  onTap: () => _navigateTo(
+                      context,
+                      ZenProvider.create(
+                          create: () => WorkerDemoController(),
+                          child: const WorkerDemoPage())),
                 ),
                 FeatureCard(
                   title: 'ZenObserver Widget',
                   subtitle: 'Granular Reactivity',
                   icon: Icons.visibility,
                   color: Colors.orange,
-                  onTap: () => _navigateTo(context, const ObxDemoPage()),
+                  onTap: () => _navigateTo(
+                      context,
+                      ZenProvider.create(
+                          create: () => ReactiveDemoController(),
+                          child: const ObxDemoPage())),
                 ),
                 FeatureCard(
-                  title: 'ZenBuilder',
+                  title: 'ZenUpdater',
                   subtitle: 'Controller Integration',
                   icon: Icons.build,
                   color: Colors.green,
-                  onTap: () => _navigateTo(context, const ZenBuilderDemoPage()),
+                  onTap: () => _navigateTo(
+                      context,
+                      ZenProvider.create(
+                          create: () => ZenUpdaterDemoController(),
+                          child: const ZenUpdaterDemoPage())),
                 ),
                 FeatureCard(
                   title: 'Performance',

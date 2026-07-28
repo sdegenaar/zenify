@@ -5,11 +5,6 @@ import 'package:zenify/zenify.dart';
 class TestService extends ZenService {
   final String name;
   TestService(this.name);
-
-  @override
-  void onInit() {
-    super.onInit();
-  }
 }
 
 class TestController extends ZenController {
@@ -20,7 +15,6 @@ class TestController extends ZenController {
 void main() {
   group('ZenService Integration', () {
     tearDown(() {
-      ZenService.disposeAllServices();
       Zen.reset();
     });
 

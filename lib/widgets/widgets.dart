@@ -2,8 +2,7 @@
 // Widget components for reactive UI
 
 export 'components/rx_widgets.dart';
-export 'builders/zen_builder.dart';
-export 'scope/zen_scope_widget.dart' hide ZenScopeProvider;
+export 'scope/zen_provider.dart' hide ZenScopeProvider;
 export 'builders/zen_effect_builder.dart';
 export 'components/zen_view.dart';
 export 'components/zen_route.dart';

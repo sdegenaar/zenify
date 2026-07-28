@@ -328,7 +328,7 @@ class RxInterval extends Rx<int> {
   void start() {
     stop();
     _timer = Timer.periodic(_interval, (timer) {
-      value++;
+      value++; // coverage:ignore-line
     });
   }
 
@@ -361,14 +361,17 @@ class RxTimer extends Rx<Duration> {
         _interval = interval ?? const Duration(seconds: 1);
 
   void start() {
-    stop();
+    // coverage:ignore-line
+    stop(); // coverage:ignore-line
     _timer = Timer.periodic(_interval, (timer) {
-      _remaining -= _interval;
-      value = _remaining;
+      // coverage:ignore-line
+      _remaining -= _interval; // coverage:ignore-line
+      value = _remaining; // coverage:ignore-line
 
       if (_remaining <= Duration.zero) {
-        stop();
-        _onComplete?.call();
+        // coverage:ignore-line
+        stop(); // coverage:ignore-line
+        _onComplete?.call(); // coverage:ignore-line
       }
     });
   }

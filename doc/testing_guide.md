@@ -440,40 +440,47 @@ Testing with ZenView (Primary)
 ``` dart
 testWidgets('ZenView auto-injects and cleanly disposes controller', (tester) async {
   Zen.testMode().mock<ApiClient>(FakeApiClient());
-  
+
+  final controller = CounterController();
+
   class TestPage extends ZenView<CounterController> {
-    @override
-    CounterController Function()? get createController => () => CounterController();
+    const TestPage({super.key});
 
     @override
-    Widget build(BuildContext context) {
+    Widget build(BuildContext context, CounterController controller) {
       return Text('Count: ${controller.count.value}');
     }
   }
 
-  await tester.pumpWidget(MaterialApp(home: TestPage()));
-  
+  await tester.pumpWidget(
+    MaterialApp(
+      home: ZenProvider.create<CounterController>(
+        create: () => controller,
+        child: const TestPage(),
+      ),
+    ),
+  );
+
   // Initial state
   expect(find.text('Count: 0'), findsOneWidget);
-  
-  // Modify via injected controller
-  final controller = Zen.find<CounterController>();
+
+  // Modify via the controller reference
   controller.increment();
-  
+
   await tester.pump();
   expect(find.text('Count: 1'), findsOneWidget);
 });
 ```
 
-Testing with ZenBuilder (Manual Control)
+Testing with ZenUpdater (Manual Control)
 
 ``` dart
-testWidgets('ZenBuilder updates on controller change', (tester) async {
+testWidgets('ZenUpdater updates on controller change', (tester) async {
   Zen.testMode().mock<ApiClient>(FakeApiClient());
   
   await tester.pumpWidget(
     MaterialApp(
-      home: ZenBuilder<CounterController>(
+      home: ZenUpdater<CounterController>(
         create: () => CounterController(),
         builder: (context, controller) {
           return Text('Count: ${controller.count.value}');
@@ -496,15 +503,15 @@ testWidgets('ZenBuilder updates on controller change', (tester) async {
 });
 ```
 
-Testing with Obx
+Testing with ZenObserver
 
 ``` dart
-testWidgets('Obx rebuilds on reactive change', (tester) async {
+testWidgets('ZenObserver rebuilds on reactive change', (tester) async {
   final counter = 0.obs;
 
   await tester.pumpWidget(
   MaterialApp(
-    home: Obx(() => Text('Count: ${counter.value}')),
+    home: ZenObserver(() => Text('Count: ${counter.value}')),
     ),
   );
 
@@ -862,10 +869,10 @@ Solution: Ensure proper reactive access:
 
 ``` dart
 // ❌ BAD - Doesn't track
-Obx(() => Text('Count: ${controller.count}')); // Missing .value
+ZenObserver(() => Text('Count: ${controller.count}')); // Missing .value
 
 // ✅ GOOD - Tracks reactivity
-Obx(() => Text('Count: ${controller.count.value}'));
+ZenObserver(() => Text('Count: ${controller.count.value}'));
 ```
 
 Issue: Memory Leaks in Tests

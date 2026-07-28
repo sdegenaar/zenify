@@ -87,7 +87,8 @@ extension RxSetExtensions<T> on Rx<Set<T>> {
   bool add(T item) {
     final result = tryAdd(item);
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!, context: 'Set');
+      RxLogger.logError(result.errorOrNull!,
+          context: 'Set'); // coverage:ignore-line
       return false;
     }
     return result.value;
@@ -97,7 +98,8 @@ extension RxSetExtensions<T> on Rx<Set<T>> {
   bool remove(Object? item) {
     final result = tryRemove(item);
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!, context: 'Set');
+      RxLogger.logError(result.errorOrNull!,
+          context: 'Set'); // coverage:ignore-line
       return false;
     }
     return result.value;
@@ -107,7 +109,8 @@ extension RxSetExtensions<T> on Rx<Set<T>> {
   void clear() {
     final result = tryClear();
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!, context: 'Set');
+      RxLogger.logError(result.errorOrNull!,
+          context: 'Set'); // coverage:ignore-line
     }
   }
 
@@ -115,7 +118,8 @@ extension RxSetExtensions<T> on Rx<Set<T>> {
   void addAll(Iterable<T> elements) {
     final result = tryAddAll(elements);
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!, context: 'Set');
+      RxLogger.logError(result.errorOrNull!,
+          context: 'Set'); // coverage:ignore-line
     }
   }
 
@@ -123,7 +127,8 @@ extension RxSetExtensions<T> on Rx<Set<T>> {
   void removeAll(Iterable<Object?> elements) {
     final result = tryRemoveAll(elements);
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!, context: 'Set');
+      RxLogger.logError(result.errorOrNull!,
+          context: 'Set'); // coverage:ignore-line
     }
   }
 
@@ -131,7 +136,8 @@ extension RxSetExtensions<T> on Rx<Set<T>> {
   void removeWhere(bool Function(T) test) {
     final result = tryRemoveWhere(test);
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!, context: 'Set');
+      RxLogger.logError(result.errorOrNull!,
+          context: 'Set'); // coverage:ignore-line
     }
   }
 
@@ -139,7 +145,8 @@ extension RxSetExtensions<T> on Rx<Set<T>> {
   void retainWhere(bool Function(T) test) {
     final result = tryRetainWhere(test);
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!, context: 'Set');
+      RxLogger.logError(result.errorOrNull!,
+          context: 'Set'); // coverage:ignore-line
     }
   }
 
@@ -256,13 +263,14 @@ extension RxSetExtensions<T> on Rx<Set<T>> {
     return value.toSet();
   }
 
-  String join([String separator = ""]) {
+  String join([String separator = '']) {
     RxTracking.track(this);
     return value.join(separator);
   }
 
   /// Convenience method to refresh listeners
   void refresh() {
-    value = value;
+    // coverage:ignore-line
+    value = value; // coverage:ignore-line
   }
 }

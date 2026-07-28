@@ -124,7 +124,8 @@ class _ZenEffectBuilderState<T> extends State<ZenEffectBuilder<T>> {
   Widget build(BuildContext context) {
     // Handle disposed effect case
     if (widget.effect.isDisposed) {
-      return widget.onInitial?.call() ?? const SizedBox.shrink();
+      return widget.onInitial?.call() ??
+          const SizedBox.shrink(); // coverage:ignore-line
     }
 
     Widget child;

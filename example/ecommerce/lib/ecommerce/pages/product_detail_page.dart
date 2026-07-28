@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:zenify/zenify.dart';
 import '../../shared/models/product_model.dart';
-import '../../shared/services/product_service.dart';
+
 import '../controllers/product_detail_controller.dart';
 import '../routes/app_routes.dart';
 import '../widgets/cart_badge.dart';
@@ -17,14 +17,7 @@ class ProductDetailPage extends ZenView<ProductDetailController> {
   });
 
   @override
-  ProductDetailController Function()? get createController => () {
-        return ProductDetailController(
-          productService: Zen.find<ProductService>(),
-        )..initialize(productId); // Initialize immediately
-      };
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, ProductDetailController controller) {
     return Scaffold(
       appBar: AppBar(
         title: ZenEffectBuilder<Product>(
@@ -85,12 +78,14 @@ class ProductDetailPage extends ZenView<ProductDetailController> {
             ],
           ),
         ),
-        onSuccess: (product) => _buildProductContent(context, product),
+        onSuccess: (product) =>
+            _buildProductContent(context, controller, product),
       ),
     );
   }
 
-  Widget _buildProductContent(BuildContext context, Product product) {
+  Widget _buildProductContent(BuildContext context,
+      ProductDetailController controller, Product product) {
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -332,13 +327,14 @@ class ProductDetailPage extends ZenView<ProductDetailController> {
           ),
 
           // Related products
-          _buildRelatedProducts(context, product),
+          _buildRelatedProducts(context, controller, product),
         ],
       ),
     );
   }
 
-  Widget _buildRelatedProducts(BuildContext context, Product product) {
+  Widget _buildRelatedProducts(BuildContext context,
+      ProductDetailController controller, Product product) {
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(

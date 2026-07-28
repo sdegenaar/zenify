@@ -10,7 +10,7 @@ This Todo app is designed as an introductory example that shows:
 * Core Concepts: Focus on essential Zenify features without complexity
 * Before & After: Shows what traditional Flutter DI looks like vs. Zenify's approach
 
-For Advanced Patterns: Check out the e-commerce example which demonstrates ZenScopeWidget, complex module hierarchies, and advanced architectural patterns.
+For Advanced Patterns: Check out the e-commerce example which demonstrates `ZenProvider`, complex module hierarchies, and advanced architectural patterns.
 
 ## Manual vs Automatic Dependency Injection
 
@@ -50,15 +50,18 @@ class _TodoHomePageState extends State<TodoHomePage> {
 ### With Zenify (What This Example Shows)
 
 ```dart
+// In your route definition:
+ZenProvider.create<TodoController>(
+  create: () => TodoController(),
+  child: const TodoHomePage(),
+)
+
 // Automatic controller lifecycle and dependency injection
 class TodoHomePage extends ZenView<TodoController> {
   const TodoHomePage({super.key});
 
   @override
-  TodoController Function()? get createController => () => TodoController();
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, TodoController controller) {
     // Controller and dependencies automatically managed
     return Scaffold(/* ... */);
   }
@@ -116,9 +119,11 @@ lib/
 ### 1. Manual Controller Creation
 
 ```dart
-// In TodoHomePage
-@override
-TodoController Function()? get createController => () => TodoController();
+// At the route callsite:
+ZenProvider.create<TodoController>(
+  create: () => TodoController(),
+  child: const TodoHomePage(),
+)
 ```
 
 
@@ -166,7 +171,7 @@ This example demonstrates a complete todo application with:
 
 1. Start Here: Todo app (manual DI patterns)
 2. Next: Counter example (reactive state deep dive)
-3. Advanced: E-commerce example (ZenScopeWidget, complex modules)
+3. Advanced: E-commerce example (ZenProvider, complex modules)
 
 ## Best Practices Shown
 
@@ -183,7 +188,7 @@ This example demonstrates a complete todo application with:
 
 Ready for more complex scenarios? Check out:
 
-* E-commerce Example: Advanced patterns with ZenScopeWidget
+* E-commerce Example: Advanced patterns with ZenProvider
 * Counter Example: Deep dive into reactive workers and effects
 * Zenify Documentation: Complete API reference
 

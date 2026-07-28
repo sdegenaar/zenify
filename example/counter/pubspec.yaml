@@ -1,5 +1,5 @@
-name: zenify_example
-description: Example app for the ZenState library
+name: zenify_counter_example
+description: Clean counter example demonstrating the Zenify V2 three-step pattern.
 publish_to: 'none'
 
 environment:
@@ -10,8 +10,6 @@ dependencies:
     sdk: flutter
   zenify:
     path: ../../  # This references the main package
-  shared_preferences: ^2.5.3
-
 
 dev_dependencies:
   flutter_test:

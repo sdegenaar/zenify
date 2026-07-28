@@ -40,13 +40,6 @@ void main() {
       expect(() => ctrl.pauseAllWorkers(), returnsNormally);
       expect(() => ctrl.resumeAllWorkers(), returnsNormally);
     });
-
-    test('pauseWorkers convenience alias works', () {
-      final ctrl = _WorkerCtrl();
-      Zen.put<_WorkerCtrl>(ctrl);
-      expect(() => ctrl.pauseWorkers(), returnsNormally);
-      expect(() => ctrl.resumeWorkers(), returnsNormally);
-    });
   });
 
   // ══════════════════════════════════════════════════════════
@@ -130,104 +123,6 @@ void main() {
       final w = ctrl.ever<int>(rx, (_) {});
       ctrl.dispose();
       expect(() => ctrl.resumeSpecificWorkers([w]), returnsNormally);
-    });
-  });
-
-  // ══════════════════════════════════════════════════════════
-  // ZenControllerAdvancedExtension.autoDispose
-  // ══════════════════════════════════════════════════════════
-  group('ZenControllerAdvancedExtension.autoDispose', () {
-    test('autoDispose disposes handle when condition is met', () async {
-      final ctrl = _WorkerCtrl();
-      Zen.put<_WorkerCtrl>(ctrl);
-      final rx = Rx<int>(0);
-      int calls = 0;
-
-      final handle = ctrl.autoDispose<int>(
-        rx,
-        (v) => v >= 3, // dispose when v >= 3
-        (_) => calls++,
-      );
-
-      rx.value = 1;
-      rx.value = 2;
-      rx.value = 3; // should auto-dispose after this
-
-      expect(calls, 3);
-      expect(handle.isDisposed, true);
-    });
-
-    test('autoDispose disposes handle on error', () {
-      final ctrl = _WorkerCtrl();
-      Zen.put<_WorkerCtrl>(ctrl);
-      final rx = Rx<int>(0);
-
-      final handle = ctrl.autoDispose<int>(
-        rx,
-        (_) => false,
-        (_) => throw Exception('callback boom'),
-      );
-
-      rx.value = 1;
-      // After error, handle is disposed
-      expect(handle.isDisposed, true);
-    });
-  });
-
-  // ══════════════════════════════════════════════════════════
-  // ZenControllerAdvancedExtension.limited
-  // ══════════════════════════════════════════════════════════
-  group('ZenControllerAdvancedExtension.limited', () {
-    test('limited executes at most maxExecutions times', () {
-      final ctrl = _WorkerCtrl();
-      Zen.put<_WorkerCtrl>(ctrl);
-      final rx = Rx<int>(0);
-      int calls = 0;
-
-      final handle = ctrl.limited<int>(rx, (_) => calls++, 2);
-      rx.value = 1;
-      rx.value = 2;
-      rx.value = 3; // no-op after 2 executions
-
-      expect(calls, 2);
-      expect(handle.isDisposed, true);
-    });
-
-    test('limited throws ArgumentError when maxExecutions <= 0', () {
-      final ctrl = _WorkerCtrl();
-      Zen.put<_WorkerCtrl>(ctrl);
-      expect(
-        () => ctrl.limited<int>(Rx<int>(0), (_) {}, 0),
-        throwsA(isA<ArgumentError>()),
-      );
-    });
-
-    test('limited disposes handle on callback error', () {
-      final ctrl = _WorkerCtrl();
-      Zen.put<_WorkerCtrl>(ctrl);
-      final rx = Rx<int>(0);
-
-      final handle = ctrl.limited<int>(
-        rx,
-        (_) => throw Exception('limited error'),
-        3,
-      );
-
-      rx.value = 1;
-      expect(handle.isDisposed, true);
-    });
-  });
-
-  // ══════════════════════════════════════════════════════════
-  // FluentExtension.also
-  // ══════════════════════════════════════════════════════════
-  group('FluentExtension.also', () {
-    test('also applies block and returns self', () {
-      final ctrl = _WorkerCtrl();
-      bool applied = false;
-      final result = ctrl.also((_) => applied = true);
-      expect(applied, true);
-      expect(result, same(ctrl));
     });
   });
 }

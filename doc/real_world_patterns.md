@@ -49,8 +49,10 @@ class PostFeedController extends ZenController {
 
 ```dart
 class PostFeedPage extends ZenView<PostFeedController> {
+  const PostFeedPage({super.key});
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, PostFeedController controller) {
     return Scaffold(
       appBar: AppBar(title: Text('Posts')),
       body: ZenQueryBuilder<List<PostPage>>(
@@ -88,8 +90,10 @@ class PostFeedPage extends ZenView<PostFeedController> {
 
 ```dart
 class PostFeedPage extends ZenView<PostFeedController> {
+  const PostFeedPage({super.key});
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, PostFeedController controller) {
     return Scaffold(
       appBar: AppBar(title: Text('Posts')),
       body: ZenQueryBuilder<List<PostPage>>(
@@ -104,7 +108,7 @@ class PostFeedPage extends ZenView<PostFeedController> {
               itemCount: allPosts.length + 1,
               itemBuilder: (context, index) {
                 if (index == allPosts.length) {
-                  return Obx(() {
+                  return ZenObserver(() {
                     if (controller.postsQuery.hasNextPage.value) {
                       controller.postsQuery.fetchNextPage();
                       return controller.postsQuery.isFetchingNextPage.value
@@ -187,8 +191,10 @@ class UserProfileController extends ZenController {
 
 ```dart
 class UserProfilePage extends ZenView<UserProfileController> {
+  const UserProfilePage({super.key});
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, UserProfileController controller) {
     return Scaffold(
       appBar: AppBar(title: Text('Profile')),
       body: ZenQueryBuilder<User>(
@@ -289,8 +295,10 @@ class ChatController extends ZenController {
 
 ```dart
 class ChatPage extends ZenView<ChatController> {
+  const ChatPage({super.key});
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, ChatController controller) {
     return Scaffold(
       appBar: AppBar(title: Text('Chat')),
       body: ZenStreamQueryBuilder<List<Message>>(
@@ -438,7 +446,7 @@ class ProductCard extends StatelessWidget {
             child: Text('Add to Cart'),
           ),
           // Works in reactive widgets too!
-          Obx(() => Text('Cart: ${CartService.to.items.length} items')),
+          ZenObserver(() => Text('Cart: ${CartService.to.items.length} items')),
         ],
       ),
     );
@@ -449,7 +457,7 @@ class ProductCard extends StatelessWidget {
 class CartBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Obx(() => Badge(
+    return ZenObserver(() => Badge(
       label: Text('${CartService.to.items.length}'),
       child: Icon(Icons.shopping_cart),
     ));
@@ -590,8 +598,10 @@ ZenEffectBuilder<User>(
 
 ```dart
 class ProfilePage extends ZenView<ProfileController> {
+  const ProfilePage({super.key});
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, ProfileController controller) {
     return Scaffold(
       appBar: AppBar(title: Text('Profile')),
       body: Column(
@@ -662,7 +672,7 @@ class ShoppingController extends ZenController {
 }
 
 // In UI - automatic updates when items, discount, or taxRate change
-Obx(() => Column(
+ZenObserver(() => Column(
   children: [
     Text('Subtotal: \$${controller.subtotal.toStringAsFixed(2)}'),
     Text('Discount: \$${controller.discountAmount.toStringAsFixed(2)}'),
@@ -746,7 +756,7 @@ void main() async {
 
 ## Performance Control Patterns
 
-### Option 1: Reactive with Obx (Recommended - Simpler)
+### Option 1: Reactive with ZenObserver (Recommended - Simpler)
 
 ```dart
 class DashboardController extends ZenController {
@@ -755,7 +765,7 @@ class DashboardController extends ZenController {
   final selectedPeriod = Period.week.obs();
 
   void updateStats(List<Stat> newStats) {
-    stats.value = newStats;  // Auto-updates Obx widgets
+    stats.value = newStats;  // Auto-updates ZenObserver widgets
   }
 
   void changePeriod(Period period) {
@@ -766,15 +776,17 @@ class DashboardController extends ZenController {
 
 // In UI - automatic rebuilds
 class DashboardView extends ZenView<DashboardController> {
+  const DashboardView({super.key});
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, DashboardController controller) {
     return Column(
       children: [
-        Obx(() => PeriodSelector(
+        ZenObserver(() => PeriodSelector(
           selected: controller.selectedPeriod.value,
           onChanged: controller.changePeriod,
         )),
-        Obx(() => controller.isLoading.value
+        ZenObserver(() => controller.isLoading.value
           ? LoadingSpinner()
           : StatsChart(controller.stats),
         ),
@@ -784,7 +796,7 @@ class DashboardView extends ZenView<DashboardController> {
 }
 ```
 
-### Option 2: Manual with ZenBuilder (Fine Control)
+### Option 2: Manual with ZenUpdater (Fine Control)
 
 ```dart
 class DashboardController extends ZenController {
@@ -811,22 +823,24 @@ class DashboardController extends ZenController {
 
 // In UI - targeted rebuilds
 class DashboardView extends ZenView<DashboardController> {
+  const DashboardView({super.key});
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, DashboardController controller) {
     return Column(
       children: [
-        ZenBuilder<DashboardController>(
+        ZenUpdater<DashboardController>(
           id: 'period-selector',
           builder: (context, ctrl) => PeriodSelector(
             selected: ctrl.selectedPeriod,
             onChanged: ctrl.changePeriod,
           ),
         ),
-        ZenBuilder<DashboardController>(
+        ZenUpdater<DashboardController>(
           id: 'loading-state',
           builder: (context, ctrl) => ctrl.isLoading
             ? LoadingSpinner()
-            : ZenBuilder<DashboardController>(
+            : ZenUpdater<DashboardController>(
                 id: 'stats-chart',
                 builder: (context, ctrl) => StatsChart(ctrl.stats),
               ),
@@ -854,28 +868,30 @@ class DashboardController extends ZenController {
   }
 
   void changePeriod(Period period) {
-    selectedPeriod.value = period;  // Auto-updates Obx
+    selectedPeriod.value = period;  // Auto-updates ZenObserver
     loadStats(period);
   }
 }
 
 // In UI - mix both approaches
 class DashboardView extends ZenView<DashboardController> {
+  const DashboardView({super.key});
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, DashboardController controller) {
     return Column(
       children: [
-        // Obx for reactive period
-        Obx(() => PeriodSelector(
+        // ZenObserver for reactive period
+        ZenObserver(() => PeriodSelector(
           selected: controller.selectedPeriod.value,
           onChanged: controller.changePeriod,
         )),
 
-        // Obx for reactive loading
-        Obx(() => controller.isLoading.value
+        // ZenObserver for reactive loading
+        ZenObserver(() => controller.isLoading.value
           ? LoadingSpinner()
-          // ZenBuilder for manual stats
-          : ZenBuilder<DashboardController>(
+          // ZenUpdater for manual stats
+          : ZenUpdater<DashboardController>(
               id: 'stats-chart',
               builder: (context, ctrl) => StatsChart(ctrl.stats),
             ),
@@ -887,8 +903,8 @@ class DashboardView extends ZenView<DashboardController> {
 ```
 
 **When to use each:**
-- 🟢 **Obx + .obs()**: Most cases (simpler, less code)
-- 🔵 **ZenBuilder + update()**: Complex objects, precise rebuild control
+- 🟢 **ZenObserver + .obs()**: Most cases (simpler, less code)
+- 🔵 **ZenUpdater + update()**: Complex objects, precise rebuild control
 - 🟡 **Mixed**: Large apps, optimize hot paths only
 
 ---

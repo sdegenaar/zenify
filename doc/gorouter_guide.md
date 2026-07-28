@@ -9,7 +9,7 @@ Zenify works with any Flutter router. This guide shows how to use `ZenRoute` wit
 ```yaml
 # pubspec.yaml
 dependencies:
-  zenify: ^1.10.0
+  zenify: ^2.0.0
   go_router: ^14.0.0
 ```
 
@@ -68,19 +68,19 @@ class ProfileModule extends ZenModule {
 
 ## Accessing Scoped Dependencies
 
-For a clean class-level syntax, the best approach is to extend `ZenView<T>`. This automatically locates your scoped controller and makes it available via the `controller` getter:
+For a clean class-level syntax, the best approach is to extend `ZenView<T>`. The scoped controller is injected directly into `build()` — no getter magic, compiler-enforced:
 
 ```dart
 class ProfilePage extends ZenView<ProfileController> {
   const ProfilePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // Controller is automatically found in the scope and ready to use!
+  Widget build(BuildContext context, ProfileController controller) {
+    // Controller is injected directly — no magic getter needed.
     return Scaffold(
       appBar: AppBar(title: const Text('Profile')),
-      // ZenQuery.when handles its own reactivity so ZenBuilder isn't required here.
-      // If you are relying on controller.update(), wrap reactive portions in ZenBuilder.
+      // ZenQuery.when handles its own reactivity so ZenUpdater isn't required here.
+      // If you are relying on controller.update(), wrap reactive portions in ZenUpdater.
       body: controller.userQuery.when(
         data: (user) => UserCard(user),
         loading: () => const CircularProgressIndicator(),
@@ -91,9 +91,9 @@ class ProfilePage extends ZenView<ProfileController> {
 }
 ```
 
-### Alternative: Using `StatelessWidget` with `ZenBuilder`
+### Alternative: Using `StatelessWidget` with `ZenUpdater`
 
-If your page already extends `StatelessWidget` or another widget class, you can use `ZenBuilder<T>` to automatically fetch and react to the controller:
+If your page already extends `StatelessWidget` or another widget class, you can use `ZenUpdater<T>` to rebuild when `controller.update()` is called:
 
 ```dart
 class ProfilePage extends StatelessWidget {
@@ -101,7 +101,7 @@ class ProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ZenBuilder<ProfileController>(
+    return ZenUpdater<ProfileController>(
       builder: (context, controller) {
         return Scaffold(
           appBar: AppBar(title: const Text('Profile')),
@@ -119,43 +119,73 @@ class ProfilePage extends StatelessWidget {
 
 ---
 
-## Nested Routes (ShellRoute)
+## Nested Routes (ShellRoute) — Canonical V2 Pattern
 
-For nested navigation with a shared shell (e.g. bottom nav bar), use `ShellRoute`
-with a root `ZenRoute` at the shell level:
+For nested navigation with a shared shell (e.g., bottom nav bar, split views, or deep sub-flows), use `ShellRoute` with a parent `ZenRoute` at the shell level.
+
+> [!TIP]
+> **Why is this important in V2?** 
+> Standard flat routes (like `context.push` or `GoRoute` without a shell) create detached overlays that break the widget tree. If you use flat routes, you must explicitly pass `parentScope` to inherit dependencies.
+> 
+> Because `ShellRoute` renders its children *inside* the widget tree, Zenify can automatically walk up the tree to discover parent scopes. **This is the canonical, zero-config way to implement deep hierarchical dependency injection in Zenify V2.**
+
+The `ShellRoute`'s `child` argument can be passed directly as `page` — the `ZenRoute` scope wraps it, and all child routes inherit automatically. For apps with a persistent scaffold (e.g., bottom nav bar), you wrap `child` in your shell widget instead:
 
 ```dart
-GoRouter(
+// --- Variant A: Deep sub-flow (no persistent shell UI) ---
+ShellRoute(
+  builder: (context, state, child) => ZenRoute(
+    moduleBuilder: () => DepartmentsModule(),
+    scopeName: 'DepartmentsScope',
+    page: child, // child is the nested Navigator — rendered inside the scope!
+  ),
   routes: [
-    ShellRoute(
-      builder: (context, state, child) => ZenRoute(
-        moduleBuilder: () => AppShellModule(),
-        page: AppShell(child: child),
-        scopeName: 'AppShell',
+    GoRoute(
+      path: '/departments',
+      builder: (context, state) => const DepartmentsPage(),
+    ),
+    GoRoute(
+      path: '/departments/detail/:id',
+      // Zero-config: automatically inherits DepartmentsScope!
+      builder: (context, state) => ZenRoute(
+        moduleBuilder: () => DepartmentDetailModule(state.pathParameters['id']!),
+        page: DepartmentDetailPage(departmentId: state.pathParameters['id']!),
       ),
-      routes: [
-        GoRoute(
-          path: '/feed',
-          builder: (context, state) => ZenRoute(
-            moduleBuilder: () => FeedModule(),
-            page: const FeedPage(),
-          ),
-        ),
-        GoRoute(
-          path: '/settings',
-          builder: (context, state) => ZenRoute(
-            moduleBuilder: () => SettingsModule(),
-            page: const SettingsPage(),
-          ),
-        ),
-      ],
     ),
   ],
 )
 ```
 
-The `FeedModule` and `SettingsModule` scopes automatically inherit from the
-`AppShell` scope, so they can access anything registered in `AppShellModule`.
+```dart
+// --- Variant B: Bottom nav bar (persistent shell UI) ---
+ShellRoute(
+  builder: (context, state, child) => ZenRoute(
+    moduleBuilder: () => AppShellModule(),
+    scopeName: 'AppShell',
+    page: AppShell(child: child), // wrap child in your shell widget
+  ),
+  routes: [
+    GoRoute(
+      path: '/feed',
+      // Automatically inherits AppShell scope
+      builder: (context, state) => ZenRoute(
+        moduleBuilder: () => FeedModule(),
+        page: const FeedPage(),
+      ),
+    ),
+    GoRoute(
+      path: '/settings',
+      builder: (context, state) => ZenRoute(
+        moduleBuilder: () => SettingsModule(),
+        page: const SettingsPage(),
+      ),
+    ),
+  ],
+)
+```
+
+In both variants, because the widget tree remains intact inside the shell, all child `ZenRoute` scopes automatically inherit from the parent scope — no explicit `parentScope` needed.
+
 
 ---
 

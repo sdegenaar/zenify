@@ -7,11 +7,7 @@ class ObxDemoPage extends ZenView<ReactiveDemoController> {
   const ObxDemoPage({super.key});
 
   @override
-  ReactiveDemoController Function()? get createController =>
-      () => ReactiveDemoController();
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, ReactiveDemoController controller) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('ZenObserver Granular Reactivity'),
@@ -277,16 +273,16 @@ class ObxDemoPage extends ZenView<ReactiveDemoController> {
                     children: [
                       // Rebuild counters (simulated)
                       _buildPerformanceMetric('Counter ZenObserver Rebuilds',
-                          _getCounterRebuilds()),
+                          _getCounterRebuilds(controller)),
                       const SizedBox(height: 8),
                       _buildPerformanceMetric('Message ZenObserver Rebuilds',
-                          _getMessageRebuilds()),
+                          _getMessageRebuilds(controller)),
                       const SizedBox(height: 8),
-                      _buildPerformanceMetric(
-                          'Items ZenObserver Rebuilds', _getItemsRebuilds()),
+                      _buildPerformanceMetric('Items ZenObserver Rebuilds',
+                          _getItemsRebuilds(controller)),
                       const SizedBox(height: 8),
                       _buildPerformanceMetric('Features ZenObserver Rebuilds',
-                          _getFeaturesRebuilds()),
+                          _getFeaturesRebuilds(controller)),
 
                       const SizedBox(height: 16),
 
@@ -537,9 +533,11 @@ class ObxDemoPage extends ZenView<ReactiveDemoController> {
   }
 
   // Simulated rebuild counters (in real app, these would be tracked)
-  int _getCounterRebuilds() => controller.counter.value; // Approximate
-  int _getMessageRebuilds() => 5; // Simulated
-  int _getItemsRebuilds() => controller.items.length;
-  int _getFeaturesRebuilds() =>
+  int _getCounterRebuilds(ReactiveDemoController controller) =>
+      controller.counter.value; // Approximate
+  int _getMessageRebuilds(ReactiveDemoController controller) => 5; // Simulated
+  int _getItemsRebuilds(ReactiveDemoController controller) =>
+      controller.items.length;
+  int _getFeaturesRebuilds(ReactiveDemoController controller) =>
       (controller.featureA.value ? 1 : 0) + (controller.featureB.value ? 1 : 0);
 }

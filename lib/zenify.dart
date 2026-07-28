@@ -7,15 +7,14 @@ library;
 
 // ===== CORE DI SYSTEM =====
 export 'di/zen_di.dart' show Zen;
-export 'di/zen_refs.dart' show Ref;
-export 'di/zen_lifecycle.dart';
-export 'di/zen_reactive.dart';
+// ZenLifecycleManager is internal — not part of the public API.
+export 'di/zen_lifecycle.dart' hide ZenLifecycleManager;
+// ZenReactiveSystem is internal; ZenSubscription is the public surface.
+export 'di/zen_reactive.dart' show ZenSubscription;
 
 // ===== CONTROLLERS & SERVICES =====
 export 'controllers/zen_controller.dart';
 export 'controllers/zen_service.dart';
-export 'controllers/zen_controller_scope.dart';
-export 'controllers/zen_route_observer.dart';
 
 // ===== SCOPES & MODULES =====
 export 'core/zen_scope.dart';
@@ -25,14 +24,14 @@ export 'core/zen_module.dart';
 export 'reactive/reactive.dart';
 
 // ===== WIDGETS =====
-export 'widgets/builders/zen_builder.dart';
+export 'widgets/builders/zen_updater.dart';
 export 'widgets/builders/zen_query_builder.dart';
 export 'widgets/builders/zen_query_consumer.dart';
 export 'widgets/builders/zen_query_when.dart';
 export 'widgets/builders/zen_infinite_query_when.dart';
 export 'widgets/builders/zen_mutation_when.dart';
 export 'widgets/components/zen_route.dart';
-export 'widgets/scope/zen_scope_widget.dart' hide ZenScopeProvider;
+export 'widgets/scope/zen_provider.dart' hide ZenScopeProvider;
 export 'widgets/scope/zen_consumer.dart';
 export 'widgets/components/zen_view.dart';
 export 'widgets/builders/zen_effect_builder.dart';
@@ -42,7 +41,7 @@ export 'widgets/components/rx_widgets.dart';
 export 'workers/zen_workers.dart';
 export 'effects/zen_effects.dart';
 
-// Query system
+// ===== QUERY SYSTEM =====
 export 'query/query.dart';
 
 // ===== STORAGE ADAPTERS =====
@@ -62,7 +61,7 @@ export 'core/zen_metrics.dart';
 // ===== UTILITIES =====
 export 'utils/zen_scope_inspector.dart';
 
-// ===== ERROR HANDLING =====
+// ===== TESTING =====
 export 'testing/testing.dart';
 
 // ===== MIXINS =====

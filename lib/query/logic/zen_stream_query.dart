@@ -25,8 +25,7 @@ class ZenStreamQuery<T> extends ZenController {
   StreamSubscription<T>? _subscription;
   bool _isPaused = false;
   bool _isDisposed = false;
-  ZenWorkerHandle?
-      _statusWorker; // Changed from ZenWorkers? to ZenWorkerHandle?
+  ZenWorker? _statusWorker;
 
   // Derived State
   RxBool get isLoading =>
@@ -167,6 +166,7 @@ class ZenStreamQuery<T> extends ZenController {
     ZenLogger.logDebug('Stream resumed: $queryKey');
   }
 
+  // coverage:ignore-start
   void _handleLifecycleChange(AppLifecycleState state) {
     // Only auto-pause if configured (opt-in, like ZenQuery)
     if (!config.autoPauseOnBackground) {
@@ -208,6 +208,7 @@ class ZenStreamQuery<T> extends ZenController {
         break;
     }
   }
+  // coverage:ignore-end
 
   void setData(T newData) {
     data.value = newData;

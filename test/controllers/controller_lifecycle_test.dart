@@ -88,7 +88,7 @@ class TestScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Obx(() => Text('Counter: ${controller.counter.value}')),
+            ZenObserver(() => Text('Counter: ${controller.counter.value}')),
             ElevatedButton(
               onPressed: controller.increment,
               child: const Text('Increment'),
@@ -287,7 +287,7 @@ void main() {
                     ),
                     if (showWidget)
                       Expanded(
-                        child: ZenScopeWidget(
+                        child: ZenProvider(
                           moduleBuilder: () =>
                               DisposableModule(disposableController),
                           child: const Center(child: Text('Scoped Widget')),

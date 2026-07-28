@@ -1,253 +1,148 @@
 import 'package:flutter/material.dart';
-import 'package:zenify/widgets/widgets.dart';
 import '../../controllers/zen_controller.dart';
 import '../../core/zen_exception.dart';
-import '../../core/zen_scope.dart';
-import '../../di/zen_di.dart';
+import '../scope/zen_provider.dart';
 
-/// Base class for screens and pages that own a [ZenController].
+/// Base class for screens, pages, and widgets that consume a [ZenController].
+///
+/// ## The Three-Step Pattern
+///
+/// ```
+/// 1. Register  →  ZenProvider.create<T>(create: ...)   // route-level
+///                  ZenProvider(moduleBuilder: ...)      // feature module
+///                  Zen.put<T>(...)                      // app-level singleton
+///
+/// 2. Consume   →  class MyPage extends ZenView<MyController>
+///                   → controller injected into build() automatically
+///
+/// 3. React     →  ZenObserver / ZenUpdater / ZenQuery.when()
+/// ```
 ///
 /// ## Controller Resolution
 ///
-/// When the widget mounts, [ZenView] resolves its controller in this order:
-/// 1. **Nearest [ZenScope]** in the widget tree (scope-isolated; safe for
-///    multiple simultaneous instances).
-/// 2. **Global [Zen] DI** — for singleton screens registered at the app root.
+/// [ZenView] resolves its controller from the **nearest [ZenProvider] ancestor**
+/// in the widget tree. There is no global fallback — if no scope is found, a
+/// [ZenControllerNotFoundException] is thrown with a clear message telling you
+/// exactly what to add.
 ///
-/// If neither source has the controller and [createController] is provided,
-/// the controller is created and registered automatically into the nearest
-/// scope (or global DI if no scope ancestor is present).
+/// ## Standard Usage — Route-level controller
 ///
-/// ## Usage
-///
-/// Override [build] and use the [controller] getter to access the resolved
-/// controller — always non-nullable inside [build].
+/// Wrap the view in [ZenProvider.create] at the router / navigation callsite:
 ///
 /// ```dart
-/// class CounterPage extends ZenView<CounterController> {
-///   const CounterPage({super.key});
+/// // In your router:
+/// ZenProvider.create<CartController>(
+///   create: () => CartController(),
+///   child: const CartPage(),
+/// )
+///
+/// // The page — zero lookup code:
+/// class CartPage extends ZenView<CartController> {
+///   const CartPage({super.key});
 ///
 ///   @override
-///   CounterController Function()? get createController =>
-///       () => CounterController();
-///
-///   @override
-///   Widget build(BuildContext context) {
-///     return Scaffold(
-///       body: ZenObserver(() => Text('${controller.count.value}')),
-///       floatingActionButton: FloatingActionButton(
-///         onPressed: controller.increment,
-///         child: const Icon(Icons.add),
-///       ),
-///     );
+///   Widget build(BuildContext context, CartController controller) {
+///     return ZenObserver(() => Text('${controller.itemCount.value} items'));
 ///   }
 /// }
 /// ```
 ///
-/// ## Multi-Instance Safety
+/// ## Module Usage — Feature module with dependencies
 ///
-/// [ZenView] uses a per-instance stack registry. When two widgets of the same
-/// type are active simultaneously (e.g., nested navigation, split-screen), each
-/// pushes its own controller onto the stack. The [controller] getter always
-/// returns the innermost (most recently mounted) instance — mirroring how
-/// Flutter's `InheritedWidget` lookup works.
+/// ```dart
+/// ZenProvider(
+///   moduleBuilder: () => CartModule(),
+///   child: const CartPage(),
+/// )
+/// ```
 ///
-/// For components that need guaranteed per-widget isolation, use a plain
-/// [StatelessWidget] and `context.controller<T>()` directly — this resolves
-/// purely from [ZenScope], with no global registry involved.
+/// ## Which pattern to use?
 ///
-/// See also:
-/// - [ZenScopeWidget] — to provide an isolated [ZenScope] to a subtree.
-/// - [ZenBuilder] — for precise, builder-pattern reactive rebuilds.
-/// - [ZenObserver] — for automatic reactive dependency tracking.
-abstract class ZenView<T extends ZenController> extends StatefulWidget {
+/// | Situation | Pattern |
+/// |---|---|
+/// | App-level services (auth, analytics) | `Zen.registerModules([AppModule()])` at startup |
+/// | Route/feature-level controllers | `ZenProvider.create<T>(create: ...)` in router |
+/// | Feature with dependencies | `ZenProvider(moduleBuilder: () => FeatureModule())` |
+/// | App-level singleton (prototyping) | `Zen.put<T>(...)` at startup |
+abstract class ZenView<T extends ZenController> extends Widget {
   const ZenView({super.key});
 
   /// Optional tag for disambiguating multiple registrations of the same type.
   String? get tag => null;
 
-  /// Optional factory to create the controller if it is not already registered.
+  /// Build the widget with the injected controller.
   ///
-  /// The created controller is placed into the nearest [ZenScope] (or global
-  /// DI if no scope ancestor is present).
-  T Function()? get createController => null;
-
-  /// Optional explicit scope override.
-  ///
-  /// When set, controller resolution uses this scope rather than the nearest
-  /// ancestor scope from the widget tree.
-  ZenScope? get scope => null;
-
-  /// Build the widget.
-  ///
-  /// Use the [controller] getter to access the resolved controller.
-  /// It is always non-nullable inside [build].
-  Widget build(BuildContext context);
+  /// The controller is resolved from the nearest [ZenProvider] ancestor.
+  /// This method is called by the framework — do not call it directly.
+  @protected
+  Widget build(BuildContext context, T controller);
 
   @override
-  State<ZenView<T>> createState() => _ZenViewState<T>();
+  Element createElement() => _ZenViewElement<T>(this);
 }
 
-class _ZenViewState<T extends ZenController> extends State<ZenView<T>> {
-  T? _controller;
-  bool _isInitialized = false;
+class _ZenViewElement<T extends ZenController> extends ComponentElement {
+  _ZenViewElement(ZenView<T> super.widget);
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (!_isInitialized) {
-      _initializeController();
-      _isInitialized = true;
-    }
+  Widget build() {
+    final zenWidget = widget as ZenView<T>;
+
+    // Tree-bound resolution. Wrap in Builder for consistent BuildContext
+    // semantics — context.controller<T>() inside build() resolves correctly.
+    final controller = _resolveFromTree(zenWidget);
+    return Builder(builder: (ctx) => zenWidget.build(ctx, controller));
   }
 
-  void _initializeController() {
-    T? instance = _findController();
-
-    if (instance == null && widget.createController != null) {
-      instance = widget.createController!();
-      _registerController(instance);
-    }
-
-    if (instance == null) {
-      throw ZenControllerNotFoundException(typeName: T.toString());
-    }
-
-    _controller = instance;
-
-    // Push onto the instance stack so the `controller` getter finds the
-    // correct instance even when multiple ZenViews of the same type are
-    // simultaneously active in the widget tree.
-    _ZenViewRegistry.push<T>(_controller!);
-  }
-
-  T? _findController() {
-    final targetScope =
-        widget.scope ?? (context.mounted ? context.zenScope : null);
-
-    if (targetScope != null) {
-      final found = targetScope.find<T>(tag: widget.tag);
+  /// Resolves the controller strictly from the nearest [ZenProvider] in the tree.
+  ///
+  /// Throws [ZenControllerNotFoundException] with a helpful message if not found.
+  T _resolveFromTree(ZenView<T> zenWidget) {
+    final scope = mounted ? zenScope : null;
+    if (scope != null) {
+      final found = scope.find<T>(tag: zenWidget.tag);
       if (found != null) return found;
     }
 
-    return Zen.findOrNull<T>(tag: widget.tag);
-  }
-
-  void _registerController(T controller) {
-    final targetScope =
-        widget.scope ?? (context.mounted ? context.zenScope : null);
-    if (targetScope != null) {
-      targetScope.put<T>(controller, tag: widget.tag);
-    } else {
-      Zen.put<T>(controller, tag: widget.tag);
-    }
-  }
-
-  @override
-  void dispose() {
-    if (_controller != null) {
-      _ZenViewRegistry.pop<T>();
-    }
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_controller == null) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    return widget.build(context);
-  }
-}
-
-/// Per-type stack registry for [ZenView] controller instances.
-///
-/// Uses a stack (rather than a flat map) so that when multiple [ZenView]s of
-/// the same type are simultaneously active, [peek] always returns the innermost
-/// (most recently mounted) controller — analogous to nearest-ancestor semantics.
-///
-/// Lifecycle:
-/// - [push]: called when a [ZenView] mounts and its controller is resolved.
-/// - [pop]: called when the [ZenView] disposes.
-/// - [peek]: returns the current top-of-stack controller for type [T].
-class _ZenViewRegistry {
-  static final Map<Type, List<ZenController>> _stack = {};
-
-  static void push<T extends ZenController>(T controller) {
-    _stack.putIfAbsent(T, () => []).add(controller);
-  }
-
-  static void pop<T extends ZenController>() {
-    final list = _stack[T];
-    if (list != null && list.isNotEmpty) {
-      list.removeLast();
-      if (list.isEmpty) _stack.remove(T);
-    }
-  }
-
-  static T? peek<T extends ZenController>() {
-    return _stack[T]?.lastOrNull as T?;
-  }
-}
-
-/// Provides access to the [ZenController] resolved by this [ZenView].
-///
-/// The [controller] getter always returns the innermost active instance
-/// for type [T] — correct even when multiple [ZenView]s of the same type
-/// are simultaneously mounted.
-///
-/// Use this getter inside [ZenView.build] and any helper methods on the
-/// [ZenView] subclass.
-extension ZenViewExtension<T extends ZenController> on ZenView<T> {
-  T get controller {
-    // 1. Stack peek — innermost active ZenView instance for this type
-    final stacked = _ZenViewRegistry.peek<T>();
-    if (stacked != null) return stacked;
-
-    // 2. Explicit scope override
-    final s = scope;
-    if (s != null) {
-      final found = s.find<T>(tag: tag);
-      if (found != null) return found;
-    }
-
-    // 3. Global DI fallback (e.g., controller registered before navigation)
-    final global = Zen.findOrNull<T>(tag: tag);
-    if (global != null) return global;
-
-    throw ZenControllerNotFoundException(typeName: T.toString());
+    throw ZenControllerNotFoundException(
+      typeName: T.toString(),
+      customMessage: 'No $T found in the widget tree.',
+    );
   }
 }
 
 /// Context extension for resolving a [ZenController] from within any widget.
 ///
-/// Resolves strictly from the widget tree — no global registry involved.
-/// This makes it safe for any number of simultaneous instances.
-///
-/// Resolution order (most-specific first):
-/// 1. **Nearest [ZenScope]** in the widget tree.
-/// 2. **Global [Zen.findOrNull]** — root-scope / singleton registrations.
-///
-/// Prefer this over [ZenViewExtension.controller] for:
-/// - Plain [StatelessWidget] components inside a [ZenScopeWidget].
-/// - Any widget that needs guaranteed per-widget-tree-position isolation.
+/// Resolves strictly from the **nearest [ZenProvider] ancestor** in the widget
+/// tree. There is no global fallback — if no scope is found the call throws a
+/// [ZenControllerNotFoundException] with a clear, actionable message.
 ///
 /// ```dart
 /// final ctrl = context.controller<MyController>();
 /// ```
+///
+/// For typed shorthand, define your own extension:
+///
+/// ```dart
+/// extension CartContextExt on BuildContext {
+///   CartController get cart => controller<CartController>();
+/// }
+///
+/// // Then in any widget:
+/// context.cart.checkout();
+/// ```
 extension ZenViewContextExtensions on BuildContext {
   T controller<T extends ZenController>({String? tag}) {
-    // 1. Scope-based lookup — pure widget-tree resolution, fully isolated
+    // Scope-based lookup — pure widget-tree resolution, fully isolated.
     final scope = mounted ? zenScope : null;
     if (scope != null) {
       final found = scope.find<T>(tag: tag);
       if (found != null) return found;
     }
 
-    // 2. Global DI fallback
-    final global = Zen.findOrNull<T>(tag: tag);
-    if (global != null) return global;
-
-    throw ZenControllerNotFoundException(typeName: T.toString());
+    throw ZenControllerNotFoundException(
+      typeName: T.toString(),
+      customMessage: 'No $T found in the widget tree.',
+    );
   }
 }

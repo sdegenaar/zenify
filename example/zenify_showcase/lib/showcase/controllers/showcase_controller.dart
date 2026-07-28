@@ -57,7 +57,7 @@ class ShowcaseController extends ZenController {
           'Optimize performance with granular reactive UI updates using ZenObserver.',
     ),
     DemoPageInfo(
-      title: 'ZenBuilder',
+      title: 'ZenUpdater',
       subtitle: 'Controller Integration',
       icon: 'builder',
       route: '/builder',

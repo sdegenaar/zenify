@@ -21,7 +21,7 @@ class QuickCartButton extends StatelessWidget {
     return IconButton(
       icon: const Icon(Icons.add_shopping_cart),
       onPressed: () async {
-        // ⭐ CLEAN ACCESS: No ZenConsumer, no ZenBuilder, no injection!
+        // ⭐ CLEAN ACCESS: No ZenConsumer, no ZenUpdater, no injection!
         // Just use CartService.to to access the global service
         await CartService.to.addToCart(product);
 

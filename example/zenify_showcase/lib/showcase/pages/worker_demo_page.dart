@@ -7,11 +7,7 @@ class WorkerDemoPage extends ZenView<WorkerDemoController> {
   const WorkerDemoPage({super.key});
 
   @override
-  WorkerDemoController Function()? get createController =>
-      () => WorkerDemoController();
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WorkerDemoController controller) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Workers Demo'),
@@ -290,14 +286,14 @@ class WorkerDemoPage extends ZenView<WorkerDemoController> {
                         children: [
                           Expanded(
                             child: ElevatedButton(
-                              onPressed: controller.pauseWorkers,
+                              onPressed: controller.pauseAllWorkers,
                               child: const Text('Pause Workers'),
                             ),
                           ),
                           const SizedBox(width: 8),
                           Expanded(
                             child: ElevatedButton(
-                              onPressed: controller.resumeWorkers,
+                              onPressed: controller.resumeAllWorkers,
                               child: const Text('Resume Workers'),
                             ),
                           ),

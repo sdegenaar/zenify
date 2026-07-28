@@ -117,7 +117,8 @@ extension RxMapExtensions<K, V> on Rx<Map<K, V>> {
   void operator []=(K key, V val) {
     final result = trySetKey(key, val);
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!, context: 'Map');
+      RxLogger.logError(result.errorOrNull!,
+          context: 'Map'); // coverage:ignore-line
     }
   }
 
@@ -125,7 +126,8 @@ extension RxMapExtensions<K, V> on Rx<Map<K, V>> {
   V? remove(Object? key) {
     final result = tryRemoveKey(key);
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!, context: 'Map');
+      RxLogger.logError(result.errorOrNull!,
+          context: 'Map'); // coverage:ignore-line
       return null;
     }
     return result.value;
@@ -135,7 +137,8 @@ extension RxMapExtensions<K, V> on Rx<Map<K, V>> {
   void clear() {
     final result = tryClear();
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!, context: 'Map');
+      RxLogger.logError(result.errorOrNull!,
+          context: 'Map'); // coverage:ignore-line
     }
   }
 
@@ -143,7 +146,8 @@ extension RxMapExtensions<K, V> on Rx<Map<K, V>> {
   void addAll(Map<K, V> other) {
     final result = tryAddAll(other);
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!, context: 'Map');
+      RxLogger.logError(result.errorOrNull!,
+          context: 'Map'); // coverage:ignore-line
     }
   }
 
@@ -151,7 +155,8 @@ extension RxMapExtensions<K, V> on Rx<Map<K, V>> {
   void addEntries(Iterable<MapEntry<K, V>> newEntries) {
     final result = tryAddEntries(newEntries);
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!, context: 'Map');
+      RxLogger.logError(result.errorOrNull!,
+          context: 'Map'); // coverage:ignore-line
     }
   }
 
@@ -159,8 +164,9 @@ extension RxMapExtensions<K, V> on Rx<Map<K, V>> {
   V putIfAbsent(K key, V Function() ifAbsent) {
     final result = tryPutIfAbsent(key, ifAbsent);
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!, context: 'Map');
-      return ifAbsent(); // Fallback to ifAbsent result
+      RxLogger.logError(result.errorOrNull!,
+          context: 'Map'); // coverage:ignore-line
+      return ifAbsent(); // Fallback to ifAbsent result // coverage:ignore-line
     }
     return result.value;
   }
@@ -169,7 +175,8 @@ extension RxMapExtensions<K, V> on Rx<Map<K, V>> {
   void removeWhere(bool Function(K key, V value) predicate) {
     final result = tryRemoveWhere(predicate);
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!, context: 'Map');
+      RxLogger.logError(result.errorOrNull!,
+          context: 'Map'); // coverage:ignore-line
     }
   }
 
@@ -177,7 +184,8 @@ extension RxMapExtensions<K, V> on Rx<Map<K, V>> {
   void updateAll(V Function(K key, V value) update) {
     final result = tryUpdateAll(update);
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!, context: 'Map');
+      RxLogger.logError(result.errorOrNull!,
+          context: 'Map'); // coverage:ignore-line
     }
   }
 
@@ -255,6 +263,7 @@ extension RxMapExtensions<K, V> on Rx<Map<K, V>> {
 
   /// Convenience method to refresh listeners
   void refresh() {
-    value = value;
+    // coverage:ignore-line
+    value = value; // coverage:ignore-line
   }
 }

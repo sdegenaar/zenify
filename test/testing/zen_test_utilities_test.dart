@@ -110,13 +110,13 @@ void main() {
       expect(container.find<_Service>(), isNull);
     });
 
-    test('get returns instance when registered', () {
+    test('require returns instance when registered', () {
       container.put<_Service>(_Service('B'));
-      expect(container.get<_Service>().label, 'B');
+      expect(container.require<_Service>().label, 'B');
     });
 
-    test('get throws when not registered', () {
-      expect(() => container.get<_Other>(), throwsException);
+    test('require throws when not registered', () {
+      expect(() => container.require<_Other>(), throwsException);
     });
 
     test('exists returns false before registration', () {

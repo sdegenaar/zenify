@@ -10,7 +10,7 @@ import '../utils/zen_scope_inspector.dart';
 class ZenHierarchyDebug {
   /// Build a complete hierarchy tree starting from root
   static Map<String, dynamic> buildHierarchyTree([ZenScope? startScope]) {
-    final scope = startScope ?? Zen.rootScope;
+    final scope = startScope ?? Zen.rootScope; // coverage:ignore-line
 
     return {
       'scope': ZenScopeInspector.toDebugMap(scope),
@@ -25,7 +25,6 @@ class ZenHierarchyDebug {
     final allScopes = ZenDebug.allScopes;
 
     return {
-      'currentScope': ZenScopeInspector.toDebugMap(Zen.currentScope),
       'rootScope': ZenScopeInspector.toDebugMap(rootScope),
       'hierarchy': buildHierarchyTree(rootScope),
       'scopeStats': {

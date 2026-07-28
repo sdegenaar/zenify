@@ -12,7 +12,6 @@ import 'package:zenify/zenify.dart';
 ///
 /// And di/zen_di.dart:
 /// - Zen.init() with storage/handlers (L50-70)
-/// - Zen.setCurrentScope / resetCurrentScope (L115-123)
 /// - Zen.putLazy (L172-184)
 /// - Zen.findOrNull (L206-208)
 /// - Zen.exists (L211-213)
@@ -140,21 +139,21 @@ void main() {
     test('returns true for instance registrations', () {
       final scope = ZenScope(name: 'ContainsT');
       scope.put<_TestCtrl>(_TestCtrl());
-      expect(scope.contains<_TestCtrl>(), true);
+      expect(scope.exists<_TestCtrl>(), true);
       scope.dispose();
     });
 
     test('returns true for lazy factory registrations', () {
       final scope = ZenScope(name: 'ContainsFactory');
       scope.putLazy<_TestCtrl>(() => _TestCtrl());
-      expect(scope.contains<_TestCtrl>(), true);
+      expect(scope.exists<_TestCtrl>(), true);
       scope.dispose();
     });
 
     test('returns false when disposed', () {
       final scope = ZenScope(name: 'ContainsDisposed');
       scope.dispose();
-      expect(scope.contains<_TestCtrl>(), false);
+      expect(scope.exists<_TestCtrl>(), false);
     });
   });
 
@@ -204,24 +203,6 @@ void main() {
       final scope = Zen.createScope();
       expect(scope.name, isNotNull);
       scope.dispose();
-    });
-  });
-
-  // ══════════════════════════════════════════════════════════
-  // Zen.setCurrentScope / resetCurrentScope
-  // ══════════════════════════════════════════════════════════
-  group('Zen.setCurrentScope and resetCurrentScope', () {
-    test('setCurrentScope changes currentScope', () {
-      final scope = Zen.createScope(name: 'Current');
-      Zen.setCurrentScope(scope);
-      expect(Zen.currentScope, same(scope));
-      Zen.resetCurrentScope();
-      scope.dispose();
-    });
-
-    test('resetCurrentScope falls back to rootScope', () {
-      Zen.resetCurrentScope();
-      expect(Zen.currentScope, same(Zen.rootScope));
     });
   });
 
@@ -315,10 +296,7 @@ class _TestCtrl extends ZenController {}
 
 class _NotRegistered extends ZenController {}
 
-class _LazyService extends ZenService {
-  @override
-  void onInit() => super.onInit();
-}
+class _LazyService extends ZenService {}
 
 class _TestModule extends ZenModule {
   _TestModule(this._name);

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/core.dart';
 
-import '../scope/zen_scope_widget.dart';
+import '../scope/zen_provider.dart';
 import '../../di/zen_di.dart';
 
 /// Route-scoped dependency injection widget
@@ -107,34 +107,33 @@ class _ZenRouteState extends State<ZenRoute> {
       final scopeName = widget.scopeName ??
           'ZenRoute_${widget.page.runtimeType}_${widget.page.hashCode.abs()}';
 
-      // Step 2: Auto-discover parent scope from widget tree
+      // Step 2: Auto-discover parent scope from widget tree.
+      // Resolution order:
+      //   1. Explicit parentScope (if passed by caller)
+      //   2. Nearest ZenProvider ancestor in the widget tree
+      //   3. Zen.rootScope — stable, immutable fallback for top-level routes
+      //
+      // NOTE: We do NOT fall back to Zen.currentScope (removed in V2).
+      // The old Zen.currentScope was a mutable global pointer that changed
+      // on every route push, creating hidden cross-route coupling. Zen.rootScope
+      // is a fixed, well-known anchor — every scope should live somewhere in the
+      // hierarchy, and rootScope is the correct default for top-level routes.
       final parentFromTree = context.zenScope;
-
-      // STRATEGY: Hybrid Discovery
-      // 1. Prefer explicit parent (if passed)
-      // 2. Prefer Widget Tree (standard behavior)
-      // 3. Fallback to Zen.currentScope (Navigator bridge)
-      // 4. Fallback to Root (Global default)
-      final parentScope =
-          widget.parentScope ?? parentFromTree ?? Zen.currentScope;
+      final parentScope = widget.parentScope ?? parentFromTree ?? Zen.rootScope;
 
       if (widget.parentScope != null) {
         ZenLogger.logDebug(
-            '🔗 Using explicit parent scope: ${parentScope.name}');
+            '🔗 Using explicit parent scope: ${widget.parentScope!.name}');
       } else if (parentFromTree != null) {
         ZenLogger.logDebug(
-            '🔗 Found parent scope from widget tree: ${parentScope.name}');
+            '🔗 Found parent scope from widget tree: ${parentFromTree.name}');
       } else {
         ZenLogger.logDebug(
-            '🔗 No parent in widget tree, using fallback (current/root): ${parentScope.name}');
+            '🔗 No parent in widget tree — using rootScope as parent');
       }
 
       // Step 3: Create new scope with parent
       _scope = ZenScope(name: scopeName, parent: parentScope);
-
-      // BRIDGE: Update the global "current scope" pointer
-      // This ensures the NEXT route pushed from here knows this is the active parent
-      Zen.setCurrentScope(_scope!);
 
       ZenLogger.logDebug(
           '✨ Created scope: ${_scope!.name} with parent: ${_scope!.parent?.name ?? 'none'}');
@@ -193,25 +192,23 @@ class _ZenRouteState extends State<ZenRoute> {
         ZenLogger.logDebug('🧹 Module disposed: ${_module!.name}');
       } catch (e, stackTrace) {
         ZenLogger.logError(
-            'Error disposing module: ${_module!.name}', e, stackTrace);
+            // coverage:ignore-line
+            'Error disposing module: ${_module!.name}',
+            e,
+            stackTrace); // coverage:ignore-line
       }
     }
 
     if (_scope != null && !_scope!.isDisposed) {
-      // BRIDGE: Restore the parent scope as the "current scope"
-      // This ensures that when we pop, the "active" scope reverts to the parent.
-      if (_scope!.parent != null) {
-        Zen.setCurrentScope(_scope!.parent!);
-      } else {
-        Zen.resetCurrentScope();
-      }
-
       try {
         _scope!.dispose();
         ZenLogger.logDebug('🗑️ Scope disposed: ${_scope!.name}');
       } catch (e, stackTrace) {
         ZenLogger.logError(
-            'Error disposing scope: ${_scope!.name}', e, stackTrace);
+            // coverage:ignore-line
+            'Error disposing scope: ${_scope!.name}',
+            e,
+            stackTrace); // coverage:ignore-line
       }
     }
 

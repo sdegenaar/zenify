@@ -17,9 +17,8 @@ class CartBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ZenConsumer<CartService>(
-      builder: (cartService) => _buildCartBadge(context, cartService),
-    );
+    final cartService = Zen.findOrNull<CartService>();
+    return ZenObserver(() => _buildCartBadge(context, cartService));
   }
 
   Widget _buildCartBadge(BuildContext context, CartService? cartService) {

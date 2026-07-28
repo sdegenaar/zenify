@@ -1,4 +1,3 @@
-``` markdown
 # Zenify Example
 
 A minimal counter app demonstrating the basic usage of Zenify state management.
@@ -8,7 +7,7 @@ A minimal counter app demonstrating the basic usage of Zenify state management.
 - ✅ **ZenView** - Base class for pages with automatic controller lifecycle
 - ✅ **ZenController** - State management with reactive variables
 - ✅ **Observable State** - Using `.obs()` for reactive values
-- ✅ **Reactive Widgets** - `Obx()` for automatic UI updates
+- ✅ **Reactive Widgets** - `ZenObserver()` for automatic UI updates
 - ✅ **Controller Access** - Direct `controller` property access in ZenView
 
 ## Running the Example
@@ -37,14 +36,20 @@ class CounterController extends ZenController {
 ```
 ### 2. ZenView Usage
 ``` dart
+// In your route/navigation logic:
+ZenProvider.create<CounterController>(
+  create: () => CounterController(),
+  child: const CounterPage(),
+)
+
+// The page itself:
 class CounterPage extends ZenView<CounterController> {
-  @override
-  CounterController Function()? get createController => () => CounterController();
+  const CounterPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // Direct access to controller without Zen.find()
-    return Obx(() => Text('${controller.count.value}'));
+  Widget build(BuildContext context, CounterController controller) {
+    // Direct access to controller via injected parameter
+    return ZenObserver(() => Text('${controller.count.value}'));
   }
 }
 ```

@@ -88,7 +88,7 @@ class ZenTestContainer {
   }
 
   /// Find a dependency and throw if not found
-  T get<T>({String? tag}) {
+  T require<T>({String? tag}) {
     final result = find<T>(tag: tag);
     if (result == null) {
       throw Exception(
@@ -118,8 +118,8 @@ class ZenTestContainer {
         }
       } catch (e) {
         // Continue clearing even if some fail
-        ZenLogger.logDebug(
-            'Failed to dispose dependency ${dependency.runtimeType}: $e');
+        ZenLogger.logDebug(// coverage:ignore-line
+            'Failed to dispose dependency ${dependency.runtimeType}: $e'); // coverage:ignore-line
       }
     }
 
@@ -128,7 +128,7 @@ class ZenTestContainer {
     for (final dep in allDeps) {
       final tag = _scope.getTagForInstance(dep);
       if (tag != null) {
-        _scope.deleteByTag(tag, force: true);
+        _scope.deleteByTag(tag, force: true); // coverage:ignore-line
       } else {
         _scope.deleteByType(dep.runtimeType, force: true);
       }
@@ -157,28 +157,6 @@ class ZenTestContainer {
 
   /// Check if the container is disposed
   bool get isDisposed => _scope.isDisposed;
-}
-
-/// Widget for wrapping test widgets with the test container
-class ZenTestScope extends StatefulWidget {
-  final Widget child;
-  final ZenTestContainer container;
-
-  const ZenTestScope({
-    required this.child,
-    required this.container,
-    super.key,
-  });
-
-  @override
-  State<ZenTestScope> createState() => _ZenTestScopeState();
-}
-
-class _ZenTestScopeState extends State<ZenTestScope> {
-  @override
-  Widget build(BuildContext context) {
-    return widget.child;
-  }
 }
 
 /// Utility functions for testing

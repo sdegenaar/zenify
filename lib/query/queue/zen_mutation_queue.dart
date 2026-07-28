@@ -81,16 +81,17 @@ class ZenMutationQueue {
           await _executeJob(job);
           remove(job.id); // Success! Remove from queue.
         } catch (e) {
-          ZenLogger.logError('Failed to replay mutation ${job.id}', e);
+          ZenLogger.logError(
+              'Failed to replay mutation ${job.id}', e); // coverage:ignore-line
           // If deterministic error, remove? If network, stop processing?
           // If network error, we stop processing and wait for next reconnect.
-          if (!ZenQueryCache.instance.isOnline) break;
+          if (!ZenQueryCache.instance.isOnline) break; // coverage:ignore-line
 
           // If typical error, maybe move to back or Dead Letter Queue?
           // For simple implementation: Remove to prevent blocking?
           // Or keep and retry later?
           // Let's implement retry count limit.
-          remove(job.id);
+          remove(job.id); // coverage:ignore-line
         }
       }
     } finally {

@@ -30,8 +30,9 @@ dart tool/migrate_from_getx.dart /path/to/your/project
 - `GetxController` / `GetxService` → `ZenController` / `ZenService`
 - `.obs` → `.obs()` (adds parentheses throughout)
 - `Get.put` / `Get.find` / `Get.delete` / `Get.lazyPut` → Zen equivalents
-- `Get.isRegistered` → `Zen.has`
-- `GetBuilder` / `GetView` / `GetX<T>` → Zen widget equivalents
+- `Get.isRegistered` → `Zen.exists`
+- `GetBuilder` / `GetX<T>` → `ZenUpdater` (`ZenBuilder` is fully removed in V2)
+- `GetView<T>` → `ZenView<T>`
 - `permanent:` → `isPermanent:` (parameter rename)
 
 **What it flags for manual review:**
@@ -43,6 +44,7 @@ dart tool/migrate_from_getx.dart /path/to/your/project
 - `GetStorage` → `ZenStorage`
 - `Get.snackbar` / `Get.dialog` / `Get.bottomSheet`
 - GetX i18n (`.tr`)
+- **`extends ZenView` — V2 requires updating `build()` to `build(BuildContext context, T controller)`** (cannot be done automatically without AST parsing — `dart analyze` will surface every instance as `invalid_override`)
 
 After running the script: `dart analyze` will surface any remaining issues.
 
@@ -55,12 +57,12 @@ After running the script: `dart analyze` will surface any remaining issues.
 | `GetxController` | `ZenController` | Same lifecycle hooks |
 | `GetxService` | `ZenService` | Same, but scoped by default |
 | `.obs` | `.obs()` | Add parentheses |
-| `Obx()` | `Obx()` or `ZenObserver()` | Both work |
-| `GetBuilder` | `ZenBuilder` | Same API |
+| `Obx()` | `ZenObserver()` (`Obx` **removed in V2**) | Required rename |
+| `GetBuilder` | `ZenUpdater` | `ZenBuilder` fully removed — rename required |
 | `GetView<T>` | `ZenView<T>` | Same pattern |
 | `Get.put()` | `Zen.put()` | Same |
-| `Get.find()` | `Zen.find()` or `Zen.get()` | Both throw when missing — `findOrNull()` is the nullable form |
-| `Get.delete()` | `Zen.delete()` or `Zen.remove()` | Same |
+| `Get.find()` | `Zen.find()` | Throws when missing — `findOrNull()` is the nullable form |
+| `Get.delete()` | `Zen.delete()` | Same |
 | `Get.lazyPut()` | `Zen.putLazy()` | Same concept |
 | `Bindings` | `ZenModule` | Scoped, not global |
 | `GetMaterialApp` | `MaterialApp` | No wrapper needed |
@@ -82,7 +84,7 @@ dependencies:
 
 # Add
 dependencies:
-  zenify: ^1.10.0
+  zenify: ^2.0.0
 ```
 
 ### 2. Update imports
@@ -180,7 +182,7 @@ Zen.putLazy(() => MyController(), alwaysNew: true);  // equivalent to fenix
 // Use findOrNull<T>() when the dependency might not be registered:
 final ctrl = Zen.find<MyController>();          // throws if missing (like Get.find)
 final ctrlOrNull = Zen.findOrNull<MyController>(); // returns null if missing
-Zen.delete<MyController>();             // or Zen.remove<MyController>()
+Zen.delete<MyController>();
 ```
 
 ---
@@ -201,13 +203,13 @@ GetBuilder<MyController>(
 
 // After
 ZenObserver(() => Text('${controller.count.value}'))  // reactive
-// or Obx() still works — Zenify keeps it as an alias
 
-ZenBuilder<MyController>(
-  builder: (controller) => Text('${controller.count.value}'),
+ZenUpdater<MyController>(
+  builder: (context, controller) => Text('${controller.count.value}'),
 )
-// Note: ZenBuilder requires manual controller.update() to rebuild
-// Use ZenObserver for automatic reactive rebuilds
+// ZenUpdater rebuilds when controller.update() is called.
+// Use ZenObserver for automatic reactive rebuilds on .obs() changes.
+// Note: ZenBuilder is fully removed in V2 — rename to ZenUpdater required.
 ```
 
 ---
@@ -225,26 +227,35 @@ class ProfilePage extends GetView<ProfileController> {
 
 // After
 class ProfilePage extends ZenView<ProfileController> {
+  const ProfilePage({super.key});
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, ProfileController controller) {
     return Text(controller.name.value);
   }
 }
 ```
 
-`ZenView` optionally lets you create and own the controller directly on the page:
+For per-instance use cases (e.g., a widget that needs a controller with parameters from its own fields), provide the controller at the callsite via `ZenProvider.create`:
 
 ```dart
-class ProfilePage extends ZenView<ProfileController> {
-  @override
-  ProfileController Function()? get createController => () => ProfileController();
+// V2 — provide the controller at the callsite
+ZenProvider.create<ProfileController>(
+  create: () => ProfileController(userId: userId),
+  child: const ProfileCard(),
+)
+
+class ProfileCard extends ZenView<ProfileController> {
+  const ProfileCard({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Text(controller.name.value);  // auto-disposed when page pops
+  Widget build(BuildContext context, ProfileController controller) {
+    return Text(controller.name.value);  // controller scoped to this subtree
   }
 }
 ```
+
+> **Tip:** For regular pages, prefer `ZenRoute` + `ZenModule` over `ZenProvider.create`. Use `ZenProvider.create` when the route has a single controller with no dependencies or when you are prototyping.
 
 ---
 
@@ -565,12 +576,14 @@ If your app relies heavily on GetX navigation or i18n, factor that into your mig
 
 ## Migration Checklist
 
-- [ ] Replace `get:` with `zenify:` in `pubspec.yaml`
+- [ ] Replace `get:` with `zenify: ^2.0.0` in `pubspec.yaml`
 - [ ] Replace `import 'package:get/get.dart'` with `import 'package:zenify/zenify.dart'`
-- [ ] Change `GetMaterialApp` to `MaterialApp`, add `await Zen.init()`
+- [ ] Change `GetMaterialApp` to `MaterialApp`, add `Zen.init()` in `main()`
 - [ ] Rename `GetxController` → `ZenController`, `GetxService` → `ZenService`
 - [ ] Add parentheses: `.obs` → `.obs()`
-- [ ] Rename `GetBuilder` → `ZenBuilder`, `GetView` → `ZenView`
+- [ ] Rename `GetView` → `ZenView`
+- [ ] **Add controller parameter to every `ZenView.build()` override:** `build(BuildContext context)` → `build(BuildContext context, T controller)`
+- [ ] Rename `GetBuilder` → `ZenUpdater` (**required** — `ZenBuilder` fully removed, will not compile)
 - [ ] Rename `Get.put/find/delete` → `Zen.put/find/delete`
 - [ ] Convert `Bindings` → `ZenModule` with `ZenRoute`
 - [ ] Migrate `Get.to/back/off` to Flutter Navigator or GoRouter
@@ -578,7 +591,8 @@ If your app relies heavily on GetX navigation or i18n, factor that into your mig
 - [ ] Replace GetStorage with a `ZenStorage` implementation
 - [ ] Replace manual async state with `ZenQuery`/`ZenMutation`
 - [ ] Update workers: `ever/debounce/interval` → `ZenWorkers.*`
-- [ ] Run `flutter analyze`
+- [ ] **Remove any `ZenRouteObserver` usage** — it was removed in V2. Use `ZenRoute` instead; it handles controller lifecycle automatically when the widget leaves the tree.
+- [ ] Run `dart analyze` — fix any `invalid_override` errors on `ZenView.build`
 - [ ] Run `flutter test`
 
 ---

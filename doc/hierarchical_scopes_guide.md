@@ -22,9 +22,9 @@ Zenify's hierarchical scope system provides powerful dependency injection and li
 
 **Phase 1 Refactoring** (Current Version) brings major simplifications:
 
-✨ **Hybrid Discovery Architecture**
+✨ **Tree-Bound Discovery Architecture**
 - Parent scopes discovered automatically via `InheritedWidget` (within routes)
-- Navigation gap bridged via `Zen.currentScope` pointer (across routes)
+- Navigator-pushed routes fall back to `Zen.rootScope` (stable, immutable anchor)
 - Optional explicit `parentScope` parameter for full control
 - Scopes dispose automatically when widgets are removed
 
@@ -32,7 +32,7 @@ Zenify's hierarchical scope system provides powerful dependency injection and li
 - ❌ Removed: `useParentScope` parameter (automatic via hybrid discovery)
 - ❌ Removed: `autoDispose` parameter (automatic widget disposal)
 - ✅ Optional: `parentScope` parameter for explicit parent (e.g., clean routes)
-- ✅ Just wrap with `ZenRoute` or `ZenScopeWidget`!
+- ✅ Just wrap with `ZenRoute` or `ZenProvider`!
 
 📦 **Cleaner Codebase**
 - 80% reduction in scope management complexity
@@ -82,11 +82,11 @@ class FeaturePage extends StatelessWidget {
 }
 ```
 
-> **See it in action**: Check out the complete [hierarchical_scopes example app](../example/hierarchical_scopes) that demonstrates a real-world navigation scenario with deep scope hierarchies.
+> **See it in action**: Check out the complete [hierarchical_scopes_nested example app](../example/hierarchical_scopes_nested) that demonstrates a real-world navigation scenario with deep scope hierarchies using canonical `go_router` shell routes.
 
 ## Example App
 
-The [hierarchical_scopes example](../example/hierarchical_scopes) provides a complete, runnable demonstration of hierarchical scopes in action. It showcases:
+The [hierarchical_scopes_nested example](../example/hierarchical_scopes_nested) provides a complete, runnable demonstration of hierarchical scopes in action. It showcases:
 
 - **Real navigation flow**: Home → Departments → Department Details → Employee Profile
 - **Automatic inheritance**: Each level automatically inherits from its parent
@@ -95,7 +95,7 @@ The [hierarchical_scopes example](../example/hierarchical_scopes) provides a com
 
 ```bash
 # Run the example
-cd example/hierarchical_scopes
+cd example/hierarchical_scopes_nested
 flutter run
 ```
 
@@ -114,26 +114,24 @@ Hierarchical scopes allow you to organize your application's dependencies in a t
 
 ### How It Works
 
-Zenify uses a **hybrid discovery strategy** that combines widget tree discovery with a navigation bridge:
+Zenify uses **strict widget-tree scope resolution** — no mutable global pointer:
 
 1. **Automatic Parent Discovery (3 fallback levels)**
    - **Level 1**: Explicit `parentScope` parameter (when provided)
-   - **Level 2**: Widget tree via `InheritedWidget` (for nested widgets)
-   - **Level 3**: `Zen.currentScope` bridge (for Navigator routes)
+   - **Level 2**: Widget tree via `InheritedWidget` (for nested widgets in the same route)
+   - **Level 3**: `Zen.rootScope` — stable, immutable fallback for Navigator-pushed routes
    - Works automatically in 99% of cases, with explicit control when needed
 
-2. **The Navigation Bridge**
-   - Flutter's `Navigator` pushes routes as siblings, breaking the widget tree
-   - `Zen.currentScope` acts as a pointer to bridge this gap
-   - When Route A creates a scope, it becomes the "current" scope
-   - When Route B is pushed, it finds Route A's scope via this pointer
-   - Automatic and transparent - you don't need to think about it!
+2. **Navigator routes and scope**
+   - Flutter's `Navigator` pushes routes as siblings, outside the originating widget tree
+   - In V2, Navigator-pushed routes that have no `ZenProvider` ancestor automatically parent to `Zen.rootScope`
+   - For explicit cross-route scope chaining, pass `parentScope:` directly to `ZenRoute`
+   - This is intentional — the V1 `Zen.currentScope` mutable pointer caused hidden cross-route coupling
 
 3. **Automatic Lifecycle**
    - Scopes are created when widgets are built
    - Scopes are disposed when widgets are removed
-   - Parent scope is restored as "current" on disposal
-   - Follows Flutter's natural lifecycle
+   - Follows Flutter's natural widget lifecycle
 
 ### Visual Representation
 
@@ -189,12 +187,12 @@ ZenRoute(
 )
 ```
 
-### Using ZenScopeWidget (For Partial Widget Trees)
+### Using ZenProvider (For Partial Widget Trees)
 
-Use `ZenScopeWidget` when you need a scope for part of a widget tree (not a full route):
+Use `ZenProvider` when you need a scope for part of a widget tree (not a full route):
 
 ```dart
-ZenScopeWidget(
+ZenProvider(
   moduleBuilder: () => SubFeatureModule(),
   scopeName: 'SubFeatureScope',
   child: SubFeatureWidget(),
@@ -321,7 +319,7 @@ void main() {
 
 ### Feature-Based Hierarchy
 
-The [hierarchical_scopes example](../example/hierarchical_scopes) demonstrates this pattern:
+The [hierarchical_scopes_nested example](../example/hierarchical_scopes_nested) demonstrates this pattern:
 
 ```dart
 // App Level - Wraps entire app
@@ -411,15 +409,15 @@ class TabbedView extends StatelessWidget {
           Expanded(
             child: TabBarView(
               children: [
-                ZenScopeWidget(
+                ZenProvider(
                   moduleBuilder: () => Tab1Module(),
                   child: Tab1View(),
                 ),
-                ZenScopeWidget(
+                ZenProvider(
                   moduleBuilder: () => Tab2Module(),
                   child: Tab2View(),
                 ),
-                ZenScopeWidget(
+                ZenProvider(
                   moduleBuilder: () => Tab3Module(),
                   child: Tab3View(),
                 ),
@@ -725,4 +723,4 @@ final service = context.findInScope<MyService>();
 final scope = context.zenScope;
 ```
 
-By following these patterns and best practices, you can build scalable Flutter applications with clean dependency management and efficient resource utilization. The [hierarchical_scopes example](../example/hierarchical_scopes) demonstrates all these concepts in a working application you can study and extend.
+By following these patterns and best practices, you can build scalable Flutter applications with clean dependency management and efficient resource utilization. The [hierarchical_scopes_nested example](../example/hierarchical_scopes_nested) demonstrates all these concepts in a working application you can study and extend.

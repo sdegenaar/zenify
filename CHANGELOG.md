@@ -1,3 +1,273 @@
+## [2.0.0] — V2 Architecture
+
+This release completes the architectural shift to fully tree-bound dependency injection. Every controller access is now **resolved via `BuildContext`** — the same model Flutter uses for `Theme`, `MediaQuery`, and `Navigator`. The result is multi-instance safety by construction, perfect test isolation with zero global teardown, and a mental model that transfers directly to how Flutter works.
+
+> **Migration:** See [migration_v2_0_0.md](doc/migration_v2_0_0.md) for the full guide.  
+> The mechanical change is adding a `controller` parameter to every `ZenView.build()` override.
+
+### Breaking Changes
+
+#### Architecture & lifecycle
+
+- **`ZenRouteObserver` removed.** The V1 `NavigatorObserver`-based controller disposal has been removed. Use `ZenRoute` instead — it disposes its scope automatically when the widget leaves the tree, with zero manual registration required.
+- **`ZenController.autoDispose` and `limited` workers removed.** These were trivially composable using `ever()` and `once()`.
+- **`getResourceStats()['memory_overhead_estimate']` removed.** The hardcoded estimate was misleading without a real heap profiler.
+- **`ZenService` now extends `ZenController`.** The standalone duplicate lifecycle implementation has been replaced. `ZenService` is now `abstract class ZenService extends ZenController {}`. Consumer code (`class MyService extends ZenService`) is unchanged. Removed: `ZenService.disposeAllServices()`, `ZenService.activeServiceCount`, `ZenService.getActiveServiceTypes()`, `ZenService._activeServices`, `ensureInitialized()`. Services now benefit from full `Rx` tracking and worker auto-disposal via the `ZenController` base. Use `Zen.reset()` in tests instead of `ZenService.disposeAllServices()`.
+
+---
+
+### The Three-Step Mental Model
+
+```
+REGISTER  →  Zen.registerModules([AppModule()])      app services — live for app lifetime
+              ZenRoute(moduleBuilder: () => M())      route-level — standard for real apps
+              ↳ scope.put<T>(T())  inside ZenModule   where controllers are actually created
+              ZenProvider.create<T>(create: ...)      simple routes without a module
+
+CONSUME   →  ZenView<T>                 extend — controller injected into build()
+              ZenConsumer<T>            compose — inline builder, no inheritance
+              context.controller<T>()  imperative — from any widget or callback
+
+REACT     →  ZenObserver               Rx<T> — auto-rebuild on value change
+              ZenUpdater<T>             update() — manual, ID-targeted rebuilds
+              ZenQuery<T>               async — caching, loading, error, refetch
+```
+
+> **Key rule:** `ZenView` resolves from the nearest scope automatically. It doesn't matter whether the controller was registered via `ZenRoute`, `ZenProvider`, or `Zen.put` — consumption is always the same zero-boilerplate pattern.
+
+---
+
+#### Global API cleanup
+
+| Removed | Replacement |
+|---|---|
+| `Zen.currentScope` / `setCurrentScope` / `resetCurrentScope` | `context.zenScope` (widget tree) or `Zen.rootScope` |
+| `Zen.get<T>()` | `Zen.find<T>()` |
+| `Zen.has<T>()` | `Zen.exists<T>()` |
+| `Zen.remove<T>()` | `Zen.delete<T>()` |
+| `Obx` widget | `ZenObserver` |
+
+`Ref<T>` is removed entirely. It was a thin wrapper over `scope.find()` with no additional value.
+
+#### `ZenWorkerHandle` renamed to `ZenWorker`
+
+The handle returned by all `ZenWorkers.*` factory methods and `ZenController.*` worker methods is now named `ZenWorker`. Update any type annotations in your code:
+
+```dart
+// ❌ V1-style name (removed)
+ZenWorkerHandle handle = ZenWorkers.ever(count, (_) => update());
+
+// ✅ V2
+ZenWorker worker = ZenWorkers.ever(count, (_) => update());
+```
+
+`ZenWorkerGroup` is unchanged.
+
+#### `ZenDependencyAnalyzer` — REMOVED
+
+`ZenDependencyAnalyzer` is removed. It contained only stubbed, non-functional implementations. There is no replacement.
+
+#### `ZenConfig` — two flags removed
+
+| Removed field | Reason |
+|---|---|
+| `checkForCircularDependencies` | No runtime implementation existed — the flag had no effect |
+| `enableDependencyVisualization` | No runtime implementation existed — the flag had no effect |
+
+The corresponding `configure()` parameters `circularDependencyCheck:` and `dependencyVisualization:` are also removed.
+
+#### `ZenMetrics` — instrumentation methods and fields removed
+
+The following methods were never called by the library itself (the counters they wrote to were always zero):
+
+| Removed method | Removed field |
+|---|---|
+| `recordRxCreation()` | `totalRxValues` |
+| `recordStateUpdate()` | `totalStateUpdates` |
+| `recordProviderCreation()` | `totalProviders` |
+| `recordEffectSuccess()` | `totalEffectRuns`, `totalEffectSuccesses`, `effectSuccessCounts` |
+| `recordEffectFailure()` | `totalEffectFailures`, `effectFailureCounts` |
+
+`getReport()` no longer includes a `state` or `effects` block (both were always zeros). The remaining API — `incrementCounter`, `recordCounterValue`, `startTiming`, `stopTiming`, `getAverageDuration`, `getReport`, `startPeriodicLogging`, `stopPeriodicLogging`, `reset` — is unchanged.
+
+#### `ZenRoute` — scope resolution bug fixed
+
+`ZenRoute` no longer mutates a global `Zen.currentScope` pointer on every push. Scope resolution is now:
+
+1. Explicit `parentScope:` parameter
+2. Nearest `ZenProvider` ancestor in the widget tree (`context.zenScope`)
+3. `Zen.rootScope` — stable fallback for top-level routes
+
+Sibling routes pushed via `Navigator.push` no longer silently inherit each other's scopes.
+
+---
+
+#### `ZenView.build()` — explicit `controller` parameter (required)
+
+V1 provided the controller via a magic `controller` getter backed by a global static registry. V2 injects it as an explicit parameter — resolved from the nearest `ZenProvider` ancestor by the framework.
+
+```dart
+// ❌ V1 — magic getter, global registry
+class CartPage extends ZenView<CartController> {
+  @override
+  Widget build(BuildContext context) {
+    return Text('${controller.totalItems}');
+  }
+}
+
+// ✅ V2 — explicit injection, compiler-enforced
+class CartPage extends ZenView<CartController> {
+  const CartPage({super.key});
+
+  @override
+  Widget build(BuildContext context, CartController controller) {
+    return Text('${controller.totalItems}');
+  }
+}
+```
+
+The migration is mechanical: add `, CartController controller` to every `ZenView.build()` override.
+
+#### `ZenScopeWidget` renamed to `ZenProvider`
+
+The canonical provider widget is now `ZenProvider`. All usages of `ZenScopeWidget` must be renamed.
+
+```dart
+// ❌ V1
+ZenScopeWidget.create<CartController>(create: () => CartController(), child: ...)
+
+// ✅ V2
+ZenProvider.create<CartController>(create: () => CartController(), child: ...)
+```
+
+#### `ZenControllerScope` — REMOVED (not deprecated)
+
+`ZenControllerScope` conflated widget lifecycle with DI lifecycle — two concerns that must be kept separate. It is **removed entirely** in V2. Replace with `ZenProvider.create`:
+
+```dart
+// ❌ V1 — removed
+ZenControllerScope<MyController>(
+  create: () => MyController(),
+  child: MyView(),
+)
+
+// ✅ V2
+ZenProvider.create<MyController>(
+  create: () => MyController(),
+  child: const MyView(),
+)
+```
+
+#### `initController` on `ZenView` — REMOVED
+
+Per-instance self-owned controller via `initController` is removed. It tightly coupled widget and DI concerns. Use `ZenProvider.create` at the callsite instead:
+
+```dart
+// ❌ V1 — initController override (removed)
+class ChatBubble extends ZenView<ChatBubbleController> {
+  final String messageId;
+  @override
+  ChatBubbleController Function() get initController =>
+      () => ChatBubbleController(messageId: messageId);
+  ...
+}
+
+// ✅ V2 — provide at callsite
+ZenProvider.create<ChatBubbleController>(
+  create: () => ChatBubbleController(messageId: messageId),
+  child: const ChatBubble(),
+)
+```
+
+#### `_ZenViewRegistry` — deleted
+
+The global `Map<Type, List<ZenController>>` static registry is gone entirely. There is nothing to migrate.
+
+#### `ZenView.scope` property — removed
+
+Scope association is done exclusively via `ZenProvider` in the widget tree.
+
+#### `context.controller<T>()` — no global fallback
+
+The global `Zen.findOrNull<T>()` fallback has been removed from `context.controller<T>()`. Resolution is **strictly tree-bound**. If no `ZenProvider` ancestor provides the type, `ZenControllerNotFoundException` is thrown with an actionable message.
+
+---
+
+### Controller Resolution (V2)
+
+`ZenView` resolves its controller in this order:
+
+1. **Nearest `ZenProvider` ancestor** — O(1) `InheritedWidget` lookup.
+2. **`ZenControllerNotFoundException`** — thrown with a clear, actionable message if not found.
+
+There is no global fallback. This is intentional — silent fallbacks to global state hide architectural mistakes.
+
+---
+
+### New
+
+#### `ZenProvider.create<T>` — single-controller shorthand
+
+The most common pattern (one controller per route) now has a dedicated constructor:
+
+```dart
+ZenProvider.create<CartController>(
+  create: () => CartController(),
+  child: const CartPage(),
+)
+```
+
+#### `ZenUpdater<T>` — renamed from `ZenBuilder<T>`
+
+`ZenBuilder<T>` is now `ZenUpdater<T>`. The name communicates the purpose: this widget rebuilds when `controller.update()` is called. `ZenBuilder` is **fully removed** — any remaining usage is a compile error.
+
+#### `ZenConsumer<T>` — fixed and production-ready
+
+`ZenConsumer` previously used global DI only. V2 fixes it to resolve via `context.controller<T>()` in `didChangeDependencies()` — proper `InheritedWidget` subscription semantics, scope-bound, fails fast.
+
+---
+
+### Performance
+
+- **No global registry** — resolution is O(1) via Flutter's native `InheritedWidget` hash map.
+- **Fewer allocations** — `ZenView` uses `ComponentElement` instead of `StatefulWidget`. Each view allocates 2 objects (Widget + Element) instead of 3 (Widget + Element + State).
+- **`ZenUpdater` listener churn fixed** — `didChangeDependencies()` uses an `identical()` guard to avoid re-attaching listeners when the resolved controller hasn't changed.
+
+---
+
+### Bug Fixes
+
+- **`ZenUpdater` silent failures** — now stores resolution errors and rethrows in `build()`, routing to `onError` if provided.
+- **`ZenProvider` async init** — module init errors now surface via `FlutterError.reportError()` instead of being silently logged.
+- **`ZenConsumer` fail-fast** — throws clearly when controller not found instead of silently degrading.
+
+---
+
+### Tests
+
+**2,082 tests, all passing.** Test suite fully migrated to V2 patterns — no global `Zen.put` for UI controllers in any widget test.
+
+---
+
+### Migration Checklist
+
+```bash
+# Find all ZenView.build() overrides that need updating:
+grep -rn "Widget build(BuildContext context)" lib/ --include="*.dart"
+```
+
+1. Add `, T controller` parameter to every `ZenView.build()` override
+2. Replace `ZenScopeWidget` → `ZenProvider` (and `ZenScopeWidget.create` → `ZenProvider.create`)
+3. Replace `ZenControllerScope` → `ZenProvider.create` (removed, must migrate)
+4. Remove `initController` overrides → move controller creation to `ZenProvider.create` at callsite
+5. Replace `ZenBuilder` → `ZenUpdater` (**required** — `ZenBuilder` is fully removed, will not compile)
+6. `dart analyze` → confirm 0 errors
+7. `flutter test` → confirm all tests pass
+
+[Full migration guide →](doc/migration_v2_0_0.md)
+
+---
+
 ## [1.11.0]
 
 ### Fixed
