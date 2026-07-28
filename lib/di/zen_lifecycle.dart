@@ -49,7 +49,6 @@ class ZenLifecycleManager {
     }
   }
 
-
   /// Initialize the app lifecycle observer
   void initLifecycleObserver() {
     if (_lifecycleObserver == null) {

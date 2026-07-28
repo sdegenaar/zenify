@@ -7,7 +7,6 @@ class TestService extends ZenService {
   TestService(this.name);
 }
 
-
 class TestController extends ZenController {
   final String name;
   TestController(this.name);

@@ -24,31 +24,11 @@ doc/
 *.iml
 
 # ---- Internal strategy & working documents -----------------
-ARCHITECTURAL_REVIEW_2025.md
-STRATEGIC_ROADMAP_2026.md
-ROADMAP.md
+# These are either gitignored (.internal/) or no longer exist.
+# Only list files that ARE checked into git but should not ship to pub.dev.
 CLAUDE.md
-BUILDER_ARCHITECTURE.md
-CACHE_CLEARED.md
-COMMUNITY_RESPONSE.md
-COMMUNITY_RESPONSE_CONTROLLERS.md
-DEVTOOLS_FIX.md
-DEVTOOLS_STATUS.md
-DEVTOOLS_TESTING.md
-DOCUMENTATION_IMPROVEMENTS.md
-DOCUMENTATION_REVIEW.md
-DOCUMENTATION_UPDATE_SUMMARY.md
-FEATURE_IMPLEMENTATION_SUMMARY.md
-GITHUB_ISSUE_RESPONSE.md
-HIERARCHICAL_DI_COMPARISON.md
-INSPECTOR_REVIEW.md
-MIGRATION_DEVTOOLS.md
-QUERY_ARCHITECTURE_REVIEW.md
-README_REVIEW.md
-STRATEGIC_ROADMAP_2025.md
-V1_5_0_COMPLETE.md
-V1_5_0_IMPLEMENTATION_SUMMARY.md
-V1_5_0_MIGRATION_PLAN.md
+CODE_OF_CONDUCT.md
+CONTRIBUTING.md
 
 # ---- Test suite (not useful to consumers) ------------------
 # Tests inflate the download significantly (2000+ files).
@@ -68,7 +48,8 @@ tool/
 example/counter/
 example/todo/
 example/ecommerce/
-example/hierarchical_scopes/
+example/hierarchical_scopes_flat/
+example/hierarchical_scopes_nested/
 example/zen_query/
 example/zen_offline/
 example/zenify_showcase/

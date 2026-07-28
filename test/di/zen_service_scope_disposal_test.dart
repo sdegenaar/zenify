@@ -195,9 +195,9 @@ void main() {
       level1.dispose();
 
       expect(services[0].isDisposed, false); // root
-      expect(services[1].isDisposed, true);  // level1
-      expect(services[2].isDisposed, true);  // level2
-      expect(services[3].isDisposed, true);  // level3
+      expect(services[1].isDisposed, true); // level1
+      expect(services[2].isDisposed, true); // level2
+      expect(services[3].isDisposed, true); // level3
 
       root.dispose();
       expect(services[0].isDisposed, true);

@@ -17,8 +17,7 @@ import '../../core/zen_metrics.dart';
 /// ZenObserver(() => Text('Count: ${count.value}'))
 /// ```
 ///
-/// For multi-controller granular rebuilds use [ZenBuilder] instead.
-/// [ZenObserver] is a deprecated alias kept for GetX migration compatibility.
+/// For multi-controller granular rebuilds use [ZenUpdater] instead.
 class ZenObserver extends StatefulWidget {
   final Widget Function() builder;
 

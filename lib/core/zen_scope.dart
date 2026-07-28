@@ -60,7 +60,6 @@ class ZenScope {
   // Store custom disposal functions
   final List<Function()> _disposers = [];
 
-
   /// Creates a new scope
   ZenScope({
     this.parent,

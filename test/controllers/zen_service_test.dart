@@ -61,7 +61,8 @@ void main() {
         // A second Zen.put replaces and re-inits. Guard only fires on same instance.
         // The key guarantee: same instance won't have onInit's internal code run twice.
         service.initCalled = false; // reset flag
-        service.onInit(); // direct call — ZenController guard fires, sets nothing
+        service
+            .onInit(); // direct call — ZenController guard fires, sets nothing
 
         // User code after super.onInit() would still run — so initCalled becomes true again.
         // This is expected: the guard is on ZenController internals, not on user code.

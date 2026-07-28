@@ -7,6 +7,8 @@ This release completes the architectural shift to fully tree-bound dependency in
 
 ### Breaking Changes
 
+#### Architecture & lifecycle
+
 - **`ZenRouteObserver` removed.** The V1 `NavigatorObserver`-based controller disposal has been removed. Use `ZenRoute` instead — it disposes its scope automatically when the widget leaves the tree, with zero manual registration required.
 - **`ZenController.autoDispose` and `limited` workers removed.** These were trivially composable using `ever()` and `once()`.
 - **`getResourceStats()['memory_overhead_estimate']` removed.** The hardcoded estimate was misleading without a real heap profiler.
@@ -34,8 +36,6 @@ REACT     →  ZenObserver               Rx<T> — auto-rebuild on value change
 > **Key rule:** `ZenView` resolves from the nearest scope automatically. It doesn't matter whether the controller was registered via `ZenRoute`, `ZenProvider`, or `Zen.put` — consumption is always the same zero-boilerplate pattern.
 
 ---
-
-### Breaking Changes
 
 #### Global API cleanup
 
@@ -245,7 +245,7 @@ ZenProvider.create<CartController>(
 
 ### Tests
 
-**2,117 tests, all passing.** Test suite fully migrated to V2 patterns — no global `Zen.put` for UI controllers in any widget test.
+**2,082 tests, all passing.** Test suite fully migrated to V2 patterns — no global `Zen.put` for UI controllers in any widget test.
 
 ---
 

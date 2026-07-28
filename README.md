@@ -1,5 +1,6 @@
 <div align="center">
   <h1>Zenify</h1>
+  <p><em>The state management framework that works the way Flutter works.</em></p>
   <p><b>Automatic Query Caching • Scoped DI with Auto-Disposal • Offline-First • No Code Generation</b></p>
 </div>
 
@@ -79,22 +80,6 @@ ZenQueryConsumer<User>(
 **Automatic caching. Deduplication. Background refetch. Stale-while-revalidate. Offline resilience. All built in.**
 
 This is what TanStack Query brought to the web. Zenify brings it to Flutter — natively, without code generation, integrated directly into the framework's DI and reactivity system.
-
----
-
-## ⚡ Four Things Zenify Does Differently
-
-### 1. Built-In TanStack Query Engine
-Most Flutter frameworks treat async state as an afterthought — a `Future` wrapped in a controller. Zenify has a first-class query engine (`ZenQuery`) with automatic caching, request deduplication, stale-while-revalidate, infinite scroll pagination, and optimistic updates. No third-party packages. No bolting things together. One coherent system.
-
-### 2. Hierarchical Scoped DI — Auto-Disposal Built In
-Every route gets its own scope. Navigate away, and the scope — plus every controller, repository, and service inside it — is automatically disposed. Navigate back, and you get a fresh scope with clean state. No manual disposal. No memory leaks. No stale state. Parent scopes resolve services for child scopes automatically — a feature module just asks for what it needs, and the hierarchy delivers it.
-
-### 3. Offline-First by Design
-Zenify doesn't just handle the happy path. Queries return cached data instantly while fetching fresh data in the background. Mutations that fail offline are queued and automatically replayed when the connection restores. Storage is pluggable — Hive, SharedPreferences, SQLite, or any custom adapter. Offline support isn't a feature you add later; it's in the architecture from the start.
-
-### 4. Zero Code Generation
-No `build_runner`. No annotations. No generated files to commit. Write Dart, get IntelliSense, run your app. When your codebase grows to 100,000 lines, you still don't run a code generator.
 
 ---
 
@@ -264,25 +249,6 @@ class CounterController extends ZenController {
 
 ### 4. Provide & Consume
 
-The Zenify pattern is three steps:
-
-```
-REGISTER  →  Zen.registerModules([AppModule()])     app services — live for app lifetime
-              ZenRoute(moduleBuilder: () => M())     route-level — standard for real apps
-              ↳ scope.put<T>(T())  inside ZenModule  where controllers are actually created
-              ZenProvider.create<T>(create: ...)     simple routes without a module
-
-CONSUME   →  ZenView<T>                extend — controller injected into build()
-              ZenConsumer<T>           compose — inline builder, no inheritance
-              context.controller<T>() imperative — from any widget or callback
-
-REACT     →  ZenObserver          Rx<T> — auto-rebuild on value change
-              ZenUpdater<T>            update() — manual, ID-targeted rebuilds
-              ZenQuery<T>              async — caching, loading, error, refetch
-```
-
-> **Key rule:** `ZenView` resolves from the nearest `ZenProvider` scope automatically. Whether the controller was registered via `ZenRoute` or an explicit `ZenProvider` — consumption is always the same zero-boilerplate pattern. Global services (`Zen.put`) are accessed explicitly via `Zen.find()`.
-
 ```dart
 // 1. Register — in your module, put the controller into its scope
 class CartModule extends ZenModule {
@@ -425,49 +391,7 @@ final createPost = ZenMutation<Post, Post>(
 
 ### 3. ZenView — Pages, Screens & Widgets
 
-By extending `ZenView<T>`, the controller is injected directly into `build()`. No `context.read<T>()`, no `BlocBuilder`, no `ref.watch()`. The controller arrives as a typed parameter.
-
-**Register** — in a real app, register inside a `ZenModule` and wire it to your route:
-
-```dart
-// CartModule — registers everything the cart feature needs
-class CartModule extends ZenModule {
-  @override
-  void register(ZenScope scope) {
-    final api = scope.find<ApiClient>()!;          // resolved from parent scope
-    scope.putLazy<CartRepository>(() => CartRepository(api));
-    scope.put<CartController>(CartController());
-  }
-}
-
-// In your router (works with GoRouter, AutoRoute, Navigator 2.0 — any router)
-ZenRoute(
-  moduleBuilder: () => CartModule(),
-  page: const CartPage(),
-)
-```
-
-For simple routes without dependencies, use the shorthand:
-
-```dart
-ZenProvider.create<CartController>(
-  create: () => CartController(),
-  child: const CartPage(),
-)
-```
-
-**Consume** — `ZenView` resolves the controller automatically. Zero lookup code:
-
-```dart
-class CartPage extends ZenView<CartController> {
-  const CartPage({super.key});
-
-  @override
-  Widget build(BuildContext context, CartController controller) {
-    return ZenObserver(() => Text('${controller.itemCount.value} items'));
-  }
-}
-```
+By extending `ZenView<T>`, the controller is injected directly into `build()`. No `context.read<T>()`, no `BlocBuilder`, no `ref.watch()`. The controller arrives as a typed parameter — see the [Quick Start](#-quick-start-30-seconds) above for the full Register → Consume → React pattern.
 
 **React** — pick your reactivity tool:
 
@@ -522,9 +446,9 @@ class UserModule extends ZenModule {
 }
 
 // Use with any router — it's just a widget
-ZenProvider(
+ZenRoute(
   moduleBuilder: () => UserModule(),
-  child: const UserPage(),
+  page: const UserPage(),
 )
 ```
 

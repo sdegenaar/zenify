@@ -1,8 +1,6 @@
 # Zenify V2: Architecture Design & Rationale
 
-**Authors**: Package Owner + Architect  
-**Date**: July 2026  
-**Status**: ✅ SHIPPED — V2.0.0  
+**Status**: ✅ Shipped — V2.0.0 (July 2026)
 
 > This document captures both the design rationale and the final shipped state.  
 > For migration steps, see [migration_v2_0_0.md](migration_v2_0_0.md).
@@ -39,7 +37,7 @@
 
 ## 1. The Problem We Solved
 
-Zenify began as "GetX done right" — familiar ergonomics, dangerous global state removed. But one fundamental GetX pattern survived into V1:
+Zenify's reactive API (`.obs()`, controller lifecycle, DI verbs) was originally inspired by GetX's developer ergonomics. But one fundamental pattern from that lineage survived into V1:
 
 **The magic `controller` getter.**
 
