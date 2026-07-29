@@ -296,6 +296,90 @@ void main() {
   });
 
   // =========================================================================
+  // keepPreviousData
+  // =========================================================================
+
+  group('ZenQueryConsumer keepPreviousData', () {
+    testWidgets('shows previous data while fetching new key', (tester) async {
+      final completerA = Completer<String>();
+      final completerB = Completer<String>();
+
+      Widget buildConsumer(String key, Future<String> future) => _wrap(
+            ZenQueryConsumer<String>(
+              key: const ValueKey('consumer'),
+              queryKey: key,
+              keepPreviousData: true,
+              fetcher: (_) => future,
+              data: (v) => Text('data-$v'),
+              loading: () => const Text('loading'),
+            ),
+          );
+
+      // 1. Initial mount with key A
+      await tester.pumpWidget(buildConsumer('A', completerA.future));
+      expect(find.text('loading'), findsOneWidget);
+
+      completerA.complete('A');
+      await tester.pumpAndSettle();
+      expect(find.text('data-A'), findsOneWidget);
+
+      // 2. Switch to key B
+      await tester.pumpWidget(buildConsumer('B', completerB.future));
+      await tester.pump();
+
+      // Because keepPreviousData is true, we should NOT see 'loading'
+      // We should still see 'data-A' while B is fetching
+      expect(find.text('loading'), findsNothing);
+      expect(find.text('data-A'), findsOneWidget);
+
+      // 3. Complete B
+      completerB.complete('B');
+      await tester.pumpAndSettle();
+
+      // Now it shows B
+      expect(find.text('data-B'), findsOneWidget);
+      expect(find.text('data-A'), findsNothing);
+
+      await tester.binding.delayed(const Duration(minutes: 6));
+    });
+
+    testWidgets('shows loading if keepPreviousData is false', (tester) async {
+      final completerA = Completer<String>();
+      final completerB = Completer<String>();
+
+      Widget buildConsumer(String key, Future<String> future) => _wrap(
+            ZenQueryConsumer<String>(
+              key: const ValueKey('consumer'),
+              queryKey: key,
+              keepPreviousData: false,
+              fetcher: (_) => future,
+              data: (v) => Text('data-$v'),
+              loading: () => const Text('loading'),
+            ),
+          );
+
+      await tester.pumpWidget(buildConsumer('A', completerA.future));
+      completerA.complete('A');
+      await tester.pumpAndSettle();
+      expect(find.text('data-A'), findsOneWidget);
+
+      // Switch to B
+      await tester.pumpWidget(buildConsumer('B', completerB.future));
+      await tester.pump();
+
+      // Should show loading immediately
+      expect(find.text('loading'), findsOneWidget);
+      expect(find.text('data-A'), findsNothing);
+
+      completerB.complete('B');
+      await tester.pumpAndSettle();
+      expect(find.text('data-B'), findsOneWidget);
+
+      await tester.binding.delayed(const Duration(minutes: 6));
+    });
+  });
+
+  // =========================================================================
   // Disposal
   // =========================================================================
 

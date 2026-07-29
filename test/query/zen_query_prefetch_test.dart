@@ -16,7 +16,7 @@ void main() {
     test('fetches and caches data if cache is empty', () async {
       int fetchCount = 0;
 
-      await ZenQueryCache.instance.prefetch<String>(
+      final result = await ZenQueryCache.instance.prefetch<String>(
         queryKey: 'prefetch-test',
         fetcher: () async {
           fetchCount++;
@@ -25,6 +25,7 @@ void main() {
       );
 
       expect(fetchCount, 1);
+      expect(result, 'prefetched-data');
 
       // Verify it's in cache
       final cached =
@@ -42,7 +43,7 @@ void main() {
 
       int fetchCount = 0;
 
-      await ZenQueryCache.instance.prefetch<String>(
+      final result = await ZenQueryCache.instance.prefetch<String>(
         queryKey: 'prefetch-test',
         fetcher: () async {
           fetchCount++;
@@ -52,6 +53,7 @@ void main() {
       );
 
       expect(fetchCount, 0);
+      expect(result, 'existing-data');
       expect(ZenQueryCache.instance.getCachedData('prefetch-test'),
           'existing-data');
     });
@@ -80,11 +82,13 @@ void main() {
     });
 
     test('handles errors gracefully', () async {
-      // Should not throw
-      await ZenQueryCache.instance.prefetch<String>(
+      // Should return null on error
+      final result = await ZenQueryCache.instance.prefetch<String>(
         queryKey: 'error-test',
         fetcher: () async => throw Exception('Network error'),
       );
+
+      expect(result, isNull);
 
       // Cache should be empty
       expect(ZenQueryCache.instance.getCachedData('error-test'), null);

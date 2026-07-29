@@ -120,7 +120,6 @@ class ZenQuery<T> extends ZenController {
   Future<T>? _currentFetch;
 
   /// Number of current retry attempt
-  int _retryAttempt = 0;
 
   /// Timer for background refetching
   Timer? _refetchTimer;
@@ -300,123 +299,125 @@ class ZenQuery<T> extends ZenController {
     // Cancel previous pending request if any
     _cancelPendingRequest();
 
-    _retryAttempt = 0;
     return _fetchWithRetry();
   }
 
   Future<T> _fetchWithRetry() async {
-    if (_isDisposed) {
-      throw StateError('Query has been disposed');
-    }
+    int retryAttempt = 0;
 
-    // Create new token for this attempt
-    final token = ZenCancelToken('Refetching $queryKey');
-    _currentCancelToken = token;
-
-    // Update status to loading
-    // Only set loading status if we don't have data (real or placeholder) to show
-    if (!hasData && !isPlaceholderData.value) {
-      status.value = ZenQueryStatus.loading;
-    }
-    _isLoadingNotifier?.value = true;
-    // Set fetch status to fetching
-    fetchStatus.value = ZenQueryFetchStatus.fetching;
-
-    error.value = null;
-    // Note: We do NOT clear isPlaceholderData here yet,
-    // because if we have placeholder data, we want to keep showing it while loading
-    update();
-
-    try {
-      // Execute fetcher with cancellation token
-      final result = await fetcher(token);
-
-      // If cancelled during await, don't update state
-      if (token.isCancelled) {
-        if (hasData) return data.value!;
-        throw ZenCancellationException('Request cancelled');
-      }
+    while (true) {
       if (_isDisposed) {
-        throw StateError(
-            'Query was disposed during fetch'); // coverage:ignore-line
+        throw StateError('Query has been disposed');
       }
 
-      // Update state: Success
-      // Use structural sharing to prevent unnecessary rebuilds
-      final optimizedData = ZenUtils.shareStructure(data.value, result);
-      data.value = optimizedData;
-      status.value = ZenQueryStatus.success;
-      isPlaceholderData.value = false; // Real data arrived
-      _isLoadingNotifier?.value = false;
+      // Create new token for this attempt
+      final token = ZenCancelToken('Refetching $queryKey');
+      _currentCancelToken = token;
+
+      // Update status to loading
+      // Only set loading status if we don't have data (real or placeholder) to show
+      if (!hasData && !isPlaceholderData.value) {
+        status.value = ZenQueryStatus.loading;
+      }
+      _isLoadingNotifier?.value = true;
+      // Set fetch status to fetching
+      fetchStatus.value = ZenQueryFetchStatus.fetching;
+
       error.value = null;
-      _lastFetchTime = DateTime.now();
-      _retryAttempt = 0;
-      fetchStatus.value = ZenQueryFetchStatus.idle;
+      // Note: We do NOT clear isPlaceholderData here yet,
+      // because if we have placeholder data, we want to keep showing it while loading
       update();
 
-      // Cache the result if caching is enabled
-      if (_registerInCache) {
-        ZenQueryCache.instance.updateCache(queryKey, result, _lastFetchTime!);
-      }
+      try {
+        // Execute fetcher with cancellation token
+        final result = await fetcher(token);
 
-      return result;
-    } catch (e, s) {
-      if (token.isCancelled || e is ZenCancellationException) {
-        // If cancelled, we generally don't treat it as an error state
-        if (hasData) return data.value!;
-        rethrow;
-      }
+        // If cancelled during await, don't update state
+        if (token.isCancelled) {
+          if (hasData) return data.value!;
+          throw ZenCancellationException('Request cancelled');
+        }
+        if (_isDisposed) {
+          throw StateError(
+              'Query was disposed during fetch'); // coverage:ignore-line
+        }
 
-      if (_isDisposed) {
-        throw StateError(
-            'Query was disposed during fetch'); // coverage:ignore-line
-      }
-
-      // Check if should retry
-      if (_retryAttempt < config.retryCount) {
-        _retryAttempt++;
-
-        ZenLogger.logDebug(
-            'Query $queryKey failed, retrying ($_retryAttempt/${config.retryCount})');
-
-        // Calculate retry delay with exponential backoff and jitter
-        final delay = _calculateRetryDelay(_retryAttempt, e);
-
-        await Future.delayed(delay);
-
-        // Retry
-        return _fetchWithRetry();
-      }
-
-      // No more retries, check if we should pause for reconnect instead of erroring
-      if (config.retryWhenOnline && !ZenQueryCache.instance.isOnline) {
-        ZenLogger.logDebug(
-          'Query $queryKey: retries exhausted offline — entering paused state '
-          '(will retry automatically when back online).',
-        );
+        // Update state: Success
+        // Use structural sharing to prevent unnecessary rebuilds
+        final optimizedData = ZenUtils.shareStructure(data.value, result);
+        data.value = optimizedData;
+        status.value = ZenQueryStatus.success;
+        isPlaceholderData.value = false; // Real data arrived
         _isLoadingNotifier?.value = false;
-        fetchStatus.value = ZenQueryFetchStatus.paused;
+        error.value = null;
+        _lastFetchTime = DateTime.now();
+        fetchStatus.value = ZenQueryFetchStatus.idle;
         update();
-        // Register for automatic retry when connectivity returns
-        ZenQueryCache.instance.registerRetryWhenOnline(this);
-        if (hasData) return data.value!;
-        throw const ZenOfflineException(
-          'Query paused — will retry automatically when back online.',
-        );
-      }
 
-      // No more retries, update with error
-      ZenLogger.logError('Query failed: $queryKey', e, s);
-      error.value = e;
-      status.value = ZenQueryStatus.error;
-      _isLoadingNotifier?.value = false;
-      fetchStatus.value = ZenQueryFetchStatus.idle;
-      update();
+        // Cache the result if caching is enabled
+        if (_registerInCache) {
+          ZenQueryCache.instance.updateCache(queryKey, result, _lastFetchTime!);
+        }
 
-      rethrow;
-    } finally {
-      if (_currentCancelToken == token) {
-        _currentCancelToken = null;
+        return result;
+      } catch (e, s) {
+        if (token.isCancelled || e is ZenCancellationException) {
+          // If cancelled, we generally don't treat it as an error state
+          if (hasData) return data.value!;
+          rethrow;
+        }
+
+        if (_isDisposed) {
+          throw StateError(
+              'Query was disposed during fetch'); // coverage:ignore-line
+        }
+
+        // Check if should retry
+        if (retryAttempt < config.retryCount) {
+          retryAttempt++;
+
+          ZenLogger.logDebug(
+              'Query $queryKey failed, retrying ($retryAttempt/${config.retryCount})');
+
+          // Calculate retry delay with exponential backoff and jitter
+          final delay = _calculateRetryDelay(retryAttempt, e);
+
+          await Future.delayed(delay);
+
+          // Retry
+          continue;
+        }
+
+        // No more retries, check if we should pause for reconnect instead of erroring
+        if (config.retryWhenOnline && !ZenQueryCache.instance.isOnline) {
+          ZenLogger.logDebug(
+            'Query $queryKey: retries exhausted offline — entering paused state '
+            '(will retry automatically when back online).',
+          );
+          _isLoadingNotifier?.value = false;
+          fetchStatus.value = ZenQueryFetchStatus.paused;
+          update();
+          // Register for automatic retry when connectivity returns
+          ZenQueryCache.instance.registerRetryWhenOnline(this);
+          if (hasData) return data.value!;
+          throw const ZenOfflineException(
+            'Query paused — will retry automatically when back online.',
+          );
+        }
+
+        // No more retries, update with error
+        ZenLogger.logError('Query failed: $queryKey', e, s);
+        error.value = e;
+        status.value = ZenQueryStatus.error;
+        _isLoadingNotifier?.value = false;
+        fetchStatus.value = ZenQueryFetchStatus.idle;
+        update();
+
+        rethrow;
+      } finally {
+        if (_currentCancelToken == token) {
+          _currentCancelToken = null;
+        }
       }
     }
   }
@@ -444,18 +445,14 @@ class ZenQuery<T> extends ZenController {
   /// - Attempt 4: 1600ms
   /// - Attempt 5: 3200ms
   /// - etc., capped at 30s
-  Duration _calculateRetryDelay(int attempt, [Object? currentError]) {
+  Duration _calculateRetryDelay(int attempt, Object currentError) {
     // Use custom function if provided
     if (config.retryDelayFn != null) {
-      // Use the passed error, or fall back to stored error, or throw/default
-      final err = currentError ?? error.value; // coverage:ignore-line
-      if (err != null) {
-        final delay = config.retryDelayFn!(attempt - 1, err);
-        ZenLogger.logDebug(
-          'Retry delay for attempt $attempt: ${delay.inMilliseconds}ms (custom function)',
-        );
-        return delay;
-      }
+      final delay = config.retryDelayFn!(attempt - 1, currentError);
+      ZenLogger.logDebug(
+        'Query retry delay for attempt $attempt: ${delay.inMilliseconds}ms (custom function)',
+      );
+      return delay;
     }
 
     if (!config.exponentialBackoff) {
@@ -607,7 +604,7 @@ class ZenQuery<T> extends ZenController {
     _isLoadingNotifier?.value = false;
     fetchStatus.value = ZenQueryFetchStatus.idle;
     _lastFetchTime = initialData != null ? DateTime.now() : null;
-    _retryAttempt = 0;
+
     _cancelPendingRequest();
     update();
   }

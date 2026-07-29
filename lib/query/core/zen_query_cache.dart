@@ -463,7 +463,7 @@ class ZenQueryCache {
   }
 
   /// Prefetch data and store it in the cache if it's not already fresh.
-  Future<void> prefetch<T>({
+  Future<T?> prefetch<T>({
     required Object queryKey,
     required Future<T> Function() fetcher,
     Duration? staleTime,
@@ -471,7 +471,9 @@ class ZenQueryCache {
   }) async {
     final normalizedKey = QueryKey.normalize(queryKey);
 
-    if (_isDataFresh(normalizedKey, staleTime)) return;
+    if (_isDataFresh(normalizedKey, staleTime)) {
+      return getCachedData<T>(normalizedKey);
+    }
 
     try {
       final data = await deduplicateFetch(normalizedKey, fetcher);
@@ -483,8 +485,10 @@ class ZenQueryCache {
           const Duration(minutes: 5); // coverage:ignore-line
 
       _setCacheEntry(normalizedKey, data, DateTime.now(), effectiveCacheTime);
+      return data;
     } catch (e) {
       ZenLogger.logWarning('Prefetch failed for $normalizedKey: $e');
+      return null;
     }
   }
 

@@ -50,6 +50,21 @@ userQuery.when(
 );
 ```
 
+### Self-Contained Widget (ZenQueryConsumer)
+If you don't want to create and manage the `ZenQuery` instance yourself, use `ZenQueryConsumer` to fetch and render in a single step (similar to `useQuery` in React):
+
+```dart
+ZenQueryConsumer<User>(
+  queryKey: 'user:123',
+  fetcher: (_) => api.getUser(123),
+  data: (user) => Text(user.name),
+  loading: () => CircularProgressIndicator(),
+  error: (error, retry) => ErrorWidget(error: error, onRetry: retry),
+  // Optionally keeps old data on screen while fetching a new queryKey (v2.1.0+)
+  keepPreviousData: true, 
+)
+```
+
 ### With Configuration
 ```dart
 final userQuery = ZenQuery<User>(
@@ -1111,6 +1126,25 @@ ZenQueryBuilder<T>({
   bool showStaleData = true,
   bool keepPreviousData = false,
   Widget Function(BuildContext, Widget)? wrapper,
+})
+```
+
+### ZenQueryConsumer
+A self-contained widget that creates, manages, and renders a query in one step. Ideal for UI-bound fetching without controller boilerplate.
+
+```dart
+ZenQueryConsumer<T>({
+  required String queryKey,
+  required Future<T> Function(ZenCancelToken) fetcher,
+  required Widget Function(T) data,
+  Widget Function()? loading,
+  Widget Function(Object, VoidCallback)? error,
+  Widget Function()? idle,
+  ZenQueryConfig? config,
+  T? initialData,
+  bool autoFetch = true,
+  bool showStaleData = true,
+  bool keepPreviousData = false, // Added in v2.1.0
 })
 ```
 

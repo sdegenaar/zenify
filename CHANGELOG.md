@@ -1,5 +1,17 @@
-## [2.0.0] — V2 Architecture
+## [2.1.0]
 
+### Added
+- `keepPreviousData` parameter added to `ZenQueryConsumer` to prevent loading flashes during pagination.
+- `ZenQueryCache.prefetch` now returns a `Future<T?>` allowing awaiting of prefetch results.
+
+### Fixed
+- **Stack Overflow Fix:** Replaced recursive retries in `ZenMutation` and `ZenQuery` with iterative `while` loops to prevent stack overflow errors under high retry counts or spotty networks.
+- **Retry Delay Reliability:** `_calculateRetryDelay` now correctly requires a non-nullable error parameter, eliminating a bug where `retryDelayFn` could receive the wrong exception fallback.
+- **State Cleanups:** Removed orphaned internal state (e.g. `_retryAttempt` fields) for safer concurrent fetches.
+
+---
+
+## [2.0.0] — V2 Architecture
 This release completes the architectural shift to fully tree-bound dependency injection. Every controller access is now **resolved via `BuildContext`** — the same model Flutter uses for `Theme`, `MediaQuery`, and `Navigator`. The result is multi-instance safety by construction, perfect test isolation with zero global teardown, and a mental model that transfers directly to how Flutter works.
 
 > **Migration:** See [migration_v2_0_0.md](doc/migration_v2_0_0.md) for the full guide.  

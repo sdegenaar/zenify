@@ -8,6 +8,7 @@ import '../core/zen_query_enums.dart';
 import '../core/zen_query_cache.dart';
 import '../queue/zen_mutation_queue.dart';
 import '../queue/zen_mutation_job.dart';
+import '../../core/zen_logger.dart';
 
 /// A reactive mutation that manages async data updates (creates/updates/deletes)
 ///
@@ -53,6 +54,27 @@ class ZenMutation<TData, TVariables> extends ZenController {
     Object? context,
   )? onSettled;
 
+  /// Number of retry attempts (default 0 for mutations)
+  final int retryCount;
+
+  /// Base delay between retries
+  final Duration retryDelay;
+
+  /// Custom function to calculate retry delay
+  final RetryDelayFn? retryDelayFn;
+
+  /// Maximum delay for retries
+  final Duration maxRetryDelay;
+
+  /// Multiplier for exponential backoff
+  final double retryBackoffMultiplier;
+
+  /// Whether to use exponential backoff
+  final bool exponentialBackoff;
+
+  /// Whether to add random jitter to retry delays
+  final bool retryWithJitter;
+
   /// Current status of the mutation
   final Rx<ZenMutationStatus> status = Rx(ZenMutationStatus.idle);
 
@@ -80,6 +102,13 @@ class ZenMutation<TData, TVariables> extends ZenController {
     this.onSuccess,
     this.onError,
     this.onSettled,
+    this.retryCount = 0,
+    this.retryDelay = const Duration(milliseconds: 200),
+    this.retryDelayFn,
+    this.maxRetryDelay = const Duration(seconds: 30),
+    this.retryBackoffMultiplier = 2.0,
+    this.exponentialBackoff = true,
+    this.retryWithJitter = true,
   }) {
     // AUTOMATIC CHILD CONTROLLER TRACKING
     if (ZenController.currentParentController != null) {
@@ -130,8 +159,31 @@ class ZenMutation<TData, TVariables> extends ZenController {
         return await _queueOfflineMutation(variables);
       }
 
-      // Execute mutation
-      final result = await mutationFn(variables);
+      int retryAttempt = 0;
+      late TData result;
+
+      while (true) {
+        try {
+          result = await mutationFn(variables);
+          break;
+        } catch (e) {
+          if (isDisposed) rethrow;
+
+          // If we went offline mid-execution and this mutation is keyed,
+          // bubble out so the outer catch can queue it.
+          if (mutationKey != null && !ZenQueryCache.instance.isOnline) {
+            rethrow;
+          }
+
+          if (retryAttempt >= retryCount) rethrow;
+
+          retryAttempt++;
+          final keyStr = mutationKey ?? 'unnamed';
+          ZenLogger.logDebug(
+              'Mutation $keyStr failed, retrying ($retryAttempt/$retryCount)');
+          await Future.delayed(_calculateRetryDelay(retryAttempt, e));
+        }
+      }
 
       if (isDisposed) return null;
 
@@ -236,6 +288,43 @@ class ZenMutation<TData, TVariables> extends ZenController {
     error.dispose();
     _isLoadingNotifier?.dispose();
     super.onClose();
+  }
+
+  /// Calculate retry delay with exponential backoff and optional jitter.
+  /// [attempt] is 1-indexed (1 = first retry).
+  /// [currentError] is the error that caused this retry — always non-null
+  /// at call sites.
+  Duration _calculateRetryDelay(int attempt, Object currentError) {
+    if (retryDelayFn != null) {
+      final delay = retryDelayFn!(attempt - 1, currentError);
+      ZenLogger.logDebug(
+        'Retry delay for attempt $attempt: ${delay.inMilliseconds}ms (custom function)',
+      );
+      return delay;
+    }
+
+    if (!exponentialBackoff) {
+      return retryDelay;
+    }
+
+    final baseMs = retryDelay.inMilliseconds;
+    final exponentialMs = baseMs * pow(retryBackoffMultiplier, attempt - 1);
+    final cappedMs =
+        min(exponentialMs, maxRetryDelay.inMilliseconds.toDouble());
+
+    var finalMs = cappedMs;
+    if (retryWithJitter) {
+      final jitterRange = cappedMs * 0.2;
+      final jitter = jitterRange * (Random().nextDouble() - 0.5) * 2;
+      finalMs = cappedMs + jitter;
+    }
+
+    final delay = Duration(milliseconds: finalMs.toInt());
+    ZenLogger.logDebug(
+      'Retry delay for attempt $attempt: ${delay.inMilliseconds}ms '
+      '(exponential: $exponentialBackoff, jitter: $retryWithJitter)',
+    );
+    return delay;
   }
 
   // =========================================================================

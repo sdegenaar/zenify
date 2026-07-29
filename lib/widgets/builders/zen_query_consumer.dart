@@ -62,6 +62,29 @@ import 'zen_query_builder.dart';
 /// The internal [ZenQuery] is created once when the widget mounts and disposed
 /// when the widget is removed from the tree. If [queryKey] changes, the old
 /// query is disposed and a new one is created.
+///
+/// ### queryKey is the dependency declaration
+///
+/// If your [fetcher] captures a variable (e.g., a user ID or filter), include
+/// that variable in the [queryKey]. Changes to the [fetcher] closure reference
+/// alone do **not** trigger a rebuild — Dart closures change reference on
+/// every parent build, so using fetcher identity would cause infinite loops.
+///
+/// ```dart
+/// // ✅ Correct — key changes when userId changes, query rebuilds
+/// ZenQueryConsumer<User>(
+///   queryKey: 'user:$userId',
+///   fetcher: (_) => api.getUser(userId),
+///   data: (user) => UserCard(user),
+/// )
+///
+/// // ❌ Wrong — static key, fetcher silently keeps old userId
+/// ZenQueryConsumer<User>(
+///   queryKey: 'current-user',  // never changes
+///   fetcher: (_) => api.getUser(userId),  // stale closure
+///   data: (user) => UserCard(user),
+/// )
+/// ```
 class ZenQueryConsumer<T> extends StatefulWidget {
   /// Unique key for caching and deduplication. Matches the same key in other
   /// [ZenQueryConsumer] or [ZenQueryBuilder] widgets to share cached data.
@@ -98,6 +121,12 @@ class ZenQueryConsumer<T> extends StatefulWidget {
   /// Defaults to true.
   final bool showStaleData;
 
+  /// If true, keeps showing the data from the previous query instance
+  /// (if available) while the new query is loading.
+  ///
+  /// Useful for pagination to prevent "flash of loading" when key changes.
+  final bool keepPreviousData;
+
   const ZenQueryConsumer({
     super.key,
     required this.queryKey,
@@ -110,6 +139,7 @@ class ZenQueryConsumer<T> extends StatefulWidget {
     this.initialData,
     this.autoFetch = true,
     this.showStaleData = true,
+    this.keepPreviousData = false,
   });
 
   @override
@@ -127,16 +157,15 @@ class _ZenQueryConsumerState<T> extends State<ZenQueryConsumer<T>> {
     _query = _buildQuery();
   }
 
-  @override // coverage:ignore-line
+  @override
   void didUpdateWidget(ZenQueryConsumer<T> oldWidget) {
-    super.didUpdateWidget(oldWidget); // coverage:ignore-line
-    final newKey = widget.queryKey.toString(); // coverage:ignore-line
+    super.didUpdateWidget(oldWidget);
+    final newKey = widget.queryKey.toString();
     if (newKey != _normalizedKey) {
-      // coverage:ignore-line
       // Key changed — dispose old query, create a fresh one.
-      _query.dispose(); // coverage:ignore-line
-      _normalizedKey = newKey; // coverage:ignore-line
-      _query = _buildQuery(); // coverage:ignore-line
+      _query.dispose();
+      _normalizedKey = newKey;
+      _query = _buildQuery();
     }
   }
 
@@ -168,6 +197,7 @@ class _ZenQueryConsumerState<T> extends State<ZenQueryConsumer<T>> {
       idle: widget.idle,
       autoFetch: widget.autoFetch,
       showStaleData: widget.showStaleData,
+      keepPreviousData: widget.keepPreviousData,
     );
   }
 }
