@@ -10,6 +10,14 @@
 analyzer:
   errors:
     unintended_html_in_doc_comment: ignore
+  exclude:
+    - build/**
+    - android/**
+    - ios/**
+    - web/**
+    - windows/**
+    - macos/**
+    - linux/**
 include: package:flutter_lints/flutter.yaml
 
 linter:

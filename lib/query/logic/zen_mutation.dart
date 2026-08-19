@@ -137,6 +137,9 @@ class ZenMutation<TData, TVariables> extends ZenController {
     if (isDisposed) {
       throw StateError('Mutation has been disposed');
     }
+    // Clear any pending reset request from a prior call to reset() so this
+    // fresh mutate() runs to completion rather than exiting immediately.
+    _resetRequested = false;
 
     // Reset state
     status.value = ZenMutationStatus.loading;
@@ -181,7 +184,11 @@ class ZenMutation<TData, TVariables> extends ZenController {
           final keyStr = mutationKey ?? 'unnamed';
           ZenLogger.logDebug(
               'Mutation $keyStr failed, retrying ($retryAttempt/$retryCount)');
-          await Future.delayed(_calculateRetryDelay(retryAttempt, e));
+          await _cancellableDelay(_calculateRetryDelay(retryAttempt, e));
+          if (isDisposed) rethrow;
+          // reset() was called during the backoff window — exit the retry loop
+          // cleanly without rethrowing. The mutation remains usable.
+          if (_resetRequested) return null;
         }
       }
 
@@ -229,6 +236,22 @@ class ZenMutation<TData, TVariables> extends ZenController {
     }
   }
 
+  /// Completer for cancelling in-flight retry delay timers on disposal or reset
+  Completer<void>? _retryCancelCompleter;
+
+  /// Set to true by [reset] to signal that the retry loop should exit cleanly.
+  /// Cleared at the top of [mutate] so the mutation remains reusable after reset.
+  bool _resetRequested = false;
+
+  Future<void> _cancellableDelay(Duration delay) {
+    final completer = Completer<void>();
+    _retryCancelCompleter = completer;
+    return Future.any([
+      Future.delayed(delay),
+      completer.future,
+    ]);
+  }
+
   Future<TData?> _queueOfflineMutation(TVariables variables) async {
     // Attempt to serialize variables
     Map<String, dynamic> payload;
@@ -272,8 +295,17 @@ class ZenMutation<TData, TVariables> extends ZenController {
     return null;
   }
 
-  /// Reset the mutation state to idle
+  /// Reset the mutation state to idle.
+  ///
+  /// If called while a [mutate] call is in-flight (e.g. waiting in a retry
+  /// backoff window), the retry loop exits cleanly and the [mutate] future
+  /// resolves with `null`. The mutation remains fully usable afterward.
   void reset() {
+    _resetRequested = true;
+    if (_retryCancelCompleter != null && !_retryCancelCompleter!.isCompleted) {
+      _retryCancelCompleter!.complete();
+      _retryCancelCompleter = null;
+    }
     data.value = null;
     error.value = null;
     status.value = ZenMutationStatus.idle;
@@ -283,6 +315,10 @@ class ZenMutation<TData, TVariables> extends ZenController {
 
   @override
   void onClose() {
+    if (_retryCancelCompleter != null && !_retryCancelCompleter!.isCompleted) {
+      _retryCancelCompleter!.complete();
+      _retryCancelCompleter = null;
+    }
     status.dispose();
     data.dispose();
     error.dispose();

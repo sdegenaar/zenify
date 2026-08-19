@@ -382,7 +382,18 @@ class ZenQuery<T> extends ZenController {
           // Calculate retry delay with exponential backoff and jitter
           final delay = _calculateRetryDelay(retryAttempt, e);
 
-          await Future.delayed(delay);
+          await _cancellableDelay(delay);
+
+          if (_isDisposed) {
+            throw StateError('Query was disposed during retry delay');
+          }
+
+          if (fetchStatus.value == ZenQueryFetchStatus.paused) {
+            if (hasData) return data.value!;
+            throw const ZenOfflineException(
+              'Query paused — will retry automatically when resumed.',
+            );
+          }
 
           // Retry
           continue;
@@ -422,7 +433,23 @@ class ZenQuery<T> extends ZenController {
     }
   }
 
+  /// Completer for cancelling in-flight retry delay timers on disposal or pause
+  Completer<void>? _retryCancelCompleter;
+
+  Future<void> _cancellableDelay(Duration delay) {
+    final completer = Completer<void>();
+    _retryCancelCompleter = completer;
+    return Future.any([
+      Future.delayed(delay),
+      completer.future,
+    ]);
+  }
+
   void _cancelPendingRequest() {
+    if (_retryCancelCompleter != null && !_retryCancelCompleter!.isCompleted) {
+      _retryCancelCompleter!.complete();
+      _retryCancelCompleter = null;
+    }
     if (_currentCancelToken != null && !_currentCancelToken!.isCancelled) {
       ZenLogger.logDebug('Cancelling pending request for $queryKey');
       _currentCancelToken!.cancel('Query disposed or new fetch started');

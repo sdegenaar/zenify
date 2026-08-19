@@ -232,8 +232,11 @@ await Zen.init(
 
 ### Behavior
 - **Online**: The mutation runs immediately.
-- **Offline**: The mutation is added to the valid queue. The UI receives an "Idle" state (or you can show a "Pending" badge).
-- **Reconnection**: When the network returns, the queue automatically replays in the background.
+- **Offline**: The mutation is added to the persistent queue. The UI receives an "Idle" state (or you can show a "Pending" badge).
+- **Reconnection**: When the network returns, the queue replays automatically in strict **FIFO (first-in, first-out) order**, one mutation at a time.
+  - If a mutation fails during replay (e.g. a transient server error), **processing stops immediately**. The failed job stays at the head of the queue and will be retried on the next reconnect. Jobs behind it are never skipped or reordered.
+  - This guarantees causal ordering for order-sensitive workloads such as chat messages, ledger entries, and multi-step transactions.
+  - If a mutation key has no registered handler (e.g. the handler was removed in an app update), the job is silently dropped with a warning log so the queue does not deadlock.
 
 ---
 

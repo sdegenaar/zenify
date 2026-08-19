@@ -1091,7 +1091,7 @@ ZenQuery<T>({
 - `refetch()`: Force refetch regardless of cache
 - `setData(T newData)`: Manually update data (for optimistic updates)
 - `invalidate()`: Mark as stale and refetch if active
-- `reset()`: Reset to initial state
+- `reset()`: Clear data, error, and status back to idle. If called while the query is in an active retry backoff window, the delay is cancelled immediately and the query enters paused state — it does not fire another network request.
 
 ### ZenMutation
 
@@ -1113,6 +1113,9 @@ ZenMutation<TData, TVariables>({
 - `isError`: Boolean status check
 - `data`: The result data (Rx)
 - `error`: The error object (Rx)
+
+#### Methods
+- `reset()`: Clear data, error, and status back to idle. If called while `mutate()` is in a retry backoff window, the delay is cancelled and the retry loop exits cleanly — the `mutate()` future resolves with `null` immediately. The mutation remains fully usable for subsequent calls. To permanently stop a mutation and free all resources, call `dispose()` instead.
 
 ### ZenQueryBuilder
 ```dart

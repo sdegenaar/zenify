@@ -7,6 +7,8 @@
 // state across multiple widgets, use ZenQueryBuilder with a ZenController.
 
 import 'package:flutter/material.dart';
+import '../../query/core/query_key.dart';
+import '../../query/core/zen_query_cache.dart';
 import '../../query/logic/zen_query.dart';
 import '../../query/core/zen_query_config.dart';
 import 'zen_query_builder.dart';
@@ -150,40 +152,70 @@ class _ZenQueryConsumerState<T> extends State<ZenQueryConsumer<T>> {
   late ZenQuery<T> _query;
   late String _normalizedKey;
 
+  /// Global reference count per normalized query key for consumer-managed queries.
+  static final Map<String, int> _consumerRefCounts = {};
+
+  /// Set of queries created internally by ZenQueryConsumer instances.
+  /// Ensures we only auto-dispose queries created by consumers, and not
+  /// externally owned queries registered by controllers or services.
+  static final Set<ZenQuery> _consumerCreatedQueries = {};
+
   @override
   void initState() {
     super.initState();
-    _normalizedKey = widget.queryKey.toString();
-    _query = _buildQuery();
+    _normalizedKey = QueryKey.normalize(widget.queryKey);
+    _query = _acquireQuery();
   }
 
   @override
   void didUpdateWidget(ZenQueryConsumer<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
-    final newKey = widget.queryKey.toString();
+    final newKey = QueryKey.normalize(widget.queryKey);
     if (newKey != _normalizedKey) {
-      // Key changed — dispose old query, create a fresh one.
-      _query.dispose();
+      final oldKey = _normalizedKey;
+      final oldQuery = _query;
       _normalizedKey = newKey;
-      _query = _buildQuery();
+      _query = _acquireQuery();
+      _releaseQuery(oldKey, oldQuery);
     }
   }
 
-  ZenQuery<T> _buildQuery() {
-    return ZenQuery<T>(
+  ZenQuery<T> _acquireQuery() {
+    final existing = ZenQueryCache.instance.getQuery<T>(_normalizedKey);
+    if (existing != null && !existing.isDisposed) {
+      _consumerRefCounts[_normalizedKey] =
+          (_consumerRefCounts[_normalizedKey] ?? 0) + 1;
+      return existing;
+    }
+
+    final query = ZenQuery<T>(
       queryKey: widget.queryKey,
       fetcher: widget.fetcher,
       config: widget.config,
       initialData: widget.initialData,
-      // Opt out of parent-controller auto-tracking and the global cache so
-      // that this query is fully owned by the widget's lifecycle.
       registerInCache: true,
     );
+    _consumerRefCounts[_normalizedKey] = 1;
+    _consumerCreatedQueries.add(query);
+    return query;
+  }
+
+  void _releaseQuery(String key, ZenQuery<T> queryToRelease) {
+    final count = (_consumerRefCounts[key] ?? 1) - 1;
+    if (count <= 0) {
+      _consumerRefCounts.remove(key);
+      if (_consumerCreatedQueries.remove(queryToRelease) &&
+          !queryToRelease.isDisposed) {
+        queryToRelease.dispose();
+      }
+    } else {
+      _consumerRefCounts[key] = count;
+    }
   }
 
   @override
   void dispose() {
-    _query.dispose();
+    _releaseQuery(_normalizedKey, _query);
     super.dispose();
   }
 

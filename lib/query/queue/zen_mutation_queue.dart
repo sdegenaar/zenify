@@ -20,6 +20,11 @@ class ZenMutationQueue {
   ZenStorage? _storage;
   bool _isProcessing = false;
 
+  /// Subscription to the network connectivity stream.
+  /// Stored so it can be cancelled when [setNetworkStream] is called again
+  /// (e.g. after a hot-restart or re-init), preventing duplicate listeners.
+  StreamSubscription<bool>? _networkSubscription;
+
   /// Get the number of pending mutations in the queue
   int get pendingCount => _queue.length;
 
@@ -34,9 +39,14 @@ class ZenMutationQueue {
     }
   }
 
-  /// Set the network stream to listen for connectivity changes
+  /// Set the network stream to listen for connectivity changes.
+  ///
+  /// Cancels any previous subscription before attaching to the new stream,
+  /// ensuring that calling this method more than once (e.g. after a hot-restart
+  /// or test re-init) does not accumulate duplicate listeners.
   void setNetworkStream(Stream<bool> stream) {
-    stream.listen((isOnline) {
+    _networkSubscription?.cancel();
+    _networkSubscription = stream.listen((isOnline) {
       if (isOnline) {
         process();
       }
@@ -58,6 +68,12 @@ class ZenMutationQueue {
   }
 
   /// Process the queue (replay mutations)
+  ///
+  /// Replays queued mutations sequentially in strict FIFO order.
+  /// If a mutation fails (due to network or execution error), processing stops immediately
+  /// to prevent out-of-order execution in order-sensitive workloads (e.g. chat messages,
+  /// financial transactions, document edits). The failed job remains at the head of the queue
+  /// to be retried on the next reconnect.
   Future<void> process() async {
     if (_isProcessing || _queue.isEmpty || !ZenQueryCache.instance.isOnline) {
       return;
@@ -73,25 +89,13 @@ class ZenMutationQueue {
         final job = _queue.first;
 
         try {
-          // Here we need a way to execute the job using the user's mutation logic.
-          // Since we serialized data but not functions, we need a registry.
-          // This is the hard part of offline mutations: "How to hydrate logic".
-          // For now, we will expose a generic "onReplay" callback registry.
-
           await _executeJob(job);
           remove(job.id); // Success! Remove from queue.
         } catch (e) {
-          ZenLogger.logError(
-              'Failed to replay mutation ${job.id}', e); // coverage:ignore-line
-          // If deterministic error, remove? If network, stop processing?
-          // If network error, we stop processing and wait for next reconnect.
-          if (!ZenQueryCache.instance.isOnline) break; // coverage:ignore-line
-
-          // If typical error, maybe move to back or Dead Letter Queue?
-          // For simple implementation: Remove to prevent blocking?
-          // Or keep and retry later?
-          // Let's implement retry count limit.
-          remove(job.id); // coverage:ignore-line
+          ZenLogger.logError('Failed to replay mutation ${job.id}', e);
+          // Stop on failure to preserve sequential ordering.
+          // Remaining jobs will be processed on subsequent reconnect attempts.
+          break;
         }
       }
     } finally {

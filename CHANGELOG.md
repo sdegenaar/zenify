@@ -1,3 +1,13 @@
+## [2.1.1]
+
+### Fixed
+- **Sequential Offline Mutation Replay:** Enforced strict FIFO ordering and stop-on-failure execution during offline mutation queue replay in `ZenMutationQueue`. Prevents out-of-order execution in order-sensitive workloads (such as chat sequences and transactions) when network connectivity drops or errors occur.
+- **`ZenQueryConsumer` Instance Sharing:** Introduced reference-counted query instance resolution in `ZenQueryConsumer`. Multiple consumer widgets mounted with the exact same `queryKey` now share a single active `ZenQuery` instance, completely eliminating duplicate queries and transient dual in-flight fetches.
+- **Cancellable Retry Delays:** Implemented `Completer`-based delay cancellation in `ZenQuery` and `ZenMutation`. Disposing or resetting a query/mutation during an active backoff window cancels the delay immediately. `dispose()` halts retrying and frees resources; `reset()` halts retrying and leaves the mutation in idle state, fully reusable.
+- **`ZenMutationQueue` Subscription Leak:** `setNetworkStream` now stores and cancels the previous `StreamSubscription` before subscribing to a new stream. Calling `setNetworkStream` more than once (e.g. after a hot-restart or test re-init) no longer accumulates duplicate connectivity listeners.
+
+---
+
 ## [2.1.0]
 
 ### Added
