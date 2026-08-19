@@ -475,6 +475,7 @@ class ZenQueryCache {
       return getCachedData<T>(normalizedKey);
     }
 
+    ZenQuery.activeFetches.value++;
     try {
       final data = await deduplicateFetch(normalizedKey, fetcher);
 
@@ -489,7 +490,69 @@ class ZenQueryCache {
     } catch (e) {
       ZenLogger.logWarning('Prefetch failed for $normalizedKey: $e');
       return null;
+    } finally {
+      ZenQuery.activeFetches.value--;
     }
+  }
+
+  /// Returns whether queries are currently fetching.
+  ///
+  /// Can optionally be filtered by:
+  /// - [queryKey]: Checks if the specific query matching the key is currently fetching.
+  /// - [tag]: Checks if any query with the given tag is currently fetching.
+  /// - [predicate]: Checks if any query matching the custom predicate is currently fetching.
+  ///
+  /// If no filters are provided, returns whether ANY query in the application is currently fetching (`ZenQuery.anyFetching`).
+  bool isFetching({
+    Object? queryKey,
+    String? tag,
+    bool Function(ZenQuery query)? predicate,
+  }) {
+    if (queryKey != null) {
+      final normalizedKey = QueryKey.normalize(queryKey);
+      final query = _queries[normalizedKey];
+      return query != null && !query.isDisposed && query.isFetching;
+    }
+
+    if (tag != null) {
+      final queries = getQueriesByTag(tag);
+      return queries.any((q) => q.isFetching);
+    }
+
+    if (predicate != null) {
+      return _queries.values
+          .where((q) => !q.isDisposed)
+          .any((q) => predicate(q) && q.isFetching);
+    }
+
+    return ZenQuery.anyFetching;
+  }
+
+  /// Returns the count of queries currently fetching (optionally filtered by [queryKey], [tag], or [predicate]).
+  int isFetchingCount({
+    Object? queryKey,
+    String? tag,
+    bool Function(ZenQuery query)? predicate,
+  }) {
+    if (queryKey != null) {
+      final normalizedKey = QueryKey.normalize(queryKey);
+      final query = _queries[normalizedKey];
+      return (query != null && !query.isDisposed && query.isFetching) ? 1 : 0;
+    }
+
+    if (tag != null) {
+      final queries = getQueriesByTag(tag);
+      return queries.where((q) => q.isFetching).length;
+    }
+
+    if (predicate != null) {
+      return _queries.values
+          .where((q) => !q.isDisposed)
+          .where((q) => predicate(q) && q.isFetching)
+          .length;
+    }
+
+    return ZenQuery.activeFetches.value;
   }
 
   bool _isDataFresh(String key, Duration? overrideStaleTime) {

@@ -29,6 +29,7 @@ Use `ZenInfiniteQuery` for paginated data with automatic next-page loading.
 class PostFeedController extends ZenController {
   late final postsQuery = ZenInfiniteQuery<PostPage>(
     queryKey: ['posts', 'feed'],
+    maxPages: 5, // Keep at most 5 pages in RAM — evicts oldest on forward scroll
     infiniteFetcher: (cursor, token) => api.getPosts(cursor: cursor),
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     config: ZenQueryConfig(

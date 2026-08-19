@@ -1,3 +1,15 @@
+## [2.2.0]
+
+### Added
+- **Global Query & Mutation Hooks (`Zen.isFetching`, `Zen.isMutating`):** Added top-level reactive getters and counters to `Zen` for effortless global status indicators:
+  - `Zen.isFetching` & `Zen.activeFetches` (`RxInt`): Reactive hooks to detect in-flight queries across the app (ideal for top-level progress bars or app bar spinners).
+  - `Zen.isMutating` & `Zen.activeMutations` (`RxInt`): Reactive hooks to detect in-flight mutations across the app (ideal for disabling action buttons or showing save overlays).
+  - `ZenMutation.isMutatingKey(key)` & `ZenMutation.activeMutationsForKey(key)`: Query active in-flight mutation status for specific mutation keys.
+  - `ZenQueryCache.isFetching(...)` & `ZenQueryCache.isFetchingCount(...)`: Filter active query fetch status by `queryKey`, `tag`, or custom `predicate`.
+- **Memory-Bounded Infinite Queries (`ZenInfiniteQuery.maxPages`):** Added `maxPages` parameter to `ZenInfiniteQuery` to prevent unbounded memory growth during long scroll sessions. Automatically evicts oldest pages from the head during forward pagination or newest pages from the tail during backward pagination, while maintaining cursor continuity for seamless bidirectional refetching.
+
+---
+
 ## [2.1.1]
 
 ### Fixed

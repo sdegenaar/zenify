@@ -113,6 +113,9 @@ class ZenQuery<T> extends ZenController {
   /// Whether the query is currently refetching (loading while having data)
   bool get isRefetching => isLoading.value && hasData;
 
+  /// Whether this query is currently fetching data from the network
+  bool get isFetching => fetchStatus.value == ZenQueryFetchStatus.fetching;
+
   /// Timestamp of last successful fetch
   DateTime? _lastFetchTime;
 
@@ -292,6 +295,14 @@ class ZenQuery<T> extends ZenController {
     }
   }
 
+  /// Number of currently running query fetches globally.
+  static final RxInt activeFetches = RxInt(0);
+
+  /// Returns true if ANY query is currently fetching.
+  ///
+  /// Reactive: You can use this inside a `ZenObserver` to show a global loading indicator.
+  static bool get anyFetching => activeFetches.value > 0;
+
   /// Perform the actual fetch with retry logic.
   /// Intended to be overridden by subclasses like ZenInfiniteQuery.
   @protected
@@ -299,7 +310,12 @@ class ZenQuery<T> extends ZenController {
     // Cancel previous pending request if any
     _cancelPendingRequest();
 
-    return _fetchWithRetry();
+    activeFetches.value++;
+    try {
+      return await _fetchWithRetry();
+    } finally {
+      activeFetches.value--;
+    }
   }
 
   Future<T> _fetchWithRetry() async {

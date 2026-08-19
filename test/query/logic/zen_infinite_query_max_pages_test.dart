@@ -161,5 +161,19 @@ void main() {
 
       query.dispose();
     });
+
+    test('initialData exceeding maxPages is trimmed to latest maxPages', () {
+      final query = ZenInfiniteQuery<int>(
+        queryKey: 'initial_data_limit_test',
+        maxPages: 2,
+        initialData: [1, 2, 3, 4],
+        initialPageParam: 0,
+        infiniteFetcher: (page, token) async => page as int,
+        getNextPageParam: (lastPage, pages) => null,
+      );
+
+      expect(query.data.value, [3, 4]);
+      query.dispose();
+    });
   });
 }

@@ -71,7 +71,7 @@ class ZenInfiniteQuery<T> extends ZenQuery<List<T>> {
     this.initialPageParam,
     this.maxPages,
     super.config,
-    super.initialData,
+    List<T>? initialData,
     super.scope,
     super.autoDispose,
   })  : assert(maxPages == null || maxPages > 0,
@@ -80,6 +80,12 @@ class ZenInfiniteQuery<T> extends ZenQuery<List<T>> {
         _previousPageParam =
             initialPageParam, // Initially same, logic corrects it
         super(
+          initialData: (initialData != null &&
+                  maxPages != null &&
+                  maxPages > 0 &&
+                  initialData.length > maxPages)
+              ? initialData.sublist(initialData.length - maxPages)
+              : initialData,
           fetcher: (token) async {
             final firstPage = await infiniteFetcher(initialPageParam, token);
             return [firstPage];
@@ -111,6 +117,7 @@ class ZenInfiniteQuery<T> extends ZenQuery<List<T>> {
     final token = ZenCancelToken('Fetching next page');
     _nextPageCancelToken = token;
 
+    ZenQuery.activeFetches.value++;
     try {
       // 1. Fetch the new page using the stored param
       final newPage = await infiniteFetcher(_nextPageParam, token);
@@ -141,6 +148,7 @@ class ZenInfiniteQuery<T> extends ZenQuery<List<T>> {
     } catch (e) {
       _handleFetchError(e, token);
     } finally {
+      ZenQuery.activeFetches.value--;
       if (!isDisposed) {
         isFetchingNextPage.value = false;
         if (_nextPageCancelToken == token) {
@@ -164,6 +172,7 @@ class ZenInfiniteQuery<T> extends ZenQuery<List<T>> {
     final token = ZenCancelToken('Fetching previous page');
     _previousPageCancelToken = token;
 
+    ZenQuery.activeFetches.value++;
     try {
       final newPage = await infiniteFetcher(_previousPageParam, token);
 
@@ -185,6 +194,7 @@ class ZenInfiniteQuery<T> extends ZenQuery<List<T>> {
     } catch (e) {
       _handleFetchError(e, token);
     } finally {
+      ZenQuery.activeFetches.value--;
       if (!isDisposed) {
         isFetchingPreviousPage.value = false;
         if (_previousPageCancelToken == token) {

@@ -119,10 +119,27 @@ class ZenMutation<TData, TVariables> extends ZenController {
   /// Number of currently running mutations globally.
   static final RxInt activeMutations = RxInt(0);
 
+  /// Active mutations grouped by mutationKey.
+  static final Map<String, int> _activeByKey = {};
+
   /// Returns true if ANY mutation is currently running.
   ///
   /// Reactive: You can use this inside a `ZenObserver` to show a global loading indicator.
   static bool get anyMutating => activeMutations.value > 0;
+
+  /// Returns true if a mutation with the given [mutationKey] is currently running.
+  static bool isMutatingKey(String mutationKey) =>
+      (_activeByKey[mutationKey] ?? 0) > 0;
+
+  /// Returns the number of currently running mutations with the given [mutationKey].
+  static int activeMutationsForKey(String mutationKey) =>
+      _activeByKey[mutationKey] ?? 0;
+
+  /// Reset all active mutation counters (primarily for testing and full reset).
+  static void resetActiveCounters() {
+    activeMutations.value = 0;
+    _activeByKey.clear();
+  }
 
   /// Execute the mutation.
   ///
@@ -148,6 +165,9 @@ class ZenMutation<TData, TVariables> extends ZenController {
     update();
 
     activeMutations.value++;
+    if (mutationKey != null) {
+      _activeByKey[mutationKey!] = (_activeByKey[mutationKey!] ?? 0) + 1;
+    }
     Object? context;
 
     try {
@@ -233,6 +253,14 @@ class ZenMutation<TData, TVariables> extends ZenController {
       return null;
     } finally {
       activeMutations.value--;
+      if (mutationKey != null) {
+        final current = (_activeByKey[mutationKey!] ?? 1) - 1;
+        if (current <= 0) {
+          _activeByKey.remove(mutationKey!);
+        } else {
+          _activeByKey[mutationKey!] = current;
+        }
+      }
     }
   }
 

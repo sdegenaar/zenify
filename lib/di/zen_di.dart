@@ -6,6 +6,9 @@ import '../core/zen_logger.dart';
 import '../core/zen_scope.dart';
 import '../core/zen_module.dart';
 import '../query/core/zen_query_cache.dart';
+import '../query/logic/zen_query.dart';
+import '../query/logic/zen_mutation.dart';
+import '../reactive/core/rx_value.dart';
 import '../testing/zen_test_mode.dart';
 import 'zen_lifecycle.dart';
 import 'zen_reactive.dart';
@@ -263,6 +266,9 @@ class Zen {
     ZenModuleRegistry.clear();
     ZenReactiveSystem.instance.clearListeners();
     _lifecycleManager.dispose();
+    ZenQueryCache.instance.clear();
+    ZenQuery.activeFetches.value = 0;
+    ZenMutation.resetActiveCounters();
 
     // Dispose root scope if it exists
     if (_rootScope != null && !_rootScope!.isDisposed) {
@@ -298,4 +304,40 @@ class Zen {
   /// Zen.queryCache.setQueryData('users', (_) => users);
   /// ```
   static ZenQueryCache get queryCache => ZenQueryCache.instance;
+
+  //
+  // GLOBAL QUERY & MUTATION HOOKS
+  //
+
+  /// Returns true if ANY query is currently fetching data from the network.
+  ///
+  /// Reactive: Reading this inside a [ZenObserver] or computed property registers
+  /// a dependency and auto-rebuilds the widget whenever query fetch activity starts or stops.
+  ///
+  /// Example:
+  /// ```dart
+  /// ZenObserver(() => Zen.isFetching ? const LinearProgressIndicator() : const SizedBox.shrink())
+  /// ```
+  static bool get isFetching => ZenQuery.anyFetching;
+
+  /// Returns true if ANY mutation is currently executing.
+  ///
+  /// Reactive: Reading this inside a [ZenObserver] or computed property registers
+  /// a dependency and auto-rebuilds the widget whenever mutation activity starts or stops.
+  ///
+  /// Example:
+  /// ```dart
+  /// ZenObserver(() => Zen.isMutating ? const SavingSpinner() : const SizedBox.shrink())
+  /// ```
+  static bool get isMutating => ZenMutation.anyMutating;
+
+  /// Number of currently running query fetches globally.
+  ///
+  /// Reactive [RxInt] that can be listened to or observed.
+  static RxInt get activeFetches => ZenQuery.activeFetches;
+
+  /// Number of currently running mutations globally.
+  ///
+  /// Reactive [RxInt] that can be listened to or observed.
+  static RxInt get activeMutations => ZenMutation.activeMutations;
 }

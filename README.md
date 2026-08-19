@@ -21,9 +21,10 @@ final service = scope.find<UserService>()!;
 final count = 0.obs();
 ZenObserver(() => Text('${count.value}'))  // Auto-rebuilds
 
-// Infinite scroll — automatic page management
+// Infinite scroll — automatic page management with memory bounds
 final feed = ZenInfiniteQuery<PostPage>(
   queryKey: 'feed',
+  maxPages: 5,                    // 🚀 NEW: cap pages in RAM, evicts oldest
   initialPageParam: 1,
   infiniteFetcher: (page, _) => api.getPosts(page: page),
   getNextPageParam: (lastPage, all) => lastPage.hasMore ? all.length + 1 : null,
@@ -33,6 +34,10 @@ feed.fetchNextPage();             // append next page
 feed.hasNextPage.value            // know when to stop
 feed.isFetchingNextPage.value     // drive your loading footer
 feed.data.value                   // all pages, reactive
+
+// Global reactive status — anywhere in the app tree
+Zen.isFetching                    // true if ANY query is in-flight
+Zen.isMutating                    // true if ANY mutation is in-flight
 ```
 
 ---
@@ -226,7 +231,7 @@ flowchart TD
 
 ```yaml
 dependencies:
-  zenify: ^2.1.1
+  zenify: ^2.2.0
 ```
 
 ### 2. Initialize
@@ -353,9 +358,10 @@ ZenQueryBuilder<User>(
 - ✅ Background refetch on focus/reconnect
 - ✅ Stale-while-revalidate
 - ✅ Optimistic updates with rollback
-- ✅ Infinite scroll pagination
+- ✅ Infinite scroll pagination with `maxPages` memory bounds
 - ✅ Real-time streams support
 - ✅ Tag & wildcard group invalidation
+- ✅ `Zen.isFetching` & `Zen.isMutating` global reactive status hooks
 
 [See ZenQuery Guide →](https://github.com/sdegenaar/zenify/blob/main/doc/zen_query_guide.md)
 
@@ -560,16 +566,41 @@ ElevatedButton(
 > **Rule of thumb:** If a controller belongs to one route → `ZenProvider.create` + `ZenView`.
 > If a controller is truly app-wide → `Zen.put` + `.to` + `ZenObserver`.
 
-### Infinite Scroll Pagination
+### Infinite Scroll Pagination & Memory Limits
 
 ```dart
 final postsQuery = ZenInfiniteQuery<PostPage>(
   queryKey: ['posts'],
+  maxPages: 3, // 🚀 Memory bounds: Keep at most 3 pages in RAM, evicting oldest
   infiniteFetcher: (cursor, token) => api.getPosts(cursor: cursor),
+  getNextPageParam: (lastPage, pages) => lastPage.nextCursor,
+  getPreviousPageParam: (firstPage, pages) => firstPage.prevCursor,
 );
 
 // Auto-load next page when reaching end
 if (index == postsQuery.data.length - 1) postsQuery.fetchNextPage();
+```
+
+### Global Query & Mutation Hooks (`Zen.isFetching`, `Zen.isMutating`)
+
+Show app-wide loading bars, spinners, or save overlays effortlessly without prop drilling:
+
+```dart
+// Global progress bar at the top of the app
+ZenObserver(() {
+  if (Zen.isFetching) {
+    return const LinearProgressIndicator();
+  }
+  return const SizedBox.shrink();
+})
+
+// Global save/busy indicator for mutations
+ZenObserver(() {
+  if (Zen.isMutating) {
+    return const SavingBadge();
+  }
+  return const SizedBox.shrink();
+})
 ```
 
 ### Optimistic Updates
@@ -602,6 +633,9 @@ final chatQuery = ZenStreamQuery<List<Message>>(
 
 ## 🛠️ Advanced Features
 
+- **Global status hooks** — `Zen.isFetching` & `Zen.isMutating` for app-wide loading indicators with zero prop-drilling
+- **Memory-bounded pagination** — `ZenInfiniteQuery.maxPages` caps RAM usage during long scroll sessions
+- **Filtered fetch status** — `Zen.queryCache.isFetching(tag: ...)` checks status for any subset of queries
 - **Effects** — Automatic loading/error/success state management ([guide](https://github.com/sdegenaar/zenify/blob/main/doc/effects_usage_guide.md))
 - **Workers** — `ever`, `debounce`, `throttle`, `interval`, `condition` reactive handlers
 - **Computed values** — Auto-updating derived state

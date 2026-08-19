@@ -374,6 +374,9 @@ final postsQuery = ZenInfiniteQuery<Page>(
   // Use a list key for complex identifiers
   queryKey: ['posts', 'feed', category], 
 
+  // Max pages kept in memory (evicts oldest pages on forward scrolling)
+  maxPages: 3,
+
   // Fetcher receives the page param (null for first page) AND cancel token
   infiniteFetcher: (pageParam, token) => api.getPosts(page: pageParam ?? 1, cancelToken: token),
 
@@ -417,6 +420,104 @@ ZenQueryBuilder<List<Page>>(
   }
 );
 ```
+
+### Memory Bounds with `maxPages`
+
+For feeds or lists where users scroll extensively, use `maxPages` to prevent unbounded RAM growth:
+
+```dart
+final postsQuery = ZenInfiniteQuery<Page>(
+  queryKey: ['posts', 'feed'],
+  maxPages: 5, // Only keep the 5 most recently loaded pages in memory
+
+  infiniteFetcher: (pageParam, token) => api.getPosts(page: pageParam ?? 1),
+  getNextPageParam: (lastPage, allPages) => lastPage.hasMore ? lastPage.nextPage : null,
+  getPreviousPageParam: (firstPage, allPages) => firstPage.hasPrevious ? firstPage.prevPage : null,
+);
+```
+
+**How eviction works:**
+- **Forward scroll** (`fetchNextPage()`): oldest page is evicted from the head, cursor is recalculated.
+- **Backward scroll** (`fetchPreviousPage()`): newest page is evicted from the tail.
+- `hasNextPage` and `hasPreviousPage` are always updated correctly — bidirectional scrolling works seamlessly.
+- If `initialData` has more entries than `maxPages`, it is trimmed to the most recent `maxPages` entries on construction.
+
+---
+
+## Global Status Hooks (`Zen.isFetching` & `Zen.isMutating`)
+
+Use these top-level reactive hooks to build app-wide status indicators — progress bars, save overlays, disabled action buttons — without prop drilling or event buses.
+
+### Query Status
+
+```dart
+// true if ANY ZenQuery/ZenInfiniteQuery is currently fetching
+Zen.isFetching     // bool getter
+Zen.activeFetches  // RxInt — the raw in-flight count, reactive
+```
+
+**In a widget:**
+```dart
+ZenObserver(() {
+  if (Zen.isFetching) {
+    return const LinearProgressIndicator();
+  }
+  return const SizedBox.shrink();
+})
+```
+
+### Mutation Status
+
+```dart
+// true if ANY ZenMutation is currently running
+Zen.isMutating      // bool getter
+Zen.activeMutations // RxInt — the raw in-flight count, reactive
+```
+
+**In a widget:**
+```dart
+ZenObserver(() => Zen.isMutating
+  ? const SavingBadge()
+  : const SizedBox.shrink()
+)
+```
+
+### Keyed Mutation Status
+
+Check status for a specific mutation key — useful when you have multiple mutations and only want to disable a specific button:
+
+```dart
+ZenMutation.isMutatingKey('create_post')       // bool
+ZenMutation.activeMutationsForKey('create_post') // int
+```
+
+### Filtered Query Status (via `ZenQueryCache`)
+
+Check if a subset of queries is fetching — by key, tag, or custom predicate:
+
+```dart
+// By query key
+Zen.queryCache.isFetching(queryKey: 'user:123')        // bool
+Zen.queryCache.isFetchingCount(queryKey: 'user:123')   // int
+
+// By tag (tag multiple queries with related tags)
+Zen.queryCache.isFetching(tag: 'dashboard')            // bool
+Zen.queryCache.isFetchingCount(tag: 'dashboard')       // int (count of fetching queries with that tag)
+
+// By custom predicate
+Zen.queryCache.isFetching(predicate: (q) => q.queryKey.startsWith('user'))
+```
+
+### Testing Teardown
+
+Call `ZenMutation.resetActiveCounters()` in `tearDown()` to ensure clean state between tests:
+
+```dart
+tearDown(() {
+  Zen.reset(); // resets activeFetches + resetActiveCounters internally
+});
+```
+
  ---
 
 ## Stream Queries (Real-time Data)
