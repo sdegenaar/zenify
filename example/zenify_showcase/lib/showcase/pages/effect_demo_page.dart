@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:zenify/zenify.dart';
 import '../controllers/effect_demo_controller.dart';
 import '../widgets/demo_section.dart';
+import '../widgets/showcase_style.dart';
 
 class EffectDemoPage extends ZenView<EffectDemoController> {
   const EffectDemoPage({super.key});
@@ -109,24 +110,24 @@ class EffectDemoPage extends ZenView<EffectDemoController> {
                           children: [
                             Container(
                               padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Colors.green.shade50,
-                                border:
-                                    Border.all(color: Colors.green.shade200),
-                                borderRadius: BorderRadius.circular(8),
+                              decoration: ShowcaseStyle.containerDecoration(
+                                context,
+                                color: Colors.green,
                               ),
                               child: Column(
                                 children: [
                                   Row(
                                     children: [
                                       Icon(Icons.check_circle,
-                                          color: Colors.green.shade700),
+                                          color: ShowcaseStyle.accentHeader(
+                                              context, Colors.green)),
                                       const SizedBox(width: 8),
                                       Text(
                                         'Data Loaded Successfully',
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          color: Colors.green.shade700,
+                                          color: ShowcaseStyle.accentHeader(
+                                              context, Colors.green),
                                         ),
                                       ),
                                     ],
@@ -139,9 +140,18 @@ class EffectDemoPage extends ZenView<EffectDemoController> {
                                           children: [
                                             Icon(Icons.fiber_manual_record,
                                                 size: 8,
-                                                color: Colors.green.shade600),
+                                                color:
+                                                    ShowcaseStyle.accentHeader(
+                                                        context, Colors.green)),
                                             const SizedBox(width: 8),
-                                            Text(item),
+                                            Text(
+                                              item,
+                                              style: TextStyle(
+                                                color:
+                                                    ShowcaseStyle.textPrimary(
+                                                        context),
+                                              ),
+                                            ),
                                           ],
                                         ),
                                       )),
@@ -285,11 +295,15 @@ class EffectDemoPage extends ZenView<EffectDemoController> {
                   child: Column(
                     children: [
                       _buildStateMonitor(
-                          'Basic Effect', controller.basicEffect),
-                      const Divider(),
-                      _buildStateMonitor('Data Effect', controller.dataEffect),
-                      const Divider(),
-                      _buildStateMonitor('Effect 1', controller.effect1),
+                          context, 'Basic Effect', controller.basicEffect),
+                      _buildStateMonitor(
+                          context, 'Data Effect', controller.dataEffect),
+                      _buildStateMonitor(
+                          context, 'Effect 1', controller.effect1),
+                      _buildStateMonitor(
+                          context, 'Effect 2', controller.effect2),
+                      _buildStateMonitor(
+                          context, 'Effect 3', controller.effect3),
                     ],
                   ),
                 ),
@@ -436,7 +450,8 @@ class EffectDemoPage extends ZenView<EffectDemoController> {
     );
   }
 
-  Widget _buildStateMonitor(String name, ZenEffect effect) {
+  Widget _buildStateMonitor(
+      BuildContext context, String name, ZenEffect effect) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -450,19 +465,20 @@ class EffectDemoPage extends ZenView<EffectDemoController> {
           ),
           const SizedBox(width: 8),
           ZenObserver(() => _buildStateIndicator(
-              'Loading', effect.isLoading.value, Colors.orange)),
+              context, 'Loading', effect.isLoading.value, Colors.orange)),
           const SizedBox(width: 8),
           ZenObserver(() => _buildStateIndicator(
-              'Success', effect.dataWasSet.value, Colors.green)),
+              context, 'Success', effect.dataWasSet.value, Colors.green)),
           const SizedBox(width: 8),
           ZenObserver(() => _buildStateIndicator(
-              'Error', effect.error.value != null, Colors.red)),
+              context, 'Error', effect.error.value != null, Colors.red)),
         ],
       ),
     );
   }
 
-  Widget _buildStateIndicator(String label, bool active, Color color) {
+  Widget _buildStateIndicator(
+      BuildContext context, String label, bool active, Color color) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -470,7 +486,7 @@ class EffectDemoPage extends ZenView<EffectDemoController> {
           width: 8,
           height: 8,
           decoration: BoxDecoration(
-            color: active ? color : Colors.grey.shade300,
+            color: active ? color : Colors.grey.withValues(alpha: 0.3),
             shape: BoxShape.circle,
           ),
         ),
@@ -479,7 +495,10 @@ class EffectDemoPage extends ZenView<EffectDemoController> {
           label,
           style: TextStyle(
             fontSize: 12,
-            color: active ? color : Colors.grey.shade600,
+            fontWeight: active ? FontWeight.bold : FontWeight.normal,
+            color: active
+                ? ShowcaseStyle.accentHeader(context, color)
+                : ShowcaseStyle.textMuted(context),
           ),
         ),
       ],

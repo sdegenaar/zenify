@@ -101,11 +101,12 @@ class ProductDetailPage extends ZenView<ProductDetailController> {
                   width: double.infinity,
                   errorBuilder: (context, error, stackTrace) {
                     return Container(
-                      color: Colors.grey.shade200,
-                      child: const Center(
+                      color:
+                          Theme.of(context).colorScheme.surfaceContainerHighest,
+                      child: Center(
                         child: Icon(
                           Icons.image_not_supported,
-                          color: Colors.grey,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                           size: 48,
                         ),
                       ),
@@ -203,7 +204,7 @@ class ProductDetailPage extends ZenView<ProductDetailController> {
                     Text(
                       '(${product.reviewCount} reviews)',
                       style: TextStyle(
-                        color: Colors.grey.shade600,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ],
@@ -257,7 +258,9 @@ class ProductDetailPage extends ZenView<ProductDetailController> {
                     const SizedBox(width: 16),
                     Container(
                       decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey.shade300),
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.outlineVariant,
+                        ),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(

@@ -267,5 +267,56 @@ void main() {
           reason: 'ZenView should not fallback to Zen.rootScope');
       FlutterError.onError = FlutterError.dumpErrorToConsole;
     });
+
+    testWidgets(
+        'should rebuild when parent passes updated constructor parameters (didUpdateWidget / update)',
+        (tester) async {
+      final controller = CounterController();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ZenProvider.create(
+            create: () => controller,
+            child: const _ParentWrapper(label: 'Initial Label'),
+          ),
+        ),
+      );
+
+      expect(find.text('Label: Initial Label'), findsOneWidget);
+
+      // Rebuild parent with new label parameter
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ZenProvider.create(
+            create: () => controller,
+            child: const _ParentWrapper(label: 'Updated Label'),
+          ),
+        ),
+      );
+
+      expect(find.text('Label: Updated Label'), findsOneWidget);
+    });
   });
+}
+
+class _ParentWrapper extends StatelessWidget {
+  final String label;
+  const _ParentWrapper({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return _ParamZenView(label: label);
+  }
+}
+
+class _ParamZenView extends ZenView<CounterController> {
+  final String label;
+  const _ParamZenView({required this.label});
+
+  @override
+  Widget build(BuildContext context, CounterController controller) {
+    return Scaffold(
+      body: Text('Label: $label'),
+    );
+  }
 }

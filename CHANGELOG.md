@@ -1,4 +1,14 @@
+## [2.2.1]
+
+### Fixed
+- **`StatefulShellRoute` Navigation (Issue #11):** Fixed two framework-level bugs that caused tab navigation to freeze when using `ZenRoute` + `ZenView` inside `StatefulShellRoute.indexedStack`:
+  - `_ZenViewElement` now overrides `update()` to call `rebuild(force: true)`, matching Flutter's standard `StatelessElement` contract. Without this, any `ZenView` subclass receiving updated constructor parameters from a parent rebuild would silently remain frozen.
+  - `_ZenRouteState` now overrides `didUpdateWidget` to propagate `page` changes without re-initializing the `ZenModule` or disposing the active `ZenScope`.
+
+---
+
 ## [2.2.0]
+
 
 ### Added
 - **Global Query & Mutation Hooks (`Zen.isFetching`, `Zen.isMutating`):** Added top-level reactive getters and counters to `Zen` for effortless global status indicators:

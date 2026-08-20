@@ -23,7 +23,7 @@ class CodeSnippet extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.grey.shade100,
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(12),
                   topRight: Radius.circular(12),
@@ -31,18 +31,24 @@ class CodeSnippet extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.code, color: Colors.grey.shade700),
+                  Icon(
+                    Icons.code,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                   const SizedBox(width: 8),
                   Text(
                     title!,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: Colors.grey.shade700,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                   const Spacer(),
                   IconButton(
-                    icon: const Icon(Icons.copy),
+                    icon: Icon(
+                      Icons.copy,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                     onPressed: () => _copyToClipboard(context),
                     tooltip: 'Copy code',
                   ),

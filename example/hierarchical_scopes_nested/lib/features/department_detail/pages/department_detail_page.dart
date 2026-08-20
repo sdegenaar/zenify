@@ -107,24 +107,33 @@ class DepartmentDetailPage extends ZenView<DepartmentDetailController> {
                 ? Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(12),
-                    color: Colors.red.shade100,
+                    color: Theme.of(context).colorScheme.errorContainer,
                     child: Row(
                       children: [
-                        Icon(Icons.error_outline,
-                            color: Colors.red.shade700, size: 20),
+                        Icon(
+                          Icons.error_outline,
+                          color: Theme.of(context).colorScheme.onErrorContainer,
+                          size: 20,
+                        ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             errorMessage,
                             style: TextStyle(
-                              color: Colors.red.shade700,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onErrorContainer,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
                         ),
                         IconButton(
-                          icon: Icon(Icons.close,
-                              color: Colors.red.shade700, size: 18),
+                          icon: Icon(
+                            Icons.close,
+                            color:
+                                Theme.of(context).colorScheme.onErrorContainer,
+                            size: 18,
+                          ),
                           onPressed: controller.clearError,
                         ),
                       ],
@@ -161,7 +170,7 @@ class DepartmentDetailPage extends ZenView<DepartmentDetailController> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildDepartmentHeader(department,
+                      _buildDepartmentHeader(context, department,
                           controller.employeesCount, controller.teamsCount),
                       const SizedBox(height: 24),
                       _buildTeamsSection(teams, controller),
@@ -186,7 +195,7 @@ class DepartmentDetailPage extends ZenView<DepartmentDetailController> {
       builder: (context, controller) {
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          color: Colors.grey.shade100,
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
           child: Row(
             children: [
               Text(
@@ -194,7 +203,7 @@ class DepartmentDetailPage extends ZenView<DepartmentDetailController> {
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
-                  color: Colors.grey.shade700,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
               const SizedBox(width: 8),
@@ -251,8 +260,8 @@ class DepartmentDetailPage extends ZenView<DepartmentDetailController> {
     });
   }
 
-  Widget _buildDepartmentHeader(
-      Department? department, int employeeCount, int teamCount) {
+  Widget _buildDepartmentHeader(BuildContext context, Department? department,
+      int employeeCount, int teamCount) {
     return Card(
       elevation: 2,
       child: Padding(
@@ -276,11 +285,13 @@ class DepartmentDetailPage extends ZenView<DepartmentDetailController> {
             Row(
               children: [
                 _buildInfoChip(
+                  context,
                   Icons.people,
                   'Employees: $employeeCount',
                 ),
                 const SizedBox(width: 16),
                 _buildInfoChip(
+                  context,
                   Icons.groups,
                   'Teams: $teamCount',
                 ),
@@ -292,11 +303,20 @@ class DepartmentDetailPage extends ZenView<DepartmentDetailController> {
     );
   }
 
-  Widget _buildInfoChip(IconData icon, String label) {
+  Widget _buildInfoChip(BuildContext context, IconData icon, String label) {
     return Chip(
-      avatar: Icon(icon, size: 16, color: Colors.blue.shade700),
-      label: Text(label, style: TextStyle(color: Colors.black)),
-      backgroundColor: Colors.blue.shade50,
+      avatar: Icon(
+        icon,
+        size: 16,
+        color: Theme.of(context).colorScheme.onPrimaryContainer,
+      ),
+      label: Text(
+        label,
+        style: TextStyle(
+          color: Theme.of(context).colorScheme.onPrimaryContainer,
+        ),
+      ),
+      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
     );
   }
 

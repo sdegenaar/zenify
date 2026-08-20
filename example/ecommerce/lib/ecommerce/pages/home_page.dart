@@ -48,7 +48,7 @@ class HomePage extends ZenView<HomeController> {
                       Icon(
                         Icons.search_off,
                         size: 64,
-                        color: Colors.grey.shade400,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                       const SizedBox(height: 16),
                       Text(

@@ -231,7 +231,7 @@ flowchart TD
 
 ```yaml
 dependencies:
-  zenify: ^2.2.0
+  zenify: ^2.2.1
 ```
 
 ### 2. Initialize

@@ -40,7 +40,8 @@ class LoginPage extends ZenView<LoginController> {
                     Text(
                       'Sign in to continue shopping',
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            color: Colors.grey.shade600,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                     ),
                   ],
@@ -55,18 +56,31 @@ class LoginPage extends ZenView<LoginController> {
                       padding: const EdgeInsets.all(12),
                       margin: const EdgeInsets.only(bottom: 16),
                       decoration: BoxDecoration(
-                        color: Colors.red.shade50,
+                        color: Theme.of(context).colorScheme.errorContainer,
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.red.shade200),
+                        border: Border.all(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .error
+                              .withValues(alpha: 0.3),
+                        ),
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.error_outline, color: Colors.red.shade700),
+                          Icon(
+                            Icons.error_outline,
+                            color:
+                                Theme.of(context).colorScheme.onErrorContainer,
+                          ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
                               controller.formError.value!,
-                              style: TextStyle(color: Colors.red.shade700),
+                              style: TextStyle(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onErrorContainer,
+                              ),
                             ),
                           ),
                         ],
@@ -75,17 +89,17 @@ class LoginPage extends ZenView<LoginController> {
                   : const SizedBox.shrink()),
 
               // Email field
-              TextField(
-                decoration: InputDecoration(
-                  labelText: 'Email',
-                  hintText: 'Enter your email',
-                  prefixIcon: const Icon(Icons.email),
-                  errorText: controller.emailError.value,
-                ),
-                keyboardType: TextInputType.emailAddress,
-                textInputAction: TextInputAction.next,
-                onChanged: controller.setEmail,
-              ),
+              ZenObserver(() => TextField(
+                    decoration: InputDecoration(
+                      labelText: 'Email',
+                      hintText: 'Enter your email',
+                      prefixIcon: const Icon(Icons.email),
+                      errorText: controller.emailError.value,
+                    ),
+                    keyboardType: TextInputType.emailAddress,
+                    textInputAction: TextInputAction.next,
+                    onChanged: controller.setEmail,
+                  )),
 
               const SizedBox(height: 16),
 
@@ -130,7 +144,7 @@ class LoginPage extends ZenView<LoginController> {
 
               // Login button
               ZenObserver(() => ElevatedButton(
-                    onPressed: Zen.find<LoginController>().isLoading.value
+                    onPressed: controller.isLoading.value
                         ? null
                         : () => _login(context, controller),
                     style: ElevatedButton.styleFrom(
@@ -138,7 +152,7 @@ class LoginPage extends ZenView<LoginController> {
                       backgroundColor: Theme.of(context).colorScheme.primary,
                       foregroundColor: Theme.of(context).colorScheme.onPrimary,
                     ),
-                    child: Zen.find<LoginController>().isLoading.value
+                    child: controller.isLoading.value
                         ? const SizedBox(
                             height: 20,
                             width: 20,
@@ -149,7 +163,7 @@ class LoginPage extends ZenView<LoginController> {
                             ),
                           )
                         : const Text(
-                            'Login',
+                            'Sign In',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -252,7 +266,9 @@ class LoginPage extends ZenView<LoginController> {
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          border: Border.all(color: Colors.grey.shade300),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.outlineVariant,
+          ),
         ),
         child: Icon(
           icon,

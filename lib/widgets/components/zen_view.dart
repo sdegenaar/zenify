@@ -84,6 +84,21 @@ abstract class ZenView<T extends ZenController> extends Widget {
 class _ZenViewElement<T extends ZenController> extends ComponentElement {
   _ZenViewElement(ZenView<T> super.widget);
 
+  /// Called when the parent provides a new [ZenView] widget configuration.
+  ///
+  /// `ComponentElement.update()` (the base) only sets `_widget` — it does NOT
+  /// schedule a rebuild. `StatelessElement` and `StatefulElement` both override
+  /// this to call `rebuild(force: true)`, which is what drives the normal
+  /// Flutter widget update cycle. Without this override, when a parent rebuilds
+  /// and provides a new [ZenView] instance (e.g. a new `IndexPage` with an
+  /// updated `navigationShell`), the element's `build()` is never called, so
+  /// the UI stays frozen with the old widget's data.
+  @override
+  void update(ZenView<T> newWidget) {
+    super.update(newWidget);
+    rebuild(force: true);
+  }
+
   @override
   Widget build() {
     final zenWidget = widget as ZenView<T>;

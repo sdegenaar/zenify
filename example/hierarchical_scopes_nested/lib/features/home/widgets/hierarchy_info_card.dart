@@ -61,9 +61,16 @@ class HierarchyInfoCard extends StatelessWidget {
                           .map((service) => Chip(
                                 label: Text(
                                   service.toString().split('.').last,
-                                  style: const TextStyle(fontSize: 12),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onPrimaryContainer,
+                                  ),
                                 ),
-                                backgroundColor: Colors.blue.shade100,
+                                backgroundColor: Theme.of(context)
+                                    .colorScheme
+                                    .primaryContainer,
                               ))
                           .toList(),
                     ),

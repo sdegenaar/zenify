@@ -11,7 +11,7 @@ class HomePage extends ZenView<HomeController> {
   Widget build(BuildContext context, HomeController controller) {
     return Scaffold(
       appBar: _buildAppBar(context, controller),
-      body: SafeArea(child: _buildBody(controller)),
+      body: SafeArea(child: _buildBody(context, controller)),
       floatingActionButton: _buildFloatingActionButtons(controller),
     );
   }
@@ -20,18 +20,20 @@ class HomePage extends ZenView<HomeController> {
       BuildContext context, HomeController controller) {
     return AppBar(
       title: const Text('Company Management'),
-      backgroundColor: Colors.blue.shade700,
-      foregroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.primary,
+      foregroundColor: Theme.of(context).colorScheme.onPrimary,
       elevation: 2,
       actions: [
         ZenObserver(() => IconButton(
               icon: controller.isRefreshing.value
-                  ? const SizedBox(
+                  ? SizedBox(
                       width: 20,
                       height: 20,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          Theme.of(context).colorScheme.onPrimary,
+                        ),
                       ),
                     )
                   : const Icon(Icons.refresh),
@@ -44,7 +46,7 @@ class HomePage extends ZenView<HomeController> {
     );
   }
 
-  Widget _buildBody(HomeController controller) {
+  Widget _buildBody(BuildContext context, HomeController controller) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -86,7 +88,10 @@ class HomePage extends ZenView<HomeController> {
           // Debug Panel Info
           Card(
             elevation: 2,
-            color: Colors.purple.shade50,
+            color: Theme.of(context)
+                .colorScheme
+                .primaryContainer
+                .withValues(alpha: 0.35),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -94,15 +99,17 @@ class HomePage extends ZenView<HomeController> {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.developer_mode, color: Colors.purple.shade600),
+                      Icon(
+                        Icons.developer_mode,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
                       const SizedBox(width: 8),
                       Text(
                         'Zenify Inspector Available',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Colors
-                              .purple.shade800, // Darker for better contrast
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                     ],
@@ -113,8 +120,8 @@ class HomePage extends ZenView<HomeController> {
                     'It shows scope hierarchy, query cache, registered dependencies, and performance stats across all pages.',
                     style: TextStyle(
                       fontSize: 14,
-                      color: Colors.purple.shade700, // Better contrast
-                      height: 1.4, // Better line spacing
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      height: 1.4,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -123,54 +130,76 @@ class HomePage extends ZenView<HomeController> {
                     runSpacing: 8,
                     children: [
                       Chip(
-                        avatar: Icon(Icons.account_tree,
-                            size: 16, color: Colors.white),
-                        label: const Text('Scopes',
+                        avatar: Icon(
+                          Icons.account_tree,
+                          size: 16,
+                          color:
+                              Theme.of(context).colorScheme.onPrimaryContainer,
+                        ),
+                        label: Text('Scopes',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
-                              color: Colors
-                                  .white, // White text for better contrast
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onPrimaryContainer,
                             )),
                         backgroundColor:
-                            Colors.purple.shade600, // Solid background
-                        elevation: 2, // Add shadow for depth
+                            Theme.of(context).colorScheme.primaryContainer,
                       ),
                       Chip(
-                        avatar:
-                            Icon(Icons.cached, size: 16, color: Colors.white),
-                        label: const Text('Queries',
+                        avatar: Icon(
+                          Icons.cached,
+                          size: 16,
+                          color:
+                              Theme.of(context).colorScheme.onPrimaryContainer,
+                        ),
+                        label: Text('Queries',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
-                              color: Colors.white,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onPrimaryContainer,
                             )),
-                        backgroundColor: Colors.purple.shade600,
-                        elevation: 2,
+                        backgroundColor:
+                            Theme.of(context).colorScheme.primaryContainer,
                       ),
                       Chip(
-                        avatar: Icon(Icons.extension,
-                            size: 16, color: Colors.white),
-                        label: const Text('Dependencies',
+                        avatar: Icon(
+                          Icons.extension,
+                          size: 16,
+                          color:
+                              Theme.of(context).colorScheme.onPrimaryContainer,
+                        ),
+                        label: Text('Dependencies',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
-                              color: Colors.white,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onPrimaryContainer,
                             )),
-                        backgroundColor: Colors.purple.shade600,
-                        elevation: 2,
+                        backgroundColor:
+                            Theme.of(context).colorScheme.primaryContainer,
                       ),
                       Chip(
-                        avatar: Icon(Icons.analytics,
-                            size: 16, color: Colors.white),
-                        label: const Text('Stats',
+                        avatar: Icon(
+                          Icons.analytics,
+                          size: 16,
+                          color:
+                              Theme.of(context).colorScheme.onPrimaryContainer,
+                        ),
+                        label: Text('Stats',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
-                              color: Colors.white,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onPrimaryContainer,
                             )),
-                        backgroundColor: Colors.purple.shade600,
-                        elevation: 2,
+                        backgroundColor:
+                            Theme.of(context).colorScheme.primaryContainer,
                       ),
                     ],
                   ),

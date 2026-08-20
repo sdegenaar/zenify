@@ -96,7 +96,7 @@ class CartPage extends ZenView<CartController> {
                 Icon(
                   Icons.shopping_cart_outlined,
                   size: 80,
-                  color: Colors.grey.shade400,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
                 const SizedBox(height: 16),
                 Text(
@@ -107,7 +107,7 @@ class CartPage extends ZenView<CartController> {
                 Text(
                   'Add items to your cart to see them here',
                   style: TextStyle(
-                    color: Colors.grey.shade600,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -150,10 +150,11 @@ class CartPage extends ZenView<CartController> {
                   return Container(
                     width: 80,
                     height: 80,
-                    color: Colors.grey.shade200,
-                    child: const Icon(
+                    color:
+                        Theme.of(context).colorScheme.surfaceContainerHighest,
+                    child: Icon(
                       Icons.image_not_supported,
-                      color: Colors.grey,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   );
                 },
@@ -193,7 +194,9 @@ class CartPage extends ZenView<CartController> {
                       const SizedBox(width: 8),
                       Container(
                         decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey.shade300),
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.outlineVariant,
+                          ),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Row(

@@ -142,12 +142,12 @@ class TodoHomePage extends ZenView<TodoController> {
               children: [
                 // Todo counts
                 ZenObserver(() => Text(
-                      '${Zen.find<TodoController>().activeCount} active, ${Zen.find<TodoController>().completedCount} completed',
+                      '${controller.activeCount} active, ${controller.completedCount} completed',
                       style: Theme.of(context).textTheme.bodySmall,
                     )),
 
                 // Clear completed button
-                ZenObserver(() => Zen.find<TodoController>().completedCount > 0
+                ZenObserver(() => controller.completedCount > 0
                     ? TextButton(
                         onPressed: () => _showClearCompletedConfirmation(
                             context, controller),

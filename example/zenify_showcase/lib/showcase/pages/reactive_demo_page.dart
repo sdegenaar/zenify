@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:zenify/zenify.dart';
 import '../controllers/reactive_demo_controller.dart';
 import '../widgets/demo_section.dart';
+import '../widgets/showcase_style.dart';
 
 class ReactiveDemoPage extends ZenView<ReactiveDemoController> {
   const ReactiveDemoPage({super.key});
@@ -81,15 +82,16 @@ class ReactiveDemoPage extends ZenView<ReactiveDemoController> {
                           const SizedBox(height: 16),
                           ZenObserver(() => Container(
                                 padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: Colors.blue.shade50,
-                                  border:
-                                      Border.all(color: Colors.blue.shade200),
-                                  borderRadius: BorderRadius.circular(8),
+                                decoration: ShowcaseStyle.containerDecoration(
+                                  context,
+                                  color: Colors.blue,
                                 ),
                                 child: Text(
                                   controller.message.value,
-                                  style: const TextStyle(fontSize: 16),
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: ShowcaseStyle.textPrimary(context),
+                                  ),
                                 ),
                               )),
                           const SizedBox(height: 16),
@@ -194,38 +196,44 @@ class ReactiveDemoPage extends ZenView<ReactiveDemoController> {
                                     controller.featureB.value = value,
                               )),
                           const SizedBox(height: 16),
-                          ZenObserver(() => Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: controller.bothFeaturesEnabled
-                                      ? Colors.green.shade50
-                                      : Colors.grey.shade50,
-                                  border: Border.all(
-                                    color: controller.bothFeaturesEnabled
-                                        ? Colors.green.shade200
-                                        : Colors.grey.shade200,
+                          ZenObserver(() {
+                            final isEnabled = controller.bothFeaturesEnabled;
+                            final color =
+                                isEnabled ? Colors.green : Colors.grey;
+                            return Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: ShowcaseStyle.containerDecoration(
+                                context,
+                                color: color,
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    isEnabled
+                                        ? Icons.check_circle
+                                        : Icons.radio_button_unchecked,
+                                    color: ShowcaseStyle.accentHeader(
+                                        context, color),
                                   ),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      controller.bothFeaturesEnabled
-                                          ? Icons.check_circle
-                                          : Icons.radio_button_unchecked,
-                                      color: controller.bothFeaturesEnabled
-                                          ? Colors.green
-                                          : Colors.grey,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      controller.bothFeaturesEnabled
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      isEnabled
                                           ? 'Both features enabled!'
                                           : 'Enable both features to unlock premium mode',
+                                      style: TextStyle(
+                                        color:
+                                            ShowcaseStyle.textPrimary(context),
+                                        fontWeight: isEnabled
+                                            ? FontWeight.bold
+                                            : FontWeight.normal,
+                                      ),
                                     ),
-                                  ],
-                                ),
-                              )),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }),
                         ],
                       ),
                     ),

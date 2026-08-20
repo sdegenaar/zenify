@@ -115,24 +115,33 @@ class DepartmentsPage extends ZenView<DepartmentsController> {
                 ? Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(12),
-                    color: Colors.red.shade100,
+                    color: Theme.of(context).colorScheme.errorContainer,
                     child: Row(
                       children: [
-                        Icon(Icons.error_outline,
-                            color: Colors.red.shade700, size: 20),
+                        Icon(
+                          Icons.error_outline,
+                          color: Theme.of(context).colorScheme.onErrorContainer,
+                          size: 20,
+                        ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             errorMessage,
                             style: TextStyle(
-                              color: Colors.red.shade700,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onErrorContainer,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
                         ),
                         IconButton(
-                          icon: Icon(Icons.close,
-                              color: Colors.red.shade700, size: 18),
+                          icon: Icon(
+                            Icons.close,
+                            color:
+                                Theme.of(context).colorScheme.onErrorContainer,
+                            size: 18,
+                          ),
                           onPressed: () => controller.lastError.value = '',
                         ),
                       ],
@@ -150,40 +159,60 @@ class DepartmentsPage extends ZenView<DepartmentsController> {
             return searchQuery.isNotEmpty
                 ? Container(
                     padding: const EdgeInsets.all(16),
-                    color: Colors.blue.shade50,
+                    color: Theme.of(context).colorScheme.secondaryContainer,
                     child: Row(
                       children: [
                         // Search effect status indicator
                         ZenEffectBuilder<String>(
                           effect: controller.searchEffect,
-                          onInitial: () => Icon(Icons.search,
-                              color: Colors.blue.shade700, size: 20),
+                          onInitial: () => Icon(
+                            Icons.search,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSecondaryContainer,
+                            size: 20,
+                          ),
                           onLoading: () => SizedBox(
                             width: 20,
                             height: 20,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              color: Colors.blue.shade700,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSecondaryContainer,
                             ),
                           ),
-                          onSuccess: (result) => Icon(Icons.search,
-                              color: Colors.green.shade700, size: 20),
-                          onError: (error) => Icon(Icons.search_off,
-                              color: Colors.red.shade700, size: 20),
+                          onSuccess: (result) => const Icon(
+                            Icons.search,
+                            color: Colors.green,
+                            size: 20,
+                          ),
+                          onError: (error) => Icon(
+                            Icons.search_off,
+                            color: Theme.of(context).colorScheme.error,
+                            size: 20,
+                          ),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             'Searching for: "$searchQuery"',
                             style: TextStyle(
-                              color: Colors.blue.shade700,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSecondaryContainer,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
                         IconButton(
-                          icon: Icon(Icons.close,
-                              color: Colors.blue.shade700, size: 20),
+                          icon: Icon(
+                            Icons.close,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSecondaryContainer,
+                            size: 20,
+                          ),
                           onPressed: controller.clearSearch,
                         ),
                       ],

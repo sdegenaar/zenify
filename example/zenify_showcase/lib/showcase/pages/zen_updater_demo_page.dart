@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:zenify/zenify.dart';
-import '../controllers/zen_updater_demo_controller.dart'; // Changed import
+import '../controllers/zen_updater_demo_controller.dart';
 import '../widgets/demo_section.dart';
+import '../widgets/showcase_style.dart';
 
 class ZenUpdaterDemoPage extends ZenView<ZenUpdaterDemoController> {
   // Changed controller type
@@ -34,33 +35,46 @@ class ZenUpdaterDemoPage extends ZenView<ZenUpdaterDemoController> {
                         builder: (context, controller) {
                           return Container(
                             padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: Colors.green.shade50,
-                              border: Border.all(color: Colors.green.shade200),
-                              borderRadius: BorderRadius.circular(8),
+                            decoration: ShowcaseStyle.containerDecoration(
+                              context,
+                              color: Colors.green,
                             ),
                             child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   'ZenUpdater Content',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.green.shade700,
+                                    color: ShowcaseStyle.accentHeader(
+                                        context, Colors.green),
                                   ),
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                    'Counter: ${controller.counter}'), // No .value needed
+                                  'Counter: ${controller.counter}',
+                                  style: TextStyle(
+                                      color:
+                                          ShowcaseStyle.textPrimary(context)),
+                                ),
                                 Text(
-                                    'Message: ${controller.message}'), // No .value needed
+                                  'Message: ${controller.message}',
+                                  style: TextStyle(
+                                      color:
+                                          ShowcaseStyle.textPrimary(context)),
+                                ),
                                 Text(
-                                    'Items: ${controller.items.length}'), // No .value needed
+                                  'Items: ${controller.items.length}',
+                                  style: TextStyle(
+                                      color:
+                                          ShowcaseStyle.textPrimary(context)),
+                                ),
                                 const SizedBox(height: 8),
                                 Text(
                                   'Built at: ${DateTime.now().toString().split('.').first}',
                                   style: TextStyle(
                                     fontSize: 12,
-                                    color: Colors.grey.shade600,
+                                    color: ShowcaseStyle.textMuted(context),
                                   ),
                                 ),
                               ],
@@ -111,11 +125,9 @@ class ZenUpdaterDemoPage extends ZenView<ZenUpdaterDemoController> {
                               builder: (context, controller) {
                                 return Container(
                                   padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: Colors.blue.shade50,
-                                    border:
-                                        Border.all(color: Colors.blue.shade200),
-                                    borderRadius: BorderRadius.circular(8),
+                                  decoration: ShowcaseStyle.containerDecoration(
+                                    context,
+                                    color: Colors.blue,
                                   ),
                                   child: Column(
                                     children: [
@@ -123,21 +135,30 @@ class ZenUpdaterDemoPage extends ZenView<ZenUpdaterDemoController> {
                                         'Builder 1',
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          color: Colors.blue.shade700,
+                                          color: ShowcaseStyle.accentHeader(
+                                              context, Colors.blue),
                                         ),
                                       ),
                                       const SizedBox(height: 8),
                                       Text(
-                                        '${controller.counter}', // No .value needed
+                                        '${controller.counter}',
                                         style: Theme.of(context)
                                             .textTheme
                                             .headlineMedium
                                             ?.copyWith(
-                                              color: Colors.blue,
+                                              color: ShowcaseStyle.accentHeader(
+                                                  context, Colors.blue),
                                               fontWeight: FontWeight.bold,
                                             ),
                                       ),
-                                      const Text('Counter Focus'),
+                                      Text(
+                                        'Counter Focus',
+                                        style: TextStyle(
+                                          color:
+                                              ShowcaseStyle.textMuted(context),
+                                          fontSize: 12,
+                                        ),
+                                      ),
                                     ],
                                   ),
                                 );
@@ -152,11 +173,9 @@ class ZenUpdaterDemoPage extends ZenView<ZenUpdaterDemoController> {
                               builder: (context, controller) {
                                 return Container(
                                   padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: Colors.purple.shade50,
-                                    border: Border.all(
-                                        color: Colors.purple.shade200),
-                                    borderRadius: BorderRadius.circular(8),
+                                  decoration: ShowcaseStyle.containerDecoration(
+                                    context,
+                                    color: Colors.purple,
                                   ),
                                   child: Column(
                                     children: [
@@ -164,19 +183,28 @@ class ZenUpdaterDemoPage extends ZenView<ZenUpdaterDemoController> {
                                         'Builder 2',
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          color: Colors.purple.shade700,
+                                          color: ShowcaseStyle.accentHeader(
+                                              context, Colors.purple),
                                         ),
                                       ),
                                       const SizedBox(height: 8),
                                       Text(
-                                        controller.message, // No .value needed
+                                        controller.message,
                                         style: TextStyle(
-                                          color: Colors.purple,
+                                          color: ShowcaseStyle.accentHeader(
+                                              context, Colors.purple),
                                           fontWeight: FontWeight.bold,
                                         ),
                                         textAlign: TextAlign.center,
                                       ),
-                                      const Text('Message Focus'),
+                                      Text(
+                                        'Message Focus',
+                                        style: TextStyle(
+                                          color:
+                                              ShowcaseStyle.textMuted(context),
+                                          fontSize: 12,
+                                        ),
+                                      ),
                                     ],
                                   ),
                                 );
@@ -193,33 +221,47 @@ class ZenUpdaterDemoPage extends ZenView<ZenUpdaterDemoController> {
                         builder: (context, controller) {
                           return Container(
                             padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.orange.shade50,
-                              border: Border.all(color: Colors.orange.shade200),
-                              borderRadius: BorderRadius.circular(8),
+                            decoration: ShowcaseStyle.containerDecoration(
+                              context,
+                              color: Colors.orange,
                             ),
                             child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   'Builder 3 - Complete State',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.orange.shade700,
+                                    color: ShowcaseStyle.accentHeader(
+                                        context, Colors.orange),
                                   ),
                                 ),
                                 const SizedBox(height: 8),
+                                Text('Counter: ${controller.counter}',
+                                    style: TextStyle(
+                                        color: ShowcaseStyle.textPrimary(
+                                            context))),
+                                Text('Message: "${controller.message}"',
+                                    style: TextStyle(
+                                        color: ShowcaseStyle.textPrimary(
+                                            context))),
+                                Text('Items: ${controller.items.length}',
+                                    style: TextStyle(
+                                        color: ShowcaseStyle.textPrimary(
+                                            context))),
+                                Text('Feature A: ${controller.featureA}',
+                                    style: TextStyle(
+                                        color: ShowcaseStyle.textPrimary(
+                                            context))),
+                                Text('Feature B: ${controller.featureB}',
+                                    style: TextStyle(
+                                        color: ShowcaseStyle.textPrimary(
+                                            context))),
                                 Text(
-                                    'Counter: ${controller.counter}'), // No .value needed
-                                Text(
-                                    'Message: "${controller.message}"'), // No .value needed
-                                Text(
-                                    'Items: ${controller.items.length}'), // No .value needed
-                                Text(
-                                    'Feature A: ${controller.featureA}'), // No .value needed
-                                Text(
-                                    'Feature B: ${controller.featureB}'), // No .value needed
-                                Text(
-                                    'Both Enabled: ${controller.bothFeaturesEnabled}'),
+                                    'Both Enabled: ${controller.bothFeaturesEnabled}',
+                                    style: TextStyle(
+                                        color: ShowcaseStyle.textPrimary(
+                                            context))),
                               ],
                             ),
                           );

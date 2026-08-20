@@ -1104,7 +1104,90 @@ void main() {
       expect(isolatedScope!.parent, same(Zen.rootScope));
       expect(isolatedScope!.parent, isNot(parentScope));
     });
+
+    testWidgets(
+        'ZenRoute didUpdateWidget propagates new page widget without re-initializing module or disposing scope',
+        (WidgetTester tester) async {
+      int initCount = 0;
+      final testModule = _CountingModule(() => initCount++);
+      ZenScope? capturedScope1;
+      ZenScope? capturedScope2;
+
+      // Mount with initial page
+      await tester.pumpWidget(
+        MaterialApp(
+          home: StatefulBuilder(
+            builder: (context, setState) {
+              return ZenRoute(
+                moduleBuilder: () => testModule,
+                scopeName: 'DynamicShellScope',
+                page: Builder(
+                  builder: (ctx) {
+                    capturedScope1 = ctx.zenScope;
+                    return const Text('Page Version 1');
+                  },
+                ),
+              );
+            },
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+      expect(find.text('Page Version 1'), findsOneWidget);
+      expect(initCount, equals(1));
+
+      // Rebuild parent with updated page (simulates StatefulShellRoute branch change)
+      await tester.pumpWidget(
+        MaterialApp(
+          home: StatefulBuilder(
+            builder: (context, setState) {
+              return ZenRoute(
+                moduleBuilder: () => testModule,
+                scopeName: 'DynamicShellScope',
+                page: Builder(
+                  builder: (ctx) {
+                    capturedScope2 = ctx.zenScope;
+                    return const Text('Page Version 2');
+                  },
+                ),
+              );
+            },
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // UI successfully updated to new page
+      expect(find.text('Page Version 2'), findsOneWidget);
+      expect(find.text('Page Version 1'), findsNothing);
+
+      // Scope is preserved across updates (not disposed, not recreated)
+      expect(capturedScope2, isNotNull);
+      expect(capturedScope2, same(capturedScope1));
+      expect(capturedScope2!.isDisposed, isFalse);
+
+      // Module was NOT re-initialized (initCount remains 1)
+      expect(initCount, equals(1));
+    });
   });
+}
+
+class _CountingModule extends ZenModule {
+  final VoidCallback onInitCallback;
+  _CountingModule(this.onInitCallback);
+
+  @override
+  String get name => 'CountingModule';
+
+  @override
+  void register(ZenScope scope) {}
+
+  @override
+  Future<void> onInit(ZenScope scope) async {
+    onInitCallback();
+  }
 }
 
 // =============================================================================

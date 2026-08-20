@@ -128,19 +128,31 @@ class _DebugDialogState extends State<DebugDialog> {
                       padding: const EdgeInsets.all(12),
                       margin: const EdgeInsets.only(bottom: 16),
                       decoration: BoxDecoration(
-                        color: Colors.blue.shade50,
-                        border: Border.all(color: Colors.blue.shade200),
+                        color: Theme.of(context).colorScheme.primaryContainer,
+                        border: Border.all(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .primary
+                              .withValues(alpha: 0.3),
+                        ),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.info_outline, color: Colors.blue.shade700),
+                          Icon(
+                            Icons.info_outline,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onPrimaryContainer,
+                          ),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
                               '✨ Widget Tree Architecture: Scopes are managed by Flutter\'s widget tree. Parent-child relationships are automatic!',
                               style: TextStyle(
-                                color: Colors.blue.shade700,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onPrimaryContainer,
                                 fontSize: 12,
                               ),
                             ),
@@ -285,13 +297,21 @@ class _DebugDialogState extends State<DebugDialog> {
     final depCount = scopeInfo['dependencyCount']?.toString() ?? '0';
     final childCount = scopeInfo['childCount']?.toString() ?? '0';
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final activeColor = isDark ? Colors.green.shade300 : Colors.green.shade700;
+    final disposedColor = isDark ? Colors.red.shade300 : Colors.red.shade700;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: disposed ? Colors.red.shade50 : Colors.green.shade50,
+        color: disposed
+            ? Colors.red.withValues(alpha: isDark ? 0.2 : 0.08)
+            : Colors.green.withValues(alpha: isDark ? 0.2 : 0.08),
         border: Border.all(
-          color: disposed ? Colors.red.shade200 : Colors.green.shade200,
+          color: disposed
+              ? Colors.red.withValues(alpha: isDark ? 0.5 : 0.3)
+              : Colors.green.withValues(alpha: isDark ? 0.5 : 0.3),
         ),
         borderRadius: BorderRadius.circular(8),
       ),
@@ -303,7 +323,7 @@ class _DebugDialogState extends State<DebugDialog> {
               Icon(
                 disposed ? Icons.cancel : Icons.check_circle,
                 size: 16,
-                color: disposed ? Colors.red.shade700 : Colors.green.shade700,
+                color: disposed ? disposedColor : activeColor,
               ),
               const SizedBox(width: 8),
               Expanded(
@@ -311,8 +331,7 @@ class _DebugDialogState extends State<DebugDialog> {
                   name,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color:
-                        disposed ? Colors.red.shade700 : Colors.green.shade700,
+                    color: disposed ? disposedColor : activeColor,
                   ),
                 ),
               ),
@@ -321,12 +340,16 @@ class _DebugDialogState extends State<DebugDialog> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: Colors.red.shade100,
+                    color: Colors.red.withValues(alpha: isDark ? 0.3 : 0.15),
                     borderRadius: BorderRadius.circular(4),
                   ),
-                  child: const Text(
+                  child: Text(
                     'DISPOSED',
-                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: disposedColor,
+                    ),
                   ),
                 ),
             ],
@@ -336,7 +359,7 @@ class _DebugDialogState extends State<DebugDialog> {
             'Parent: $parent  •  Deps: $depCount  •  Children: $childCount',
             style: TextStyle(
               fontSize: 11,
-              color: Colors.grey.shade600,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
         ],
@@ -357,9 +380,11 @@ class _DebugDialogState extends State<DebugDialog> {
           width: double.infinity,
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Colors.grey.shade100,
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.grey.shade300),
+            border: Border.all(
+              color: Theme.of(context).colorScheme.outlineVariant,
+            ),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -382,7 +407,7 @@ class _DebugDialogState extends State<DebugDialog> {
               '$label:',
               style: TextStyle(
                 fontWeight: FontWeight.w600,
-                color: Colors.grey.shade700,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
           ),
@@ -391,7 +416,7 @@ class _DebugDialogState extends State<DebugDialog> {
               value,
               style: TextStyle(
                 fontFamily: 'monospace',
-                color: Colors.grey.shade800,
+                color: Theme.of(context).colorScheme.onSurface,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -405,8 +430,10 @@ class _DebugDialogState extends State<DebugDialog> {
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: Colors.red.shade100,
-        border: Border.all(color: Colors.red.shade300),
+        color: Theme.of(context).colorScheme.errorContainer,
+        border: Border.all(
+          color: Theme.of(context).colorScheme.error.withValues(alpha: 0.3),
+        ),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Column(
@@ -416,7 +443,7 @@ class _DebugDialogState extends State<DebugDialog> {
             label,
             style: TextStyle(
               fontWeight: FontWeight.bold,
-              color: Colors.red.shade800,
+              color: Theme.of(context).colorScheme.onErrorContainer,
             ),
           ),
           const SizedBox(height: 4),
@@ -425,7 +452,7 @@ class _DebugDialogState extends State<DebugDialog> {
             style: TextStyle(
               fontSize: 12,
               fontFamily: 'monospace',
-              color: Colors.red.shade700,
+              color: Theme.of(context).colorScheme.onErrorContainer,
             ),
           ),
         ],

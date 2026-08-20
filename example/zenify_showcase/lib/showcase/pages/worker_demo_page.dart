@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:zenify/zenify.dart';
 import '../controllers/worker_demo_controller.dart';
 import '../widgets/demo_section.dart';
+import '../widgets/showcase_style.dart';
 
 class WorkerDemoPage extends ZenView<WorkerDemoController> {
   const WorkerDemoPage({super.key});
@@ -77,30 +78,35 @@ class WorkerDemoPage extends ZenView<WorkerDemoController> {
                   child: Column(
                     children: [
                       ZenObserver(() => _buildWorkerStats(
+                          context,
                           'Ever Worker',
                           controller.everCount.value,
                           'Fires on every change',
                           Colors.blue)),
                       const SizedBox(height: 12),
                       ZenObserver(() => _buildWorkerStats(
+                          context,
                           'Debounce Worker',
                           controller.debounceCount.value,
                           'Waits 500ms after last change',
                           Colors.orange)),
                       const SizedBox(height: 12),
                       ZenObserver(() => _buildWorkerStats(
+                          context,
                           'Throttle Worker',
                           controller.throttleCount.value,
                           'Max once per 1000ms',
                           Colors.purple)),
                       const SizedBox(height: 12),
                       ZenObserver(() => _buildWorkerStats(
+                          context,
                           'Once Worker',
                           controller.onceCount.value,
                           'Fires only once then stops',
                           Colors.green)),
                       const SizedBox(height: 12),
                       ZenObserver(() => _buildWorkerStats(
+                          context,
                           'Condition Worker',
                           controller.conditionCount.value,
                           'Only when counter is even',
@@ -124,20 +130,23 @@ class WorkerDemoPage extends ZenView<WorkerDemoController> {
                     children: [
                       ZenObserver(() => Container(
                             padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.blue.shade50,
-                              border: Border.all(color: Colors.blue.shade200),
-                              borderRadius: BorderRadius.circular(8),
+                            decoration: ShowcaseStyle.containerDecoration(
+                              context,
+                              color: Colors.blue,
                             ),
                             child: Row(
                               children: [
                                 Icon(Icons.text_fields,
-                                    color: Colors.blue.shade700),
+                                    color: ShowcaseStyle.accentHeader(
+                                        context, Colors.blue)),
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
                                     controller.message.value,
-                                    style: const TextStyle(fontSize: 16),
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: ShowcaseStyle.textPrimary(context),
+                                    ),
                                   ),
                                 ),
                               ],
@@ -165,7 +174,7 @@ class WorkerDemoPage extends ZenView<WorkerDemoController> {
                       ZenObserver(() => Text(
                             'String worker fired ${controller.stringWorkerCount.value} times',
                             style: TextStyle(
-                              color: Colors.grey.shade600,
+                              color: ShowcaseStyle.textMuted(context),
                               fontSize: 12,
                             ),
                           )),
@@ -188,10 +197,9 @@ class WorkerDemoPage extends ZenView<WorkerDemoController> {
                     children: [
                       ZenObserver(() => Container(
                             padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.green.shade50,
-                              border: Border.all(color: Colors.green.shade200),
-                              borderRadius: BorderRadius.circular(8),
+                            decoration: ShowcaseStyle.containerDecoration(
+                              context,
+                              color: Colors.green,
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -199,20 +207,27 @@ class WorkerDemoPage extends ZenView<WorkerDemoController> {
                                 Row(
                                   children: [
                                     Icon(Icons.list,
-                                        color: Colors.green.shade700),
+                                        color: ShowcaseStyle.accentHeader(
+                                            context, Colors.green)),
                                     const SizedBox(width: 8),
                                     Text(
                                       'Items (${controller.items.length})',
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
-                                        color: Colors.green.shade700,
+                                        color: ShowcaseStyle.accentHeader(
+                                            context, Colors.green),
                                       ),
                                     ),
                                   ],
                                 ),
                                 const SizedBox(height: 8),
                                 if (controller.items.isEmpty)
-                                  const Text('No items in the list')
+                                  Text(
+                                    'No items in the list',
+                                    style: TextStyle(
+                                      color: ShowcaseStyle.textMuted(context),
+                                    ),
+                                  )
                                 else
                                   ...controller.items.map((item) => Padding(
                                         padding: const EdgeInsets.symmetric(
@@ -221,9 +236,20 @@ class WorkerDemoPage extends ZenView<WorkerDemoController> {
                                           children: [
                                             Icon(Icons.fiber_manual_record,
                                                 size: 8,
-                                                color: Colors.green.shade600),
+                                                color:
+                                                    ShowcaseStyle.accentHeader(
+                                                        context, Colors.green)),
                                             const SizedBox(width: 8),
-                                            Expanded(child: Text(item)),
+                                            Expanded(
+                                              child: Text(
+                                                item,
+                                                style: TextStyle(
+                                                  color:
+                                                      ShowcaseStyle.textPrimary(
+                                                          context),
+                                                ),
+                                              ),
+                                            ),
                                             IconButton(
                                               icon: const Icon(Icons.delete,
                                                   size: 16),
@@ -314,20 +340,23 @@ class WorkerDemoPage extends ZenView<WorkerDemoController> {
                       const SizedBox(height: 16),
                       Container(
                         padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.amber.shade50,
-                          border: Border.all(color: Colors.amber.shade200),
-                          borderRadius: BorderRadius.circular(8),
+                        decoration: ShowcaseStyle.containerDecoration(
+                          context,
+                          color: Colors.amber,
                         ),
                         child: Row(
                           children: [
                             Icon(Icons.info_outline,
-                                color: Colors.amber.shade700),
+                                color: ShowcaseStyle.accentHeader(
+                                    context, Colors.amber)),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 'Try the "Rapid +5" button to see the difference between ever, debounce, and throttle workers!',
-                                style: TextStyle(color: Colors.amber.shade700),
+                                style: TextStyle(
+                                  color: ShowcaseStyle.textPrimary(context),
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                             ),
                           ],
@@ -344,14 +373,13 @@ class WorkerDemoPage extends ZenView<WorkerDemoController> {
     );
   }
 
-  Widget _buildWorkerStats(
-      String name, int count, String description, Color color) {
+  Widget _buildWorkerStats(BuildContext context, String name, int count,
+      String description, Color color) {
     return Container(
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
-        borderRadius: BorderRadius.circular(8),
+      decoration: ShowcaseStyle.containerDecoration(
+        context,
+        color: color,
       ),
       child: Row(
         children: [
@@ -372,14 +400,14 @@ class WorkerDemoPage extends ZenView<WorkerDemoController> {
                   name,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: color,
+                    color: ShowcaseStyle.accentHeader(context, color),
                   ),
                 ),
                 Text(
                   description,
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.grey.shade600,
+                    color: ShowcaseStyle.textMuted(context),
                   ),
                 ),
               ],

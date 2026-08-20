@@ -94,6 +94,31 @@ class _ZenRouteState extends State<ZenRoute> {
     }
   }
 
+  /// Called when the ZenRoute widget is updated with a new configuration.
+  ///
+  /// This is critical for [StatefulShellRoute] compatibility. When `goBranch`
+  /// is called, go_router invokes the shell builder and provides a new
+  /// [ZenRoute] widget (with an updated `page` containing the new
+  /// [StatefulNavigationShell]). However, go_router's Navigator reuses the
+  /// existing route (same page key), so Flutter does not automatically
+  /// propagate the new widget through the standard `StatefulElement.rebuild()`
+  /// path. Without this override, `build()` is never called with the new
+  /// `widget.page`, leaving the rendered [IndexPage] with a stale
+  /// `navigationShell` reference (wrong `currentIndex`, frozen bottom nav).
+  ///
+  /// By calling `setState(() {})` here, we explicitly mark the element dirty,
+  /// which forces `build()` to run and pass the updated `widget.page`
+  /// (containing the new `navigationShell`) down to [ZenScopeProvider].
+  @override
+  void didUpdateWidget(ZenRoute oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!identical(oldWidget.page, widget.page)) {
+      ZenLogger.logDebug(
+          '🔄 ZenRoute[${widget.scopeName}]: page updated, forcing rebuild');
+      setState(() {});
+    }
+  }
+
   /// Initializes the module and scope with comprehensive error handling
   Future<void> _initializeModule() async {
     try {

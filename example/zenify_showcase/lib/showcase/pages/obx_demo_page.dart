@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:zenify/zenify.dart';
 import '../controllers/reactive_demo_controller.dart';
 import '../widgets/demo_section.dart';
+import '../widgets/showcase_style.dart';
 
 class ObxDemoPage extends ZenView<ReactiveDemoController> {
   const ObxDemoPage({super.key});
@@ -34,10 +35,9 @@ class ObxDemoPage extends ZenView<ReactiveDemoController> {
                           Expanded(
                             child: Container(
                               padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Colors.blue.shade50,
-                                border: Border.all(color: Colors.blue.shade200),
-                                borderRadius: BorderRadius.circular(8),
+                              decoration: ShowcaseStyle.containerDecoration(
+                                context,
+                                color: Colors.blue,
                               ),
                               child: Column(
                                 children: [
@@ -45,7 +45,8 @@ class ObxDemoPage extends ZenView<ReactiveDemoController> {
                                     'Counter Section',
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.blue.shade700,
+                                      color: ShowcaseStyle.accentHeader(
+                                          context, Colors.blue),
                                     ),
                                   ),
                                   const SizedBox(height: 8),
@@ -55,7 +56,8 @@ class ObxDemoPage extends ZenView<ReactiveDemoController> {
                                             .textTheme
                                             .headlineMedium
                                             ?.copyWith(
-                                              color: Colors.blue,
+                                              color: ShowcaseStyle.accentHeader(
+                                                  context, Colors.blue),
                                               fontWeight: FontWeight.bold,
                                             ),
                                       )),
@@ -64,7 +66,7 @@ class ObxDemoPage extends ZenView<ReactiveDemoController> {
                                     'Only rebuilds when counter changes',
                                     style: TextStyle(
                                       fontSize: 10,
-                                      color: Colors.grey.shade600,
+                                      color: ShowcaseStyle.textMuted(context),
                                     ),
                                     textAlign: TextAlign.center,
                                   ),
@@ -78,11 +80,9 @@ class ObxDemoPage extends ZenView<ReactiveDemoController> {
                           Expanded(
                             child: Container(
                               padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Colors.green.shade50,
-                                border:
-                                    Border.all(color: Colors.green.shade200),
-                                borderRadius: BorderRadius.circular(8),
+                              decoration: ShowcaseStyle.containerDecoration(
+                                context,
+                                color: Colors.green,
                               ),
                               child: Column(
                                 children: [
@@ -90,17 +90,17 @@ class ObxDemoPage extends ZenView<ReactiveDemoController> {
                                     'Message Section',
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.green.shade700,
+                                      color: ShowcaseStyle.accentHeader(
+                                          context, Colors.green),
                                     ),
                                   ),
                                   const SizedBox(height: 8),
                                   ZenObserver(() => Text(
-                                        Zen.find<ReactiveDemoController>()
-                                            .message
-                                            .value,
+                                        controller.message.value,
                                         style: TextStyle(
                                           fontSize: 16,
-                                          color: Colors.green.shade700,
+                                          color: ShowcaseStyle.accentHeader(
+                                              context, Colors.green),
                                           fontWeight: FontWeight.bold,
                                         ),
                                         textAlign: TextAlign.center,
@@ -110,7 +110,7 @@ class ObxDemoPage extends ZenView<ReactiveDemoController> {
                                     'Only rebuilds when message changes',
                                     style: TextStyle(
                                       fontSize: 10,
-                                      color: Colors.grey.shade600,
+                                      color: ShowcaseStyle.textMuted(context),
                                     ),
                                     textAlign: TextAlign.center,
                                   ),
@@ -128,16 +128,14 @@ class ObxDemoPage extends ZenView<ReactiveDemoController> {
                         children: [
                           Expanded(
                             child: ElevatedButton(
-                              onPressed:
-                                  Zen.find<ReactiveDemoController>().increment,
+                              onPressed: controller.increment,
                               child: const Text('+ Counter'),
                             ),
                           ),
                           const SizedBox(width: 8),
                           Expanded(
                             child: ElevatedButton(
-                              onPressed: Zen.find<ReactiveDemoController>()
-                                  .updateMessage,
+                              onPressed: controller.updateMessage,
                               child: const Text('Update Message'),
                             ),
                           ),
@@ -169,7 +167,7 @@ class ObxDemoPage extends ZenView<ReactiveDemoController> {
                               'Counter',
                               Colors.red,
                               ZenObserver(() => Text(
-                                    '${Zen.find<ReactiveDemoController>().counter.value}',
+                                    '${controller.counter.value}',
                                     style: const TextStyle(
                                       fontSize: 24,
                                       fontWeight: FontWeight.bold,
@@ -184,7 +182,7 @@ class ObxDemoPage extends ZenView<ReactiveDemoController> {
                               'Items Count',
                               Colors.purple,
                               ZenObserver(() => Text(
-                                    '${Zen.find<ReactiveDemoController>().items.length}',
+                                    '${controller.items.length}',
                                     style: const TextStyle(
                                       fontSize: 24,
                                       fontWeight: FontWeight.bold,
@@ -199,8 +197,7 @@ class ObxDemoPage extends ZenView<ReactiveDemoController> {
                               'Features',
                               Colors.teal,
                               ZenObserver(() => Icon(
-                                    Zen.find<ReactiveDemoController>()
-                                            .bothFeaturesEnabled
+                                    controller.bothFeaturesEnabled
                                         ? Icons.check_circle
                                         : Icons.radio_button_unchecked,
                                     color: Colors.white,
@@ -219,34 +216,28 @@ class ObxDemoPage extends ZenView<ReactiveDemoController> {
                         runSpacing: 8,
                         children: [
                           ElevatedButton(
-                            onPressed:
-                                Zen.find<ReactiveDemoController>().increment,
+                            onPressed: controller.increment,
                             style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.red),
                             child: const Text('+ Counter',
                                 style: TextStyle(color: Colors.white)),
                           ),
                           ElevatedButton(
-                            onPressed:
-                                Zen.find<ReactiveDemoController>().addItem,
+                            onPressed: controller.addItem,
                             style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.purple),
                             child: const Text('+ Item',
                                 style: TextStyle(color: Colors.white)),
                           ),
                           ElevatedButton(
-                            onPressed: () => Zen.find<ReactiveDemoController>()
-                                .featureA
-                                .toggle(),
+                            onPressed: () => controller.featureA.toggle(),
                             style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.teal),
                             child: const Text('Toggle A',
                                 style: TextStyle(color: Colors.white)),
                           ),
                           ElevatedButton(
-                            onPressed: () => Zen.find<ReactiveDemoController>()
-                                .featureB
-                                .toggle(),
+                            onPressed: () => controller.featureB.toggle(),
                             style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.teal),
                             child: const Text('Toggle B',
@@ -272,35 +263,47 @@ class ObxDemoPage extends ZenView<ReactiveDemoController> {
                   child: Column(
                     children: [
                       // Rebuild counters (simulated)
-                      _buildPerformanceMetric('Counter ZenObserver Rebuilds',
+                      _buildPerformanceMetric(
+                          context,
+                          'Counter ZenObserver Rebuilds',
                           _getCounterRebuilds(controller)),
                       const SizedBox(height: 8),
-                      _buildPerformanceMetric('Message ZenObserver Rebuilds',
+                      _buildPerformanceMetric(
+                          context,
+                          'Message ZenObserver Rebuilds',
                           _getMessageRebuilds(controller)),
                       const SizedBox(height: 8),
-                      _buildPerformanceMetric('Items ZenObserver Rebuilds',
+                      _buildPerformanceMetric(
+                          context,
+                          'Items ZenObserver Rebuilds',
                           _getItemsRebuilds(controller)),
                       const SizedBox(height: 8),
-                      _buildPerformanceMetric('Features ZenObserver Rebuilds',
+                      _buildPerformanceMetric(
+                          context,
+                          'Features ZenObserver Rebuilds',
                           _getFeaturesRebuilds(controller)),
 
                       const SizedBox(height: 16),
 
                       Container(
                         padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.green.shade50,
-                          border: Border.all(color: Colors.green.shade200),
-                          borderRadius: BorderRadius.circular(8),
+                        decoration: ShowcaseStyle.containerDecoration(
+                          context,
+                          color: Colors.green,
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.speed, color: Colors.green.shade700),
+                            Icon(Icons.speed,
+                                color: ShowcaseStyle.accentHeader(
+                                    context, Colors.green)),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 'ZenObserver provides granular reactivity - only widgets observing changed values rebuild!',
-                                style: TextStyle(color: Colors.green.shade700),
+                                style: TextStyle(
+                                  color: ShowcaseStyle.textPrimary(context),
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                             ),
                           ],
@@ -326,10 +329,9 @@ class ObxDemoPage extends ZenView<ReactiveDemoController> {
                       // Dynamic list with ZenObserver
                       Container(
                         padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.blue.shade50,
-                          border: Border.all(color: Colors.blue.shade200),
-                          borderRadius: BorderRadius.circular(8),
+                        decoration: ShowcaseStyle.containerDecoration(
+                          context,
+                          color: Colors.blue,
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -341,27 +343,33 @@ class ObxDemoPage extends ZenView<ReactiveDemoController> {
                                   'Dynamic Item List',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.blue.shade700,
+                                    color: ShowcaseStyle.accentHeader(
+                                        context, Colors.blue),
                                   ),
                                 ),
                                 ZenObserver(() => Chip(
                                       label: Text(
-                                          '${Zen.find<ReactiveDemoController>().items.length}'),
-                                      backgroundColor: Colors.blue.shade200,
+                                        '${controller.items.length}',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: ShowcaseStyle.accentHeader(
+                                              context, Colors.blue),
+                                        ),
+                                      ),
                                     )),
                               ],
                             ),
                             const SizedBox(height: 8),
                             ZenObserver(
-                              () => Zen.find<ReactiveDemoController>()
-                                      .items
-                                      .isEmpty
-                                  ? const Text('No items added yet')
+                              () => controller.items.isEmpty
+                                  ? Text(
+                                      'No items added yet',
+                                      style: TextStyle(
+                                        color: ShowcaseStyle.textMuted(context),
+                                      ),
+                                    )
                                   : Column(
-                                      children: Zen.find<
-                                              ReactiveDemoController>()
-                                          .items
-                                          .value
+                                      children: controller.items.value
                                           .take(3)
                                           .map(
                                             (item) => Padding(
@@ -372,24 +380,30 @@ class ObxDemoPage extends ZenView<ReactiveDemoController> {
                                                 children: [
                                                   Icon(Icons.circle,
                                                       size: 8,
-                                                      color:
-                                                          Colors.blue.shade600),
+                                                      color: ShowcaseStyle
+                                                          .accentHeader(context,
+                                                              Colors.blue)),
                                                   const SizedBox(width: 8),
-                                                  Expanded(child: Text(item)),
-                                                  if (Zen.find<ReactiveDemoController>()
-                                                              .items
-                                                              .length >
+                                                  Expanded(
+                                                    child: Text(
+                                                      item,
+                                                      style: TextStyle(
+                                                        color: ShowcaseStyle
+                                                            .textPrimary(
+                                                                context),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  if (controller.items.length >
                                                           3 &&
                                                       item ==
-                                                          Zen.find<
-                                                                  ReactiveDemoController>()
-                                                              .items
-                                                              .value[2])
+                                                          controller
+                                                              .items.value[2])
                                                     Text(
-                                                      '+${Zen.find<ReactiveDemoController>().items.length - 3} more',
+                                                      '+${controller.items.length - 3} more',
                                                       style: TextStyle(
-                                                        color: Colors
-                                                            .grey.shade600,
+                                                        color: ShowcaseStyle
+                                                            .textMuted(context),
                                                         fontSize: 12,
                                                       ),
                                                     ),
@@ -411,17 +425,12 @@ class ObxDemoPage extends ZenView<ReactiveDemoController> {
                         children: [
                           Expanded(
                             child: ZenObserver(() => _buildStatusIndicator(
+                                  context,
                                   'Counter Status',
-                                  Zen.find<ReactiveDemoController>()
-                                              .counter
-                                              .value >
-                                          0
+                                  controller.counter.value > 0
                                       ? 'Active'
                                       : 'Zero',
-                                  Zen.find<ReactiveDemoController>()
-                                              .counter
-                                              .value >
-                                          0
+                                  controller.counter.value > 0
                                       ? Colors.green
                                       : Colors.grey,
                                 )),
@@ -429,13 +438,12 @@ class ObxDemoPage extends ZenView<ReactiveDemoController> {
                           const SizedBox(width: 8),
                           Expanded(
                             child: ZenObserver(() => _buildStatusIndicator(
+                                  context,
                                   'Features Status',
-                                  Zen.find<ReactiveDemoController>()
-                                          .bothFeaturesEnabled
+                                  controller.bothFeaturesEnabled
                                       ? 'Enabled'
                                       : 'Disabled',
-                                  Zen.find<ReactiveDemoController>()
-                                          .bothFeaturesEnabled
+                                  controller.bothFeaturesEnabled
                                       ? Colors.green
                                       : Colors.orange,
                                 )),
@@ -478,22 +486,27 @@ class ObxDemoPage extends ZenView<ReactiveDemoController> {
     );
   }
 
-  Widget _buildPerformanceMetric(String label, int value) {
+  Widget _buildPerformanceMetric(
+      BuildContext context, String label, int value) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label),
+        Text(
+          label,
+          style: TextStyle(color: ShowcaseStyle.textPrimary(context)),
+        ),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: Colors.blue.shade100,
-            borderRadius: BorderRadius.circular(12),
+          decoration: ShowcaseStyle.containerDecoration(
+            context,
+            color: Colors.blue,
+            radius: 12,
           ),
           child: Text(
             value.toString(),
             style: TextStyle(
               fontWeight: FontWeight.bold,
-              color: Colors.blue.shade700,
+              color: ShowcaseStyle.accentHeader(context, Colors.blue),
             ),
           ),
         ),
@@ -501,13 +514,14 @@ class ObxDemoPage extends ZenView<ReactiveDemoController> {
     );
   }
 
-  Widget _buildStatusIndicator(String title, String status, Color color) {
+  Widget _buildStatusIndicator(
+      BuildContext context, String title, String status, Color color) {
     return Container(
       padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
-        borderRadius: BorderRadius.circular(6),
+      decoration: ShowcaseStyle.containerDecoration(
+        context,
+        color: color,
+        radius: 6,
       ),
       child: Column(
         children: [
@@ -516,7 +530,7 @@ class ObxDemoPage extends ZenView<ReactiveDemoController> {
             style: TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.bold,
-              color: color,
+              color: ShowcaseStyle.accentHeader(context, color),
             ),
           ),
           const SizedBox(height: 4),
@@ -524,7 +538,8 @@ class ObxDemoPage extends ZenView<ReactiveDemoController> {
             status,
             style: TextStyle(
               fontSize: 12,
-              color: color,
+              fontWeight: FontWeight.w600,
+              color: ShowcaseStyle.accentHeader(context, color),
             ),
           ),
         ],
