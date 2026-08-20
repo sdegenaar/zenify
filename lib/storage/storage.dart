@@ -86,7 +86,7 @@
 /// )
 /// ```
 ///
-/// See also `example/zen_offline/lib/storage.dart` for a full production example.
+/// See also `example/lib/demos/06_offline_and_sync/storage.dart` for a full production example.
 library;
 
 export 'zen_in_memory_storage.dart';

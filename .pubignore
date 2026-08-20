@@ -42,19 +42,10 @@ tool/
 .agentdocs/
 .claude/
 
-# ---- Example sub-apps (full Flutter apps — link from GitHub, not pub.dev) --
-# pub.dev only needs example/main.dart + example/pubspec.yaml for the score.
-# The sub-apps are large, self-contained projects better accessed on GitHub.
-example/counter/
-example/todo/
-example/ecommerce/
-example/hierarchical_scopes_flat/
-example/hierarchical_scopes_nested/
-example/zen_query/
-example/zen_offline/
-example/zenify_showcase/
+# ---- Example showcase lib/ (full Flutter app — linked from GitHub) ---------
+# pub.dev only needs example/example.dart + example/README.md + example/pubspec.yaml.
+# The full multi-screen showcase and demo suites are accessed via GitHub.
 example/lib/
-example/exception_demo.dart
 
 # ---- Exclude noise from the top-level example folder -------
 example/.dart_tool/
@@ -63,6 +54,9 @@ example/.DS_Store
 example/*.iml
 example/pubspec.lock
 example/devtools_options.yaml
+# Web runner — committed to git for out-of-the-box `flutter run -d chrome`,
+# excluded from pub.dev to keep the package download lean.
+example/web/
 
 # ---- Internal planning docs (not user-facing) --------------
 # Note: doc/ guides ARE kept — they're linked from the README and

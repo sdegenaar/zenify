@@ -47,7 +47,7 @@ export 'query/query.dart';
 // ===== STORAGE ADAPTERS =====
 // InMemoryStorage is the only built-in adapter (zero-dep).
 // For SharedPreferences, Hive, sqflite etc — implement ZenStorage yourself.
-// See: example/zen_offline/lib/storage.dart for a reference implementation.
+// See: example/lib/demos/06_offline_and_sync/storage.dart for a reference implementation.
 export 'storage/zen_in_memory_storage.dart';
 
 // ===== CONFIGURATION =====

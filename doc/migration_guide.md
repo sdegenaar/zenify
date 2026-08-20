@@ -456,7 +456,7 @@ final token = box.read('token');
 box.remove('token');
 
 // After — implement ZenStorage with your preferred backend
-// SharedPreferences example (see example/zen_offline/lib/storage.dart):
+// SharedPreferences example (see example/lib/demos/06_offline_and_sync/storage.dart):
 await Zen.init(storage: SharedPreferencesStorage());
 
 // For tests — built-in, no dependencies

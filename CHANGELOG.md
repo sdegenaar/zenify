@@ -1,3 +1,12 @@
+## [2.2.2]
+
+### Changed
+- **Unified Example Showcase:** Replaced fragmented sub-project examples with a single consolidated app under `example/`, featuring 7 categorized demo suites in `lib/demos/` (counter, reactivity, effects, scopes & DI, ZenQuery, offline sync, and case studies).
+- **Standalone Quickstart:** Added `example/example.dart` — a minimal, single-file runnable counter that demonstrates the 3-step Zenify pattern for the pub.dev Example tab.
+- **Documentation:** Updated all README and doc guide links to match the new example structure.
+
+---
+
 ## [2.2.1]
 
 ### Fixed
@@ -618,7 +627,7 @@ ZenMutation.listPut<Post>(queryKey: 'posts', mutationFn: ...) // mutationKey aut
 - Offline mutation queue: mutations triggered while offline are queued and replayed on reconnect
 - `ZenQueryCache.setQueryData()` for function-based optimistic cache updates
 - `NetworkMode` enum: `online`, `offlineFirst`, `always`
-- `example/zen_offline` — full offline-first example app
+- `example/lib/demos/06_offline_and_sync` — full offline-first example app
 
 ---
 

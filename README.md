@@ -231,7 +231,7 @@ flowchart TD
 
 ```yaml
 dependencies:
-  zenify: ^2.2.1
+  zenify: ^2.2.2
 ```
 
 ### 2. Initialize
@@ -291,7 +291,7 @@ class CartPage extends ZenView<CartController> {
 
 **That's it.** The controller is scoped to the route, auto-disposed on pop, multi-instance safe.
 
-[See complete example →](example/counter)
+[See complete example →](example/lib/demos/01_counter/counter_demo.dart)
 
 ---
 
@@ -798,11 +798,11 @@ void main() {
 
 **New to Zenify?** Start here:
 
-1. **5 minutes**: [Counter Example](example/counter) — Basic reactivity
-2. **10 minutes**: [Todo Example](example/todo) — CRUD with effects
+1. **5 minutes**: [Counter Demo](example/lib/demos/01_counter) — Basic reactivity
+2. **10 minutes**: [Todo Demo](example/lib/demos/07_case_studies/todo_app) — CRUD with effects
 3. **15 minutes**: [ZenQuery Guide](https://github.com/sdegenaar/zenify/blob/main/doc/zen_query_guide.md) — Async state management
-4. **20 minutes**: [E-commerce Example](example/ecommerce) — Real-world patterns
-5. **30 minutes**: [Offline Demo](example/zen_offline) — Full offline-first app
+4. **20 minutes**: [E-commerce Case Study](example/lib/demos/07_case_studies/ecommerce_app) — Real-world patterns
+5. **30 minutes**: [Offline Demo](example/lib/demos/06_offline_and_sync) — Full offline-first app
 
 **Building something complex?**
 - [Hierarchical Scopes Guide](https://github.com/sdegenaar/zenify/blob/main/doc/hierarchical_scopes_guide.md) — Advanced DI
@@ -824,15 +824,16 @@ void main() {
 - [GoRouter Integration](https://github.com/sdegenaar/zenify/blob/main/doc/gorouter_guide.md)
 - [GetX Migration Guide](https://github.com/sdegenaar/zenify/blob/main/doc/migration_guide.md)
 
-### Examples
-- [Counter](example/counter) — Simple reactive state
-- [Todo App](example/todo) — CRUD operations
-- [E-commerce](example/ecommerce) — Real-world patterns
-- [Hierarchical Scopes (Flat)](example/hierarchical_scopes_flat) — Explicit passing of parent scopes for standard Navigator
-- [Hierarchical Scopes (Nested)](example/hierarchical_scopes_nested) — Canonical Zero-Config DI using go_router ShellRoute
-- [ZenQuery Demo](example/zen_query) — Async state management
-- [Offline Demo](example/zen_offline) — Full offline-first app
-- [Showcase](example/zenify_showcase) — All features
+### Demos & Showcase
+Run the unified showcase application (`cd example && flutter run`) or explore individual demo directories:
+- [Interactive Showcase](example/lib/main.dart) — All features in a runnable gallery
+- [01 Counter](example/lib/demos/01_counter) — Simple reactive 3-step pattern
+- [02 Reactivity](example/lib/demos/02_reactivity) — Observable values, fine-grained Obx, and Workers
+- [03 Effects](example/lib/demos/03_effects) — ZenEffects async lifecycle management
+- [04 Scopes & DI](example/lib/demos/04_scopes_and_di) — Canonical GoRouter ShellRoute and standard Navigator DI
+- [05 ZenQuery](example/lib/demos/05_zen_query) — Query caching, invalidation, mutations, infinite & stream queries
+- [06 Offline & Sync](example/lib/demos/06_offline_and_sync) — SharedPreferences ZenStorage, mutation queue & network simulator
+- [07 Case Studies](example/lib/demos/07_case_studies) — Complete Todo and E-Commerce applications
 
 ---
 
@@ -865,7 +866,7 @@ flutter pub add zenify
 ```
 
 **Choose your path:**
-- New to Zenify? → [5-minute Counter Tutorial](example/counter)
+- New to Zenify? → [5-minute Counter Tutorial](example/lib/demos/01_counter)
 - Want async superpowers? → [ZenQuery Guide](https://github.com/sdegenaar/zenify/blob/main/doc/zen_query_guide.md)
 - Need offline support? → [Offline Guide](https://github.com/sdegenaar/zenify/blob/main/doc/offline_guide.md)
 - Using GoRouter? → [GoRouter Integration](https://github.com/sdegenaar/zenify/blob/main/doc/gorouter_guide.md)

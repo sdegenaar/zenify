@@ -2,7 +2,7 @@
 
 Zenify v1.6.0 transforms from a simple data fetcher into a robust **Offline Synchronization Engine**.
 
-> **🚀 Live Demo**: Check out the complete [Offline Example App](../example/zen_offline) to see these features in action, including optimistic updates and background syncing.
+> **🚀 Live Demo**: Check out the complete [Offline Example App](../example/lib/demos/06_offline_and_sync) to see these features in action, including optimistic updates and background syncing.
 
 This guide explains how to make your app work flawlessly without an internet connection.
 
@@ -89,7 +89,7 @@ class SharedPreferencesStorage implements ZenStorage {
 }
 ```
 
-> **See also**: `example/zen_offline/lib/storage.dart` for the canonical production example with full error handling.
+> **See also**: `example/lib/demos/06_offline_and_sync/storage.dart` for the canonical production example with full error handling.
 
 ### Production Adapter: Hive (minimal recipe)
 

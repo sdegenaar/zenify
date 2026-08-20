@@ -82,11 +82,11 @@ class FeaturePage extends StatelessWidget {
 }
 ```
 
-> **See it in action**: Check out the complete [hierarchical_scopes_nested example app](../example/hierarchical_scopes_nested) that demonstrates a real-world navigation scenario with deep scope hierarchies using canonical `go_router` shell routes.
+> **See it in action**: Check out the complete [hierarchical_scopes_nested demo](../example/lib/demos/04_scopes_and_di/nested) that demonstrates a real-world navigation scenario with deep scope hierarchies using canonical `go_router` shell routes.
 
 ## Example App
 
-The [hierarchical_scopes_nested example](../example/hierarchical_scopes_nested) provides a complete, runnable demonstration of hierarchical scopes in action. It showcases:
+The [hierarchical_scopes_nested demo](../example/lib/demos/04_scopes_and_di/nested) provides a complete, runnable demonstration of hierarchical scopes in action. It showcases:
 
 - **Real navigation flow**: Home → Departments → Department Details → Employee Profile
 - **Automatic inheritance**: Each level automatically inherits from its parent
@@ -94,8 +94,8 @@ The [hierarchical_scopes_nested example](../example/hierarchical_scopes_nested) 
 - **Debug visualization**: See the scope hierarchy in real-time
 
 ```bash
-# Run the example
-cd example/hierarchical_scopes_nested
+# Run the showcase
+cd example
 flutter run
 ```
 
@@ -319,7 +319,7 @@ void main() {
 
 ### Feature-Based Hierarchy
 
-The [hierarchical_scopes_nested example](../example/hierarchical_scopes_nested) demonstrates this pattern:
+The [hierarchical_scopes_nested demo](../example/lib/demos/04_scopes_and_di/nested) demonstrates this pattern:
 
 ```dart
 // App Level - Wraps entire app
@@ -723,4 +723,4 @@ final service = context.findInScope<MyService>();
 final scope = context.zenScope;
 ```
 
-By following these patterns and best practices, you can build scalable Flutter applications with clean dependency management and efficient resource utilization. The [hierarchical_scopes_nested example](../example/hierarchical_scopes_nested) demonstrates all these concepts in a working application you can study and extend.
+By following these patterns and best practices, you can build scalable Flutter applications with clean dependency management and efficient resource utilization. The [hierarchical_scopes_nested demo](../example/lib/demos/04_scopes_and_di/nested) demonstrates all these concepts in a working application you can study and extend.

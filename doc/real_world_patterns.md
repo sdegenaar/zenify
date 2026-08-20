@@ -926,4 +926,4 @@ These patterns cover the most common use cases in production apps:
 For more patterns, see:
 - [State Management Patterns Guide](state_management_patterns.md)
 - [ZenQuery Guide](zen_query_guide.md)
-- [E-commerce Example](../example/ecommerce)
+- [E-commerce Case Study](../example/lib/demos/07_case_studies/ecommerce_app)
