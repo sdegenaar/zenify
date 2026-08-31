@@ -1,5 +1,6 @@
 import 'package:zenify/zenify.dart';
 import '../../shared/services/todo_service.dart';
+import '../controllers/todo_controller.dart';
 
 /// Module for registering Todo-related dependencies
 class TodoModule extends ZenModule {
@@ -11,6 +12,12 @@ class TodoModule extends ZenModule {
     // Register the TodoService as a permanent singleton
     scope.put<TodoService>(
       TodoService(),
+      isPermanent: true,
+    );
+
+    // Register the TodoController as a permanent singleton
+    scope.put<TodoController>(
+      TodoController(),
       isPermanent: true,
     );
   }

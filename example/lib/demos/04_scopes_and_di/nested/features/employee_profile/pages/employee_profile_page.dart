@@ -304,13 +304,21 @@ class EmployeeProfilePage extends ZenView<EmployeeProfileController> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Chip(
-                    avatar: Icon(Icons.business,
-                        size: 16, color: Colors.blue.shade700),
-                    label: Text('Department: ${employee.departmentId}',
-                        style: TextStyle(color: Colors.black)),
-                    backgroundColor: Colors.blue.shade50,
-                  ),
+                  Builder(builder: (context) {
+                    final isDark =
+                        Theme.of(context).brightness == Brightness.dark;
+                    return Chip(
+                      avatar: Icon(Icons.business,
+                          size: 16,
+                          color: isDark
+                              ? Colors.blueAccent
+                              : Colors.blue.shade700),
+                      label: Text('Department: ${employee.departmentId}'),
+                      backgroundColor: isDark
+                          ? Colors.blue.shade900.withValues(alpha: 0.3)
+                          : Colors.blue.shade50,
+                    );
+                  }),
                 ],
               ),
             ),
@@ -370,17 +378,21 @@ class EmployeeProfilePage extends ZenView<EmployeeProfileController> {
             if (employee.skills.isEmpty)
               const Text('No skills listed')
             else
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: employee.skills
-                    .map((skill) => Chip(
-                          label: Text(skill,
-                              style: TextStyle(color: Colors.black)),
-                          backgroundColor: Colors.green.shade50,
-                        ))
-                    .toList(),
-              ),
+              Builder(builder: (context) {
+                final isDark = Theme.of(context).brightness == Brightness.dark;
+                return Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: employee.skills
+                      .map((skill) => Chip(
+                            label: Text(skill),
+                            backgroundColor: isDark
+                                ? Colors.green.shade900.withValues(alpha: 0.3)
+                                : Colors.green.shade50,
+                          ))
+                      .toList(),
+                );
+              }),
           ],
         ),
       ),

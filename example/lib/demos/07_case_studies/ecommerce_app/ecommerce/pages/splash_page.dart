@@ -2,58 +2,50 @@ import 'package:flutter/material.dart';
 import 'package:zenify/zenify.dart';
 import '../routes/app_routes.dart';
 
-/// Splash page for the e-commerce app
-class SplashPage extends StatefulWidget {
-  const SplashPage({super.key});
+/// Controller handling splash screen lifecycle and startup routing
+class SplashController extends ZenController {
+  final isNavigating = false.obs();
 
-  @override
-  State<SplashPage> createState() => _SplashPageState();
-}
-
-class _SplashPageState extends State<SplashPage> {
-  bool _isNavigating = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _initializeAndNavigate();
-  }
-
-  Future<void> _initializeAndNavigate() async {
-    if (_isNavigating) return;
+  Future<void> initializeAndNavigate(BuildContext context) async {
+    if (isNavigating.value) return;
+    isNavigating.value = true;
 
     try {
-      // Wait for the initial build to complete
-      await Future.delayed(const Duration(milliseconds: 100));
-
-      // Ensure Zenify is properly initialized
-      // This helps with browser refresh scenarios
-      if (!mounted) return;
-
-      // Wait a minimum time for splash visibility
-      await Future.delayed(const Duration(seconds: 1));
-
-      if (!mounted || _isNavigating) return;
-
-      _isNavigating = true;
-
-      // Navigate to home
-      if (mounted) {
+      await Future.delayed(const Duration(milliseconds: 1200));
+      if (context.mounted) {
         Navigator.of(context).pushReplacementNamed(AppRoutes.home);
       }
     } catch (e) {
       ZenLogger.logError('Splash navigation error: $e');
-
-      // Fallback - still navigate after a delay
-      if (mounted && !_isNavigating) {
-        _isNavigating = true;
+      if (context.mounted) {
         Navigator.of(context).pushReplacementNamed(AppRoutes.home);
       }
     }
   }
+}
+
+/// Splash page for the e-commerce app implemented with ZenProvider & ZenView
+class SplashPage extends StatelessWidget {
+  const SplashPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    return ZenProvider.create(
+      create: () => SplashController(),
+      child: const _SplashView(),
+    );
+  }
+}
+
+class _SplashView extends ZenView<SplashController> {
+  const _SplashView();
+
+  @override
+  Widget build(BuildContext context, SplashController controller) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.initializeAndNavigate(context);
+    });
+
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(

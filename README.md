@@ -231,7 +231,7 @@ flowchart TD
 
 ```yaml
 dependencies:
-  zenify: ^2.2.2
+  zenify: ^2.3.0
 ```
 
 ### 2. Initialize
@@ -362,6 +362,7 @@ ZenQueryBuilder<User>(
 - ✅ Real-time streams support
 - ✅ Tag & wildcard group invalidation
 - ✅ `Zen.isFetching` & `Zen.isMutating` global reactive status hooks
+- ✅ `ZenQueryFilter` — declarative batch ops (`setQueriesData`, `cancelQueries`, `resetQueries`, `removeQueries`, `invalidateQueries`, `refetchQueries`)
 
 [See ZenQuery Guide →](https://github.com/sdegenaar/zenify/blob/main/doc/zen_query_guide.md)
 
@@ -831,7 +832,7 @@ Run the unified showcase application (`cd example && flutter run`) or explore in
 - [02 Reactivity](example/lib/demos/02_reactivity) — Observable values, fine-grained Obx, and Workers
 - [03 Effects](example/lib/demos/03_effects) — ZenEffects async lifecycle management
 - [04 Scopes & DI](example/lib/demos/04_scopes_and_di) — Canonical GoRouter ShellRoute and standard Navigator DI
-- [05 ZenQuery](example/lib/demos/05_zen_query) — Query caching, invalidation, mutations, infinite & stream queries
+- [05 ZenQuery](example/lib/demos/05_zen_query) — Query caching, invalidation, mutations, infinite & stream queries, batch cache operations (`ZenQueryFilter`)
 - [06 Offline & Sync](example/lib/demos/06_offline_and_sync) — SharedPreferences ZenStorage, mutation queue & network simulator
 - [07 Case Studies](example/lib/demos/07_case_studies) — Complete Todo and E-Commerce applications
 

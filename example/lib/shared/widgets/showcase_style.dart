@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 /// Centralized style and color utilities for the Zenify Showcase app.
 /// Ensures perfect WCAG AA contrast in both Light Mode and Dark Mode.
 class ShowcaseStyle {
+  /// Showcase primary brand color
+  static const Color primaryColor = Color(0xFF4F46E5);
+
   /// Whether the current theme is in dark mode
   static bool isDark(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark;

@@ -8,7 +8,7 @@ import '../routes/app_routes.dart';
 /// This demonstrates the root of the hierarchical scope chain
 class AppModule extends ZenModule {
   @override
-  String get name => 'AppModule';
+  String get name => 'NestedAppModule';
 
   @override
   void register(ZenScope scope) {

@@ -20,6 +20,13 @@ class HomePage extends ZenView<HomeController> {
       BuildContext context, HomeController controller) {
     return AppBar(
       title: const Text('Company Management'),
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back),
+        tooltip: 'Back to Showcase',
+        onPressed: () {
+          Navigator.of(context, rootNavigator: true).pop();
+        },
+      ),
       backgroundColor: Theme.of(context).colorScheme.primary,
       foregroundColor: Theme.of(context).colorScheme.onPrimary,
       elevation: 2,

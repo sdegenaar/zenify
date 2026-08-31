@@ -89,9 +89,9 @@ class MutationController extends ZenController {
     // Delete mutation
     deleteMutation = ZenMutation<void, int>(
       mutationFn: (id) => ApiService.deletePost(id),
-      onSuccess: (_, __, ___) {
-        // Move to next post
-        currentPostId.value = currentPostId.value + 1;
+      onSuccess: (_, deletedId, ___) {
+        // Switch to the first existing post
+        currentPostId.value = ApiService.firstPostId;
       },
       onError: (error, _, __) {
         debugPrint('Failed to delete post: $error');
@@ -164,6 +164,15 @@ class MutationController extends ZenController {
     if (post == null) return;
 
     likeMutation.mutate(post.id);
+  }
+
+  void nextPost() {
+    currentPostId.value = (currentPostId.value % 100) + 1;
+  }
+
+  void previousPost() {
+    currentPostId.value =
+        currentPostId.value > 1 ? currentPostId.value - 1 : 100;
   }
 
   @override

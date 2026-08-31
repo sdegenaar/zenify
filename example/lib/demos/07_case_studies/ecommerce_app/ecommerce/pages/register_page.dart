@@ -273,7 +273,7 @@ class RegisterPage extends ZenView<RegisterController> {
                       _buildSocialButton(
                         context,
                         icon: Icons.apple,
-                        color: Colors.black,
+                        color: Theme.of(context).colorScheme.onSurface,
                         onPressed: () {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(

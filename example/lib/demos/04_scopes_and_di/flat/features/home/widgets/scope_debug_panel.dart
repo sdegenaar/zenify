@@ -15,15 +15,17 @@ class ScopeDebugPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final currentScope = context.zenScope ?? Zen.rootScope;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Card(
-      margin: EdgeInsets.all(8),
-      color: Colors.grey.shade100,
+      margin: const EdgeInsets.all(8),
+      color: isDark ? const Color(0xFF1E232A) : Colors.grey.shade100,
       child: ExpansionTile(
         initiallyExpanded: initiallyExpanded,
         title: Row(
           children: [
-            Icon(Icons.bug_report, color: Colors.red.shade700),
+            Icon(Icons.bug_report,
+                color: isDark ? Colors.redAccent : Colors.red.shade700),
             const SizedBox(width: 8),
             const Text(
               'Scope Debug Panel',
@@ -33,7 +35,9 @@ class ScopeDebugPanel extends StatelessWidget {
         ),
         subtitle: Text(
           'Current Scope: ${currentScope.name ?? 'Unnamed'}',
-          style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+          style: TextStyle(
+              fontSize: 12,
+              color: isDark ? Colors.grey.shade400 : Colors.grey.shade700),
         ),
         children: [
           Padding(
@@ -46,7 +50,7 @@ class ScopeDebugPanel extends StatelessWidget {
                   const Divider(),
                   _buildScopeHierarchy(currentScope),
                   const Divider(),
-                  _buildRegisteredServices(currentScope),
+                  _buildRegisteredServices(currentScope, context),
                 ],
               ],
             ),
@@ -91,7 +95,7 @@ class ScopeDebugPanel extends StatelessWidget {
         const SizedBox(height: 8),
         _buildInfoRow('Hierarchy Depth', depth.toString()),
         const SizedBox(height: 8),
-        Text('Parent Chain:'),
+        const Text('Parent Chain:'),
         const SizedBox(height: 4),
         _buildParentChain(scope),
       ],
@@ -107,37 +111,48 @@ class ScopeDebugPanel extends StatelessWidget {
       current = current.parent;
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: parentChain.asMap().entries.map((entry) {
-        final index = entry.key;
-        final currentScope = entry.value;
+    return Builder(builder: (context) {
+      final isDark = Theme.of(context).brightness == Brightness.dark;
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: parentChain.asMap().entries.map((entry) {
+          final index = entry.key;
+          final currentScope = entry.value;
 
-        return Padding(
-          padding: EdgeInsets.only(left: index * 16.0),
-          child: Row(
-            children: [
-              Icon(
-                index == 0 ? Icons.arrow_right : Icons.subdirectory_arrow_right,
-                size: 16,
-                color: Colors.grey,
-              ),
-              const SizedBox(width: 4),
-              Text(
-                currentScope.name ?? 'Unnamed Scope',
-                style: TextStyle(
-                  fontWeight: index == 0 ? FontWeight.bold : FontWeight.normal,
-                  color: index == 0 ? Colors.black : Colors.grey.shade700,
+          return Padding(
+            padding: EdgeInsets.only(left: index * 16.0),
+            child: Row(
+              children: [
+                Icon(
+                  index == 0
+                      ? Icons.arrow_right
+                      : Icons.subdirectory_arrow_right,
+                  size: 16,
+                  color: Colors.grey,
                 ),
-              ),
-            ],
-          ),
-        );
-      }).toList(),
-    );
+                const SizedBox(width: 4),
+                Text(
+                  currentScope.name ?? 'Unnamed Scope',
+                  style: TextStyle(
+                    fontWeight:
+                        index == 0 ? FontWeight.bold : FontWeight.normal,
+                    color: index == 0
+                        ? (isDark ? Colors.white : Colors.black)
+                        : (isDark
+                            ? Colors.grey.shade400
+                            : Colors.grey.shade700),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      );
+    });
   }
 
-  Widget _buildRegisteredServices(ZenScope scope) {
+  Widget _buildRegisteredServices(ZenScope scope, BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     // Use ZenScopeInspector to get the registered services
     final services = ZenScopeInspector.getAllInstances(scope);
 
@@ -160,9 +175,14 @@ class ScopeDebugPanel extends StatelessWidget {
               return Chip(
                 label: Text(
                   serviceName,
-                  style: const TextStyle(fontSize: 12),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isDark ? Colors.blueAccent : Colors.blue.shade900,
+                  ),
                 ),
-                backgroundColor: Colors.blue.shade100,
+                backgroundColor: isDark
+                    ? Colors.blue.shade900.withValues(alpha: 0.3)
+                    : Colors.blue.shade100,
               );
             }).toList(),
           ),

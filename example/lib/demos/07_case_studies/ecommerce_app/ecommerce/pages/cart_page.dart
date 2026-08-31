@@ -59,23 +59,28 @@ class CartPage extends ZenView<CartController> {
             ),
           ),
           onSuccess: (cartItems) {
-            return Column(
-              children: [
-                // Cart items list
-                Expanded(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: controller.cartItems.length,
-                    itemBuilder: (context, index) {
-                      final cartItem = controller.cartItems[index];
-                      return _buildCartItem(context, controller, cartItem);
-                    },
-                  ),
-                ),
+            return Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 800),
+                child: Column(
+                  children: [
+                    // Cart items list
+                    Expanded(
+                      child: ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: controller.cartItems.length,
+                        itemBuilder: (context, index) {
+                          final cartItem = controller.cartItems[index];
+                          return _buildCartItem(context, controller, cartItem);
+                        },
+                      ),
+                    ),
 
-                // Cart summary
-                _buildCartSummary(context, controller),
-              ],
+                    // Cart summary
+                    _buildCartSummary(context, controller),
+                  ],
+                ),
+              ),
             );
           },
         );
@@ -130,115 +135,134 @@ class CartPage extends ZenView<CartController> {
   Widget _buildCartItem(
       BuildContext context, CartController controller, CartItem cartItem) {
     final product = cartItem.product;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color:
+            isDark ? theme.colorScheme.surfaceContainerHighest : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? Colors.white12 : Colors.grey.shade200,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // Product image
             ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.network(
-                product.imageUrl,
-                width: 80,
-                height: 80,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    width: 80,
-                    height: 80,
-                    color:
-                        Theme.of(context).colorScheme.surfaceContainerHighest,
-                    child: Icon(
-                      Icons.image_not_supported,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  );
-                },
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                color: isDark ? Colors.black26 : Colors.grey.shade100,
+                child: Image.network(
+                  product.imageUrl,
+                  width: 72,
+                  height: 72,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      width: 72,
+                      height: 72,
+                      color: theme.colorScheme.surfaceContainerHighest,
+                      child: Icon(
+                        Icons.image_not_supported_outlined,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    );
+                  },
+                ),
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 14),
 
             // Product details
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Product name
                   Text(
                     product.name,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                      color: isDark ? Colors.white : Colors.black87,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 4),
 
-                  // Product price
                   Text(
                     '\$${product.price.toStringAsFixed(2)}',
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.bold,
+                      color: theme.colorScheme.primary,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 15,
                     ),
                   ),
                   const SizedBox(height: 8),
 
-                  // Quantity selector
-                  Row(
-                    children: [
-                      const Text('Qty:'),
-                      const SizedBox(width: 8),
-                      Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: Theme.of(context).colorScheme.outlineVariant,
-                          ),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Row(
-                          children: [
-                            // Decrement button
-                            InkWell(
-                              onTap: () => controller.updateQuantity(
-                                cartItem.id,
-                                cartItem.quantity - 1,
-                              ),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 4),
-                                child: const Icon(Icons.remove, size: 16),
-                              ),
-                            ),
-                            // Quantity
-                            Container(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 8),
-                              child: Text(
-                                cartItem.quantity.toString(),
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                            // Increment button
-                            InkWell(
-                              onTap: () => controller.updateQuantity(
-                                cartItem.id,
-                                cartItem.quantity + 1,
-                              ),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 4),
-                                child: const Icon(Icons.add, size: 16),
-                              ),
-                            ),
-                          ],
-                        ),
+                  // Modern Capsule Quantity selector
+                  Container(
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.08)
+                          : Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: isDark ? Colors.white12 : Colors.grey.shade300,
                       ),
-                    ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        InkWell(
+                          onTap: () => controller.updateQuantity(
+                            cartItem.id,
+                            cartItem.quantity - 1,
+                          ),
+                          borderRadius: BorderRadius.circular(20),
+                          child: const Padding(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
+                            child: Icon(Icons.remove, size: 14),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 6),
+                          child: Text(
+                            cartItem.quantity.toString(),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                        InkWell(
+                          onTap: () => controller.updateQuantity(
+                            cartItem.id,
+                            cartItem.quantity + 1,
+                          ),
+                          borderRadius: BorderRadius.circular(20),
+                          child: const Padding(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
+                            child: Icon(Icons.add, size: 14),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -246,9 +270,10 @@ class CartPage extends ZenView<CartController> {
 
             // Remove button
             IconButton(
-              icon: const Icon(Icons.delete_outline),
+              icon: const Icon(Icons.delete_outline_rounded),
               onPressed: () => controller.removeItem(cartItem.id),
-              color: Colors.red,
+              color: Colors.red.shade400,
+              tooltip: 'Remove',
             ),
           ],
         ),
@@ -257,72 +282,89 @@ class CartPage extends ZenView<CartController> {
   }
 
   Widget _buildCartSummary(BuildContext context, CartController controller) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color:
+            isDark ? theme.colorScheme.surfaceContainerHighest : Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -5),
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
+            blurRadius: 16,
+            offset: const Offset(0, -6),
           ),
         ],
       ),
       child: Column(
         children: [
-          // Order summary
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Subtotal',
-                style: TextStyle(fontSize: 16),
+                style: TextStyle(
+                  fontSize: 14,
+                  color: isDark ? Colors.white70 : Colors.grey.shade700,
+                ),
               ),
               ZenObserver(() => Text(
                     '\$${controller.totalPrice.toStringAsFixed(2)}',
                     style: const TextStyle(
-                      fontSize: 16,
+                      fontSize: 15,
                       fontWeight: FontWeight.bold,
                     ),
                   )),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Shipping',
-                style: TextStyle(fontSize: 16),
-              ),
-              const Text(
-                'Free',
+              Text(
+                'Delivery',
                 style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.green,
+                  fontSize: 14,
+                  color: isDark ? Colors.white70 : Colors.grey.shade700,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.green.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Text(
+                  'FREE',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green,
+                  ),
                 ),
               ),
             ],
           ),
-          const Divider(height: 24),
+          const Divider(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                'Total',
+                'Total Amount',
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: 17,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               ZenObserver(() => Text(
                     '\$${controller.totalPrice.toStringAsFixed(2)}',
                     style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.primary,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                      color: theme.colorScheme.primary,
                     ),
                   )),
             ],
@@ -338,8 +380,12 @@ class CartPage extends ZenView<CartController> {
                       : () => _processCheckout(context, controller),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                    backgroundColor: theme.colorScheme.primary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    elevation: 2,
                   ),
                   child: controller.isProcessingCheckout.value
                       ? const SizedBox(
@@ -351,12 +397,19 @@ class CartPage extends ZenView<CartController> {
                                 AlwaysStoppedAnimation<Color>(Colors.white),
                           ),
                         )
-                      : const Text(
-                          'Checkout',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
+                      : const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.lock_outline_rounded, size: 18),
+                            SizedBox(width: 8),
+                            Text(
+                              'Proceed to Checkout',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
                         ),
                 )),
           ),

@@ -12,6 +12,12 @@ class AdvancedFeaturesController extends ZenController {
   late final ZenQuery<String> slowQuery;
   late final ZenQuery<User> dedupeQuery;
 
+  // Batch operations demo queries (tagged & pattern-matched)
+  late final ZenQuery<Map<String, dynamic>> batchFeed1;
+  late final ZenQuery<Map<String, dynamic>> batchFeed2;
+  late final ZenQuery<Map<String, dynamic>> batchProfile;
+  final batchActionLog = <String>[].obs();
+
   final searchController = TextEditingController();
   final searchEnabled = false.obs();
   final searchTerm = ''.obs();
@@ -96,6 +102,87 @@ class AdvancedFeaturesController extends ZenController {
         staleTime: Duration(seconds: 5),
       ),
     );
+
+    // Batch operations demo queries
+    batchFeed1 = ZenQuery<Map<String, dynamic>>(
+      queryKey: 'batch:feed:1',
+      tags: const ['feed', 'batch'],
+      fetcher: (_) async {
+        await Future.delayed(const Duration(milliseconds: 400));
+        return {'id': 1, 'title': 'Flutter 3.29 Released', 'likes': 42};
+      },
+    );
+
+    batchFeed2 = ZenQuery<Map<String, dynamic>>(
+      queryKey: 'batch:feed:2',
+      tags: const ['feed', 'batch'],
+      fetcher: (_) async {
+        await Future.delayed(const Duration(milliseconds: 500));
+        return {'id': 2, 'title': 'Zenify 2.3.0 Batch Filters', 'likes': 88};
+      },
+    );
+
+    batchProfile = ZenQuery<Map<String, dynamic>>(
+      queryKey: 'batch:profile:1',
+      tags: const ['profile', 'batch'],
+      fetcher: (_) async {
+        await Future.delayed(const Duration(milliseconds: 300));
+        return {'id': 1, 'name': 'Sebastian', 'role': 'Lead Architect'};
+      },
+    );
+  }
+
+  void _logBatch(String action) {
+    final list = List<String>.from(batchActionLog.value);
+    list.insert(
+        0, '${DateTime.now().toIso8601String().substring(11, 19)} — $action');
+    if (list.length > 5) list.removeLast();
+    batchActionLog.value = list;
+  }
+
+  /// Bulk optimistic update across all queries tagged 'feed'
+  void batchIncrementFeedLikes() {
+    Zen.setQueriesData<Map<String, dynamic>>(
+      const ZenQueryFilter(tags: ['feed']),
+      (old) {
+        if (old == null) return {'likes': 1};
+        final currentLikes = (old['likes'] as int?) ?? 0;
+        return {...old, 'likes': currentLikes + 1};
+      },
+    );
+    _logBatch('Zen.setQueriesData: Incremented likes on all "feed" queries');
+  }
+
+  /// Concurrently refetch all queries tagged 'feed'
+  Future<void> batchRefetchFeed() async {
+    _logBatch('Zen.refetchQueries: Refetching all tags: ["feed"]...');
+    await Zen.refetchQueries(const ZenQueryFilter(tags: ['feed']));
+    _logBatch('Zen.refetchQueries: Feed refetch complete!');
+  }
+
+  /// Invalidate all queries matching glob pattern 'batch:*'
+  void batchInvalidateAll() {
+    Zen.invalidateQueries(const ZenQueryFilter(queryKey: 'batch:*'));
+    _logBatch('Zen.invalidateQueries: Invalidated pattern "batch:*"');
+  }
+
+  /// Reset all queries tagged 'batch' back to idle/cleared state
+  void batchResetAll() {
+    Zen.resetQueries(const ZenQueryFilter(tags: ['batch']));
+    _logBatch('Zen.resetQueries: Reset all tags: ["batch"] to idle');
+  }
+
+  /// Cancel all in-flight fetches for batch-tagged queries
+  void batchCancelAll() {
+    Zen.cancelQueries(const ZenQueryFilter(tags: ['batch']));
+    _logBatch('Zen.cancelQueries: Cancelled all in-flight tags: ["batch"]');
+  }
+
+  /// Refetch all batch queries to restore data
+  Future<void> batchFetchAll() async {
+    _logBatch('Refetching all batch demo queries...');
+    await Zen.refetchQueries(const ZenQueryFilter(tags: ['batch']));
+    _logBatch('All batch demo queries loaded!');
   }
 
   void toggleSearch(bool enabled) {

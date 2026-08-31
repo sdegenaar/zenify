@@ -67,67 +67,48 @@ class ZenQueryApp extends StatelessWidget {
   }
 }
 
-/// Home page with tab navigation
-/// Uses StatefulWidget for UI state (TabController)
-/// Business logic is handled by individual page controllers
-class ZenQueryHomePage extends StatefulWidget {
+/// Home page with tab navigation using clean DefaultTabController
+/// Individual tab controllers are dynamically created and managed by ZenProvider
+class ZenQueryHomePage extends StatelessWidget {
   const ZenQueryHomePage({super.key});
 
   @override
-  State<ZenQueryHomePage> createState() => _ZenQueryHomePageState();
-}
-
-class _ZenQueryHomePageState extends State<ZenQueryHomePage>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 5, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('ZenQuery Complete Example'),
-        bottom: TabBar(
-          controller: _tabController,
-          isScrollable: true,
-          tabs: const [
-            Tab(text: 'Query Basics', icon: Icon(Icons.query_stats)),
-            Tab(text: 'Mutations', icon: Icon(Icons.edit)),
-            Tab(text: 'Infinite Query', icon: Icon(Icons.view_list)),
-            Tab(text: 'Stream Query', icon: Icon(Icons.stream)),
-            Tab(text: 'Advanced', icon: Icon(Icons.code)),
+    return DefaultTabController(
+      length: 5,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('ZenQuery Complete Example'),
+          bottom: const TabBar(
+            isScrollable: true,
+            tabs: [
+              Tab(text: 'Query Basics', icon: Icon(Icons.query_stats)),
+              Tab(text: 'Mutations', icon: Icon(Icons.edit)),
+              Tab(text: 'Infinite Query', icon: Icon(Icons.view_list)),
+              Tab(text: 'Stream Query', icon: Icon(Icons.stream)),
+              Tab(text: 'Advanced', icon: Icon(Icons.code)),
+            ],
+          ),
+        ),
+        body: TabBarView(
+          children: [
+            ZenProvider.create(
+                create: () => QueryBasicsController(),
+                child: const QueryBasicsPage()),
+            ZenProvider.create(
+                create: () => MutationController(),
+                child: const MutationPage()),
+            ZenProvider.create(
+                create: () => InfiniteQueryController(),
+                child: const InfiniteQueryPage()),
+            ZenProvider.create(
+                create: () => StreamQueryController(),
+                child: const StreamQueryPage()),
+            ZenProvider.create(
+                create: () => AdvancedFeaturesController(),
+                child: const AdvancedFeaturesPage()),
           ],
         ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          ZenProvider.create(
-              create: () => QueryBasicsController(),
-              child: const QueryBasicsPage()),
-          ZenProvider.create(
-              create: () => MutationController(), child: const MutationPage()),
-          ZenProvider.create(
-              create: () => InfiniteQueryController(),
-              child: const InfiniteQueryPage()),
-          ZenProvider.create(
-              create: () => StreamQueryController(),
-              child: const StreamQueryPage()),
-          ZenProvider.create(
-              create: () => AdvancedFeaturesController(),
-              child: const AdvancedFeaturesPage()),
-        ],
       ),
     );
   }

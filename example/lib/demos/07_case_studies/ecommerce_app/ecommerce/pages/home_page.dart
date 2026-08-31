@@ -30,6 +30,73 @@ class HomePage extends ZenView<HomeController> {
       drawer: _buildDrawer(context, controller),
       body: Column(
         children: [
+          // Sleek Store Promo Banner
+          Container(
+            margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [
+                  Color(0xFF4338CA),
+                  Color(0xFF6366F1),
+                  Color(0xFF8B5CF6)
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF6366F1).withValues(alpha: 0.3),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Text(
+                          'LIMITED EDITION',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      const Text(
+                        'Up to 40% Off Tech Gear',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(
+                  Icons.local_offer_rounded,
+                  size: 40,
+                  color: Colors.white70,
+                ),
+              ],
+            ),
+          ),
+
           // Category filter
           _buildCategoryFilter(controller),
 
@@ -46,14 +113,16 @@ class HomePage extends ZenView<HomeController> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
-                        Icons.search_off,
+                        Icons.search_off_rounded,
                         size: 64,
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                       const SizedBox(height: 16),
                       Text(
                         'No products found',
-                        style: Theme.of(context).textTheme.titleLarge,
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
                       ),
                       const SizedBox(height: 8),
                       ElevatedButton(
@@ -69,11 +138,11 @@ class HomePage extends ZenView<HomeController> {
                 onRefresh: controller.loadProducts,
                 child: GridView.builder(
                   padding: const EdgeInsets.all(16),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    childAspectRatio: 0.7,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
+                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                    maxCrossAxisExtent: 220,
+                    mainAxisExtent: 250,
+                    crossAxisSpacing: 14,
+                    mainAxisSpacing: 14,
                   ),
                   itemCount: controller.products.length,
                   itemBuilder: (context, index) {
@@ -99,7 +168,7 @@ class HomePage extends ZenView<HomeController> {
       }
 
       return Container(
-        height: 50,
+        height: 52,
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: ListView.builder(
           scrollDirection: Axis.horizontal,
@@ -117,6 +186,9 @@ class HomePage extends ZenView<HomeController> {
                 return ChoiceChip(
                   label: Text(category),
                   selected: isSelected,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   onSelected: (selected) {
                     if (selected) {
                       controller.setCategory(category);
@@ -200,6 +272,14 @@ class HomePage extends ZenView<HomeController> {
             },
           ),
           const Divider(),
+          ListTile(
+            leading: const Icon(Icons.arrow_back),
+            title: const Text('Back to Showcase'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.of(context, rootNavigator: true).pop();
+            },
+          ),
           ListTile(
             leading: const Icon(Icons.info),
             title: const Text('About'),

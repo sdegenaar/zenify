@@ -20,7 +20,7 @@ class EmployeeProfileModule extends ZenModule {
   });
 
   @override
-  String get name => 'EmployeeProfileModule';
+  String get name => 'FlatEmployeeProfileModule';
 
   @override
   void register(ZenScope scope) {

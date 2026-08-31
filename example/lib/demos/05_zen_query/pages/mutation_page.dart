@@ -35,107 +35,180 @@ class MutationPage extends ZenView<MutationController> {
   }
 
   Widget _buildInfoCard(MutationController controller) {
-    return Card(
-      color: Colors.green.shade50,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
-            Row(
-              children: [
-                Icon(Icons.edit, color: Colors.green),
-                SizedBox(width: 8),
-                Text(
-                  'ZenMutation Basics',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-            SizedBox(height: 8),
-            Text(
-              'This tab demonstrates mutation operations:\n'
-              '• Create, Update, Delete operations\n'
-              '• Optimistic updates for better UX\n'
-              '• Lifecycle callbacks (onMutate, onSuccess, onError)\n'
-              '• Automatic query invalidation\n'
-              '• Loading and error state management',
-              style: TextStyle(fontSize: 14),
-            ),
-          ],
+    return Builder(builder: (context) {
+      final isDark = Theme.of(context).brightness == Brightness.dark;
+      return Card(
+        color: isDark
+            ? Colors.green.shade900.withValues(alpha: 0.3)
+            : Colors.green.shade50,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.edit,
+                      color: isDark ? Colors.greenAccent : Colors.green),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'ZenMutation Basics',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'This tab demonstrates mutation operations:\n'
+                '• Create, Update, Delete operations\n'
+                '• Optimistic updates for better UX\n'
+                '• Lifecycle callbacks (onMutate, onSuccess, onError)\n'
+                '• Automatic query invalidation\n'
+                '• Loading and error state management',
+                style: TextStyle(fontSize: 14),
+              ),
+            ],
+          ),
         ),
-      ),
-    );
+      );
+    });
   }
 
   Widget _buildCurrentPostSection(MutationController controller) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Current Post',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 8),
-        ZenQueryBuilder<Post>(
-          query: controller.currentPostQuery,
-          builder: (context, post) {
-            return Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+    return ZenUpdater<MutationController>(
+      builder: (context, controller) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Current Post',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                // Post Stepper / Browser
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color:
+                        Theme.of(context).colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back_ios, size: 14),
+                        tooltip: 'Previous Post',
+                        visualDensity: VisualDensity.compact,
+                        onPressed: controller.previousPost,
+                      ),
+                      ZenObserver(() => Text(
+                            'Post #${controller.currentPostId.value}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          )),
+                      IconButton(
+                        icon: const Icon(Icons.arrow_forward_ios, size: 14),
+                        tooltip: 'Next Post',
+                        visualDensity: VisualDensity.compact,
+                        onPressed: controller.nextPost,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            ZenQueryBuilder<Post>(
+              key: ValueKey(controller.currentPostQuery.queryKey),
+              query: controller.currentPostQuery,
+              builder: (context, post) {
+                return Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        CircleAvatar(child: Text('${post.id}')),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                post.title,
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                        Row(
+                          children: [
+                            CircleAvatar(child: Text('${post.id}')),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    post.title,
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Post #${post.id} • ${post.createdAt.toString().split('.').first}',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              Text(
-                                'Post #${post.id} • ${post.createdAt.toString().split('.').first}',
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Text(post.content),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            const Icon(Icons.favorite,
+                                size: 20, color: Colors.red),
+                            const SizedBox(width: 4),
+                            Text('${post.likes} likes'),
+                            const Spacer(),
+                            // Direct inline Like action
+                            ZenObserver(() => TextButton.icon(
+                                  icon: const Icon(Icons.thumb_up_alt_outlined,
+                                      size: 16),
+                                  label: const Text('Like'),
+                                  onPressed:
+                                      controller.likeMutation.isLoading.value
+                                          ? null
+                                          : controller.likePost,
+                                )),
+                            // Direct inline Delete action
+                            ZenObserver(() => TextButton.icon(
+                                  icon: const Icon(Icons.delete_outline,
+                                      size: 16, color: Colors.red),
+                                  label: const Text('Delete',
+                                      style: TextStyle(color: Colors.red)),
+                                  onPressed:
+                                      controller.deleteMutation.isLoading.value
+                                          ? null
+                                          : controller.deletePost,
+                                )),
+                          ],
                         ),
                       ],
                     ),
-                    const SizedBox(height: 12),
-                    Text(post.content),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        const Icon(Icons.favorite, size: 20, color: Colors.red),
-                        const SizedBox(width: 4),
-                        Text('${post.likes} likes'),
-                      ],
-                    ),
-                  ],
+                  ),
+                );
+              },
+              loading: () => const Card(
+                child: Padding(
+                  padding: EdgeInsets.all(32),
+                  child: Center(child: CircularProgressIndicator()),
                 ),
               ),
-            );
-          },
-          loading: () => const Card(
-            child: Padding(
-              padding: EdgeInsets.all(32),
-              child: Center(child: CircularProgressIndicator()),
             ),
-          ),
-        ),
-      ],
+          ],
+        );
+      },
     );
   }
 

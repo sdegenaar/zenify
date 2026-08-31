@@ -6,7 +6,7 @@ import '../../shared/services/product_service.dart';
 /// Main application module that registers global services
 class AppModule extends ZenModule {
   @override
-  String get name => 'AppModule';
+  String get name => 'ECommerceAppModule';
 
   @override
   void register(ZenScope scope) {

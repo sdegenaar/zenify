@@ -15,7 +15,7 @@ class DepartmentDetailModule extends ZenModule {
   DepartmentDetailModule({required this.departmentId});
 
   @override
-  String get name => 'DepartmentDetailModule';
+  String get name => 'NestedDepartmentDetailModule';
 
   @override
   void register(ZenScope scope) {

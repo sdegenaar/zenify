@@ -9,5 +9,5 @@ class HomeModule extends ZenModule {
   }
 
   @override
-  String get name => 'HomeModule';
+  String get name => 'NestedHomeModule';
 }

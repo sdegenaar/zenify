@@ -847,8 +847,121 @@ await Zen.queryCache.refetchQueriesByTag('user');
 await Zen.queryCache.refetchQueriesByPattern('user:*');
 ```
 
+---
 
-### Query Deduplication
+### Batch Operations with `ZenQueryFilter` ✨
+
+`ZenQueryFilter` is a declarative, composable filter that lets you target multiple queries
+across the cache in a single call — covering key patterns, tags, lifecycle states, and custom predicates.
+
+#### Constructing a filter
+
+```dart
+// All queries with a glob key pattern
+final filter = ZenQueryFilter(queryKey: 'users:*');
+
+// All active queries tagged 'feed'
+final filter = ZenQueryFilter(
+  tags: ['feed'],
+  type: QueryTypeFilter.active,
+);
+
+// All queries matching ALL of a set of tags
+final filter = ZenQueryFilter(
+  tags: ['user', 'premium'],
+  matchAllTags: true,
+);
+
+// Only stale queries
+final filter = ZenQueryFilter(type: QueryTypeFilter.stale);
+
+// Custom arbitrary logic
+final filter = ZenQueryFilter(
+  predicate: (query) => query.queryKey.startsWith('workspace:') && query.hasError,
+);
+```
+
+#### `QueryTypeFilter` values
+
+| Value | Matches |
+|---|---|
+| `QueryTypeFilter.all` | Every query (default) |
+| `QueryTypeFilter.active` | Non-disposed, enabled queries |
+| `QueryTypeFilter.inactive` | Disposed or disabled queries |
+| `QueryTypeFilter.stale` | Stale or errored queries |
+| `QueryTypeFilter.fetching` | Queries currently executing a fetch |
+
+#### Available batch operations
+
+```dart
+final filter = ZenQueryFilter(tags: ['posts']);
+
+// Bulk data update — calls updater(oldData) for each matching query,
+// updates cache, and immediately notifies reactive UI
+Zen.setQueriesData<Post>(filter, (old) => old?.copyWith(pinned: true));
+
+// Cancel all in-flight fetches matching the filter
+Zen.cancelQueries(filter);
+
+// Reset matching queries to idle/initial state (clears data + error)
+Zen.resetQueries(filter);
+
+// Completely purge matching entries from memory (cache + active queries)
+Zen.removeQueries(filter);
+
+// Mark as stale — active queries will background-refetch automatically
+Zen.invalidateQueries(filter);
+
+// Immediately refetch all matching enabled queries (concurrent)
+await Zen.refetchQueries(filter);
+
+// Query which queries match the filter
+final matches = Zen.queryCache.getQueries(filter);
+```
+
+#### Real-world example — optimistic batch update after a mutation
+
+```dart
+final archiveMutation = ZenMutation<void, String>(
+  mutationFn: (projectId) => api.archiveProject(projectId),
+  onSuccess: (_, projectId, __) {
+    // Immediately update all cached project data in the UI
+    Zen.setQueriesData<Project>(
+      ZenQueryFilter(queryKey: 'project:$projectId'),
+      (old) => old?.copyWith(archived: true),
+    );
+    // Also invalidate any list queries that include projects
+    Zen.invalidateQueries(ZenQueryFilter(tags: ['project-list']));
+  },
+);
+```
+
+#### `isFetching` with a filter
+
+```dart
+// Is any 'search' query currently fetching?
+final searching = Zen.queryCache.isFetching(
+  filter: ZenQueryFilter(tags: ['search']),
+);
+
+// How many queries are currently fetching?
+final count = Zen.queryCache.isFetchingCount(
+  filter: ZenQueryFilter(type: QueryTypeFilter.fetching),
+);
+```
+
+**When to use `ZenQueryFilter` vs legacy methods:**
+
+| Scenario | Preferred approach |
+|---|---|
+| Single known query | `invalidateQuery(key)`, `refetchQuery(key)` |
+| All queries with a prefix | `invalidateQueriesWithPrefix('user:')` |
+| Simple tag group | `invalidateQueriesByTag('user')` |
+| Complex multi-criteria (tags + state + key) | `ZenQueryFilter(...)` |
+| Bulk data mutations without refetch | `Zen.setQueriesData<T>(filter, updater)` |
+| Programmatic cancel (e.g. unmount) | `Zen.cancelQueries(filter)` or `query.cancel()` |
+
+
 
 Automatic - concurrent requests with the same key share a single fetch:
 ```dart
@@ -1290,23 +1403,28 @@ Singleton for managing multiple queries:
 // Get cache instance
 Zen.queryCache
 
-// Invalidate queries — by key
+// ── Batch operations with ZenQueryFilter ✨ ──────────────────────
+// Filter by key (exact, prefix, glob), tags, type, or custom predicate
+getQueries([ZenQueryFilter? filter])          // → List<ZenQuery>
+getMatchingKeys(ZenQueryFilter filter)        // → List<String> (incl. cache-only)
+setQueriesData<T>(filter, T Function(T?) updater)
+cancelQueries(ZenQueryFilter filter)
+resetQueries(ZenQueryFilter filter)
+removeQueries(ZenQueryFilter filter)
+invalidateQueries([dynamic filterOrPredicate]) // ZenQueryFilter | bool Function(String) | bool Function(ZenQuery) | null
+refetchQueries([dynamic filterOrPredicate])    // same overload as invalidateQueries
+
+// ── Invalidate queries — legacy ─────────────────────────────────
 invalidateQuery(Object key)
 invalidateQueriesWithPrefix(String prefix)
-invalidateQueries(bool Function(String) predicate)
-
-// Invalidate queries — by tag or glob pattern ✨
 invalidateQueriesByTag(String tag)
 invalidateQueriesByPattern(String pattern)  // supports * wildcard
 
-// Refetch queries — by predicate
-refetchQueries(bool Function(String) predicate)
-
-// Refetch queries — by tag or glob pattern ✨
+// ── Refetch queries — legacy ────────────────────────────────────
 refetchQueriesByTag(String tag)
 refetchQueriesByPattern(String pattern)
 
-// Tag lookups ✨
+// ── Tag lookups ✨ ──────────────────────────────────────────────
 getQueriesByTag(String tag)   // → List<ZenQuery>
 getKeysByTag(String tag)       // → List<String>
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:zenify/zenify.dart';
+import '../../../../../shared/widgets/showcase_style.dart';
 import '../controllers/todo_controller.dart';
 
 /// Widget for filtering todos by status (all, active, completed)
@@ -13,28 +14,49 @@ class TodoFilterBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      color: Theme.of(context).colorScheme.surfaceContainerLow,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: isDark
+            ? Theme.of(context).colorScheme.surface
+            : Colors.grey.shade50,
+        border: Border(
+          bottom: BorderSide(
+            color: isDark ? Colors.white12 : Colors.grey.shade200,
+          ),
+        ),
+      ),
       child: Column(
         children: [
-          // Search indicator
+          // Search indicator if active
           ZenObserver(() => controller.searchQuery.value.isNotEmpty
               ? Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: ShowcaseStyle.primaryColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                   child: Row(
                     children: [
-                      const Icon(Icons.search, size: 16),
+                      Icon(Icons.search,
+                          size: 16, color: ShowcaseStyle.primaryColor),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'Search: "${controller.searchQuery.value}"',
-                          style: const TextStyle(fontStyle: FontStyle.italic),
+                          'Filter: "${controller.searchQuery.value}"',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: ShowcaseStyle.primaryColor,
+                          ),
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.clear, size: 16),
+                        icon: const Icon(Icons.close, size: 16),
                         onPressed: () => controller.setSearchQuery(''),
                         tooltip: 'Clear search',
                         padding: EdgeInsets.zero,
@@ -45,107 +67,119 @@ class TodoFilterBar extends StatelessWidget {
                 )
               : const SizedBox.shrink()),
 
-          // Filter buttons
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          // Filter Segmented Bar
+          ZenObserver(() {
+            final currentMode = controller.filterMode.value;
+            return Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? Theme.of(context).colorScheme.surfaceContainerHighest
+                    : Colors.grey.shade200,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  _buildTab(
+                    context,
+                    label: 'All',
+                    count: controller.todos.length,
+                    selected: currentMode == 'all',
+                    onTap: () => controller.setFilterMode('all'),
+                  ),
+                  _buildTab(
+                    context,
+                    label: 'Active',
+                    count: controller.activeCount,
+                    selected: currentMode == 'active',
+                    onTap: () => controller.setFilterMode('active'),
+                  ),
+                  _buildTab(
+                    context,
+                    label: 'Done',
+                    count: controller.completedCount,
+                    selected: currentMode == 'completed',
+                    onTap: () => controller.setFilterMode('completed'),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTab(
+    BuildContext context, {
+    required String label,
+    required int count,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Expanded(
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: selected
+                ? (isDark
+                    ? Theme.of(context).colorScheme.surface
+                    : Colors.white)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: selected
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.08),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Expanded(
-                child: ZenObserver(() => _buildFilterButton(
-                      context,
-                      label: 'All',
-                      value: 'all',
-                      count: controller.todos.length,
-                      isSelected: controller.filterMode.value == 'all',
-                    )),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+                  color: selected
+                      ? ShowcaseStyle.primaryColor
+                      : (isDark ? Colors.white70 : Colors.grey.shade700),
+                ),
               ),
-              Expanded(
-                child: ZenObserver(() => _buildFilterButton(
-                      context,
-                      label: 'Active',
-                      value: 'active',
-                      count: controller.activeCount,
-                      isSelected: controller.filterMode.value == 'active',
-                    )),
-              ),
-              Expanded(
-                child: ZenObserver(() => _buildFilterButton(
-                      context,
-                      label: 'Completed',
-                      value: 'completed',
-                      count: controller.completedCount,
-                      isSelected: controller.filterMode.value == 'completed',
-                    )),
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                decoration: BoxDecoration(
+                  color: selected
+                      ? ShowcaseStyle.primaryColor
+                      : (isDark ? Colors.white12 : Colors.grey.shade300),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  '$count',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: selected
+                        ? Colors.white
+                        : (isDark ? Colors.white70 : Colors.grey.shade700),
+                  ),
+                ),
               ),
             ],
           ),
-
-          // Sort indicator
-          ZenObserver(() => Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.sort, size: 14),
-                    const SizedBox(width: 4),
-                    Text(
-                      'Sorted by: ${_getSortLabel(controller.sortMode.value)}',
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                  ],
-                ),
-              )),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFilterButton(
-    BuildContext context, {
-    required String label,
-    required String value,
-    required int count,
-    required bool isSelected,
-  }) {
-    return TextButton(
-      onPressed: () => controller.setFilterMode(value),
-      style: TextButton.styleFrom(
-        backgroundColor: isSelected
-            ? Theme.of(context).colorScheme.primaryContainer
-            : Colors.transparent,
-        foregroundColor: isSelected
-            ? Theme.of(context).colorScheme.onPrimaryContainer
-            : Theme.of(context).colorScheme.onSurface,
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
         ),
       ),
-      child: Column(
-        children: [
-          Text(
-            label,
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            count.toString(),
-            style: const TextStyle(fontSize: 12),
-          ),
-        ],
-      ),
     );
-  }
-
-  String _getSortLabel(String sortMode) {
-    switch (sortMode) {
-      case 'created':
-        return 'Creation Date';
-      case 'priority':
-        return 'Priority';
-      case 'dueDate':
-        return 'Due Date';
-      default:
-        return 'Default';
-    }
   }
 }

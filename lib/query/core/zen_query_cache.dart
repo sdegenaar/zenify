@@ -8,6 +8,7 @@ import '../../di/zen_lifecycle.dart';
 import '../logic/zen_query.dart';
 import 'zen_query_config.dart';
 import 'zen_query_enums.dart';
+import 'zen_query_filter.dart';
 
 /// Cache entry for a query
 class _CacheEntry<T> {
@@ -340,6 +341,61 @@ class ZenQueryCache {
   /// Get all queries (for lifecycle management)
   List<ZenQuery> getAllQueries() => _queries.values.toList();
 
+  /// Returns all active queries matching [filter].
+  ///
+  /// If [filter] is omitted or null, returns all active (non-disposed) queries in the cache.
+  List<ZenQuery> getQueries([ZenQueryFilter? filter]) {
+    final all = _queries.values.where((q) => !q.isDisposed);
+    if (filter == null) {
+      return all.toList();
+    }
+    return all.where((q) => filter.matches(q)).toList();
+  }
+
+  /// Returns all tags associated with a given [key] (from active queries or tag index).
+  List<String> _getTagsForKey(String key) {
+    final query = _queries[key];
+    if (query != null && !query.isDisposed) {
+      return query.tags;
+    }
+    final result = <String>[];
+    _tagIndex.forEach((tag, keys) {
+      if (keys.contains(key)) {
+        result.add(tag);
+      }
+    });
+    return result;
+  }
+
+  /// Returns all query keys matching [filter] across active queries and cached entries.
+  List<String> getMatchingKeys(ZenQueryFilter filter) {
+    final allKeys = <String>{..._queries.keys, ..._cache.keys};
+    final matchingKeys = <String>[];
+
+    for (final key in allKeys) {
+      final query = _queries[key];
+      if (query != null) {
+        if (filter.matches(query)) {
+          matchingKeys.add(key);
+        }
+      } else {
+        // Cache-only entry (not mounted as active ZenQuery)
+        final tags = _getTagsForKey(key);
+        final entry = _cache[key];
+        final isStale = entry == null || entry.isExpired;
+        if (filter.matchesKeyAndTags(
+          key,
+          queryTags: tags,
+          queryIsStale: isStale,
+          queryIsFetching: false,
+        )) {
+          matchingKeys.add(key);
+        }
+      }
+    }
+    return matchingKeys;
+  }
+
   /// Update cache for a query
   void updateCache<T>(String queryKey, T data, DateTime timestamp) {
     final query = _queries[queryKey];
@@ -498,16 +554,22 @@ class ZenQueryCache {
   /// Returns whether queries are currently fetching.
   ///
   /// Can optionally be filtered by:
+  /// - [filter]: Matches queries using a [ZenQueryFilter].
   /// - [queryKey]: Checks if the specific query matching the key is currently fetching.
   /// - [tag]: Checks if any query with the given tag is currently fetching.
   /// - [predicate]: Checks if any query matching the custom predicate is currently fetching.
   ///
   /// If no filters are provided, returns whether ANY query in the application is currently fetching (`ZenQuery.anyFetching`).
   bool isFetching({
+    ZenQueryFilter? filter,
     Object? queryKey,
     String? tag,
     bool Function(ZenQuery query)? predicate,
   }) {
+    if (filter != null) {
+      return _queries.values.any((q) => filter.matches(q) && q.isFetching);
+    }
+
     if (queryKey != null) {
       final normalizedKey = QueryKey.normalize(queryKey);
       final query = _queries[normalizedKey];
@@ -528,12 +590,19 @@ class ZenQueryCache {
     return ZenQuery.anyFetching;
   }
 
-  /// Returns the count of queries currently fetching (optionally filtered by [queryKey], [tag], or [predicate]).
+  /// Returns the count of queries currently fetching (optionally filtered by [filter], [queryKey], [tag], or [predicate]).
   int isFetchingCount({
+    ZenQueryFilter? filter,
     Object? queryKey,
     String? tag,
     bool Function(ZenQuery query)? predicate,
   }) {
+    if (filter != null) {
+      return _queries.values
+          .where((q) => filter.matches(q) && q.isFetching)
+          .length;
+    }
+
     if (queryKey != null) {
       final normalizedKey = QueryKey.normalize(queryKey);
       final query = _queries[normalizedKey];
@@ -578,7 +647,7 @@ class ZenQueryCache {
     return entry.data as T?;
   }
 
-  /// Functionally update cached data for a query.
+  /// Functionally update cached data for a single query.
   ///
   /// [updater] receives the previous data and returns new data.
   /// Automatically sets the timestamp to now.
@@ -588,6 +657,57 @@ class ZenQueryCache {
     final newData = updater(oldData);
 
     updateCache(normalizedKey, newData, DateTime.now());
+  }
+
+  /// Functionally update cached data for all queries matching [filter].
+  ///
+  /// [updater] receives the previous data and returns new data for each matching query.
+  /// Automatically updates the in-memory cache, active query UI listeners, and storage persistence.
+  void setQueriesData<T>(
+    ZenQueryFilter filter,
+    T Function(T? oldData) updater,
+  ) {
+    final matchingKeys = getMatchingKeys(filter);
+    for (final key in matchingKeys) {
+      final oldData = getCachedData<T>(key);
+      final newData = updater(oldData);
+      updateCache(key, newData, DateTime.now());
+    }
+    ZenLogger.logDebug(
+      'Batch updated data for ${matchingKeys.length} queries matching filter',
+    );
+  }
+
+  /// Cancel any in-flight fetch requests for all active queries matching [filter].
+  void cancelQueries(ZenQueryFilter filter) {
+    final matching = getQueries(filter);
+    int count = 0;
+    for (final query in matching) {
+      if (query.isFetching) {
+        query.cancel('Cancelled by ZenQueryFilter');
+        count++;
+      }
+    }
+    ZenLogger.logDebug('Cancelled $count in-flight queries matching filter');
+  }
+
+  /// Reset all active queries matching [filter] back to their initial/idle state.
+  void resetQueries(ZenQueryFilter filter) {
+    final matching = getQueries(filter);
+    for (final query in matching) {
+      query.reset();
+    }
+    ZenLogger.logDebug('Reset ${matching.length} queries matching filter');
+  }
+
+  /// Remove all queries and cache entries matching [filter] completely from the cache.
+  void removeQueries(ZenQueryFilter filter) {
+    final matchingKeys = getMatchingKeys(filter);
+    for (final key in matchingKeys) {
+      removeQuery(key);
+    }
+    ZenLogger.logDebug(
+        'Removed ${matchingKeys.length} queries matching filter');
   }
 
   /// Get cached timestamp for a query
@@ -606,18 +726,48 @@ class ZenQueryCache {
     }
   }
 
-  /// Invalidate queries matching pattern
-  void invalidateQueries(bool Function(String key) predicate) {
-    for (final key in _queries.keys) {
-      if (predicate(key)) {
-        invalidateQuery(key);
+  /// Invalidate queries matching [filterOrPredicate] (mark as stale and refetch if active).
+  ///
+  /// Can be called with:
+  /// - [ZenQueryFilter]: Invalidates all queries matching the filter criteria.
+  /// - [bool Function(String key)]: Invalidates queries whose key matches the predicate.
+  /// - [bool Function(ZenQuery query)]: Invalidates queries matching the query predicate.
+  /// - `null` or no arguments: Invalidates ALL active queries in the cache.
+  void invalidateQueries([dynamic filterOrPredicate]) {
+    if (filterOrPredicate == null) {
+      int count = 0;
+      for (final query in _queries.values) {
+        if (!query.isDisposed) {
+          query.invalidate();
+          count++;
+        }
+      }
+      ZenLogger.logDebug('Invalidated all $count active queries');
+    } else if (filterOrPredicate is ZenQueryFilter) {
+      final matching = getQueries(filterOrPredicate);
+      for (final query in matching) {
+        query.invalidate();
+      }
+      ZenLogger.logDebug(
+          'Invalidated ${matching.length} queries matching filter');
+    } else if (filterOrPredicate is bool Function(String key)) {
+      for (final key in _queries.keys) {
+        if (filterOrPredicate(key)) {
+          invalidateQuery(key);
+        }
+      }
+    } else if (filterOrPredicate is bool Function(ZenQuery query)) {
+      for (final query in _queries.values) {
+        if (!query.isDisposed && filterOrPredicate(query)) {
+          query.invalidate();
+        }
       }
     }
   }
 
   /// Invalidate all queries with a prefix
   void invalidateQueriesWithPrefix(String prefix) {
-    invalidateQueries((key) => key.startsWith(prefix));
+    invalidateQueries((String key) => key.startsWith(prefix));
   }
 
   /// Invalidate all queries that carry [tag].
@@ -699,25 +849,55 @@ class ZenQueryCache {
     }
   }
 
-  /// Refetch all queries whose keys match [predicate].
-  Future<void> refetchQueries(bool Function(String key) predicate) async {
+  /// Refetch all queries matching [filterOrPredicate].
+  ///
+  /// Can be called with:
+  /// - [ZenQueryFilter]: Refetches all queries matching the filter criteria.
+  /// - [bool Function(String key)]: Refetches queries whose key matches the predicate.
+  /// - [bool Function(ZenQuery query)]: Refetches queries matching the query predicate.
+  /// - `null` or no arguments: Refetches ALL active enabled queries in the cache.
+  Future<void> refetchQueries([dynamic filterOrPredicate]) async {
+    final List<ZenQuery> queriesToRefetch;
+    if (filterOrPredicate == null) {
+      queriesToRefetch = _queries.values
+          .where((q) => !q.isDisposed && q.enabled.value)
+          .toList();
+    } else if (filterOrPredicate is ZenQueryFilter) {
+      queriesToRefetch =
+          getQueries(filterOrPredicate).where((q) => q.enabled.value).toList();
+    } else if (filterOrPredicate is bool Function(String key)) {
+      queriesToRefetch = _queries.entries
+          .where((e) =>
+              filterOrPredicate(e.key) &&
+              !e.value.isDisposed &&
+              e.value.enabled.value)
+          .map((e) => e.value)
+          .toList();
+    } else if (filterOrPredicate is bool Function(ZenQuery query)) {
+      queriesToRefetch = _queries.values
+          .where(
+              (q) => !q.isDisposed && q.enabled.value && filterOrPredicate(q))
+          .toList();
+    } else {
+      queriesToRefetch = [];
+    }
+
     final futures = <Future>[];
-    for (final entry in _queries.entries) {
-      if (predicate(entry.key)) {
-        futures.add(
-          Future(() async {
-            try {
-              await entry.value.refetch();
-            } catch (e) {
-              ZenLogger.logWarning(
-                'Failed to refetch query ${entry.key}: $e',
-              );
-            }
-          }),
-        );
-      }
+    for (final q in queriesToRefetch) {
+      futures.add(
+        Future(() async {
+          try {
+            await q.refetch();
+          } catch (e) {
+            ZenLogger.logWarning(
+              'Failed to refetch query ${q.queryKey}: $e',
+            );
+          }
+        }),
+      );
     }
     await Future.wait(futures);
+    ZenLogger.logDebug('Refetched ${queriesToRefetch.length} queries');
   }
 
   /// Refetch all queries that carry [tag].
@@ -793,6 +973,10 @@ class ZenQueryCache {
     _cache.remove(normalizedKey);
     _queries.remove(normalizedKey);
     _pendingFetches.remove(normalizedKey);
+    _unindexTags(normalizedKey);
+    // Remove from scope tracking if it was a scoped query
+    _scopeQueries.forEach((_, keys) => keys.remove(normalizedKey));
+    _scopeQueries.removeWhere((_, keys) => keys.isEmpty);
   }
 
   /// Clear all queries and cache

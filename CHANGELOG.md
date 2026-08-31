@@ -1,3 +1,31 @@
+## [2.3.0]
+
+### Added
+- **`ZenQueryFilter` — Declarative Multi-Query Filtering:** A new `ZenQueryFilter` class and `QueryTypeFilter` enum provide a unified, composable filter for targeting multiple queries in batch operations. Supports:
+  - **Key matching**: Exact match (`exact: true`), hierarchical prefix (`:`, `/`, `.` delimiters), and glob wildcards (`user:*`, `*:comments`, `*feed*`).
+  - **Tag matching**: `tags: ['feed']` with `matchAllTags` toggle for any-tag vs all-tags semantics.
+  - **Type filtering**: `QueryTypeFilter.active`, `.inactive`, `.stale`, `.fetching`.
+  - **Explicit state flags**: `isFetching: true/false`, `isStale: true/false`.
+  - **Custom predicates**: `predicate: (query) => ...` for arbitrary logic.
+- **Batch Query Cache Operations on `ZenQueryCache` and `Zen`:**
+  - `setQueriesData<T>(filter, updater)` — Functionally update cached data across all matching queries and immediately notify reactive UI listeners.
+  - `cancelQueries(filter)` — Programmatically cancel in-flight network requests for all matching queries.
+  - `resetQueries(filter)` — Reset all matching queries to their initial/idle state.
+  - `removeQueries(filter)` — Purge all matching queries and cached entries from memory.
+  - `invalidateQueries(filterOrPredicate)` — Enhanced to accept `ZenQueryFilter`, key predicate `bool Function(String)`, query predicate `bool Function(ZenQuery)`, or `null` (all queries).
+  - `refetchQueries(filterOrPredicate)` — Enhanced with the same overloaded signature as `invalidateQueries`, executing all refetches concurrently via `Future.wait`.
+  - `getQueries([ZenQueryFilter?])` — Returns all active non-disposed queries matching an optional filter.
+  - `getMatchingKeys(ZenQueryFilter)` — Returns keys across **both** mounted queries and unmounted cache-only entries (e.g. from prefetch).
+- **`ZenQuery.cancel([String reason])` — Public Programmatic Cancellation:** Cancel an in-flight query request directly, aborting the active network token, cancelling any retry backoff timer, and resetting `fetchStatus` to `idle`.
+
+### Fixed
+- **`removeQuery` Tag Index Leak:** `removeQuery` now correctly calls `_unindexTags` and cleans up `_scopeQueries` on removal. Previously, removing a query from the cache left dangling key references in `_tagIndex`, causing `getKeysByTag`, `invalidateQueriesByTag`, and `refetchQueriesByTag` to return or attempt to operate on entries that no longer exist.
+
+### Example App
+- **Batch Cache Operations Demo** (`example/lib/demos/05_zen_query`, Advanced Features tab): Interactive showcase of all six `ZenQueryFilter` batch operations with live reactive query state cards, a timestamp activity log, and dark/light-mode-adaptive styling. Demonstrates `setQueriesData`, `cancelQueries`, `resetQueries`, `removeQueries`, `invalidateQueries`, and `refetchQueries` against tagged and pattern-matched queries.
+
+---
+
 ## [2.2.2]
 
 ### Changed

@@ -1,26 +1,46 @@
+import 'package:flutter/material.dart';
 import 'package:zenify/zenify.dart';
 import '../../shared/models/todo_model.dart';
+import 'todo_controller.dart';
 
 /// Controller for managing the creation and editing of Todo items
 class TodoDetailController extends ZenController {
+  final TodoController todoController;
   final Todo? initialTodo;
 
-  // Constructor that accepts the todo
-  TodoDetailController({this.initialTodo});
+  // Constructor that accepts the parent controller and optional initial todo
+  TodoDetailController({
+    required this.todoController,
+    this.initialTodo,
+  });
 
-  // Reactive properties - these need .obs() because UI watches them
+  // Reactive properties
   final title = ''.obs();
-  final priority = 2.obs();
+  final priority = 2.obs(); // 1 = Low, 2 = Medium, 3 = High
   final dueDate = Rx<DateTime?>(null);
   final notes = ''.obs();
   final isEditMode = false.obs();
 
-  // Computed properties - these don't need .obs()
+  // Persistent text controllers to prevent keystroke resets
+  late final TextEditingController titleController;
+  late final TextEditingController notesController;
+
+  // Computed properties
   bool get isValid => title.value.trim().isNotEmpty;
 
   @override
   void onInit() {
     super.onInit();
+    titleController = TextEditingController();
+    notesController = TextEditingController();
+
+    titleController.addListener(() {
+      title.value = titleController.text;
+    });
+
+    notesController.addListener(() {
+      notes.value = notesController.text;
+    });
 
     // Initialize based on whether we're editing or creating
     if (initialTodo != null) {
@@ -31,6 +51,8 @@ class TodoDetailController extends ZenController {
   }
 
   void _initForEdit(Todo todo) {
+    titleController.text = todo.title;
+    notesController.text = todo.notes ?? '';
     title.value = todo.title;
     priority.value = todo.priority;
     dueDate.value = todo.dueDate;
@@ -39,6 +61,8 @@ class TodoDetailController extends ZenController {
   }
 
   void _initForCreate() {
+    titleController.clear();
+    notesController.clear();
     title.value = '';
     priority.value = 2; // Default to medium priority
     dueDate.value = null;
@@ -47,10 +71,6 @@ class TodoDetailController extends ZenController {
   }
 
   // Setter methods for updating form values
-  void setTitle(String value) {
-    title.value = value;
-  }
-
   void setPriority(int value) {
     priority.value = value;
   }
@@ -63,10 +83,6 @@ class TodoDetailController extends ZenController {
     dueDate.value = null;
   }
 
-  void setNotes(String value) {
-    notes.value = value;
-  }
-
   void resetForm() {
     _initForCreate();
   }
@@ -74,13 +90,22 @@ class TodoDetailController extends ZenController {
   Todo createTodoFromForm() {
     return Todo(
       id: initialTodo?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
-      title: title.value.trim(),
+      title: titleController.text.trim(),
       priority: priority.value,
       dueDate: dueDate.value,
-      notes: notes.value.trim().isEmpty ? null : notes.value.trim(),
+      notes: notesController.text.trim().isEmpty
+          ? null
+          : notesController.text.trim(),
       isCompleted: initialTodo?.isCompleted ?? false,
       createdAt: initialTodo?.createdAt ?? DateTime.now(),
       updatedAt: DateTime.now(),
     );
+  }
+
+  @override
+  void onClose() {
+    titleController.dispose();
+    notesController.dispose();
+    super.onClose();
   }
 }

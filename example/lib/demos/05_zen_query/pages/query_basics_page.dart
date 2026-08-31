@@ -33,38 +33,44 @@ class QueryBasicsPage extends ZenView<QueryBasicsController> {
   }
 
   Widget _buildInfoCard(QueryBasicsController controller) {
-    return Card(
-      color: Colors.blue.shade50,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
-            Row(
-              children: [
-                Icon(Icons.info_outline, color: Colors.blue),
-                SizedBox(width: 8),
-                Text(
-                  'ZenQuery Basics',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-            SizedBox(height: 8),
-            Text(
-              'This tab demonstrates core ZenQuery features:\n'
-              '• Automatic caching and deduplication\n'
-              '• Loading, error, and success states\n'
-              '• Stale time and cache time management\n'
-              '• Manual refetching and invalidation\n'
-              '• Automatic retry on failure\n'
-              '• Placeholder data while loading',
-              style: TextStyle(fontSize: 14),
-            ),
-          ],
+    return Builder(builder: (context) {
+      final isDark = Theme.of(context).brightness == Brightness.dark;
+      return Card(
+        color: isDark
+            ? Colors.blue.shade900.withValues(alpha: 0.3)
+            : Colors.blue.shade50,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.info_outline,
+                      color: isDark ? Colors.blueAccent : Colors.blue),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'ZenQuery Basics',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'This tab demonstrates core ZenQuery features:\n'
+                '• Automatic caching and deduplication\n'
+                '• Loading, error, and success states\n'
+                '• Stale time and cache time management\n'
+                '• Manual refetching and invalidation\n'
+                '• Automatic retry on failure\n'
+                '• Placeholder data while loading',
+                style: TextStyle(fontSize: 14),
+              ),
+            ],
+          ),
         ),
-      ),
-    );
+      );
+    });
   }
 
   Widget _buildUserQuerySection(QueryBasicsController controller) {
@@ -79,6 +85,7 @@ class QueryBasicsPage extends ZenView<QueryBasicsController> {
         ZenQueryBuilder<User>(
           query: controller.userQuery,
           builder: (context, user) {
+            final isDark = Theme.of(context).brightness == Brightness.dark;
             return Card(
               child: Column(
                 children: [
@@ -102,18 +109,30 @@ class QueryBasicsPage extends ZenView<QueryBasicsController> {
                     padding: const EdgeInsets.all(16),
                     child: Text(
                       user.bio,
-                      style: const TextStyle(fontSize: 14, color: Colors.grey),
+                      style: TextStyle(
+                          fontSize: 14,
+                          color: isDark
+                              ? Colors.grey.shade400
+                              : Colors.grey.shade700),
                     ),
                   ),
                   if (controller.userQuery.isStale)
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(8),
-                      color: Colors.orange.shade100,
-                      child: const Text(
+                      color: isDark
+                          ? Colors.orange.shade900.withValues(alpha: 0.3)
+                          : Colors.orange.shade100,
+                      child: Text(
                         '⚠️ Data is stale (> 30 seconds old)',
                         textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 12),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDark
+                              ? Colors.orangeAccent
+                              : Colors.orange.shade900,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                 ],
@@ -166,6 +185,7 @@ class QueryBasicsPage extends ZenView<QueryBasicsController> {
           query: controller.postsQuery,
           showStaleData: true,
           builder: (context, posts) {
+            final isDark = Theme.of(context).brightness == Brightness.dark;
             return Card(
               child: Column(
                 children: [
@@ -173,11 +193,19 @@ class QueryBasicsPage extends ZenView<QueryBasicsController> {
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(8),
-                      color: Colors.purple.shade100,
-                      child: const Text(
+                      color: isDark
+                          ? Colors.purple.shade900.withValues(alpha: 0.3)
+                          : Colors.purple.shade100,
+                      child: Text(
                         '📋 Showing placeholder data',
                         textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 12),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDark
+                              ? Colors.purpleAccent
+                              : Colors.purple.shade900,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ListView.builder(

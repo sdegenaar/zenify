@@ -6,6 +6,7 @@ import '../core/zen_logger.dart';
 import '../core/zen_scope.dart';
 import '../core/zen_module.dart';
 import '../query/core/zen_query_cache.dart';
+import '../query/core/zen_query_filter.dart';
 import '../query/logic/zen_query.dart';
 import '../query/logic/zen_mutation.dart';
 import '../reactive/core/rx_value.dart';
@@ -304,6 +305,45 @@ class Zen {
   /// Zen.queryCache.setQueryData('users', (_) => users);
   /// ```
   static ZenQueryCache get queryCache => ZenQueryCache.instance;
+
+  /// Cancel in-flight fetch requests for all active queries matching [filter].
+  static void cancelQueries(ZenQueryFilter filter) {
+    ZenQueryCache.instance.cancelQueries(filter);
+  }
+
+  /// Reset all active queries matching [filter] back to their initial/idle state.
+  static void resetQueries(ZenQueryFilter filter) {
+    ZenQueryCache.instance.resetQueries(filter);
+  }
+
+  /// Remove all queries and cache entries matching [filter] completely from the cache.
+  static void removeQueries(ZenQueryFilter filter) {
+    ZenQueryCache.instance.removeQueries(filter);
+  }
+
+  /// Functionally update cached data for all queries matching [filter].
+  static void setQueriesData<T>(
+    ZenQueryFilter filter,
+    T Function(T? oldData) updater,
+  ) {
+    ZenQueryCache.instance.setQueriesData<T>(filter, updater);
+  }
+
+  /// Invalidate queries matching [filterOrPredicate] (mark as stale and refetch if active).
+  ///
+  /// Can be called with:
+  /// - [ZenQueryFilter]: Invalidates all queries matching the filter criteria.
+  /// - [bool Function(String key)]: Invalidates queries whose key matches the predicate.
+  /// - [bool Function(ZenQuery query)]: Invalidates queries matching the query predicate.
+  /// - `null` or no arguments: Invalidates ALL active queries in the cache.
+  static void invalidateQueries([dynamic filterOrPredicate]) {
+    ZenQueryCache.instance.invalidateQueries(filterOrPredicate);
+  }
+
+  /// Refetch all active queries matching [filterOrPredicate].
+  static Future<void> refetchQueries([dynamic filterOrPredicate]) {
+    return ZenQueryCache.instance.refetchQueries(filterOrPredicate);
+  }
 
   //
   // GLOBAL QUERY & MUTATION HOOKS

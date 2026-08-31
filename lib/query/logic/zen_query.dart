@@ -540,6 +540,25 @@ class ZenQuery<T> extends ZenController {
     _refetchTimer = null;
   }
 
+  /// Cancel any pending or in-flight fetch request for this query.
+  ///
+  /// Cancelling a query will:
+  /// - Cancel the active network request via [ZenCancelToken]
+  /// - Complete and cancel any active retry backoff timer
+  /// - Reset [fetchStatus] back to [ZenQueryFetchStatus.idle]
+  /// - Reset [isLoading] back to false
+  void cancel([String reason = 'Query cancelled']) {
+    _cancelPendingRequest();
+    if (fetchStatus.value != ZenQueryFetchStatus.idle) {
+      fetchStatus.value = ZenQueryFetchStatus.idle;
+    }
+    if (_isLoadingNotifier?.value == true) {
+      _isLoadingNotifier?.value = false;
+    }
+    ZenLogger.logDebug('Query cancelled: $queryKey ($reason)');
+    update();
+  }
+
   /// Pause this query
   ///
   /// Pausing a query will:

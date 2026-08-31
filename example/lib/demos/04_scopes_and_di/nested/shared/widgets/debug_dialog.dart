@@ -5,15 +5,10 @@ import '../../app/services/navigation_service.dart';
 /// Debug dialog showing scope hierarchy and dependencies
 ///
 /// Simplified for the new widget tree-based architecture
-class DebugDialog extends StatefulWidget {
+class DebugDialog extends StatelessWidget {
   const DebugDialog({super.key});
 
-  @override
-  State<DebugDialog> createState() => _DebugDialogState();
-}
-
-class _DebugDialogState extends State<DebugDialog> {
-  Map<String, dynamic> _collectDebugData() {
+  Map<String, dynamic> _collectDebugData(BuildContext context) {
     final data = <String, dynamic>{};
 
     try {
@@ -78,7 +73,7 @@ class _DebugDialogState extends State<DebugDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final debugData = _collectDebugData();
+    final debugData = _collectDebugData(context);
 
     return Dialog(
       child: Container(
@@ -162,22 +157,24 @@ class _DebugDialogState extends State<DebugDialog> {
                     ),
 
                     // Current Scope
-                    _buildSection('Current Scope', [
-                      _buildDataRow('Name',
+                    _buildSection(context, 'Current Scope', [
+                      _buildDataRow(context, 'Name',
                           debugData['currentScopeName']?.toString() ?? 'None'),
                       if (debugData['currentScopeId'] != null) ...[
-                        _buildDataRow('ID',
+                        _buildDataRow(context, 'ID',
                             debugData['currentScopeId']?.toString() ?? ''),
                         _buildDataRow(
+                            context,
                             'Disposed',
                             debugData['currentScopeDisposed']?.toString() ??
                                 'false'),
                         _buildDataRow(
+                            context,
                             'Dependencies',
                             debugData['currentScopeDependencies']?.toString() ??
                                 '0'),
                       ],
-                      _buildDataRow('Route',
+                      _buildDataRow(context, 'Route',
                           debugData['currentRoute']?.toString() ?? 'Unknown'),
                     ]),
 
@@ -185,19 +182,19 @@ class _DebugDialogState extends State<DebugDialog> {
 
                     // Current Scope Dependencies
                     if (debugData['currentScopeBreakdown'] != null)
-                      _buildCurrentScopeDependencies(debugData),
+                      _buildCurrentScopeDependencies(context, debugData),
 
                     const SizedBox(height: 16),
 
                     // System Statistics
-                    _buildSection('System Statistics', [
-                      _buildDataRow('Total Scopes',
+                    _buildSection(context, 'System Statistics', [
+                      _buildDataRow(context, 'Total Scopes',
                           debugData['totalScopes']?.toString() ?? '0'),
-                      _buildDataRow('Active Scopes',
+                      _buildDataRow(context, 'Active Scopes',
                           debugData['activeScopes']?.toString() ?? '0'),
-                      _buildDataRow('Disposed Scopes',
+                      _buildDataRow(context, 'Disposed Scopes',
                           debugData['disposedScopes']?.toString() ?? '0'),
-                      _buildDataRow('Navigation Count',
+                      _buildDataRow(context, 'Navigation Count',
                           debugData['navigationCount']?.toString() ?? '0'),
                     ]),
 
@@ -205,9 +202,11 @@ class _DebugDialogState extends State<DebugDialog> {
 
                     // All Scopes Hierarchy
                     _buildSection(
+                        context,
                         'Scope Hierarchy',
                         (debugData['allScopesInfo'] as List<dynamic>? ?? [])
-                            .map((scopeInfo) => _buildScopeCard(scopeInfo))
+                            .map((scopeInfo) =>
+                                _buildScopeCard(context, scopeInfo))
                             .toList()),
 
                     const SizedBox(height: 16),
@@ -215,12 +214,12 @@ class _DebugDialogState extends State<DebugDialog> {
                     // Errors
                     if (debugData['error'] != null ||
                         debugData['navigationError'] != null)
-                      _buildSection('Errors', [
+                      _buildSection(context, 'Errors', [
                         if (debugData['error'] != null)
-                          _buildErrorRow(
-                              'General Error', debugData['error'].toString()),
+                          _buildErrorRow(context, 'General Error',
+                              debugData['error'].toString()),
                         if (debugData['navigationError'] != null)
-                          _buildErrorRow('Navigation Error',
+                          _buildErrorRow(context, 'Navigation Error',
                               debugData['navigationError'].toString()),
                       ]),
                   ],
@@ -233,7 +232,8 @@ class _DebugDialogState extends State<DebugDialog> {
     );
   }
 
-  Widget _buildCurrentScopeDependencies(Map<String, dynamic> debugData) {
+  Widget _buildCurrentScopeDependencies(
+      BuildContext context, Map<String, dynamic> debugData) {
     final breakdown =
         debugData['currentScopeBreakdown'] as Map<String, dynamic>?;
     if (breakdown == null) return const SizedBox.shrink();
@@ -242,7 +242,7 @@ class _DebugDialogState extends State<DebugDialog> {
     final services = breakdown['services'] as List<dynamic>? ?? [];
     final others = breakdown['others'] as List<dynamic>? ?? [];
 
-    return _buildSection('Current Scope Dependencies', [
+    return _buildSection(context, 'Current Scope Dependencies', [
       if (controllers.isEmpty && services.isEmpty && others.isEmpty)
         const Text('No local dependencies in this scope',
             style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey))
@@ -290,7 +290,7 @@ class _DebugDialogState extends State<DebugDialog> {
     );
   }
 
-  Widget _buildScopeCard(Map<String, dynamic> scopeInfo) {
+  Widget _buildScopeCard(BuildContext context, Map<String, dynamic> scopeInfo) {
     final name = scopeInfo['name']?.toString() ?? 'Unknown';
     final parent = scopeInfo['parent']?.toString() ?? 'None';
     final disposed = scopeInfo['disposed'] == true;
@@ -367,7 +367,8 @@ class _DebugDialogState extends State<DebugDialog> {
     );
   }
 
-  Widget _buildSection(String title, List<Widget> children) {
+  Widget _buildSection(
+      BuildContext context, String title, List<Widget> children) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -395,7 +396,7 @@ class _DebugDialogState extends State<DebugDialog> {
     );
   }
 
-  Widget _buildDataRow(String label, String value) {
+  Widget _buildDataRow(BuildContext context, String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -426,7 +427,7 @@ class _DebugDialogState extends State<DebugDialog> {
     );
   }
 
-  Widget _buildErrorRow(String label, String error) {
+  Widget _buildErrorRow(BuildContext context, String label, String error) {
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(

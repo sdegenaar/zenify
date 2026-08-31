@@ -153,6 +153,9 @@ class ApiService {
     );
   }
 
+  static int _nextPostId = 101;
+  static int get firstPostId => _posts.isNotEmpty ? _posts.first.id : 1;
+
   /// Get a single post by ID
   static Future<Post> getPost(int id, {ZenCancelToken? cancelToken}) async {
     await _simulateNetworkDelay();
@@ -177,7 +180,7 @@ class ApiService {
     _maybeThrowError(errorRate: 0.08);
 
     final newPost = Post(
-      id: _posts.length + 1,
+      id: _nextPostId++,
       userId: 1, // Current user
       title: request.title,
       content: request.content,

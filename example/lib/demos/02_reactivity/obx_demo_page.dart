@@ -256,34 +256,47 @@ class ObxDemoPage extends ZenView<ReactiveDemoController> {
             // Performance Comparison
             DemoSection(
               title: 'Performance Visualization',
-              subtitle: 'See rebuild counts for each ZenObserver widget',
+              subtitle:
+                  'See real-time rebuild counts for each ZenObserver widget',
               child: Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     children: [
-                      // Rebuild counters (simulated)
-                      _buildPerformanceMetric(
-                          context,
-                          'Counter ZenObserver Rebuilds',
-                          _getCounterRebuilds(controller)),
-                      const SizedBox(height: 8),
-                      _buildPerformanceMetric(
-                          context,
-                          'Message ZenObserver Rebuilds',
-                          _getMessageRebuilds(controller)),
-                      const SizedBox(height: 8),
-                      _buildPerformanceMetric(
-                          context,
-                          'Items ZenObserver Rebuilds',
-                          _getItemsRebuilds(controller)),
-                      const SizedBox(height: 8),
-                      _buildPerformanceMetric(
-                          context,
-                          'Features ZenObserver Rebuilds',
-                          _getFeaturesRebuilds(controller)),
-
-                      const SizedBox(height: 16),
+                      // Rebuild counters (live reactive tracking)
+                      ZenObserver(() => Column(
+                            children: [
+                              _buildPerformanceMetric(
+                                  context,
+                                  'Counter ZenObserver Rebuilds',
+                                  controller.counterRebuilds.value),
+                              const SizedBox(height: 8),
+                              _buildPerformanceMetric(
+                                  context,
+                                  'Message ZenObserver Rebuilds',
+                                  controller.messageRebuilds.value),
+                              const SizedBox(height: 8),
+                              _buildPerformanceMetric(
+                                  context,
+                                  'Items ZenObserver Rebuilds',
+                                  controller.itemsRebuilds.value),
+                              const SizedBox(height: 8),
+                              _buildPerformanceMetric(
+                                  context,
+                                  'Features ZenObserver Rebuilds',
+                                  controller.featuresRebuilds.value),
+                            ],
+                          )),
+                      const SizedBox(height: 12),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton.icon(
+                          icon: const Icon(Icons.restart_alt, size: 16),
+                          label: const Text('Reset Counters'),
+                          onPressed: controller.resetRebuildCounters,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
 
                       Container(
                         padding: const EdgeInsets.all(12),
@@ -546,13 +559,4 @@ class ObxDemoPage extends ZenView<ReactiveDemoController> {
       ),
     );
   }
-
-  // Simulated rebuild counters (in real app, these would be tracked)
-  int _getCounterRebuilds(ReactiveDemoController controller) =>
-      controller.counter.value; // Approximate
-  int _getMessageRebuilds(ReactiveDemoController controller) => 5; // Simulated
-  int _getItemsRebuilds(ReactiveDemoController controller) =>
-      controller.items.length;
-  int _getFeaturesRebuilds(ReactiveDemoController controller) =>
-      (controller.featureA.value ? 1 : 0) + (controller.featureB.value ? 1 : 0);
 }

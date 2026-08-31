@@ -12,7 +12,7 @@ import '../services/employee_service.dart';
 /// and inherits services from the parent scope
 class DepartmentsModule extends ZenModule {
   @override
-  String get name => 'DepartmentsModule';
+  String get name => 'NestedDepartmentsModule';
 
   @override
   void register(ZenScope scope) {

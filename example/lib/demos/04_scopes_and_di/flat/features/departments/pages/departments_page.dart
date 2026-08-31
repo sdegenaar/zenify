@@ -286,9 +286,10 @@ class DepartmentsPage extends ZenView<DepartmentsController> {
   Widget _buildEffectStatusBar(DepartmentsController controller) {
     return ZenUpdater<DepartmentsController>(
       builder: (context, controller) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          color: Colors.grey.shade100,
+          color: isDark ? const Color(0xFF1E232A) : Colors.grey.shade100,
           child: Row(
             children: [
               Text(
@@ -296,7 +297,7 @@ class DepartmentsPage extends ZenView<DepartmentsController> {
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
-                  color: Colors.grey.shade700,
+                  color: isDark ? Colors.grey.shade300 : Colors.grey.shade700,
                 ),
               ),
               const SizedBox(width: 8),

@@ -162,6 +162,21 @@ class WorkerDemoController extends ZenController {
     items.clear();
   }
 
+  // Worker lifecycle state
+  final RxBool isPaused = false.obs();
+
+  @override
+  void pauseAllWorkers() {
+    super.pauseAllWorkers();
+    isPaused.value = true;
+  }
+
+  @override
+  void resumeAllWorkers() {
+    super.resumeAllWorkers();
+    isPaused.value = false;
+  }
+
   // Worker management
   void resetAllCounters() {
     everCount.value = 0;

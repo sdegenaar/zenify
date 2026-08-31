@@ -27,42 +27,51 @@ class AdvancedFeaturesPage extends ZenView<AdvancedFeaturesController> {
         _buildCancellationSection(controller),
         const SizedBox(height: 16),
         _buildDeduplicationSection(controller),
+        const SizedBox(height: 16),
+        _buildBatchOperationsSection(controller),
       ],
     );
   }
 
   Widget _buildInfoCard(AdvancedFeaturesController controller) {
-    return Card(
-      color: Colors.teal.shade50,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
-            Row(
-              children: [
-                Icon(Icons.code, color: Colors.teal),
-                SizedBox(width: 8),
-                Text(
-                  'Advanced Features',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-            SizedBox(height: 8),
-            Text(
-              'This tab demonstrates advanced ZenQuery features:\n'
-              '• Query selection (derived queries)\n'
-              '• Dependent queries (wait for other queries)\n'
-              '• Conditional queries (enable/disable)\n'
-              '• Request cancellation\n'
-              '• Automatic deduplication',
-              style: TextStyle(fontSize: 14),
-            ),
-          ],
+    return Builder(builder: (context) {
+      final isDark = Theme.of(context).brightness == Brightness.dark;
+      return Card(
+        color: isDark
+            ? Colors.teal.shade900.withValues(alpha: 0.3)
+            : Colors.teal.shade50,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.code,
+                      color: isDark ? Colors.tealAccent : Colors.teal),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'Advanced Features',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'This tab demonstrates advanced ZenQuery features:\n'
+                '• Query selection (derived queries)\n'
+                '• Dependent queries (wait for other queries)\n'
+                '• Conditional queries (enable/disable)\n'
+                '• Request cancellation\n'
+                '• Automatic deduplication\n'
+                '• Batch cache operations (ZenQueryFilter)',
+                style: TextStyle(fontSize: 14),
+              ),
+            ],
+          ),
         ),
-      ),
-    );
+      );
+    });
   }
 
   Widget _buildQuerySelectionSection(AdvancedFeaturesController controller) {
@@ -494,5 +503,347 @@ class AdvancedFeaturesPage extends ZenView<AdvancedFeaturesController> {
         ),
       ],
     );
+  }
+
+  Widget _buildBatchOperationsSection(AdvancedFeaturesController controller) {
+    return Builder(builder: (context) {
+      final isDark = Theme.of(context).brightness == Brightness.dark;
+      final theme = Theme.of(context);
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Batch Cache Operations (ZenQueryFilter) ✨',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Target multiple queries across the cache simultaneously by key glob patterns, tags, or lifecycle states.',
+            style: TextStyle(fontSize: 12, color: theme.hintColor),
+          ),
+          const SizedBox(height: 12),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Text(
+                    'Live Queries in Cache:',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 10),
+                  _buildQueryStateTile(
+                    context: context,
+                    title: 'Feed Post #1',
+                    keyName: 'batch:feed:1',
+                    tags: const ['feed', 'batch'],
+                    query: controller.batchFeed1,
+                  ),
+                  const SizedBox(height: 8),
+                  _buildQueryStateTile(
+                    context: context,
+                    title: 'Feed Post #2',
+                    keyName: 'batch:feed:2',
+                    tags: const ['feed', 'batch'],
+                    query: controller.batchFeed2,
+                  ),
+                  const SizedBox(height: 8),
+                  _buildQueryStateTile(
+                    context: context,
+                    title: 'Profile #1',
+                    keyName: 'batch:profile:1',
+                    tags: const ['profile', 'batch'],
+                    query: controller.batchProfile,
+                  ),
+                  const Divider(height: 28),
+                  const Text(
+                    'Batch Actions:',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      FilledButton.tonalIcon(
+                        onPressed: controller.batchIncrementFeedLikes,
+                        icon: const Icon(Icons.thumb_up, size: 16),
+                        label:
+                            const Text('Like All Feed Posts (setQueriesData)'),
+                      ),
+                      FilledButton.tonalIcon(
+                        onPressed: () => controller.batchRefetchFeed(),
+                        icon: const Icon(Icons.refresh, size: 16),
+                        label: const Text(
+                            'Refetch Feed (refetchQueries tags: [feed])'),
+                      ),
+                      FilledButton.tonalIcon(
+                        onPressed: controller.batchInvalidateAll,
+                        icon: const Icon(Icons.sync, size: 16),
+                        label: const Text('Invalidate All (pattern: batch:*)'),
+                      ),
+                      ElevatedButton.icon(
+                        onPressed: controller.batchResetAll,
+                        icon: const Icon(Icons.clear_all, size: 16),
+                        label: const Text('Reset All (resetQueries)'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: isDark
+                              ? Colors.orange.shade900.withValues(alpha: 0.4)
+                              : Colors.orange.shade50,
+                          foregroundColor: isDark
+                              ? Colors.orangeAccent
+                              : Colors.orange.shade900,
+                          side: BorderSide(
+                              color: isDark
+                                  ? Colors.orange.shade700
+                                  : Colors.orange.shade300),
+                        ),
+                      ),
+                      ZenObserver(() {
+                        final anyFetching = [
+                          controller.batchFeed1,
+                          controller.batchFeed2,
+                          controller.batchProfile,
+                        ].any((q) => q.isFetching);
+                        return ElevatedButton.icon(
+                          onPressed:
+                              anyFetching ? controller.batchCancelAll : null,
+                          icon: const Icon(Icons.cancel, size: 16),
+                          label: const Text('Cancel In-Flight (cancelQueries)'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: isDark
+                                ? Colors.red.shade900.withValues(alpha: 0.4)
+                                : Colors.red.shade50,
+                            foregroundColor:
+                                isDark ? Colors.redAccent : Colors.red.shade900,
+                            side: BorderSide(
+                                color: isDark
+                                    ? Colors.red.shade700
+                                    : Colors.red.shade300),
+                          ),
+                        );
+                      }),
+                      OutlinedButton.icon(
+                        onPressed: () => controller.batchFetchAll(),
+                        icon: const Icon(Icons.download, size: 16),
+                        label: const Text('Reload All'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 18),
+                  const Text(
+                    'Activity Log:',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                  ),
+                  const SizedBox(height: 6),
+                  ZenObserver(() {
+                    final logBoxBg = isDark
+                        ? const Color(0xFF14171C)
+                        : const Color(0xFF1E232A);
+                    if (controller.batchActionLog.isEmpty) {
+                      return Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: logBoxBg,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                              color: isDark ? Colors.white10 : Colors.black12),
+                        ),
+                        child: const Text(
+                          'Tap an action button above to see batch operations in real-time.',
+                          style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.white54,
+                              fontFamily: 'monospace'),
+                        ),
+                      );
+                    }
+                    return Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: logBoxBg,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                            color: isDark ? Colors.white10 : Colors.black12),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: controller.batchActionLog
+                            .map((log) => Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 2),
+                                  child: Text(
+                                    log,
+                                    style: const TextStyle(
+                                      fontFamily: 'monospace',
+                                      fontSize: 11,
+                                      color: Colors.greenAccent,
+                                      height: 1.4,
+                                    ),
+                                  ),
+                                ))
+                            .toList(),
+                      ),
+                    );
+                  }),
+                ],
+              ),
+            ),
+          ),
+        ],
+      );
+    });
+  }
+
+  Widget _buildQueryStateTile({
+    required BuildContext context,
+    required String title,
+    required String keyName,
+    required List<String> tags,
+    required ZenQuery<Map<String, dynamic>> query,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+
+    return ZenObserver(() {
+      final isLoading = query.isLoading.value;
+      final data = query.data.value;
+      final status = query.status.value;
+
+      final tileBg = isLoading
+          ? (isDark ? Colors.blue.withValues(alpha: 0.18) : Colors.blue.shade50)
+          : (isDark ? const Color(0xFF222831) : const Color(0xFFF8F9FA));
+
+      final tileBorder = isLoading
+          ? Colors.blue.shade400
+          : (isDark ? const Color(0xFF393E46) : Colors.grey.shade300);
+
+      final textColor = theme.textTheme.bodyMedium?.color ??
+          (isDark ? Colors.white : Colors.black87);
+
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          border: Border.all(color: tileBorder),
+          borderRadius: BorderRadius.circular(8),
+          color: tileBg,
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        title,
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            color: textColor),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        keyName,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: isDark
+                              ? Colors.grey.shade400
+                              : Colors.grey.shade600,
+                          fontFamily: 'monospace',
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      ...tags.map((t) => Container(
+                            margin: const EdgeInsets.only(right: 4),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 1),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? Colors.teal.withValues(alpha: 0.2)
+                                  : Colors.teal.shade50,
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(
+                                color: isDark
+                                    ? Colors.teal.withValues(alpha: 0.4)
+                                    : Colors.teal.shade300,
+                              ),
+                            ),
+                            child: Text(
+                              '#$t',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                                color: isDark
+                                    ? Colors.tealAccent
+                                    : Colors.teal.shade800,
+                              ),
+                            ),
+                          )),
+                      const SizedBox(width: 6),
+                      if (data != null)
+                        Text(
+                          data.containsKey('likes')
+                              ? '❤️ ${data['likes']} likes ("${data['title']}")'
+                              : '👤 ${data['name']} (${data['role']})',
+                          style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: textColor),
+                        )
+                      else if (status == ZenQueryStatus.idle)
+                        Text(
+                          'Idle (cleared)',
+                          style: TextStyle(
+                              fontSize: 12,
+                              color: theme.hintColor,
+                              fontStyle: FontStyle.italic),
+                        )
+                      else if (status == ZenQueryStatus.error)
+                        const Text(
+                          'Error',
+                          style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.redAccent,
+                              fontWeight: FontWeight.bold),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            if (isLoading)
+              const SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            else
+              Icon(
+                status == ZenQueryStatus.success
+                    ? Icons.check_circle
+                    : (status == ZenQueryStatus.idle
+                        ? Icons.circle_outlined
+                        : Icons.error),
+                color: status == ZenQueryStatus.success
+                    ? Colors.greenAccent
+                    : (status == ZenQueryStatus.idle
+                        ? theme.hintColor
+                        : Colors.redAccent),
+                size: 20,
+              ),
+          ],
+        ),
+      );
+    });
   }
 }

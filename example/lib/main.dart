@@ -14,7 +14,10 @@ import 'demos/02_reactivity/zen_updater_demo_page.dart';
 import 'demos/03_effects/controllers/effect_demo_controller.dart';
 import 'demos/03_effects/effect_demo_page.dart';
 import 'demos/04_scopes_and_di/flat/main.dart';
+import 'demos/04_scopes_and_di/flat/app/modules/app_module.dart' as flat_scopes;
 import 'demos/04_scopes_and_di/nested/main.dart';
+import 'demos/04_scopes_and_di/nested/app/modules/app_module.dart'
+    as nested_scopes;
 import 'demos/05_zen_query/main.dart';
 import 'demos/05_zen_query/modules/zen_query_module.dart';
 import 'demos/06_offline_and_sync/feed_controller.dart';
@@ -33,106 +36,72 @@ import 'shared/services/demo_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 1. Initialize Zenify with DevTools and Offline Storage support
+  // 1. Wire Zenify logger → IDE debug console (debugPrint is lint-safe & always visible)
+  //    Without this, ZenLogger defaults to developer.log() which only appears in DevTools.
+  //    This pattern is the recommended setup for any app using Zenify.
+  if (kDebugMode) {
+    ZenLogger.init(
+      logHandler: (message, level) {
+        debugPrint('[Zenify ${level.name.toUpperCase()}] $message');
+      },
+      errorHandler: (message, [error, stackTrace]) {
+        debugPrint('❌ [Zenify ERROR] $message');
+        if (error != null) debugPrint('   Error: $error');
+        if (stackTrace != null) debugPrint('   Stack: $stackTrace');
+      },
+    );
+  }
+
+  // 2. Initialize Zenify with DevTools and Offline Storage support
   await Zen.init(
     registerDevTools: true,
     storage: SharedPreferencesStorage(),
   );
 
-  // 2. Configure environment
+  // 3. Configure environment
   if (kReleaseMode) {
     ZenConfig.applyEnvironment(ZenEnvironment.production);
   } else {
     ZenConfig.applyEnvironment(ZenEnvironment.development);
   }
 
-  // 3. Register shared modules
+  // 4. Register shared modules
   Zen.put<DemoService>(DemoService());
   await Zen.registerModules([
     TodoModule(),
     ZenQueryModule(),
     ecommerce.AppModule(),
+    nested_scopes.AppModule(),
+    flat_scopes.AppModule(),
   ]);
+
+  // Register Global Controllers
+  Zen.put<ThemeController>(ThemeController(), isPermanent: true);
 
   runApp(const ZenifyShowcaseApp());
 }
 
-class ZenifyShowcaseApp extends StatefulWidget {
-  const ZenifyShowcaseApp({super.key});
+/// Global controller for reactive application-level theme state
+class ThemeController extends ZenController {
+  final Rx<ThemeMode> themeMode = ThemeMode.system.obs();
 
-  @override
-  State<ZenifyShowcaseApp> createState() => _ZenifyShowcaseAppState();
-}
-
-class _ZenifyShowcaseAppState extends State<ZenifyShowcaseApp> {
-  ThemeMode _themeMode = ThemeMode.system;
-
-  void _toggleTheme() {
-    setState(() {
-      _themeMode =
-          _themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
-    });
+  bool isDarkMode(BuildContext context) {
+    if (themeMode.value == ThemeMode.dark) return true;
+    if (themeMode.value == ThemeMode.light) return false;
+    return MediaQuery.platformBrightnessOf(context) == Brightness.dark;
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Zenify Demos & Showcase',
-      debugShowCheckedModeBanner: false,
-      themeMode: _themeMode,
-      theme: ThemeData(
-        colorSchemeSeed: const Color(0xFF6366F1),
-        useMaterial3: true,
-        brightness: Brightness.light,
-        cardTheme: CardThemeData(
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: BorderSide(color: Colors.grey.shade200),
-          ),
-        ),
-      ),
-      darkTheme: ThemeData(
-        colorSchemeSeed: const Color(0xFF6366F1),
-        useMaterial3: true,
-        brightness: Brightness.dark,
-        cardTheme: CardThemeData(
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: BorderSide(color: Colors.grey.shade800),
-          ),
-        ),
-      ),
-      home: ShowcaseCatalogScreen(
-        onToggleTheme: _toggleTheme,
-        isDark: _themeMode == ThemeMode.dark ||
-            (_themeMode == ThemeMode.system &&
-                WidgetsBinding.instance.platformDispatcher.platformBrightness ==
-                    Brightness.dark),
-      ),
-    );
+  void toggleTheme(BuildContext context) {
+    final dark = isDarkMode(context);
+    themeMode.value = dark ? ThemeMode.light : ThemeMode.dark;
   }
 }
 
-class ShowcaseCatalogScreen extends StatefulWidget {
-  final VoidCallback onToggleTheme;
-  final bool isDark;
+/// Controller managing showcase category filtering and catalog state
+class ShowcaseCatalogController extends ZenController {
+  final RxString selectedCategory = 'All'.obs();
 
-  const ShowcaseCatalogScreen({
-    super.key,
-    required this.onToggleTheme,
-    required this.isDark,
-  });
-
-  @override
-  State<ShowcaseCatalogScreen> createState() => _ShowcaseCatalogScreenState();
-}
-
-class _ShowcaseCatalogScreenState extends State<ShowcaseCatalogScreen> {
-  String _selectedCategory = 'All';
-
-  final List<String> _categories = [
+  final List<String> categories = const [
     'All',
     'Reactivity',
     'Effects',
@@ -142,146 +111,269 @@ class _ShowcaseCatalogScreenState extends State<ShowcaseCatalogScreen> {
     'Case Studies',
   ];
 
+  void selectCategory(String category) {
+    selectedCategory.value = category;
+  }
+
+  bool isCategorySelected(String category) {
+    return selectedCategory.value == category;
+  }
+
+  bool isSectionVisible(String sectionCategory) {
+    return selectedCategory.value == 'All' ||
+        selectedCategory.value == sectionCategory;
+  }
+}
+
+/// Root application widget powered reactively by ZenObserver
+class ZenifyShowcaseApp extends StatelessWidget {
+  const ZenifyShowcaseApp({super.key});
+
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final themeController = Zen.find<ThemeController>();
 
-    return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          // Premium Header App Bar
-          SliverAppBar.large(
-            expandedHeight: 220,
-            floating: false,
-            pinned: true,
-            flexibleSpace: FlexibleSpaceBar(
-              title: const Text(
-                'Zenify Showcase',
-                style: TextStyle(fontWeight: FontWeight.bold),
+    return ZenObserver(() => MaterialApp(
+          title: 'Zenify Demos & Showcase',
+          debugShowCheckedModeBanner: false,
+          themeMode: themeController.themeMode.value,
+          theme: ThemeData(
+            colorSchemeSeed: const Color(0xFF6366F1),
+            useMaterial3: true,
+            brightness: Brightness.light,
+            cardTheme: CardThemeData(
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: BorderSide(color: Colors.grey.shade200),
               ),
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      theme.colorScheme.primary,
-                      theme.colorScheme.tertiary,
+            ),
+          ),
+          darkTheme: ThemeData(
+            colorSchemeSeed: const Color(0xFF6366F1),
+            useMaterial3: true,
+            brightness: Brightness.dark,
+            cardTheme: CardThemeData(
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: BorderSide(color: Colors.grey.shade800),
+              ),
+            ),
+          ),
+          home: ZenProvider.create(
+            create: () => ShowcaseCatalogController(),
+            child: const ShowcaseCatalogScreen(),
+          ),
+        ));
+  }
+}
+
+/// Main showcase catalog screen implemented cleanly with ZenView & ZenObserver
+class ShowcaseCatalogScreen extends ZenView<ShowcaseCatalogController> {
+  const ShowcaseCatalogScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, ShowcaseCatalogController controller) {
+    return ZenObserver(() {
+      final themeController = Zen.find<ThemeController>();
+      final isDark = themeController.isDarkMode(context);
+
+      return Scaffold(
+        body: CustomScrollView(
+          slivers: [
+            // Premium Header App Bar with high-contrast gradient
+            SliverAppBar.large(
+              expandedHeight: 210,
+              floating: false,
+              pinned: true,
+              backgroundColor:
+                  isDark ? const Color(0xFF0F172A) : const Color(0xFF4338CA),
+              foregroundColor: Colors.white,
+              flexibleSpace: FlexibleSpaceBar(
+                title: const Text(
+                  'Zenify Showcase',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.5,
+                    color: Colors.white,
+                  ),
+                ),
+                background: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: isDark
+                          ? const [
+                              Color(0xFF0F172A), // Slate 900
+                              Color(0xFF1E1B4B), // Indigo 950
+                              Color(0xFF2E1065), // Purple 950
+                            ]
+                          : const [
+                              Color(0xFF3730A3), // Indigo 800
+                              Color(0xFF4F46E5), // Indigo 600
+                              Color(0xFF7C3AED), // Violet 600
+                            ],
+                    ),
+                  ),
+                  child: Stack(
+                    children: [
+                      // Decorative glow icon
+                      Positioned(
+                        right: -20,
+                        bottom: -20,
+                        child: Icon(
+                          Icons.bolt_rounded,
+                          size: 190,
+                          color: isDark
+                              ? const Color(0xFF818CF8).withValues(alpha: 0.10)
+                              : Colors.white.withValues(alpha: 0.15),
+                        ),
+                      ),
+                      SafeArea(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 14),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 10, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: isDark
+                                          ? const Color(0xFF6366F1)
+                                              .withValues(alpha: 0.25)
+                                          : Colors.white
+                                              .withValues(alpha: 0.22),
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(
+                                        color: isDark
+                                            ? const Color(0xFF818CF8)
+                                                .withValues(alpha: 0.5)
+                                            : Colors.white
+                                                .withValues(alpha: 0.4),
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Container(
+                                          width: 6,
+                                          height: 6,
+                                          decoration: const BoxDecoration(
+                                            color:
+                                                Color(0xFF4ADE80), // Green dot
+                                            shape: BoxShape.circle,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 6),
+                                        const Text(
+                                          'v2.2.1 • Production Ready',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w700,
+                                            letterSpacing: 0.3,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      color:
+                                          Colors.white.withValues(alpha: 0.15),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: IconButton(
+                                      icon: Icon(
+                                        isDark
+                                            ? Icons.light_mode
+                                            : Icons.dark_mode,
+                                        color: Colors.white,
+                                        size: 20,
+                                      ),
+                                      tooltip: isDark
+                                          ? 'Switch to Light Mode'
+                                          : 'Switch to Dark Mode',
+                                      onPressed: () =>
+                                          themeController.toggleTheme(context),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+                              Text(
+                                'Interactive Demos & Architecture Catalog',
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.90),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  letterSpacing: 0.2,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
-                child: Stack(
-                  children: [
-                    Positioned(
-                      right: -30,
-                      bottom: -30,
-                      child: Icon(
-                        Icons.bolt,
-                        size: 200,
-                        color: Colors.white.withValues(alpha: 0.12),
+              ),
+            ),
+
+            // Reactive Filter Chips
+            SliverToBoxAdapter(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Row(
+                  children: controller.categories.map((category) {
+                    final isSelected = controller.isCategorySelected(category);
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: FilterChip(
+                        selected: isSelected,
+                        label: Text(category),
+                        onSelected: (selected) {
+                          if (selected) {
+                            controller.selectCategory(category);
+                          }
+                        },
                       ),
-                    ),
-                    SafeArea(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 24, vertical: 16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 10, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.2),
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: const Text(
-                                    'v2.2.1 • Production Ready',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                                const Spacer(),
-                                IconButton(
-                                  icon: Icon(
-                                    widget.isDark
-                                        ? Icons.light_mode
-                                        : Icons.dark_mode,
-                                    color: Colors.white,
-                                  ),
-                                  tooltip: 'Toggle theme',
-                                  onPressed: widget.onToggleTheme,
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            const Text(
-                              'Interactive Demos & Architecture Catalog',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w400,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
+                    );
+                  }).toList(),
                 ),
               ),
             ),
-          ),
 
-          // Filter Chips
-          SliverToBoxAdapter(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Row(
-                children: _categories.map((category) {
-                  final isSelected = _selectedCategory == category;
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: FilterChip(
-                      selected: isSelected,
-                      label: Text(category),
-                      onSelected: (selected) {
-                        if (selected) {
-                          setState(() => _selectedCategory = category);
-                        }
-                      },
-                    ),
-                  );
-                }).toList(),
+            // Reactive Demo Cards Section
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 40),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate(
+                  _buildDemoSections(context, controller),
+                ),
               ),
             ),
-          ),
-
-          // Demo Cards Section
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 40),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate(
-                _buildDemoSections(context),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+          ],
+        ),
+      );
+    });
   }
 
-  List<Widget> _buildDemoSections(BuildContext context) {
+  List<Widget> _buildDemoSections(
+      BuildContext context, ShowcaseCatalogController controller) {
     final List<Widget> list = [];
 
     // Category 1: Reactivity & Basics
-    if (_selectedCategory == 'All' || _selectedCategory == 'Reactivity') {
+    if (controller.isSectionVisible('Reactivity')) {
       list.add(const _CategoryHeader(
         title: 'Core Reactivity & Basics',
         subtitle:
@@ -373,7 +465,7 @@ class _ShowcaseCatalogScreenState extends State<ShowcaseCatalogScreen> {
     }
 
     // Category 2: Effects
-    if (_selectedCategory == 'All' || _selectedCategory == 'Effects') {
+    if (controller.isSectionVisible('Effects')) {
       list.add(const _CategoryHeader(
         title: 'Async Side Effects',
         subtitle: 'Managing complex asynchronous lifecycles with ZenEffects',
@@ -400,7 +492,7 @@ class _ShowcaseCatalogScreenState extends State<ShowcaseCatalogScreen> {
     }
 
     // Category 3: Scopes & DI
-    if (_selectedCategory == 'All' || _selectedCategory == 'Scopes & DI') {
+    if (controller.isSectionVisible('Scopes & DI')) {
       list.add(const _CategoryHeader(
         title: 'Hierarchical Scopes & DI',
         subtitle:
@@ -438,7 +530,7 @@ class _ShowcaseCatalogScreenState extends State<ShowcaseCatalogScreen> {
     }
 
     // Category 4: ZenQuery
-    if (_selectedCategory == 'All' || _selectedCategory == 'ZenQuery') {
+    if (controller.isSectionVisible('ZenQuery')) {
       list.add(const _CategoryHeader(
         title: 'ZenQuery Suite',
         subtitle:
@@ -463,7 +555,7 @@ class _ShowcaseCatalogScreenState extends State<ShowcaseCatalogScreen> {
     }
 
     // Category 5: Offline
-    if (_selectedCategory == 'All' || _selectedCategory == 'Offline') {
+    if (controller.isSectionVisible('Offline')) {
       list.add(const _CategoryHeader(
         title: 'Offline-First Architecture',
         subtitle:
@@ -495,7 +587,7 @@ class _ShowcaseCatalogScreenState extends State<ShowcaseCatalogScreen> {
     }
 
     // Category 6: Case Studies
-    if (_selectedCategory == 'All' || _selectedCategory == 'Case Studies') {
+    if (controller.isSectionVisible('Case Studies')) {
       list.add(const _CategoryHeader(
         title: 'Real-World Case Study Apps',
         subtitle: 'Complete production-pattern application architectures',

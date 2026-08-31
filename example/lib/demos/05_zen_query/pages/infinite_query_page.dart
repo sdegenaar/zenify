@@ -23,38 +23,44 @@ class InfiniteQueryPage extends ZenView<InfiniteQueryController> {
   }
 
   Widget _buildInfoCard(InfiniteQueryController controller) {
-    return Card(
-      margin: const EdgeInsets.all(16),
-      color: Colors.purple.shade50,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
-            Row(
-              children: [
-                Icon(Icons.view_list, color: Colors.purple),
-                SizedBox(width: 8),
-                Text(
-                  'ZenInfiniteQuery',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-            SizedBox(height: 8),
-            Text(
-              'Demonstrates infinite scroll pagination:\n'
-              '• Automatic page loading on scroll\n'
-              '• hasNextPage tracking\n'
-              '• Loading states for next page\n'
-              '• Error handling per page\n'
-              '• Pull to refresh all pages',
-              style: TextStyle(fontSize: 14),
-            ),
-          ],
+    return Builder(builder: (context) {
+      final isDark = Theme.of(context).brightness == Brightness.dark;
+      return Card(
+        margin: const EdgeInsets.all(16),
+        color: isDark
+            ? Colors.purple.shade900.withValues(alpha: 0.3)
+            : Colors.purple.shade50,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.view_list,
+                      color: isDark ? Colors.purpleAccent : Colors.purple),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'ZenInfiniteQuery',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Demonstrates infinite scroll pagination:\n'
+                '• Automatic page loading on scroll\n'
+                '• hasNextPage tracking\n'
+                '• Loading states for next page\n'
+                '• Error handling per page\n'
+                '• Pull to refresh all pages',
+                style: TextStyle(fontSize: 14),
+              ),
+            ],
+          ),
         ),
-      ),
-    );
+      );
+    });
   }
 
   Widget _buildPostsList(InfiniteQueryController controller) {

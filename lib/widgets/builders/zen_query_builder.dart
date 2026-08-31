@@ -112,9 +112,15 @@ class _ZenQueryBuilderState<T> extends State<ZenQueryBuilder<T>> {
   }
 
   void _detachListeners(ZenQuery<T> query) {
-    query.status.removeListener(_onQueryStateChange);
-    query.data.removeListener(_onQueryStateChange);
-    query.error.removeListener(_onQueryStateChange);
+    if (!query.isDisposed) {
+      try {
+        query.status.removeListener(_onQueryStateChange);
+        query.data.removeListener(_onQueryStateChange);
+        query.error.removeListener(_onQueryStateChange);
+      } catch (_) {
+        // Ignored if already cleaned up
+      }
+    }
   }
 
   @override
