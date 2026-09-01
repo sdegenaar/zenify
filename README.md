@@ -231,7 +231,7 @@ flowchart TD
 
 ```yaml
 dependencies:
-  zenify: ^2.3.0
+  zenify: ^2.3.1
 ```
 
 ### 2. Initialize
@@ -857,6 +857,27 @@ Run the unified showcase application (`cd example && flutter run`) or explore in
 ## 📄 License
 
 MIT License — see [LICENSE](LICENSE) file
+
+---
+
+## 🧠 AI Coding Assistant Setup
+
+Using **Antigravity**, **Cursor**, **Claude Code**, or another AI coding assistant?
+
+Zenify ships an official **AI Mastery Skill** that teaches your assistant the exact V2 API — correct `ZenModule.register()` syntax, `ZenRoute(moduleBuilder:, page:)` params, `ZenService` auto-permanent semantics, and every anti-pattern to avoid. Without it, AI tools tend to generate V1-style or GetX-style code that won't compile in V2.
+
+**Add the skill to your project (one command):**
+
+```bash
+# From your Flutter app root
+mkdir -p .agents/skills/zenify
+curl -sSL https://raw.githubusercontent.com/sdegenaar/zenify/main/.agents/skills/zenify/SKILL.md \
+  -o .agents/skills/zenify/SKILL.md
+```
+
+Or copy it manually from [`.agents/skills/zenify/SKILL.md`](.agents/skills/zenify/SKILL.md).
+
+Once added, any Antigravity/Cursor/Claude Code session in your project will automatically load Zenify mastery — producing idiomatic, correct V2 code from the first prompt.
 
 ---
 

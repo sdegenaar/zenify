@@ -77,15 +77,16 @@ class ZenReactiveSystem {
   void _safeNotify(VoidCallback listener, Type type) {
     try {
       listener();
+      // coverage:ignore-start
     } catch (e, stack) {
-      _errorCount++; // coverage:ignore-line
-      ZenLogger.logError('Error notifying listener for $type', e,
-          stack); // coverage:ignore-line
+      _errorCount++;
+      ZenLogger.logError('Error notifying listener for $type', e, stack);
 
       // Consider removing problematic listeners in production
-      ZenLogger.logWarning(// coverage:ignore-line
-          'Consider checking listener implementation for $type'); // coverage:ignore-line
+      ZenLogger.logWarning(
+          'Consider checking listener implementation for $type');
     }
+    // coverage:ignore-end
   }
 
   /// Enhanced listen with comprehensive memory protection
@@ -257,16 +258,16 @@ class ZenReactiveSystem {
           .add('Check for subscription leaks'); // coverage:ignore-line
     }
 
+    // coverage:ignore-start
     if (errorRate > 0.05) {
-      recommendations.add(
-          'Review listener implementations for error handling'); // coverage:ignore-line
+      recommendations.add('Review listener implementations for error handling');
     }
 
     final maxListeners = stats['maxListenersPerKey'] as int;
     if (maxListeners > _maxListenersPerKey) {
-      recommendations.add(
-          'Consider reducing listeners per dependency type'); // coverage:ignore-line
+      recommendations.add('Consider reducing listeners per dependency type');
     }
+    // coverage:ignore-end
 
     return recommendations;
   }

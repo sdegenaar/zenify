@@ -475,14 +475,15 @@ extension RxAsyncErrorHandling<T> on Rx<T> {
       return result.map((newValue) {
         value = newValue;
       });
+      // coverage:ignore-start
     } catch (e, stack) {
       return RxResult.failure(RxException.withTimestamp(
-        // coverage:ignore-line
         context ?? 'Async update failed',
         originalError: e,
         stackTrace: stack,
       ));
     }
+    // coverage:ignore-end
   }
 }
 

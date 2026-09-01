@@ -86,68 +86,75 @@ extension RxSetExtensions<T> on Rx<Set<T>> {
   /// Add item (convenience method)
   bool add(T item) {
     final result = tryAdd(item);
+    // coverage:ignore-start
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!,
-          context: 'Set'); // coverage:ignore-line
+      RxLogger.logError(result.errorOrNull!, context: 'Set');
       return false;
     }
+    // coverage:ignore-end
     return result.value;
   }
 
   /// Remove item (convenience method)
   bool remove(Object? item) {
     final result = tryRemove(item);
+    // coverage:ignore-start
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!,
-          context: 'Set'); // coverage:ignore-line
+      RxLogger.logError(result.errorOrNull!, context: 'Set');
       return false;
     }
+    // coverage:ignore-end
     return result.value;
   }
 
   /// Clear set (convenience method)
   void clear() {
     final result = tryClear();
+    // coverage:ignore-start
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!,
-          context: 'Set'); // coverage:ignore-line
+      RxLogger.logError(result.errorOrNull!, context: 'Set');
     }
+    // coverage:ignore-end
   }
 
   /// Add all items (convenience method)
   void addAll(Iterable<T> elements) {
     final result = tryAddAll(elements);
+    // coverage:ignore-start
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!,
-          context: 'Set'); // coverage:ignore-line
+      RxLogger.logError(result.errorOrNull!, context: 'Set');
     }
+    // coverage:ignore-end
   }
 
   /// Remove all items (convenience method)
   void removeAll(Iterable<Object?> elements) {
     final result = tryRemoveAll(elements);
+    // coverage:ignore-start
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!,
-          context: 'Set'); // coverage:ignore-line
+      RxLogger.logError(result.errorOrNull!, context: 'Set');
     }
+    // coverage:ignore-end
   }
 
   /// Remove where (convenience method)
   void removeWhere(bool Function(T) test) {
     final result = tryRemoveWhere(test);
+    // coverage:ignore-start
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!,
-          context: 'Set'); // coverage:ignore-line
+      RxLogger.logError(result.errorOrNull!, context: 'Set');
     }
+    // coverage:ignore-end
   }
 
   /// Retain where (convenience method)
   void retainWhere(bool Function(T) test) {
     final result = tryRetainWhere(test);
+    // coverage:ignore-start
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!,
-          context: 'Set'); // coverage:ignore-line
+      RxLogger.logError(result.errorOrNull!, context: 'Set');
     }
+    // coverage:ignore-end
   }
 
   // ============================================================================
@@ -270,7 +277,6 @@ extension RxSetExtensions<T> on Rx<Set<T>> {
 
   /// Convenience method to refresh listeners
   void refresh() {
-    // coverage:ignore-line
-    value = value; // coverage:ignore-line
+    value = value;
   }
 }

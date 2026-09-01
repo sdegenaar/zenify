@@ -1,7 +1,7 @@
 name: zenify
 description: "Complete state management for Flutter — hierarchical dependency injection, intelligent async caching, and offline-first resilience. Zero boilerplate, automatic cleanup."
 
-version: 2.3.0
+version: 2.3.1
 homepage: https://github.com/sdegenaar/zenify
 repository: https://github.com/sdegenaar/zenify
 issue_tracker: https://github.com/sdegenaar/zenify/issues

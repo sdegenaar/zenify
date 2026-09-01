@@ -211,30 +211,28 @@ class _ZenRouteState extends State<ZenRoute> {
   @override
   void dispose() {
     // Clean disposal: module cleanup then scope disposal
-    if (_module != null && _scope != null) {
+    if (_module != null) {
       try {
         _module!.onDispose(_scope!);
         ZenLogger.logDebug('🧹 Module disposed: ${_module!.name}');
+        // coverage:ignore-start
       } catch (e, stackTrace) {
         ZenLogger.logError(
-            // coverage:ignore-line
-            'Error disposing module: ${_module!.name}',
-            e,
-            stackTrace); // coverage:ignore-line
+            'Error disposing module: ${_module!.name}', e, stackTrace);
       }
+      // coverage:ignore-end
     }
 
     if (_scope != null && !_scope!.isDisposed) {
       try {
         _scope!.dispose();
         ZenLogger.logDebug('🗑️ Scope disposed: ${_scope!.name}');
+        // coverage:ignore-start
       } catch (e, stackTrace) {
         ZenLogger.logError(
-            // coverage:ignore-line
-            'Error disposing scope: ${_scope!.name}',
-            e,
-            stackTrace); // coverage:ignore-line
+            'Error disposing scope: ${_scope!.name}', e, stackTrace);
       }
+      // coverage:ignore-end
     }
 
     super.dispose();

@@ -729,10 +729,11 @@ abstract class ZenController {
       if (!worker.isDisposed) {
         try {
           workerOp(worker);
+          // coverage:ignore-start
         } catch (e, stack) {
-          ZenLogger.logError(
-              'Error in worker operation', e, stack); // coverage:ignore-line
+          ZenLogger.logError('Error in worker operation', e, stack);
         }
+        // coverage:ignore-end
       }
     }
 
@@ -740,10 +741,11 @@ abstract class ZenController {
       if (!group.isDisposed) {
         try {
           groupOp(group);
+          // coverage:ignore-start
         } catch (e, stack) {
-          ZenLogger.logError('Error in worker group operation', e,
-              stack); // coverage:ignore-line
+          ZenLogger.logError('Error in worker group operation', e, stack);
         }
+        // coverage:ignore-end
       }
     }
   }
@@ -759,20 +761,22 @@ abstract class ZenController {
     for (final worker in _workers) {
       try {
         worker.dispose();
+        // coverage:ignore-start
       } catch (e, stack) {
-        ZenLogger.logError(
-            'Error disposing worker', e, stack); // coverage:ignore-line
+        ZenLogger.logError('Error disposing worker', e, stack);
       }
+      // coverage:ignore-end
     }
     _workers.clear();
 
     for (final group in _workerGroups) {
       try {
         group.dispose();
+        // coverage:ignore-start
       } catch (e, stack) {
-        ZenLogger.logError(
-            'Error disposing worker group', e, stack); // coverage:ignore-line
+        ZenLogger.logError('Error disposing worker group', e, stack);
       }
+      // coverage:ignore-end
     }
     _workerGroups.clear();
   }
@@ -782,10 +786,11 @@ abstract class ZenController {
     for (final effect in _effects) {
       try {
         effect.dispose();
+        // coverage:ignore-start
       } catch (e, stack) {
-        ZenLogger.logError(
-            'Error disposing effect', e, stack); // coverage:ignore-line
+        ZenLogger.logError('Error disposing effect', e, stack);
       }
+      // coverage:ignore-end
     }
     _effects.clear();
   }
@@ -837,10 +842,11 @@ extension ZenControllerWorkerExtension on ZenController {
     for (final worker in workers) {
       try {
         worker.dispose();
+        // coverage:ignore-start
       } catch (e, stack) {
-        ZenLogger.logError(
-            'Error disposing worker', e, stack); // coverage:ignore-line
+        ZenLogger.logError('Error disposing worker', e, stack);
       }
+      // coverage:ignore-end
     }
   }
 
@@ -851,10 +857,11 @@ extension ZenControllerWorkerExtension on ZenController {
       if (!worker.isDisposed) {
         try {
           worker.pause();
+          // coverage:ignore-start
         } catch (e, stack) {
-          ZenLogger.logError(
-              'Error pausing worker', e, stack); // coverage:ignore-line
+          ZenLogger.logError('Error pausing worker', e, stack);
         }
+        // coverage:ignore-end
       }
     }
   }
@@ -866,10 +873,11 @@ extension ZenControllerWorkerExtension on ZenController {
       if (!worker.isDisposed) {
         try {
           worker.resume();
+          // coverage:ignore-start
         } catch (e, stack) {
-          ZenLogger.logError(
-              'Error resuming worker', e, stack); // coverage:ignore-line
+          ZenLogger.logError('Error resuming worker', e, stack);
         }
+        // coverage:ignore-end
       }
     }
   }

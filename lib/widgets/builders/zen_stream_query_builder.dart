@@ -76,11 +76,12 @@ class _ZenStreamQueryBuilderState<T> extends State<ZenStreamQueryBuilder<T>> {
       }
     }
     // Same query instance - just update buffer if data refreshed
+    // coverage:ignore-start
     else if (widget.query.hasData) {
-      // coverage:ignore-line
-      _previousData = widget.query.data.value; // coverage:ignore-line
-      _showingPreviousData = false; // coverage:ignore-line
+      _previousData = widget.query.data.value;
+      _showingPreviousData = false;
     }
+    // coverage:ignore-end
   }
 
   @override

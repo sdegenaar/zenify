@@ -30,6 +30,9 @@ jobs:
       - name: Test
         run: flutter test --coverage
 
+      - name: Coverage gate (100%)
+        run: dart run tool/check_coverage.dart
+
       - name: Upload coverage
         uses: codecov/codecov-action@v4
         with:

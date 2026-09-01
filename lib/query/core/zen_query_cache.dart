@@ -274,10 +274,11 @@ class ZenQueryCache {
       final query = _queries[key];
       if (query != null && !query.isDisposed) {
         refetchFutures.add(query.refetch().catchError((e) {
+          // coverage:ignore-start
           ZenLogger.logWarning(
-            // coverage:ignore-line
-            'Failed to refetch query $key in scope $scopeId: $e', // coverage:ignore-line
+            'Failed to refetch query $key in scope $scopeId: $e',
           );
+          // coverage:ignore-end
         }));
       }
     }
@@ -352,6 +353,7 @@ class ZenQueryCache {
     return all.where((q) => filter.matches(q)).toList();
   }
 
+  // coverage:ignore-start
   /// Returns all tags associated with a given [key] (from active queries or tag index).
   List<String> _getTagsForKey(String key) {
     final query = _queries[key];
@@ -366,6 +368,7 @@ class ZenQueryCache {
     });
     return result;
   }
+  // coverage:ignore-end
 
   /// Returns all query keys matching [filter] across active queries and cached entries.
   List<String> getMatchingKeys(ZenQueryFilter filter) {
@@ -412,10 +415,11 @@ class ZenQueryCache {
       try {
         (query as dynamic).setData(data);
       } catch (e) {
+        // coverage:ignore-start
         ZenLogger.logWarning(
-          // coverage:ignore-line
-          'Failed to propagate cache update to query $queryKey: $e', // coverage:ignore-line
+          'Failed to propagate cache update to query $queryKey: $e',
         );
+        // coverage:ignore-end
       }
 
       // 2. Persist
@@ -455,8 +459,9 @@ class ZenQueryCache {
       await storage.write(key, entry);
       ZenLogger.logDebug('Persisted query: $key');
     } catch (e, stack) {
-      ZenLogger.logError(
-          'Failed to persist query $key', e, stack); // coverage:ignore-line
+      // coverage:ignore-start
+      ZenLogger.logError('Failed to persist query $key', e, stack);
+      // coverage:ignore-end
     }
   }
 

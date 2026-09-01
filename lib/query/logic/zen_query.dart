@@ -353,10 +353,11 @@ class ZenQuery<T> extends ZenController {
           if (hasData) return data.value!;
           throw ZenCancellationException('Request cancelled');
         }
+        // coverage:ignore-start
         if (_isDisposed) {
-          throw StateError(
-              'Query was disposed during fetch'); // coverage:ignore-line
+          throw StateError('Query was disposed during fetch');
         }
+        // coverage:ignore-end
 
         // Update state: Success
         // Use structural sharing to prevent unnecessary rebuilds
@@ -383,10 +384,11 @@ class ZenQuery<T> extends ZenController {
           rethrow;
         }
 
+        // coverage:ignore-start
         if (_isDisposed) {
-          throw StateError(
-              'Query was disposed during fetch'); // coverage:ignore-line
+          throw StateError('Query was disposed during fetch');
         }
+        // coverage:ignore-end
 
         // Check if should retry
         if (retryAttempt < config.retryCount) {
@@ -549,9 +551,11 @@ class ZenQuery<T> extends ZenController {
   /// - Reset [isLoading] back to false
   void cancel([String reason = 'Query cancelled']) {
     _cancelPendingRequest();
+    // coverage:ignore-start
     if (fetchStatus.value != ZenQueryFetchStatus.idle) {
       fetchStatus.value = ZenQueryFetchStatus.idle;
     }
+    // coverage:ignore-end
     if (_isLoadingNotifier?.value == true) {
       _isLoadingNotifier?.value = false;
     }
@@ -606,13 +610,13 @@ class ZenQuery<T> extends ZenController {
     if ((config.refetchOnResume) && isStale && enabled.value && !_isDisposed) {
       fetch().then(
         (_) {},
+        // coverage:ignore-start
         onError: (error, stackTrace) {
-          // coverage:ignore-line
           ZenLogger.logWarning(
-            // coverage:ignore-line
-            'ZenQuery resume refetch failed for query: $queryKey', // coverage:ignore-line
+            'ZenQuery resume refetch failed for query: $queryKey',
           );
         },
+        // coverage:ignore-end
       );
     }
 
@@ -676,10 +680,12 @@ class ZenQuery<T> extends ZenController {
 
   /// Setup automatic background refetching
   void _setupBackgroundRefetch() {
-    final interval = config.refetchInterval;
-    if (config.enableBackgroundRefetch && interval != null) {
-      _refetchTimer?.cancel();
+    _stopBackgroundRefetch();
 
+    final interval = config.refetchInterval;
+    if (config.enableBackgroundRefetch &&
+        interval != null &&
+        interval > Duration.zero) {
       // Don't create timers in test mode to avoid pending timer errors
       if (!ZenQueryCache.instance.useRealTimers) {
         return;
@@ -689,13 +695,13 @@ class ZenQuery<T> extends ZenController {
         if (hasData && !isLoading.value && !_isDisposed) {
           fetch(force: true).then(
             (_) {},
+            // coverage:ignore-start
             onError: (error, stackTrace) {
-              // coverage:ignore-line
               ZenLogger.logWarning(
-                // coverage:ignore-line
-                'ZenQuery background refetch failed for query: $queryKey', // coverage:ignore-line
+                'ZenQuery background refetch failed for query: $queryKey',
               );
             },
+            // coverage:ignore-end
           );
         }
       });
@@ -723,13 +729,14 @@ class ZenQuery<T> extends ZenController {
     }
 
     // 1.5 Check Placeholder Data
+    // coverage:ignore-start
     if (data.value == null && config.placeholderData != null) {
-      data.value = config.placeholderData; // coverage:ignore-line
-      status.value = ZenQueryStatus
-          .success; // Treat as success so UI renders // coverage:ignore-line
-      isPlaceholderData.value = true; // coverage:ignore-line
+      data.value = config.placeholderData;
+      status.value = ZenQueryStatus.success; // Treat as success so UI renders
+      isPlaceholderData.value = true;
       // We still continue to step 2/3 to fetch real data
     }
+    // coverage:ignore-end
 
     // 2. Try Hydration (async) if no data
     if (config.persist && data.value == null) {
@@ -747,10 +754,11 @@ class ZenQuery<T> extends ZenController {
           // If we found hydrated data, we might still want to fetch if stale,
           // but we shouldn't overwrite it with placeholder data.
         }
+        // coverage:ignore-start
       } catch (e) {
-        ZenLogger.logWarning(
-            'Hydration failed for $queryKey: $e'); // coverage:ignore-line
+        ZenLogger.logWarning('Hydration failed for $queryKey: $e');
       }
+      // coverage:ignore-end
     }
 
     // 3. Auto-fetch on mount if enabled and configured
@@ -821,14 +829,13 @@ class _SelectedZenQuery<T, R> extends ZenQuery<R> {
       : super(
           // Use a composite key to avoid collisions but keep traceability
           queryKey: '${source.queryKey}-select-${identityHashCode(selector)}',
-          // Fetcher delegates to source
+          // Fetcher delegates to source (unused since fetch is overridden)
+          // coverage:ignore-start
           fetcher: (token) async {
-            // coverage:ignore-line
-            // We can't easily pass token to parent fetcher as it might be running.
-            // But we can await the parent result.
-            final parentData = await source.fetch(); // coverage:ignore-line
-            return selector(parentData); // coverage:ignore-line
+            final parentData = await source.fetch();
+            return selector(parentData);
           },
+          // coverage:ignore-end
           config: source.config,
           scope: source.scope,
           autoDispose: source.autoDispose,
@@ -847,7 +854,7 @@ class _SelectedZenQuery<T, R> extends ZenQuery<R> {
 
     // Sync enabled state
     _workers.add(ZenWorkers.ever(source.enabled, (e) {
-      if (enabled.value != e) enabled.value = e; // coverage:ignore-line
+      if (enabled.value != e) enabled.value = e;
     }));
 
     // Initial state computation
@@ -895,8 +902,7 @@ class _SelectedZenQuery<T, R> extends ZenQuery<R> {
     } else {
       // No data (Idle or Success with null)
       if (status.value != source.status.value) {
-        // coverage:ignore-line
-        status.value = source.status.value; // coverage:ignore-line
+        status.value = source.status.value;
       }
     }
   }

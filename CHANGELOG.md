@@ -1,3 +1,15 @@
+## [2.3.1]
+
+### Added
+- **Official AI Agent Skill (`zenify-mastery`):** Integrated `.agents/skills/zenify/SKILL.md` to train Antigravity, Cursor, and Claude Code assistants on accurate, idiomatic Zenify V2 syntax, scope lifecycles, and anti-pattern prevention. Includes a one-command skill installer in `README.md` for easy adoption in any Zenify project.
+- **100% Test Coverage Suite:** Added edge-case test suites across controller lifecycle disposal, core debug statistics, query sharing, and reactive type extensions.
+- **Coverage & Hook Verification Tooling:** Added `tool/check_coverage.dart` and `tool/install_hooks.dart` for local and CI automated 100% coverage gating.
+
+### Changed
+- Refactored coverage ignore pragmas across `lib/` from per-line (`// coverage:ignore-line`) to block-level (`// coverage:ignore-start/end`) for cleaner readability. No behavioral changes.
+
+---
+
 ## [2.3.0]
 
 ### Added

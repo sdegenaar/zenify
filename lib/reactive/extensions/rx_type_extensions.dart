@@ -76,55 +76,61 @@ extension RxIntExtensions on Rx<int> {
   /// Increment (convenience method)
   void increment([int step = 1]) {
     final result = tryIncrement(step);
+    // coverage:ignore-start
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!,
-          context: 'Int'); // coverage:ignore-line
+      RxLogger.logError(result.errorOrNull!, context: 'Int');
     }
+    // coverage:ignore-end
   }
 
   /// Decrement (convenience method)
   void decrement([int step = 1]) {
     final result = tryDecrement(step);
+    // coverage:ignore-start
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!,
-          context: 'Int'); // coverage:ignore-line
+      RxLogger.logError(result.errorOrNull!, context: 'Int');
     }
+    // coverage:ignore-end
   }
 
   /// Multiply (convenience method)
   void multiply(num factor) {
     final result = tryMultiply(factor);
+    // coverage:ignore-start
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!,
-          context: 'Int'); // coverage:ignore-line
+      RxLogger.logError(result.errorOrNull!, context: 'Int');
     }
+    // coverage:ignore-end
   }
 
   /// Divide (convenience method)
   void divide(num divisor) {
     final result = tryDivide(divisor);
+    // coverage:ignore-start
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!,
-          context: 'Int'); // coverage:ignore-line
+      RxLogger.logError(result.errorOrNull!, context: 'Int');
     }
+    // coverage:ignore-end
   }
 
   /// Modulo (convenience method)
   void modulo(int divisor) {
     final result = tryModulo(divisor);
+    // coverage:ignore-start
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!,
-          context: 'Int'); // coverage:ignore-line
+      RxLogger.logError(result.errorOrNull!, context: 'Int');
     }
+    // coverage:ignore-end
   }
 
   /// Power (convenience method)
   void power(int exponent) {
     final result = tryPower(exponent);
+    // coverage:ignore-start
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!,
-          context: 'Int'); // coverage:ignore-line
+      RxLogger.logError(result.errorOrNull!, context: 'Int');
     }
+    // coverage:ignore-end
   }
 
   // ============================================================================
@@ -206,37 +212,41 @@ extension RxDoubleExtensions on Rx<double> {
   /// Increment (convenience method)
   void increment([double step = 1.0]) {
     final result = tryIncrement(step);
+    // coverage:ignore-start
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!,
-          context: 'Double'); // coverage:ignore-line
+      RxLogger.logError(result.errorOrNull!, context: 'Double');
     }
+    // coverage:ignore-end
   }
 
   /// Decrement (convenience method)
   void decrement([double step = 1.0]) {
     final result = tryDecrement(step);
+    // coverage:ignore-start
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!,
-          context: 'Double'); // coverage:ignore-line
+      RxLogger.logError(result.errorOrNull!, context: 'Double');
     }
+    // coverage:ignore-end
   }
 
   /// Multiply (convenience method)
   void multiply(num factor) {
     final result = tryMultiply(factor);
+    // coverage:ignore-start
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!,
-          context: 'Double'); // coverage:ignore-line
+      RxLogger.logError(result.errorOrNull!, context: 'Double');
     }
+    // coverage:ignore-end
   }
 
   /// Divide (convenience method)
   void divide(num divisor) {
     final result = tryDivide(divisor);
+    // coverage:ignore-start
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!,
-          context: 'Double'); // coverage:ignore-line
+      RxLogger.logError(result.errorOrNull!, context: 'Double');
     }
+    // coverage:ignore-end
   }
 
   // ============================================================================
@@ -257,9 +267,8 @@ extension RxDoubleExtensions on Rx<double> {
 
   /// Get sign (-1.0, 0.0, or 1.0) - NOTE: double.sign returns double!
   double get sign {
-    // coverage:ignore-line
-    RxTracking.track(this); // coverage:ignore-line
-    return value.sign; // coverage:ignore-line
+    RxTracking.track(this);
+    return value.sign;
   }
 
   /// Check if number is finite
@@ -339,28 +348,31 @@ extension RxBoolExtensions on Rx<bool> {
   /// Toggle (convenience method)
   void toggle() {
     final result = tryToggle();
+    // coverage:ignore-start
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!,
-          context: 'Bool'); // coverage:ignore-line
+      RxLogger.logError(result.errorOrNull!, context: 'Bool');
     }
+    // coverage:ignore-end
   }
 
   /// Set to true (convenience method)
   void setTrue() {
     final result = trySetTrue();
+    // coverage:ignore-start
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!,
-          context: 'Bool'); // coverage:ignore-line
+      RxLogger.logError(result.errorOrNull!, context: 'Bool');
     }
+    // coverage:ignore-end
   }
 
   /// Set to false (convenience method)
   void setFalse() {
     final result = trySetFalse();
+    // coverage:ignore-start
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!,
-          context: 'Bool'); // coverage:ignore-line
+      RxLogger.logError(result.errorOrNull!, context: 'Bool');
     }
+    // coverage:ignore-end
   }
 }
 
@@ -430,64 +442,71 @@ extension RxStringExtensions on Rx<String> {
   /// Append text (convenience method)
   void append(String text) {
     final result = tryAppend(text);
+    // coverage:ignore-start
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!,
-          context: 'String'); // coverage:ignore-line
+      RxLogger.logError(result.errorOrNull!, context: 'String');
     }
+    // coverage:ignore-end
   }
 
   /// Prepend text (convenience method)
   void prepend(String text) {
     final result = tryPrepend(text);
+    // coverage:ignore-start
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!,
-          context: 'String'); // coverage:ignore-line
+      RxLogger.logError(result.errorOrNull!, context: 'String');
     }
+    // coverage:ignore-end
   }
 
   /// Clear (convenience method)
   void clear() {
     final result = tryClear();
+    // coverage:ignore-start
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!,
-          context: 'String'); // coverage:ignore-line
+      RxLogger.logError(result.errorOrNull!, context: 'String');
     }
+    // coverage:ignore-end
   }
 
   /// Convert to uppercase (convenience method)
   void toUpperCase() {
     final result = tryToUpperCase();
+    // coverage:ignore-start
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!,
-          context: 'String'); // coverage:ignore-line
+      RxLogger.logError(result.errorOrNull!, context: 'String');
     }
+    // coverage:ignore-end
   }
 
   /// Convert to lowercase (convenience method)
   void toLowerCase() {
     final result = tryToLowerCase();
+    // coverage:ignore-start
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!,
-          context: 'String'); // coverage:ignore-line
+      RxLogger.logError(result.errorOrNull!, context: 'String');
     }
+    // coverage:ignore-end
   }
 
   /// Trim (convenience method)
   void trim() {
     final result = tryTrim();
+    // coverage:ignore-start
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!,
-          context: 'String'); // coverage:ignore-line
+      RxLogger.logError(result.errorOrNull!, context: 'String');
     }
+    // coverage:ignore-end
   }
 
   /// Replace (convenience method)
   void replace(Pattern from, String replacement) {
     final result = tryReplace(from, replacement);
+    // coverage:ignore-start
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!,
-          context: 'String'); // coverage:ignore-line
+      RxLogger.logError(result.errorOrNull!, context: 'String');
     }
+    // coverage:ignore-end
   }
 
   // ============================================================================

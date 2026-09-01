@@ -33,15 +33,15 @@ class ZenLifecycleManager {
               controller.onReady();
             }
           });
+          // coverage:ignore-start
         } catch (_) {
           // WidgetsBinding not initialized - we're in a pure unit test
           // Call onReady immediately
           if (!controller.isDisposed) {
-            // coverage:ignore-line
-            // coverage:ignore-line
-            controller.onReady(); // coverage:ignore-line
-          } // coverage:ignore-line
+            controller.onReady();
+          }
         }
+        // coverage:ignore-end
       }
     } catch (e, stack) {
       ZenLogger.logError(
@@ -56,10 +56,12 @@ class ZenLifecycleManager {
         _lifecycleObserver = _ZenAppLifecycleObserver();
         WidgetsBinding.instance.addObserver(_lifecycleObserver!);
         ZenLogger.logDebug('Zen lifecycle observer initialized');
+        // coverage:ignore-start
       } catch (_) {
         // WidgetsBinding not initialized - skip lifecycle observer for pure unit tests
-        _lifecycleObserver = null; // coverage:ignore-line
+        _lifecycleObserver = null;
       }
+      // coverage:ignore-end
     }
   }
 
@@ -177,13 +179,11 @@ class _ZenAppLifecycleObserver extends WidgetsBindingObserver {
         }
       }
       ZenLogger.logDebug('Paused ${queries.length} queries');
+      // coverage:ignore-start
     } catch (e, stack) {
-      ZenLogger.logError(
-          // coverage:ignore-line
-          'Error pausing queries',
-          e,
-          stack); // coverage:ignore-line
+      ZenLogger.logError('Error pausing queries', e, stack);
     }
+    // coverage:ignore-end
   }
 
   void _resumeQueries() {
@@ -193,13 +193,11 @@ class _ZenAppLifecycleObserver extends WidgetsBindingObserver {
         query.resume();
       }
       ZenLogger.logDebug('Resumed ${queries.length} queries');
+      // coverage:ignore-start
     } catch (e, stack) {
-      ZenLogger.logError(
-          // coverage:ignore-line
-          'Error resuming queries',
-          e,
-          stack); // coverage:ignore-line
+      ZenLogger.logError('Error resuming queries', e, stack);
     }
+    // coverage:ignore-end
   }
 
   void _notifyControllers(

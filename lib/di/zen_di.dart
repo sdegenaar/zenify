@@ -65,11 +65,12 @@ class Zen {
       try {
         ZenServiceExtensions.registerExtensions();
         ZenLogger.logDebug('DevTools service extensions registered');
+        // coverage:ignore-start
       } catch (e) {
         // Silently fail if devtools not available
-        ZenLogger.logDebug(
-            'DevTools extensions not available: $e'); // coverage:ignore-line
+        ZenLogger.logDebug('DevTools extensions not available: $e');
       }
+      // coverage:ignore-end
     }
 
     ZenLogger.logInfo('Zen initialized');

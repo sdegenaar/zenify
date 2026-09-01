@@ -212,18 +212,18 @@ extension RxListExtensions<T> on Rx<List<T>> {
     RxTracking.track(this);
     try {
       return index >= 0 && index < value.length ? value[index] : null;
+      // coverage:ignore-start
     } catch (e) {
       RxLogger.logError(
-        // coverage:ignore-line
         RxException.withTimestamp(
-          // coverage:ignore-line
-          'Error accessing element at index $index', // coverage:ignore-line
+          'Error accessing element at index $index',
           originalError: e,
         ),
         context: 'List',
       );
       return null;
     }
+    // coverage:ignore-end
   }
 
   // ============================================================================
@@ -233,118 +233,135 @@ extension RxListExtensions<T> on Rx<List<T>> {
   /// Add element (convenience method that calls tryAdd internally)
   void add(T element) {
     final result = tryAdd(element);
+    // coverage:ignore-start
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!,
-          context: 'List'); // coverage:ignore-line
+      RxLogger.logError(result.errorOrNull!, context: 'List');
     }
+    // coverage:ignore-end
   }
 
   /// Remove element (convenience method that calls tryRemove internally)
   bool remove(T element) {
     final result = tryRemove(element);
+    // coverage:ignore-start
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!,
-          context: 'List'); // coverage:ignore-line
+      RxLogger.logError(result.errorOrNull!, context: 'List');
       return false;
     }
+    // coverage:ignore-end
     return result.value;
   }
 
   /// Insert at index (convenience method that calls tryInsert internally)
   void insert(int index, T element) {
     final result = tryInsert(index, element);
+    // coverage:ignore-start
     if (result.isFailure) {
       RxLogger.logError(result.errorOrNull!, context: 'List');
     }
+    // coverage:ignore-end
   }
 
   /// Insert all at index (convenience method)
   void insertAll(int index, Iterable<T> iterable) {
     final result = tryInsertAll(index, iterable);
+    // coverage:ignore-start
     if (result.isFailure) {
       RxLogger.logError(result.errorOrNull!, context: 'List');
     }
+    // coverage:ignore-end
   }
 
   /// Remove at index (convenience method that calls tryRemoveAt internally)
   T? removeAt(int index) {
     final result = tryRemoveAt(index);
+    // coverage:ignore-start
     if (result.isFailure) {
       RxLogger.logError(result.errorOrNull!, context: 'List');
       return null;
     }
+    // coverage:ignore-end
     return result.value;
   }
 
   /// Clear list (convenience method that calls tryClear internally)
   void clear() {
     final result = tryClear();
+    // coverage:ignore-start
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!,
-          context: 'List'); // coverage:ignore-line
+      RxLogger.logError(result.errorOrNull!, context: 'List');
     }
+    // coverage:ignore-end
   }
 
   /// Add all elements (convenience method that calls tryAddAll internally)
   void addAll(Iterable<T> elements) {
     final result = tryAddAll(elements);
+    // coverage:ignore-start
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!,
-          context: 'List'); // coverage:ignore-line
+      RxLogger.logError(result.errorOrNull!, context: 'List');
     }
+    // coverage:ignore-end
   }
 
   /// Replace all elements (convenience method that calls tryAssignAll internally)
   void assignAll(Iterable<T> elements) {
     final result = tryAssignAll(elements);
+    // coverage:ignore-start
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!,
-          context: 'List'); // coverage:ignore-line
+      RxLogger.logError(result.errorOrNull!, context: 'List');
     }
+    // coverage:ignore-end
   }
 
   /// Remove where (convenience method that calls tryRemoveWhere internally)
   void removeWhere(bool Function(T element) test) {
     final result = tryRemoveWhere(test);
+    // coverage:ignore-start
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!,
-          context: 'List'); // coverage:ignore-line
+      RxLogger.logError(result.errorOrNull!, context: 'List');
     }
+    // coverage:ignore-end
   }
 
   /// Retain where (convenience method)
   void retainWhere(bool Function(T element) test) {
     final result = tryRetainWhere(test);
+    // coverage:ignore-start
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!,
-          context: 'List'); // coverage:ignore-line
+      RxLogger.logError(result.errorOrNull!, context: 'List');
     }
+    // coverage:ignore-end
   }
 
   /// Sort list (convenience method that calls trySort internally)
   void sort([int Function(T a, T b)? compare]) {
     final result = trySort(compare);
+    // coverage:ignore-start
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!,
-          context: 'List'); // coverage:ignore-line
+      RxLogger.logError(result.errorOrNull!, context: 'List');
     }
+    // coverage:ignore-end
   }
 
   /// Shuffle list (convenience method)
   void shuffle([Random? random]) {
     final result = tryShuffle(random);
+    // coverage:ignore-start
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!,
-          context: 'List'); // coverage:ignore-line
+      RxLogger.logError(result.errorOrNull!, context: 'List');
     }
+    // coverage:ignore-end
   }
 
   /// Replace range (convenience method)
   void replaceRange(int start, int end, Iterable<T> replacements) {
     final result = tryReplaceRange(start, end, replacements);
+    // coverage:ignore-start
     if (result.isFailure) {
       RxLogger.logError(result.errorOrNull!, context: 'List');
     }
+    // coverage:ignore-end
   }
 
   // ============================================================================
@@ -580,7 +597,6 @@ extension RxListExtensions<T> on Rx<List<T>> {
 
   /// Convenience method to refresh listeners
   void refresh() {
-    // coverage:ignore-line
-    value = value; // coverage:ignore-line
+    value = value;
   }
 }

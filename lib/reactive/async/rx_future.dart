@@ -112,10 +112,11 @@ class RxFuture<T> extends ValueNotifier<AsyncSnapshot<T>> {
   /// Refresh the future - re-executes if factory is available, otherwise restarts current future
   void refresh() {
     final result = tryRefresh();
+    // coverage:ignore-start
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!,
-          context: 'Future'); // coverage:ignore-line
+      RxLogger.logError(result.errorOrNull!, context: 'Future');
     }
+    // coverage:ignore-end
   }
 
   /// Refresh with error handling
@@ -201,13 +202,14 @@ class RxFuture<T> extends ValueNotifier<AsyncSnapshot<T>> {
     RxTracking.track(this);
     if (hasError) {
       final err = error;
+      // coverage:ignore-start
       final rxError = err is RxException
           ? err
           : RxException.withTimestamp(
-              // coverage:ignore-line
               'Future has error state',
               originalError: err,
             );
+      // coverage:ignore-end
       return RxResult.failure(rxError);
     }
 

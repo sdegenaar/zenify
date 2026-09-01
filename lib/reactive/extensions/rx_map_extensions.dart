@@ -116,77 +116,85 @@ extension RxMapExtensions<K, V> on Rx<Map<K, V>> {
   /// Set key-value (convenience method)
   void operator []=(K key, V val) {
     final result = trySetKey(key, val);
+    // coverage:ignore-start
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!,
-          context: 'Map'); // coverage:ignore-line
+      RxLogger.logError(result.errorOrNull!, context: 'Map');
     }
+    // coverage:ignore-end
   }
 
   /// Remove key (convenience method)
   V? remove(Object? key) {
     final result = tryRemoveKey(key);
+    // coverage:ignore-start
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!,
-          context: 'Map'); // coverage:ignore-line
+      RxLogger.logError(result.errorOrNull!, context: 'Map');
       return null;
     }
+    // coverage:ignore-end
     return result.value;
   }
 
   /// Clear map (convenience method)
   void clear() {
     final result = tryClear();
+    // coverage:ignore-start
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!,
-          context: 'Map'); // coverage:ignore-line
+      RxLogger.logError(result.errorOrNull!, context: 'Map');
     }
+    // coverage:ignore-end
   }
 
   /// Add all entries (convenience method)
   void addAll(Map<K, V> other) {
     final result = tryAddAll(other);
+    // coverage:ignore-start
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!,
-          context: 'Map'); // coverage:ignore-line
+      RxLogger.logError(result.errorOrNull!, context: 'Map');
     }
+    // coverage:ignore-end
   }
 
   /// Add entries (convenience method)
   void addEntries(Iterable<MapEntry<K, V>> newEntries) {
     final result = tryAddEntries(newEntries);
+    // coverage:ignore-start
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!,
-          context: 'Map'); // coverage:ignore-line
+      RxLogger.logError(result.errorOrNull!, context: 'Map');
     }
+    // coverage:ignore-end
   }
 
   /// Put if absent (convenience method)
   V putIfAbsent(K key, V Function() ifAbsent) {
     final result = tryPutIfAbsent(key, ifAbsent);
+    // coverage:ignore-start
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!,
-          context: 'Map'); // coverage:ignore-line
-      return ifAbsent(); // Fallback to ifAbsent result // coverage:ignore-line
+      RxLogger.logError(result.errorOrNull!, context: 'Map');
+      return ifAbsent(); // Fallback to ifAbsent result
     }
+    // coverage:ignore-end
     return result.value;
   }
 
   /// Remove where (convenience method)
   void removeWhere(bool Function(K key, V value) predicate) {
     final result = tryRemoveWhere(predicate);
+    // coverage:ignore-start
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!,
-          context: 'Map'); // coverage:ignore-line
+      RxLogger.logError(result.errorOrNull!, context: 'Map');
     }
+    // coverage:ignore-end
   }
 
   /// Update all values (convenience method)
   void updateAll(V Function(K key, V value) update) {
     final result = tryUpdateAll(update);
+    // coverage:ignore-start
     if (result.isFailure) {
-      RxLogger.logError(result.errorOrNull!,
-          context: 'Map'); // coverage:ignore-line
+      RxLogger.logError(result.errorOrNull!, context: 'Map');
     }
+    // coverage:ignore-end
   }
 
   // ============================================================================
@@ -263,7 +271,6 @@ extension RxMapExtensions<K, V> on Rx<Map<K, V>> {
 
   /// Convenience method to refresh listeners
   void refresh() {
-    // coverage:ignore-line
-    value = value; // coverage:ignore-line
+    value = value;
   }
 }
